@@ -265,7 +265,10 @@ class PornHubIE(PornHubBaseIE):
 
         self._login(host)
 
-        self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
+        if 'thumbzilla.com' in host:
+            self._set_cookie(host, 'accessAgeDisclaimerTZ', '1')
+        else:
+            self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
