@@ -48,7 +48,7 @@ jobs:
       run: pip install nose
     - name: Install yourbase
       if: ${{ matrix.python-version == 3.9 }}
-      run: pip install yourbase; pip install --force-reinstall coverage==6.1; pip install pytest
+      run: pip install yourbase; pip install --force-reinstall coverage==6.1;pip install pytest
     - name: Install nose (Jython)
       if: ${{ matrix.python-impl == 'jython' }}
       # Working around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
@@ -63,6 +63,7 @@ jobs:
         AWS_ACCESS_KEY_ID: AKIA4YF2YHK3JVVABOT6
         AWS_SECRET_ACCESS_KEY: z5Pz9kuLDOL9dyLMmT3gJrpSiDOy1iJjomaCdKd9
         YOURBASE_REMOTE_CACHE: s3://youtube-dl-test-123/test
+        YOURBASE_LICENSE_KEY: c4d1bf6c-5129-471f-8c31-b63d38d358c3
       run: ./devscripts/run_tests.${{ matrix.run-tests-ext }}
   flake8:
     name: Linter
