@@ -1,0 +1,8 @@
+build_targets:
+  - name: build
+    commands:
+    - make
+ci:
+  builds:
+    - name: all_commits
+      build_target: default

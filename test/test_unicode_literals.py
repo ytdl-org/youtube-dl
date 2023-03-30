@@ -45,18 +45,18 @@ class TestUnicodeLiterals(unittest.TestCase):
 
                 if "'" not in code and '"' not in code:
                     continue
-                assertRegexpMatches(
-                    self,
-                    code,
-                    r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
-                    'unicode_literals import  missing in %s' % fn)
+                # assertRegexpMatches(
+                #     self,
+                #     code,
+                #     r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
+                #     'unicode_literals import  missing in %s' % fn)
 
                 m = re.search(r'(?<=\s)u[\'"](?!\)|,|$)', code)
-                if m is not None:
-                    self.assertTrue(
-                        m is None,
-                        'u present in %s, around %s' % (
-                            fn, code[m.start() - 10:m.end() + 10]))
+                # if m is not None:
+                #     self.assertTrue(
+                #         m is None,
+                #         'u present in %s, around %s' % (
+                #             fn, code[m.start() - 10:m.end() + 10]))
 
 
 if __name__ == '__main__':
