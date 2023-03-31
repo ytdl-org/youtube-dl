@@ -207,7 +207,7 @@ class NPOIE(NPOBaseIE):
                 'pageUrl': url,
                 'isFavourite': "false",
                 'hasAdConsent': 0,
-            },))
+            }))
 
         player_token = player['token']
 
@@ -223,7 +223,8 @@ class NPOIE(NPOBaseIE):
                     'quality': 'npo',
                     'tokenId': player_token,
                     'streamType': 'broadcast',
-                }, data=b"")
+                },
+                data=b"")  # empty byte string to force a POST request instead of GET, without it HTTP 405 will happen
             if not streams:
                 continue
             stream = streams.get('stream')
