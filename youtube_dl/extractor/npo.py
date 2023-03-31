@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
 import re
-import urllib.parse
-from http.cookies import SimpleCookie
 
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
+    compat_urllib_parse_unquote_plus,
+    compat_cookies_SimpleCookie,
 )
 from ..utils import (
     determine_ext,
@@ -192,7 +192,7 @@ class NPOIE(NPOBaseIE):
                 'Referer': url,
                 'X-Requested-With': 'XMLHttpRequest',
             })
-        cookies = SimpleCookie()
+        cookies = compat_cookies_SimpleCookie()
         cookies.load(xsrf_token_response.headers['Set-Cookie'])
         cookies = {k: v.value for k, v in cookies.items()}
         xsrf_token = cookies['XSRF-TOKEN']
@@ -200,7 +200,7 @@ class NPOIE(NPOBaseIE):
         player = self._download_json(
             'https://www.npostart.nl/player/%s' % video_id, video_id,
             'Downloading player JSON',
-            headers={"x-xsrf-token": urllib.parse.unquote(xsrf_token)},
+            headers={"x-xsrf-token": compat_urllib_parse_unquote_plus(xsrf_token)},
             data=urlencode_postdata({
                 'autoplay': 0,
                 'share': 1,
