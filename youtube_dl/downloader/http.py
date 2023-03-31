@@ -58,9 +58,9 @@ class HttpFD(FileDownloader):
 
         if self.params.get('continuedl', True):
             # Establish possible resume length
-            if os.path.isfile(encodeFilename(ctx.tmpfilename)):
-                ctx.resume_len = os.path.getsize(
-                    encodeFilename(ctx.tmpfilename))
+            ctx.resume_len = info_dict.get('frag_resume_len')
+            if ctx.resume_len is None:
+                ctx.resume_len = self.filesize_or_none(ctx.tmpfilename) or 0
 
         ctx.is_resume = ctx.resume_len > 0
 
@@ -115,9 +115,9 @@ class HttpFD(FileDownloader):
                         raise RetryDownload(err)
                     raise err
                 # When trying to resume, Content-Range HTTP header of response has to be checked
-                # to match the value of requested Range HTTP header. This is due to a webservers
+                # to match the value of requested Range HTTP header. This is due to webservers
                 # that don't support resuming and serve a whole file with no Content-Range
-                # set in response despite of requested Range (see
+                # set in response despite requested Range (see
                 # https://github.com/ytdl-org/youtube-dl/issues/6057#issuecomment-126129799)
                 if has_range:
                     content_range = ctx.data.headers.get('Content-Range')
@@ -293,10 +293,7 @@ class HttpFD(FileDownloader):
 
                 # Progress message
                 speed = self.calc_speed(start, now, byte_counter - ctx.resume_len)
-                if ctx.data_len is None:
-                    eta = None
-                else:
-                    eta = self.calc_eta(start, time.time(), ctx.data_len - ctx.resume_len, byte_counter - ctx.resume_len)
+                eta = self.calc_eta(speed, ctx.data_len and (ctx.data_len - ctx.resume_len))
 
                 self._hook_progress({
                     'status': 'downloading',

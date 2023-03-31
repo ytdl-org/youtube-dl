@@ -250,6 +250,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+        self.assertEqual(sanitize_url('foo bar'), 'foo bar')
 
     def test_expand_path(self):
         def env(var):
