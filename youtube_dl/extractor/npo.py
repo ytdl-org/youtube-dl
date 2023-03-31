@@ -200,7 +200,9 @@ class NPOIE(NPOBaseIE):
         player = self._download_json(
             'https://www.npostart.nl/player/%s' % video_id, video_id,
             'Downloading player JSON',
-            headers={"x-xsrf-token": compat_urllib_parse_unquote_plus(xsrf_token)},
+            headers={
+                "x-xsrf-token": compat_urllib_parse_unquote_plus(xsrf_token)
+            },
             data=urlencode_postdata({
                 'autoplay': 0,
                 'share': 1,
@@ -224,7 +226,9 @@ class NPOIE(NPOBaseIE):
                     'tokenId': player_token,
                     'streamType': 'broadcast',
                 },
-                data=b"")  # empty byte string to force a POST request instead of GET, without it HTTP 405 will happen
+                data=b"")
+            # Empty byte string in the call above to force a POST request
+            # Without it HTTP 405 will happen
             if not streams:
                 continue
             stream = streams.get('stream')
