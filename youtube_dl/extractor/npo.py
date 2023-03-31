@@ -1,6 +1,8 @@
 from __future__ import unicode_literals
 
 import re
+import urllib.parse
+from http.cookies import SimpleCookie
 
 from .common import InfoExtractor
 from ..compat import (
@@ -184,22 +186,28 @@ class NPOIE(NPOBaseIE):
         return self._get_info(url, video_id) or self._get_old_info(video_id)
 
     def _get_info(self, url, video_id):
-        token = self._download_json(
+        _, xsrf_token_response = self._download_webpage_handle(
             'https://www.npostart.nl/api/token', video_id,
             'Downloading token', headers={
                 'Referer': url,
                 'X-Requested-With': 'XMLHttpRequest',
-            })['token']
+            })
+        cookies = SimpleCookie()
+        cookies.load(xsrf_token_response.headers['Set-Cookie'])
+        cookies = {k: v.value for k, v in cookies.items()}
+        xsrf_token = cookies['XSRF-TOKEN']
 
         player = self._download_json(
             'https://www.npostart.nl/player/%s' % video_id, video_id,
-            'Downloading player JSON', data=urlencode_postdata({
+            'Downloading player JSON',
+            headers={"x-xsrf-token": urllib.parse.unquote(xsrf_token)},
+            data=urlencode_postdata({
                 'autoplay': 0,
                 'share': 1,
                 'pageUrl': url,
+                'isFavourite': "false",
                 'hasAdConsent': 0,
-                '_token': token,
-            }))
+            },))
 
         player_token = player['token']
 
@@ -215,7 +223,7 @@ class NPOIE(NPOBaseIE):
                     'quality': 'npo',
                     'tokenId': player_token,
                     'streamType': 'broadcast',
-                })
+                }, data=b"")
             if not streams:
                 continue
             stream = streams.get('stream')
