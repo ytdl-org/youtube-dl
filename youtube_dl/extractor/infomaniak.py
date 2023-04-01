@@ -14,7 +14,6 @@ class InfomaniakVOD2IE(InfoExtractor):
             'id': '1jhvl2uq7kr4y',
             'ext': 'mp4',
             'title': 'RolandCarey2016-05-04.mp4',
-            'description': '',
             'thumbnail': 'https://res.vod2.infomaniak.com/1/vod/thumbnail/1jhvl2uq8yqqv.jpg',
             'duration': 221,
         }
@@ -30,17 +29,15 @@ class InfomaniakVOD2IE(InfoExtractor):
 
         url = data['source']['url']
         title = data['title']
-        description = ''
-        thumbnail = data['image']['url']
-        duration = data['duration']
+        thumbnail = data.get('image').get('url')
+        duration = data.get('duration')
 
-        video_mimetype = data['source']['mimetype']
+        video_mimetype = data.get('source').get('mimetype')
 
         info_dict = {
             'id': video_id,
             'url': url,
             'title': title,
-            'description': description,
             'thumbnail': thumbnail,
             'duration': duration,
         }
