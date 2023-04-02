@@ -1,10 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-
 from .common import InfoExtractor
-from ..utils import unified_timestamp, parse_duration
+from ..utils import (
+    parse_duration,
+    traverse_obj,
+    unified_timestamp,
+    url_or_none,
+)
 
 
 class ChelseafcIE(InfoExtractor):
@@ -56,25 +59,25 @@ class ChelseafcIE(InfoExtractor):
             'data'
         )
 
-        data = json.loads(raw_data)['videoDetail']
+        data = self._parse_json(raw_data, video_id)
+        manifest_url = data['videoDetail']['signedUrl']
 
-        manifest_url = data['signedUrl']
-        formats = self._extract_m3u8_formats(manifest_url, video_id, 'mp4')
+        data = data['videoDetail']
 
         title = data['title']
-        descripiton = data['description']
-        timestamp = unified_timestamp(data['releaseDate'])
-        duration = parse_duration(data['duration'])
-        tags = [tag['title'] for tag in data['tags']]
-        thumbnail = data['image']['file']['url']
+
+        formats = self._extract_m3u8_formats(manifest_url, video_id, 'mp4')
+        self._sort_formats(formats)
+
+        txt_or_none = lambda x: x.strip() or None
 
         return {
             'id': video_id,
             'title': title,
-            'description': descripiton,
+            'description': txt_or_none(data.get('description')),
             'formats': formats,
-            'duration': duration,
-            'timestamp': timestamp,
-            'tags': tags,
-            'thumbnail': thumbnail
+            'duration': parse_duration(data.get('duration')),
+            'timestamp': unified_timestamp(data.get('releaseDate')),
+            'tags': traverse_obj(data, ('tags', Ellipsis, 'title'), expected_type=txt_or_none),
+            'thumbnail': traverse_obj(data, ('image', 'file', 'url'), expected_type=url_or_none),
         }
