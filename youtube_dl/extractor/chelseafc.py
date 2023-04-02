@@ -49,7 +49,7 @@ class ChelseafcIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_details_div = self._search_regex(
-            r'(<div[^>]*\sdata-component\s*=\s*(?:"|\')\s*VideoDetails\s*(?:"|\')[^>]*>)',
+            r'(<div\s[^>]*\bdata-component\s*=\s*(?:"|\')\s*VideoDetails\s*(?:"|\')[^>]*>)',
             webpage,
             'div'
         )
