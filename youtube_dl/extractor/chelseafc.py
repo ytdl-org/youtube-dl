@@ -11,21 +11,22 @@ class ChelseafcIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?chelseafc\.com(?:/[a-z]+)?/video/(?P<id>[a-z0-9]+(?:-[a-z0-9]+)*)'
     _TESTS = [{
         'url': 'https://www.chelseafc.com/en/video/full-match-chelsea-2-2-everton',
-        'md5': '0f7cd37de17faa71566bfd9074315c85',
+        'md5': '16c0df4e6909ad5ae96eab68fc584d75',
         'info_dict': {
             'id': 'full-match-chelsea-2-2-everton',
             'ext': 'mp4',
             'title': 'Full Match: Chelsea 2-2 Everton',
-            'description': 'Full match highlights from Chelsea\'s 2-2 Premier League draw with Everton at Stamford Bridge. ',
+            'description': 'Full match highlights from Chelsea\'s 2-2 Premier League draw with Everton at Stamford Bridge.',
             'duration': 2842.0,
             'timestamp': 1679184000,
+            'tags': ['Premier League', 'Everton', 'Video and article choice'],
             'upload_date': '20230319',
             'thumbnail': r're:https?://.*\.png'
         }
     },
         {
         'url': 'https://www.chelseafc.com/en/video/manchester-city-vs-chelsea-2-0-or-highlights-or-efl-cup',
-        'md5': '01078658408ee98b1cf286d3b8f4b7ca',
+        'md5': 'c20c52f3954d938bc5da4d6fe358c81d',
         'info_dict': {
             'id': 'manchester-city-vs-chelsea-2-0-or-highlights-or-efl-cup',
             'ext': 'mp4',
@@ -34,6 +35,7 @@ class ChelseafcIE(InfoExtractor):
             'duration': 120.0,
             'timestamp': 1668042000,
             'upload_date': '20221110',
+            'tags': ['Highlights', 'League Cup', 'Manchester City'],
             'thumbnail': r're:https?://.*\.jpg'
         }
     }]
