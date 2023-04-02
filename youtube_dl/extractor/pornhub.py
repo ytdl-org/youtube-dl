@@ -269,11 +269,8 @@ class PornHubIE(PornHubBaseIE):
         # Setting multple cookies doesn't seem to be big deal so we prefere that solution instead
         # of guessing the right cookie out of an IP we don't currently have.
         self._set_cookie(host, 'age_verified', '1')
-
-        if 'thumbzilla.com' in host:
-            self._set_cookie(host, 'accessAgeDisclaimerTZ', '1')
-        else:
-            self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
+        self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
+        self._set_cookie('thumbzilla.com', 'accessAgeDisclaimerTZ', '1')
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
