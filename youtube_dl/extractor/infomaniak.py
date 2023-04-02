@@ -2,7 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import traverse_obj, int_or_none, url_or_none
+from ..utils import (
+    traverse_obj,
+    int_or_none,
+    url_or_none,
+)
 
 
 class InfomaniakVOD2IE(InfoExtractor):
