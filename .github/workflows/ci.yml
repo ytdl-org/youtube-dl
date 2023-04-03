@@ -7,9 +7,10 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-18.04]
+        os: [ubuntu-20.04]
         # TODO: python 2.6
-        python-version: [2.7, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy-2.7, pypy-3.6, pypy-3.7]
+        # TODO: restore support for 3.3, 3.4
+        python-version: [2.7, 3.5, 3.6, 3.7, 3.8, 3.9, pypy-2.7, pypy-3.6, pypy-3.7]
         python-impl: [cpython]
         ytdl-test-set: [core, download]
         run-tests-ext: [sh]
@@ -26,26 +27,27 @@ jobs:
           ytdl-test-set: download
           run-tests-ext: bat
         # jython
-        - os: ubuntu-18.04
+        - os: ubuntu-20.04
           python-impl: jython
           ytdl-test-set: core
           run-tests-ext: sh
-        - os: ubuntu-18.04
+        - os: ubuntu-20.04
           python-impl: jython
           ytdl-test-set: download
           run-tests-ext: sh
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      if: ${{ matrix.python-impl == 'cpython' }}
+    - uses: actions/checkout@v3
+    - name: Set up supported Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      if: ${{ matrix.python-impl == 'cpython' && ! contains(fromJSON('["3.3", "3.4"]'), matrix.python-version) }}
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
         java-version: 8
+        distribution: 'zulu'
     - name: Install Jython
       if: ${{ matrix.python-impl == 'jython' }}
       run: |
@@ -70,9 +72,9 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Install flake8
