@@ -4,10 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_cookies_SimpleCookie,
     compat_HTTPError,
     compat_str,
     compat_urllib_parse_unquote_plus,
-    compat_cookies_SimpleCookie,
 )
 from ..utils import (
     determine_ext,
@@ -194,20 +194,20 @@ class NPOIE(NPOBaseIE):
             })
         cookies = compat_cookies_SimpleCookie()
         cookies.load(xsrf_token_response.headers['Set-Cookie'])
-        cookies = {k: v.value for k, v in cookies.items()}
+        cookies = dict((k, v.value) for k, v in cookies.items())
         xsrf_token = cookies['XSRF-TOKEN']
 
         player = self._download_json(
             'https://www.npostart.nl/player/%s' % video_id, video_id,
             'Downloading player JSON',
             headers={
-                "x-xsrf-token": compat_urllib_parse_unquote_plus(xsrf_token)
+                'x-xsrf-token': compat_urllib_parse_unquote_plus(xsrf_token)
             },
             data=urlencode_postdata({
                 'autoplay': 0,
                 'share': 1,
                 'pageUrl': url,
-                'isFavourite': "false",
+                'isFavourite': 'false',
                 'hasAdConsent': 0,
             }))
 
@@ -226,7 +226,7 @@ class NPOIE(NPOBaseIE):
                     'tokenId': player_token,
                     'streamType': 'broadcast',
                 },
-                data=b"")
+                data=b'')
             # Empty byte string in the call above to force a POST request
             # Without it HTTP 405 will happen
             if not streams:
