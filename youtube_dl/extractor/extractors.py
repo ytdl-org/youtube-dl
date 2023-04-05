@@ -1371,6 +1371,7 @@ from .tvp import (
     TVPEmbedIE,
     TVPIE,
     TVPWebsiteIE,
+    TVPappIE,
 )
 from .tvplay import (
     TVPlayIE,

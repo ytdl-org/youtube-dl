@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import itertools
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -250,3 +251,50 @@ class TVPWebsiteIE(InfoExtractor):
         display_id, playlist_id = mobj.group('display_id', 'id')
         return self.playlist_result(
             self._entries(display_id, playlist_id), playlist_id)
+
+
+class TVPappIE(InfoExtractor):
+    IE_NAME = 'tvp:app'
+    _VALID_URL = r'https://vod.tvp.pl/[^/]+/[^,]+,(?P<series_id>[0-9]+)/[^,]+,[^,]+,(?P<id>[0-9]+)'
+    _TESTS = [{
+        # series
+        'url': 'https://vod.tvp.pl/seriale,18/korona-krolow-jagiellonowie-odcinki,292227/odcinek-37,S01E37,392532',
+        'info_dict': {
+            'id': '392532',
+            'ext': 'mp4',
+
+            'series_id': 292227,
+            'title': 'Korona królów. Jagiellonowie - Episode 37 - odc. 37 – Branka',
+            'description': 'Wiosna 1407. Anna z Goraja znika z Wawelu. Jej matka - Beata z Bożego Daru rozpacza. Anna Cylejska  zarządza poszukiwania, a Sofia tajemniczo się uśmiecha. Elżbieta i Katarzyna Gorajskie wyjawiają, że ich siostra pojechała do klasztoru klarysek w Sączu. Na Wawel dociera wieść o śmierci Wielkiego Mistrza Konrada von Jungingena. Rozpoczyna się walka o władzę w Malborku. Jan Falkenberg ma list do papieża, w którym wyjawia sekret Trąby. Bdzigost i Ciołek zdobywają to pismo. Król Jagiełło poznaje wreszcie sekret Mikołaja Trąby i znajduje sposób, by go ochronić.',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'episode_number': 37,
+        },
+        'params': {
+            'skip_download': True,
+            'format': 'dash-f1-v1-x3',
+        }
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        url = 'https://vod.tvp.pl/api/products/vods/%s?lang=pl&platform=BROWSER'
+        url_p = 'https://vod.tvp.pl/api/products/%s/videos/playlist?platform=BROWSER&videoType=MOVIE'
+
+        _details = self._download_json(url % video_id, video_id, 'Downloading details')
+        _playlist = self._download_json(url_p % video_id, video_id, 'Downloading playlist')
+
+        formats = []
+        formats.extend(self._extract_mpd_formats(_playlist['sources']['DASH'][0]['src'], video_id, mpd_id='dash', fatal=False))
+
+        return {
+            'id': video_id,
+            'formats': formats,
+            'duraton': _details['duration'],
+
+            'series_id': _details['season']['serial']['id'],
+            'title': _details['statisticsParameters']['gemiusVideo']['fullTitle'],
+            'description': _details['description'],
+            'thumbnail': _details['images']['16x9'][0]['url'],
+            'episode_number': _details['number'],
+        }
+
