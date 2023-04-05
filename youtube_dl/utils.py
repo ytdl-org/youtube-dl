@@ -3190,6 +3190,10 @@ class DateRange(object):
     def __str__(self):
         return '%s - %s' % (self.start.isoformat(), self.end.isoformat())
 
+    def __eq__(self, other):
+        return (isinstance(other, DateRange)
+                and self.start == other.start and self.end == other.end)
+
 
 def platform_name():
     """ Returns the platform name as a compat_str """
