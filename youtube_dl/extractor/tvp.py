@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import itertools
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
