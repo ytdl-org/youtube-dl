@@ -250,6 +250,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+        self.assertEqual(sanitize_url('foo bar'), 'foo bar')
 
     def test_expand_path(self):
         def env(var):
@@ -1562,6 +1563,7 @@ Line 1
         self.assertEqual(variadic(None), (None, ))
         self.assertEqual(variadic('spam'), ('spam', ))
         self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
+        self.assertEqual(variadic('spam', allowed_types=[dict]), 'spam')
 
     def test_traverse_obj(self):
         _TEST_DATA = {

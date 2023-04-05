@@ -11,6 +11,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
+    compat_open as open,
     compat_shlex_split,
 )
 from .utils import (
@@ -41,14 +42,11 @@ def _hide_login_info(opts):
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes, default=[]):
         try:
-            optionf = open(filename_bytes)
+            optionf = open(filename_bytes, encoding=preferredencoding())
         except IOError:
             return default  # silently skip if file is not present
         try:
-            # FIXME: https://github.com/ytdl-org/youtube-dl/commit/dfe5fa49aed02cf36ba9f743b11b0903554b5e56
             contents = optionf.read()
-            if sys.version_info < (3,):
-                contents = contents.decode(preferredencoding())
             res = compat_shlex_split(contents, comments=True)
         finally:
             optionf.close()
@@ -734,8 +732,12 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopart', default=False,
         help='Do not use .part files - write directly into output file')
     filesystem.add_option(
+        '--mtime',
+        action='store_true', dest='updatetime', default=True,
+        help='Use the Last-modified header to set the file modification time (default)')
+    filesystem.add_option(
         '--no-mtime',
-        action='store_false', dest='updatetime', default=True,
+        action='store_false', dest='updatetime',
         help='Do not use the Last-modified header to set the file modification time')
     filesystem.add_option(
         '--write-description',

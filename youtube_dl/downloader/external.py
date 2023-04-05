@@ -273,7 +273,7 @@ class HttpieFD(ExternalFD):
 class FFmpegFD(ExternalFD):
     @classmethod
     def supports(cls, info_dict):
-        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms')
+        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms', 'http_dash_segments')
 
     @classmethod
     def available(cls):

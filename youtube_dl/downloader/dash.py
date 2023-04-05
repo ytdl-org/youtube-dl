@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import itertools
+
 from .fragment import FragmentFD
 from ..compat import compat_urllib_error
 from ..utils import (
@@ -30,16 +32,13 @@ class DashSegmentsFD(FragmentFD):
         fragment_retries = self.params.get('fragment_retries', 0)
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
 
-        frag_index = 0
-        for i, fragment in enumerate(fragments):
-            frag_index += 1
+        for frag_index, fragment in enumerate(fragments, 1):
             if frag_index <= ctx['fragment_index']:
                 continue
             # In DASH, the first segment contains necessary headers to
             # generate a valid MP4 file, so always abort for the first segment
-            fatal = i == 0 or not skip_unavailable_fragments
-            count = 0
-            while count <= fragment_retries:
+            fatal = frag_index == 1 or not skip_unavailable_fragments
+            for count in itertools.count():
                 try:
                     fragment_url = fragment.get('url')
                     if not fragment_url:
@@ -49,7 +48,6 @@ class DashSegmentsFD(FragmentFD):
                     if not success:
                         return False
                     self._append_fragment(ctx, frag_content)
-                    break
                 except compat_urllib_error.HTTPError as err:
                     # YouTube may often return 404 HTTP error for a fragment causing the
                     # whole download to fail. However if the same fragment is immediately
@@ -57,18 +55,18 @@ class DashSegmentsFD(FragmentFD):
                     # is usually enough) thus allowing to download the whole file successfully.
                     # To be future-proof we will retry all fragments that fail with any
                     # HTTP error.
-                    count += 1
-                    if count <= fragment_retries:
-                        self.report_retry_fragment(err, frag_index, count, fragment_retries)
+                    if count < fragment_retries:
+                        self.report_retry_fragment(err, frag_index, count + 1, fragment_retries)
+                        continue
                 except DownloadError:
                     # Don't retry fragment if error occurred during HTTP downloading
-                    # itself since it has own retry settings
-                    if not fatal:
-                        self.report_skip_fragment(frag_index)
-                        break
-                    raise
+                    # itself since it has its own retry settings
+                    if fatal:
+                        raise
+                    self.report_skip_fragment(frag_index)
+                break
 
-            if count > fragment_retries:
+            if count >= fragment_retries:
                 if not fatal:
                     self.report_skip_fragment(frag_index)
                     continue
