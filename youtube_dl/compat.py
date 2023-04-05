@@ -3127,6 +3127,16 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
+if sys.version_info < (3, 0):
+    # open(file, mode='r', buffering=- 1, encoding=None, errors=None, newline=None, closefd=True) not: opener=None
+    def compat_open(file_, *args, **kwargs):
+        if len(args) > 6 or 'opener' in kwargs:
+            raise ValueError('open: unsupported argument "opener"')
+        return io.open(file_, *args, **kwargs)
+else:
+    compat_open = open
+
+
 legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -3185,6 +3195,7 @@ __all__ = [
     'compat_kwargs',
     'compat_map',
     'compat_numeric_types',
+    'compat_open',
     'compat_ord',
     'compat_os_name',
     'compat_os_path_expanduser',
