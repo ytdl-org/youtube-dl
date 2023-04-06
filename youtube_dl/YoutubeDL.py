@@ -1389,11 +1389,10 @@ class YoutubeDL(object):
                         'abr': formats_info[1].get('abr'),
                         'ext': output_ext,
                     }
-                video_selector, audio_selector = map(_build_selector_function, selector.selector)
 
                 def selector_function(ctx):
-                    for pair in itertools.product(
-                            video_selector(copy.deepcopy(ctx)), audio_selector(copy.deepcopy(ctx))):
+                    selector_fn = lambda x: _build_selector_function(x)(ctx)
+                    for pair in itertools.product(*map(selector_fn, selector.selector)):
                         yield _merge(pair)
 
             filters = [self._build_format_filter(f) for f in selector.filters]
