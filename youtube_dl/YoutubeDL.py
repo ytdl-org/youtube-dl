@@ -1399,7 +1399,7 @@ class YoutubeDL(object):
             filters = [self._build_format_filter(f) for f in selector.filters]
 
             def final_selector(ctx):
-                ctx_copy = copy.deepcopy(ctx)
+                ctx_copy = dict(ctx)
                 for _filter in filters:
                     ctx_copy['formats'] = list(filter(_filter, ctx_copy['formats']))
                 return selector_function(ctx_copy)
