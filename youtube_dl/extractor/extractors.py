@@ -214,6 +214,7 @@ from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .charlierose import CharlieRoseIE
 from .chaturbate import ChaturbateIE
+from .chelseafc import ChelseafcIE
 from .chilloutzone import ChilloutzoneIE
 from .chirbit import (
     ChirbitIE,
@@ -979,6 +980,10 @@ from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
 )
+from .pr0gramm import (
+    Pr0grammIE,
+    Pr0grammStaticIE,
+)
 from .presstv import PressTVIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
@@ -1678,8 +1683,3 @@ from .zingmp3 import (
 )
 from .zoom import ZoomIE
 from .zype import ZypeIE
-from .pr0gramm import (
-    Pr0grammIE,
-    Pr0grammStaticIE,
-)
-from .chelseafc import ChelseafcIE
