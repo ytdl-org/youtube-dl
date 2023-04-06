@@ -266,7 +266,7 @@ class PornHubIE(PornHubBaseIE):
         self._login(host)
 
         # The age verification cookie may have a different name based on the location.
-        # Setting multple cookies doesn't seem to be big deal so we prefere that solution instead
+        # Setting multiple cookies doesn't seem to be big deal so we prefer that solution instead
         # of guessing the right cookie out of an IP we don't currently have.
         self._set_cookie(host, 'age_verified', '1')
         self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
