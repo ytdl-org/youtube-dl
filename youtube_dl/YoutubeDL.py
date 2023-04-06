@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals
 
 import collections
 import contextlib
-import copy
 import datetime
 import errno
 import fileinput
