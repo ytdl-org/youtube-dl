@@ -254,25 +254,87 @@ class TVPWebsiteIE(InfoExtractor):
 
 class TVPappIE(InfoExtractor):
     IE_NAME = 'tvp:app'
-    _VALID_URL = r'https://vod.tvp.pl/[^/]+/[^,]+,(?P<series_id>[0-9]+)/[^,]+,[^,]+,(?P<id>[0-9]+)'
-    _TESTS = [{
-        # series
-        'url': 'https://vod.tvp.pl/seriale,18/korona-krolow-jagiellonowie-odcinki,292227/odcinek-37,S01E37,392532',
-        'info_dict': {
-            'id': '392532',
-            'ext': 'mp4',
+    # https://vod.tvp.pl/seriale,18/korona-krolow-jagiellonowie-odcinki,292227/odcinek-37,S01E37,392532
+    # https://vod.tvp.pl/programy,88/korona-krolow-taka-historia-odcinki,283653/odcinek-1,S02E01,386064
+    # https://vod.tvp.pl/filmy-dokumentalne,163/jurek,376503
+    # https://vod.tvp.pl/dla-dzieci,24/zubr-pompik-odcinki,282014/odcinek-1,S01E01,319853
+    # https://vod.tvp.pl/teatr-telewizji,202/barwy-uczuc,392420
+    # https://vod.tvp.pl/filmy-fabularne,136/rozlam,390638
+    _VALID_URL = r'https://vod.tvp.pl/(seriale|filmy-fabularne|programy|filmy-dokumentalne|dla-dzieci|teatr-telewizji|informacje-i-publicystyka),[0-9]+/([^,]+,[0-9]+/)?[^,]+,([^,]+,)?(?P<id>[0-9]+)'
+    _TESTS = [
+            {
+                # series
+                'url': 'https://vod.tvp.pl/seriale,18/korona-krolow-jagiellonowie-odcinki,292227/odcinek-37,S01E37,392532',
+                'info_dict': {
+                    'id': '392532',
+                    'ext': 'mp4',
 
-            'series_id': 292227,
-            'title': 'Korona królów. Jagiellonowie - Episode 37 - odc. 37 – Branka',
-            'description': 'Wiosna 1407. Anna z Goraja znika z Wawelu. Jej matka - Beata z Bożego Daru rozpacza. Anna Cylejska  zarządza poszukiwania, a Sofia tajemniczo się uśmiecha. Elżbieta i Katarzyna Gorajskie wyjawiają, że ich siostra pojechała do klasztoru klarysek w Sączu. Na Wawel dociera wieść o śmierci Wielkiego Mistrza Konrada von Jungingena. Rozpoczyna się walka o władzę w Malborku. Jan Falkenberg ma list do papieża, w którym wyjawia sekret Trąby. Bdzigost i Ciołek zdobywają to pismo. Król Jagiełło poznaje wreszcie sekret Mikołaja Trąby i znajduje sposób, by go ochronić.',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'episode_number': 37,
-        },
-        'params': {
-            'skip_download': True,
-            'format': 'dash-f1-v1-x3',
-        }
-    }]
+                    'series_id': 292227,
+                    'title': 'Korona królów. Jagiellonowie - Episode 37 - odc. 37 – Branka',
+                    'description': 'Wiosna 1407. Anna z Goraja znika z Wawelu. Jej matka - Beata z Bożego Daru rozpacza. Anna Cylejska  zarządza poszukiwania, a Sofia tajemniczo się uśmiecha. Elżbieta i Katarzyna Gorajskie wyjawiają, że ich siostra pojechała do klasztoru klarysek w Sączu. Na Wawel dociera wieść o śmierci Wielkiego Mistrza Konrada von Jungingena. Rozpoczyna się walka o władzę w Malborku. Jan Falkenberg ma list do papieża, w którym wyjawia sekret Trąby. Bdzigost i Ciołek zdobywają to pismo. Król Jagiełło poznaje wreszcie sekret Mikołaja Trąby i znajduje sposób, by go ochronić.',
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 37,
+                },
+                'params': {
+                    'skip_download': True,
+                    'format': 'dash-f1-v1-x3',
+                }
+            },
+            {
+                # programs
+                'url': 'https://vod.tvp.pl/programy,88/korona-krolow-taka-historia-odcinki,283653/odcinek-1,S02E01,386064',
+                'info_dict': {
+                    'id': '386064',
+                    'ext': 'mp4',
+
+                    'series_id': 283653,
+                    'title': 'Korona królów. Taka historia... - Episode 1 - odc. 1 – Jagiełło: życie po Jadwidze',
+                    'description': 'Jogaiła był Wielkim Księciem Litewskim, synem Olgierda i wnukiem Giedymina. W 1386 roku został polskim królem, bowiem został mężem polskiej monarchini – Jadwigi Andegaweńskiej. Dwa trony i dwóch władców mających pełnię władzy. Kiedy w 1399 roku Jadwiga zmarła, najważniejsi polscy możni za potwierdzenie praw Jagiełły do korony zapragnęli więcej wpływów na władzę, w następstwie czego Władysław Jagiełło postanowił zrzec się tronu i wrócić na Litwę. Zaczęły się rozmowy i negocjacje. Obu stronom zależało, żeby król pozostał królem. Możni zaproponowali Jagielle kandydatkę na nową żonę – Annę Cylejską. Dziewczyna była wnuczką Kazimierza Wielkiego, więc uznano ją za prawowitą dziedziczkę polskiego tronu, czym miała wzmacniać rolę Jagiełły. Przeprowadzono powtórną elekcję i ustanowiono warunki współpracy z Litwą.',
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 1,
+                },
+                'params': {
+                    'skip_download': True,
+                    'format': 'dash-f1-v1-x3',
+                }
+            },
+            {
+                # filmy-dokumentalne
+                'url': 'https://vod.tvp.pl/filmy-dokumentalne,163/jurek,376503',
+                'info_dict': {
+                    'id': '376503',
+                    'ext': 'mp4',
+
+                    'series_id': None,
+                    'title': 'Jurek',
+                    'description': 'Obraz człowieka, który pnie się do góry w sensie dosłownym, ale też metaforycznym i symbolicznym. Od socjalistycznego pracownika, po gwiazdę międzynarodowych mediów, od człowieka, który wspina się bez pieniędzy i sprzętu, po pełnoprawnego konkurenta Reinholda Messnera w walce o zdobycie Korony Himalajów i Karakorum. Skromnego, wyrazistego, kochającego góry. Rozmowy z rodziną i przyjaciółmi, archiwalia, zdjęcia, nagrania, fragmenty programów telewizyjnych i wywiadów składają się na portret całego środowiska himalaistów lat 80. To również obraz czasów, w jakich żyli – ciężkich i barwnych jednocześnie, kiedy idealizm miał większą wartość niż sława.',
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': None,
+                },
+                'params': {
+                    'skip_download': True,
+                    'format': 'dash-f1-v1-x3',
+                }
+            },
+            {
+                # dla-dzieci
+                'url': 'https://vod.tvp.pl/dla-dzieci,24/zubr-pompik-odcinki,282014/odcinek-1,S01E01,319853',
+                'info_dict': {
+                    'id': '319853',
+                    'ext': 'mp4',
+
+                    'series_id': 282014,
+                    'title': 'Żubr Pompik - Episode 1 - Odc. 1  – Duże i małe',
+                    'description': 'W głębinach wielkiej, dzikiej, zielonej puszczy mieszka żubr Pompik. Jest niewielki, do tego nie tak silny, szybki i skoczny, jak jego rówieśnicy. Początkowo bardzo się tym martwi. A co, jeżeli nigdy nie urośnie? Odkrywa jednak, że ma wiele innych zalet! Jest najbardziej ciekawskim ze zwierząt w puszczy. Interesuje go wszystko, co dzieje się dookoła. Nie ma takiej leśnej tajemnicy, której Pompik by nie rozwiązał dzięki uważnej obserwacji, cierpliwości i zadawaniu mnóstwa pytań.',
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 1,
+                },
+                'params': {
+                    'skip_download': True,
+                    'format': 'dash-f1-v1-x3',
+                }
+            },
+]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -282,6 +344,8 @@ class TVPappIE(InfoExtractor):
         _details = self._download_json(url % video_id, video_id, 'Downloading details')
         _playlist = self._download_json(url_p % video_id, video_id, 'Downloading playlist')
 
+        # import json
+        # print(json.dumps(_playlist, indent = 2))
         formats = []
         formats.extend(self._extract_mpd_formats(_playlist['sources']['DASH'][0]['src'], video_id, mpd_id='dash', fatal=False))
 
@@ -290,10 +354,10 @@ class TVPappIE(InfoExtractor):
             'formats': formats,
             'duraton': _details['duration'],
 
-            'series_id': _details['season']['serial']['id'],
+            'series_id': _details['season']['serial']['id'] if 'season' in _details else None,
             'title': _details['statisticsParameters']['gemiusVideo']['fullTitle'],
             'description': _details['description'],
             'thumbnail': _details['images']['16x9'][0]['url'],
-            'episode_number': _details['number'],
+            'episode_number': _details['number'] if 'number' in _details else None,
         }
 
