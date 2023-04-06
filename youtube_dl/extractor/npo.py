@@ -226,9 +226,8 @@ class NPOIE(NPOBaseIE):
                     'tokenId': player_token,
                     'streamType': 'broadcast',
                 },
+                # empty data to force a POST request, avoiding HTTP 405
                 data=b'')
-            # Empty byte string in the call above to force a POST request
-            # Without it HTTP 405 will happen
             if not streams:
                 continue
             stream = streams.get('stream')
