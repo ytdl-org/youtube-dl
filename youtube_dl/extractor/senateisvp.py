@@ -132,7 +132,7 @@ class SenateISVPIE(InfoExtractor):
         # extract more info about committee (for matching to possible locations)
         stream_number, stream_domain, stream_id, msl3 = self._get_info_for_comm(committee)
 
-        # possible locations that m3u8 could be located at
+        # the possible locations for the video: only the first has been seen in use
         possible_manifest_urls = [
             'https://www-senate-gov-media-srs.akamaized.net/hls/live/%d/%s/%s/master.m3u8' % (stream_id, committee, filename),
             'https://www-senate-gov-msl3archive.akamaized.net/%s/%s_1/master.m3u8' % (msl3, filename),
@@ -140,17 +140,12 @@ class SenateISVPIE(InfoExtractor):
             'https://ussenate-f.akamaihd.net/i/%s' % video_id,
         ]
 
-        # iterate through possible locations until we find a match (match found when formats is filled)
+         # we iterate through the possible locations until we find formats
         formats = []
         for url in possible_manifest_urls: 
             entries = self._extract_m3u8_formats(
-                url, 
-                video_id,
-                ext='mp4',
-                m3u8_id='hls',
-                entry_protocol='mu38_native',
-                fatal=False
-            )
+                url, video_id, ext='mp4', m3u8_id='hls',
+                entry_protocol='m3u8_native', fatal=False)
 
             for entry in entries:
                 mobj = re.search(r'(?P<tag>-[pb]).m3u8', entry['url'])
