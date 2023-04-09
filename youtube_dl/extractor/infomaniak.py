@@ -42,14 +42,14 @@ class InfomaniakVOD2IE(InfoExtractor):
         video_id = self._match_id(url)
         # no useful data in given url, formatted url below reveals json data
         data_url = 'https://res.vod2.infomaniak.com/{0}/vod/share/{1}'.format(video_id[0], video_id)
-        webpage = self._download_json(data_url, video_id)['data']['media'][0]
+        media = self._download_json(data_url, video_id)['data']['media'][0]
 
-        url = webpage['source']['url']
-        title = webpage['title']
-        thumbnail = traverse_obj(webpage, ('image', 'url'), expected_type=url_or_none)
-        duration = traverse_obj(webpage, 'duration', expected_type=int_or_none)
+        url = media['source']['url']
+        title = media['title']
+        thumbnail = traverse_obj(media, ('image', 'url'), expected_type=url_or_none)
+        duration = traverse_obj(media, 'duration', expected_type=int_or_none)
 
-        video_mimetype = traverse_obj(webpage, ('source', 'mimetype'), expected_type=lambda x: x.strip() or None)
+        video_mimetype = traverse_obj(media, ('source', 'mimetype'), expected_type=lambda x: x.strip() or None)
 
         info_dict = {
             'id': video_id,
