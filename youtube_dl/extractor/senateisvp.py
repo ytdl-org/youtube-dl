@@ -5,7 +5,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    parse_duration,
     unsmuggle_url,
+    url_or_none,
 )
 from ..compat import (
     compat_parse_qs,
@@ -87,67 +89,80 @@ class SenateISVPIE(InfoExtractor):
     }]
 
     @staticmethod
+    #returns url from an iframe
     def _search_iframe_url(webpage):
         mobj = re.search(
-            r"<iframe[^>]+src=['\"](?P<url>https?://www\.senate\.gov/isvp/?\?[^'\"]+)['\"]",
+            r'''<iframe\b[^>]+\bsrc\s*=\s*(['"])(?P<url>https?://www\.senate\.gov/isvp/?\?(?:(?!\1)\S)+)''',
             webpage)
         if mobj:
             return mobj.group('url')
 
+    # returns stream_number, stream_domain, stream_id, msl3
     def _get_info_for_comm(self, committee):
-        for entry in self._COMM_MAP:
-            if entry[0] == committee:
-                return entry[1:]
+        return self._COMM_MAP[committee][0:]
 
     def _real_extract(self, url):
+        # smuggled data may contain a forced title that should be used
         url, smuggled_data = unsmuggle_url(url, {})
-
         qs = compat_parse_qs(re.match(self._VALID_URL, url).group('qs'))
-        if not qs.get('filename') or not qs.get('type') or not qs.get('comm'):
-            raise ExtractorError('Invalid URL', expected=True)
 
-        video_id = re.sub(r'.mp4$', '', qs['filename'][0])
+        # error handling for invalid URL - specify which error
+        if not qs.get('filename'):
+            raise ExtractorError('Invalid URL. Missing filename in query parameters', expected=True)
+        if not qs.get('comm'):
+            raise ExtractorError('Invalid URL. Missing committee in query parameters', expected=True)
 
-        webpage = self._download_webpage(url, video_id)
+        committee = qs.get('comm')[0]
+        filename = qs.get('filename')[0]
+        video_id = re.sub(r'\.mp4$', '', filename)
 
-        if smuggled_data.get('force_title'):
-            title = smuggled_data['force_title']
-        else:
-            title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, video_id)
-        poster = qs.get('poster')
-        thumbnail = poster[0] if poster else None
+        # there is no point in pulling the title from the webpage since it always defaults to 'Integrated Senate Player'
+        title = smuggled_data.get('force_title') or filename
 
-        video_type = qs['type'][0]
-        committee = video_type if video_type == 'arch' else qs['comm'][0]
-        stream_num, domain = self._get_info_for_comm(committee)
+        # extract more info about committee (for matching to possible locations)
+        stream_number, stream_domain, stream_id, msl3 = self._get_info_for_comm(committee)
 
+        # possible locations that m3u8 could be located at
+        possible_manifest_urls = [
+            'https://www-senate-gov-media-srs.akamaized.net/hls/live/%d/%s/%s/master.m3u8' % (stream_id, committee, filename),
+            'https://www-senate-gov-msl3archive.akamaized.net/%s/%s_1/master.m3u8' % (msl3, filename),
+            '{stream_domain}/i/%s_1@%d/master.m3u8' % (filename, stream_number),
+            'https://ussenate-f.akamaihd.net/i/%s' % video_id,
+        ]
+
+        # iterate through possible locations until we find a match (match found when formats is filled)
         formats = []
-        if video_type == 'arch':
-            filename = video_id if '.' in video_id else video_id + '.mp4'
-            formats = [{
-                # All parameters in the query string are necessary to prevent a 403 error
-                'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
-            }]
-        else:
-            hdcore_sign = 'hdcore=3.1.0'
-            url_params = (domain, video_id, stream_num)
-            f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
-            m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
-            for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m'):
-                # URLs without the extra param induce an 404 error
-                entry.update({'extra_param_to_segment_url': hdcore_sign})
-                formats.append(entry)
-            for entry in self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4', m3u8_id='m3u8'):
-                mobj = re.search(r'(?P<tag>(?:-p|-b)).m3u8', entry['url'])
+        for url in possible_manifest_urls: 
+            entries = self._extract_m3u8_formats(
+                url, 
+                video_id,
+                ext='mp4',
+                m3u8_id='hls',
+                entry_protocal='mu38_native',
+                fatal=False
+            )
+
+            for entry in entries:
+                mobj = re.search(r'(?P<tag>-[pb]).m3u8', entry['url'])
                 if mobj:
                     entry['format_id'] += mobj.group('tag')
                 formats.append(entry)
 
-            self._sort_formats(formats)
+            if formats:
+                break
+        
+        self._sort_formats(formats)
+        thumbnail = url_or_none(qs.get('poster', [None])[-1])
+        start_time = parse_duration(qs.get('stt', [None])[-1])
+        stop_time = parse_duration(qs.get('dur', [None])[-1])
+        if stop_time is not None:
+            stop_time += start_time or 0
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
             'thumbnail': thumbnail,
+            'start_time': start_time,
+            'stop_time': stop_time,
         }
