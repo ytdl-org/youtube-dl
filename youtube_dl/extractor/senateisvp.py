@@ -17,41 +17,78 @@ from ..compat import (
 
 class SenateISVPIE(InfoExtractor):
     # committee --> [stream_number, stream_domain, stream_id, msl3]
-    _COMM_MAP = {
-        'ag': [76440, 'https://ag-f.akamaihd.net', 2036803, 'agriculture'],
-        'aging': [76442, 'https://aging-f.akamaihd.net', 2036801, 'aging'],
-        'approps': [76441, 'https://approps-f.akamaihd.net', 2036802, 'appropriations'],
-        'armed': [76445, 'https://armed-f.akamaihd.net', 2036800, 'armedservices'],
-        'banking': [76446, 'https://banking-f.akamaihd.net', 2036799, 'banking'],
-        'budget': [76447, 'https://budget-f.akamaihd.net', 2036798, 'budget'],
-        'cecc': [76486, 'https://srs-f.akamaihd.net', 2036782, 'srs_cecc'],
-        'commerce': [80177, 'https://commerce1-f.akamaihd.net', 2036779, 'commerce'],
-        'csce': [75229, 'https://srs-f.akamaihd.net', 2036777, 'srs_srs'],
-        'dpc': [76590, 'https://dpc-f.akamaihd.net', None, 'dpc'],
-        'energy': [76448, 'https://energy-f.akamaihd.net', 2036797, 'energy'],
-        'epw': [76478, 'https://epw-f.akamaihd.net', 2036783, 'environment'],
-        'ethics': [76449, 'https://ethics-f.akamaihd.net', 2036796, 'ethics'],
-        'finance': [76450, 'https://finance-f.akamaihd.net', 2036795, 'finance_finance'],
-        'foreign': [76451, 'https://foreign-f.akamaihd.net', 2036794, 'foreignrelations'],
-        'govtaff': [76453, 'https://govtaff-f.akamaihd.net', 2036792, 'hsgac'],
-        'help': [76452, 'https://help-f.akamaihd.net', 2036793, 'help'],
-        'indian': [76455, 'https://indian-f.akamaihd.net', 2036791, 'indianaffairs'],
-        'intel': [76456, 'https://intel-f.akamaihd.net', 2036790, 'intelligence'],
-        'intlnarc': [76457, 'https://intlnarc-f.akamaihd.net', None, 'internationalnarcoticscaucus'],
-        'jccic': [85180, 'https://jccic-f.akamaihd.net', 2036778, 'jccic'],
-        'jec': [76458, 'https://jec-f.akamaihd.net', 2036789, 'jointeconomic'],
-        'judiciary': [76459, 'https://judiciary-f.akamaihd.net', 2036788, 'judiciary'],
-        'rpc': [76591, 'https://rpc-f.akamaihd.net', None, 'rpc'],
-        'rules': [76460, 'https://rules-f.akamaihd.net', 2036787, 'rules'],
-        'saa': [76489, 'https://srs-f.akamaihd.net', 2036780, 'srs_saa'],
-        'smbiz': [76461, 'https://smbiz-f.akamaihd.net', 2036786, 'smallbusiness'],
-        'srs': [75229, 'https://srs-f.akamaihd.net', 2031966, 'srs_srs'],
-        'uscc': [76487, 'https://srs-f.akamaihd.net', 2036781, 'srs_uscc'],
-        'vetaff': [76462, 'https://vetaff-f.akamaihd.net', 2036785, 'veteransaffairs'],
-        'arch': [None, 'https://ussenate-f.akamaihd.net/', None, None],
-        'uscp': [None, '', 2043685, 'uscp'],
-        'cio': [None, '', 2043686, 'cio'],
-    }
+    # _COMM_MAP = {
+    #     'ag': [76440, 'https://ag-f.akamaihd.net', 2036803, 'agriculture'],
+    #     'aging': [76442, 'https://aging-f.akamaihd.net', 2036801, 'aging'],
+    #     'approps': [76441, 'https://approps-f.akamaihd.net', 2036802, 'appropriations'],
+    #     'armed': [76445, 'https://armed-f.akamaihd.net', 2036800, 'armedservices'],
+    #     'banking': [76446, 'https://banking-f.akamaihd.net', 2036799, 'banking'],
+    #     'budget': [76447, 'https://budget-f.akamaihd.net', 2036798, 'budget'],
+    #     'cecc': [76486, 'https://srs-f.akamaihd.net', 2036782, 'srs_cecc'],
+    #     'commerce': [80177, 'https://commerce1-f.akamaihd.net', 2036779, 'commerce'],
+    #     'csce': [75229, 'https://srs-f.akamaihd.net', 2036777, 'srs_srs'],
+    #     'dpc': [76590, 'https://dpc-f.akamaihd.net', None, 'dpc'],
+    #     'energy': [76448, 'https://energy-f.akamaihd.net', 2036797, 'energy'],
+    #     'epw': [76478, 'https://epw-f.akamaihd.net', 2036783, 'environment'],
+    #     'ethics': [76449, 'https://ethics-f.akamaihd.net', 2036796, 'ethics'],
+    #     'finance': [76450, 'https://finance-f.akamaihd.net', 2036795, 'finance_finance'],
+    #     'foreign': [76451, 'https://foreign-f.akamaihd.net', 2036794, 'foreignrelations'],
+    #     'govtaff': [76453, 'https://govtaff-f.akamaihd.net', 2036792, 'hsgac'],
+    #     'help': [76452, 'https://help-f.akamaihd.net', 2036793, 'help'],
+    #     'indian': [76455, 'https://indian-f.akamaihd.net', 2036791, 'indianaffairs'],
+    #     'intel': [76456, 'https://intel-f.akamaihd.net', 2036790, 'intelligence'],
+    #     'intlnarc': [76457, 'https://intlnarc-f.akamaihd.net', None, 'internationalnarcoticscaucus'],
+    #     'jccic': [85180, 'https://jccic-f.akamaihd.net', 2036778, 'jccic'],
+    #     'jec': [76458, 'https://jec-f.akamaihd.net', 2036789, 'jointeconomic'],
+    #     'judiciary': [76459, 'https://judiciary-f.akamaihd.net', 2036788, 'judiciary'],
+    #     'rpc': [76591, 'https://rpc-f.akamaihd.net', None, 'rpc'],
+    #     'rules': [76460, 'https://rules-f.akamaihd.net', 2036787, 'rules'],
+    #     'saa': [76489, 'https://srs-f.akamaihd.net', 2036780, 'srs_saa'],
+    #     'smbiz': [76461, 'https://smbiz-f.akamaihd.net', 2036786, 'smallbusiness'],
+    #     'srs': [75229, 'https://srs-f.akamaihd.net', 2031966, 'srs_srs'],
+    #     'uscc': [76487, 'https://srs-f.akamaihd.net', 2036781, 'srs_uscc'],
+    #     'vetaff': [76462, 'https://vetaff-f.akamaihd.net', 2036785, 'veteransaffairs'],
+    #     'arch': [None, 'https://ussenate-f.akamaihd.net/', None, None],
+    #     'uscp': [None, '', 2043685, 'uscp'],
+    #     'cio': [None, '', 2043686, 'cio'],
+    # }
+    
+    # [committee, stream_number, stream_domain, stream_id, msl3]
+    _COMM_MAP = [
+        ['ag', '76440', 'http://ag-f.akamaihd.net', '2036803', 'agriculture'],
+        ['aging', '76442', 'http://aging-f.akamaihd.net', '2036801', 'aging'],
+        ['approps', '76441', 'http://approps-f.akamaihd.net', '2036802', 'appropriations'],
+        ['armed', '76445', 'http://armed-f.akamaihd.net', '2036800', 'armedservices'],
+        ['banking', '76446', 'http://banking-f.akamaihd.net', '2036799', 'banking'],
+        ['budget', '76447', 'http://budget-f.akamaihd.net', '2036798', 'budget'],
+        ['cecc', '76486', 'http://srs-f.akamaihd.net', '2036782', 'srs_cecc'],
+        ['commerce', '80177', 'http://commerce1-f.akamaihd.net', '2036779', 'commerce'],
+        ['csce', '75229', 'http://srs-f.akamaihd.net', '2036777', 'srs_srs'],
+        ['dpc', '76590', 'http://dpc-f.akamaihd.net', None, 'dpc'],
+        ['energy', '76448', 'http://energy-f.akamaihd.net', '2036797', 'energy'],
+        ['epw', '76478', 'http://epw-f.akamaihd.net', '2036783', 'environment'],
+        ['ethics', '76449', 'http://ethics-f.akamaihd.net', '2036796', 'ethics'],
+        ['finance', '76450', 'http://finance-f.akamaihd.net', '2036795', 'finance_finance'],
+        ['foreign', '76451', 'http://foreign-f.akamaihd.net', '2036794', 'foreignrelations'],
+        ['govtaff', '76453', 'http://govtaff-f.akamaihd.net', '2036792', 'hsgac'],
+        ['help', '76452', 'http://help-f.akamaihd.net', '2036793', 'help'],
+        ['indian', '76455', 'http://indian-f.akamaihd.net', '2036791', 'indianaffairs'],
+        ['intel', '76456', 'http://intel-f.akamaihd.net', '2036790', 'intelligence'],
+        ['intlnarc', '76457', 'http://intlnarc-f.akamaihd.net', None, 'internationalnarcoticscaucus'],
+        ['jccic', '85180', 'http://jccic-f.akamaihd.net', '2036778', 'jccic'],
+        ['jec', '76458', 'http://jec-f.akamaihd.net', '2036789', 'jointeconomic'],
+        ['judiciary', '76459', 'http://judiciary-f.akamaihd.net', '2036788', 'judiciary'],
+        ['rpc', '76591', 'http://rpc-f.akamaihd.net', None, 'rpc'],
+        ['rules', '76460', 'http://rules-f.akamaihd.net', '2036787', 'rules'],
+        ['saa', '76489', 'http://srs-f.akamaihd.net', '2036780', 'srs_saa'],
+        ['smbiz', '76461', 'http://smbiz-f.akamaihd.net', '2036786', 'smallbusiness'],
+        ['srs', '75229', 'http://srs-f.akamaihd.net', '2031966', 'srs_srs'],
+        ['uscc', '76487', 'http://srs-f.akamaihd.net', '2036781', 'srs_uscc'],
+        ['vetaff', '76462', 'http://vetaff-f.akamaihd.net', '2036785', 'veteransaffairs'],
+        ['arch', '', 'http://ussenate-f.akamaihd.net/', None, None]
+        ['uscp', None, '', '2043685', 'uscp']
+        ['cio', None, '', '2043686', 'cio']
+    ]
 
     _IE_NAME = 'senate.gov'
     _VALID_URL = r'https?://(?:www\.)?senate\.gov/isvp/?\?(?P<qs>.+)'
@@ -109,7 +146,12 @@ class SenateISVPIE(InfoExtractor):
 
     # returns stream_number, stream_domain, stream_id, msl3
     def _get_info_for_comm(self, committee):
-        return self._COMM_MAP[committee][0:]
+        # return self._COMM_MAP[committee][0:]
+        return self.__dictify(committee)
+
+    @staticmethod
+    def __dictify(cm):
+        return dict((row[0], (row[1:] + ['', ''])[:4]) for row in cm)
 
     def _real_extract(self, url):
         # smuggled data may contain a forced title that should be used
