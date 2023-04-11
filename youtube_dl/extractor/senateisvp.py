@@ -178,8 +178,8 @@ class SenateISVPIE(InfoExtractor):
         possible_manifest_urls = [
             'https://www-senate-gov-media-srs.akamaized.net/hls/live/%d/%s/%s/master.m3u8' % (stream_id, committee, filename),
             'https://www-senate-gov-msl3archive.akamaized.net/%s/%s_1/master.m3u8' % (msl3, filename),
-            '{stream_domain}/i/%s_1@%d/master.m3u8' % (filename, stream_number),
-            'https://ussenate-f.akamaihd.net/i/%s' % video_id,
+            '%s/i/%s_1@%d/master.m3u8' % (stream_domain, filename, stream_number),
+            'https://ussenate-f.akamaihd.net/i/%s.mp4/master.m3u8' % video_id,
         ]
 
          # we iterate through the possible locations until we find formats
