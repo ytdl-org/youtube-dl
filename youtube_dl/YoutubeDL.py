@@ -30,9 +30,12 @@ from string import ascii_letters
 from .compat import (
     compat_basestring,
     compat_cookiejar,
+    compat_filter as filter,
     compat_get_terminal_size,
     compat_http_client,
+    compat_integer_types,
     compat_kwargs,
+    compat_map as map,
     compat_numeric_types,
     compat_os_name,
     compat_str,
@@ -64,6 +67,7 @@ from .utils import (
     int_or_none,
     ISO3166Utils,
     locked_file,
+    LazyList,
     make_HTTPS_handler,
     MaxDownloadsReached,
     orderedSet,
@@ -2109,10 +2113,36 @@ class YoutubeDL(object):
         return self._download_retcode
 
     @staticmethod
-    def filter_requested_info(info_dict):
-        return dict(
-            (k, v) for k, v in info_dict.items()
-            if k not in ['requested_formats', 'requested_subtitles'])
+    def sanitize_info(info_dict, remove_private_keys=False):
+        ''' Sanitize the infodict for converting to json '''
+        if info_dict is None:
+            return info_dict
+
+        if remove_private_keys:
+            reject = lambda k, v: (v is None
+                                   or k.startswith('__')
+                                   or k in ('requested_formats',
+                                            'requested_subtitles'))
+        else:
+            reject = lambda k, v: False
+
+        def filter_fn(obj):
+            if isinstance(obj, dict):
+                return dict((k, filter_fn(v)) for k, v in obj.items() if not reject(k, v))
+            elif isinstance(obj, (list, tuple, set, LazyList)):
+                return list(map(filter_fn, obj))
+            elif obj is None or any(isinstance(obj, c)
+                                    for c in (compat_integer_types,
+                                              (compat_str, float, bool))):
+                return obj
+            else:
+                return repr(obj)
+
+        return filter_fn(info_dict)
+
+    @classmethod
+    def filter_requested_info(cls, info_dict):
+        return cls.sanitize_info(info_dict, True)
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
