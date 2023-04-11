@@ -16,43 +16,7 @@ from ..compat import (
 
 
 class SenateISVPIE(InfoExtractor):
-    # committee --> [stream_number, stream_domain, stream_id, msl3]
-    # _COMM_MAP = {
-    #     'ag': [76440, 'https://ag-f.akamaihd.net', 2036803, 'agriculture'],
-    #     'aging': [76442, 'https://aging-f.akamaihd.net', 2036801, 'aging'],
-    #     'approps': [76441, 'https://approps-f.akamaihd.net', 2036802, 'appropriations'],
-    #     'armed': [76445, 'https://armed-f.akamaihd.net', 2036800, 'armedservices'],
-    #     'banking': [76446, 'https://banking-f.akamaihd.net', 2036799, 'banking'],
-    #     'budget': [76447, 'https://budget-f.akamaihd.net', 2036798, 'budget'],
-    #     'cecc': [76486, 'https://srs-f.akamaihd.net', 2036782, 'srs_cecc'],
-    #     'commerce': [80177, 'https://commerce1-f.akamaihd.net', 2036779, 'commerce'],
-    #     'csce': [75229, 'https://srs-f.akamaihd.net', 2036777, 'srs_srs'],
-    #     'dpc': [76590, 'https://dpc-f.akamaihd.net', None, 'dpc'],
-    #     'energy': [76448, 'https://energy-f.akamaihd.net', 2036797, 'energy'],
-    #     'epw': [76478, 'https://epw-f.akamaihd.net', 2036783, 'environment'],
-    #     'ethics': [76449, 'https://ethics-f.akamaihd.net', 2036796, 'ethics'],
-    #     'finance': [76450, 'https://finance-f.akamaihd.net', 2036795, 'finance_finance'],
-    #     'foreign': [76451, 'https://foreign-f.akamaihd.net', 2036794, 'foreignrelations'],
-    #     'govtaff': [76453, 'https://govtaff-f.akamaihd.net', 2036792, 'hsgac'],
-    #     'help': [76452, 'https://help-f.akamaihd.net', 2036793, 'help'],
-    #     'indian': [76455, 'https://indian-f.akamaihd.net', 2036791, 'indianaffairs'],
-    #     'intel': [76456, 'https://intel-f.akamaihd.net', 2036790, 'intelligence'],
-    #     'intlnarc': [76457, 'https://intlnarc-f.akamaihd.net', None, 'internationalnarcoticscaucus'],
-    #     'jccic': [85180, 'https://jccic-f.akamaihd.net', 2036778, 'jccic'],
-    #     'jec': [76458, 'https://jec-f.akamaihd.net', 2036789, 'jointeconomic'],
-    #     'judiciary': [76459, 'https://judiciary-f.akamaihd.net', 2036788, 'judiciary'],
-    #     'rpc': [76591, 'https://rpc-f.akamaihd.net', None, 'rpc'],
-    #     'rules': [76460, 'https://rules-f.akamaihd.net', 2036787, 'rules'],
-    #     'saa': [76489, 'https://srs-f.akamaihd.net', 2036780, 'srs_saa'],
-    #     'smbiz': [76461, 'https://smbiz-f.akamaihd.net', 2036786, 'smallbusiness'],
-    #     'srs': [75229, 'https://srs-f.akamaihd.net', 2031966, 'srs_srs'],
-    #     'uscc': [76487, 'https://srs-f.akamaihd.net', 2036781, 'srs_uscc'],
-    #     'vetaff': [76462, 'https://vetaff-f.akamaihd.net', 2036785, 'veteransaffairs'],
-    #     'arch': [None, 'https://ussenate-f.akamaihd.net/', None, None],
-    #     'uscp': [None, '', 2043685, 'uscp'],
-    #     'cio': [None, '', 2043686, 'cio'],
-    # }
-    
+
     # [committee, stream_number, stream_domain, stream_id, msl3]
     _COMM_MAP = [
         ['ag', '76440', 'http://ag-f.akamaihd.net', '2036803', 'agriculture'],
@@ -85,8 +49,8 @@ class SenateISVPIE(InfoExtractor):
         ['srs', '75229', 'http://srs-f.akamaihd.net', '2031966', 'srs_srs'],
         ['uscc', '76487', 'http://srs-f.akamaihd.net', '2036781', 'srs_uscc'],
         ['vetaff', '76462', 'http://vetaff-f.akamaihd.net', '2036785', 'veteransaffairs'],
-        ['arch', '', 'http://ussenate-f.akamaihd.net/', None, None]
-        ['uscp', None, '', '2043685', 'uscp']
+        ['arch', '', 'http://ussenate-f.akamaihd.net/', None, None],
+        ['uscp', None, '', '2043685', 'uscp'],
         ['cio', None, '', '2043686', 'cio']
     ]
 
@@ -136,7 +100,7 @@ class SenateISVPIE(InfoExtractor):
     }]
 
     @staticmethod
-    #returns url from an iframe
+    # returns url from an iframe
     def _search_iframe_url(webpage):
         mobj = re.search(
             r'''<iframe\b[^>]+\bsrc\s*=\s*(['"])(?P<url>https?://www\.senate\.gov/isvp/?\?(?:(?!\1)\S)+)''',
@@ -144,14 +108,14 @@ class SenateISVPIE(InfoExtractor):
         if mobj:
             return mobj.group('url')
 
-    # returns stream_number, stream_domain, stream_id, msl3
-    def _get_info_for_comm(self, committee):
-        # return self._COMM_MAP[committee][0:]
-        return self.__dictify(committee)
-
     @staticmethod
     def __dictify(cm):
         return dict((row[0], (row[1:] + ['', ''])[:4]) for row in cm)
+
+    # returns stream_number, stream_domain, stream_id, msl3
+    def _get_info_for_comm(self, committee):
+        dict = self.__dictify(self._COMM_MAP)
+        return dict[committee][0:]
 
     def _real_extract(self, url):
         # smuggled data may contain a forced title that should be used
@@ -171,8 +135,9 @@ class SenateISVPIE(InfoExtractor):
         # there is no point in pulling the title from the webpage since it always defaults to 'Integrated Senate Player'
         title = smuggled_data.get('force_title') or filename
 
-        # extract more info about committee (for matching to possible locations)
         stream_number, stream_domain, stream_id, msl3 = self._get_info_for_comm(committee)
+        stream_number = int(stream_number)
+        stream_id = int(stream_id)
 
         # the possible locations for the video: only the first has been seen in use
         possible_manifest_urls = [
@@ -182,9 +147,9 @@ class SenateISVPIE(InfoExtractor):
             'https://ussenate-f.akamaihd.net/i/%s.mp4/master.m3u8' % video_id,
         ]
 
-         # we iterate through the possible locations until we find formats
+        # we iterate through the possible locations until we find formats
         formats = []
-        for url in possible_manifest_urls: 
+        for url in possible_manifest_urls:
             entries = self._extract_m3u8_formats(
                 url, video_id, ext='mp4', m3u8_id='hls',
                 entry_protocol='m3u8_native', fatal=False)
@@ -197,7 +162,7 @@ class SenateISVPIE(InfoExtractor):
 
             if formats:
                 break
-        
+
         self._sort_formats(formats)
         thumbnail = url_or_none(qs.get('poster', [None])[-1])
         start_time = parse_duration(qs.get('stt', [None])[-1])
