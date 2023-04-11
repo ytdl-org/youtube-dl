@@ -9,10 +9,7 @@ from ..utils import (
     unsmuggle_url,
     url_or_none,
 )
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
+from ..compat import compat_parse_qs
 
 
 class SenateISVPIE(InfoExtractor):
