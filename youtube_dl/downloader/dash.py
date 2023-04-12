@@ -38,12 +38,13 @@ class DashSegmentsFD(FragmentFD):
             # In DASH, the first segment contains necessary headers to
             # generate a valid MP4 file, so always abort for the first segment
             fatal = frag_index == 1 or not skip_unavailable_fragments
+            fragment_url = fragment.get('url')
+            if not fragment_url:
+                assert fragment_base_url
+                fragment_url = urljoin(fragment_base_url, fragment['path'])
+            success = False
             for count in itertools.count():
                 try:
-                    fragment_url = fragment.get('url')
-                    if not fragment_url:
-                        assert fragment_base_url
-                        fragment_url = urljoin(fragment_base_url, fragment['path'])
                     success, frag_content = self._download_fragment(ctx, fragment_url, info_dict)
                     if not success:
                         return False
@@ -63,14 +64,13 @@ class DashSegmentsFD(FragmentFD):
                     # itself since it has its own retry settings
                     if fatal:
                         raise
-                    self.report_skip_fragment(frag_index)
                 break
 
-            if count >= fragment_retries:
+            if not success:
                 if not fatal:
                     self.report_skip_fragment(frag_index)
                     continue
-                self.report_error('giving up after %s fragment retries' % fragment_retries)
+                self.report_error('giving up after %s fragment retries' % count)
                 return False
 
         self._finish_frag_download(ctx)
