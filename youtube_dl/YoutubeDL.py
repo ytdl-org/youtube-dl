@@ -1804,7 +1804,7 @@ class YoutubeDL(object):
         info_dict['_filename'] = filename = self.prepare_filename(info_dict)
 
         # Forced printings
-        self.__forced_printings(info_dict, filename, incomplete=False)
+        self.__forced_printings(self.filter_requested_info(info_dict), filename, incomplete=False)
 
         # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
