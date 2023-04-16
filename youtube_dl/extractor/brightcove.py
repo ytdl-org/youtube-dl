@@ -340,7 +340,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(AdobePassIE):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*(?P<content_type>video|playlist)Id=(?P<video_id>\d+|ref:[^&]+)'
+    _VALID_URL = r'(?:brightcove:new|(?P<u>https?)):(?(u)//players\.brightcove\.net/)(?P<account_id>\d+)(?(u)/|:)(?P<player_id>[^/]+)(?(u)_|:)(?P<embed>[^/]+)(?(u)/index\.html\?.*|:)(?P<content_type>video|playlist)(?(u)Id=|:)(?P<video_id>\d+|ref:[^&]+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -593,7 +593,7 @@ class BrightcoveNewIE(AdobePassIE):
             'ip_blocks': smuggled_data.get('geo_ip_blocks'),
         })
 
-        account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()
+        account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()[1:]
 
         policy_key_id = '%s_%s' % (account_id, player_id)
         policy_key = self._downloader.cache.load('brightcove', policy_key_id)
@@ -678,4 +678,4 @@ class BrightcoveNewIE(AdobePassIE):
                 json_data.get('description'))
 
         return self._parse_brightcove_metadata(
-            json_data, video_id, headers=headers)
+            json_data, smuggled_data.get('force_videoid') or video_id, headers=headers)
