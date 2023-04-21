@@ -505,6 +505,17 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function x(){return 1236566549 << 5}')
         self.assertEqual(jsi.call_function('x'), 915423904)
 
+    def test_32066(self):
+        jsi = JSInterpreter("function x(){return Math.pow(3, 5) + new Date('1970-01-01T08:01:42.000+08:00') / 1000 * -239 - -24205;}")
+        self.assertEqual(jsi.call_function('x'), 70)
+
+    def test_unary_operators(self):
+        jsi = JSInterpreter('function f(){return 2  -  - - 2;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+        # fails
+        # jsi = JSInterpreter('function f(){return 2 + - + - - 2;}')
+        # self.assertEqual(jsi.call_function('f'), 0)
+
     """ # fails so far
     def test_packed(self):
         jsi = JSInterpreter('''function x(p,a,c,k,e,d){while(c--)if(k[c])p=p.replace(new RegExp('\\b'+c.toString(a)+'\\b','g'),k[c]);return p}''')

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from functools import update_wrapper
 import itertools
 import json
 import math
@@ -23,11 +24,23 @@ from .compat import (
 )
 
 
+def wraps_op(op):
+
+    def update_and_rename_wrapper(w):
+        f = update_wrapper(w, op)
+        # fn names are str in both Py 2/3
+        f.__name__ = str('JS_') + f.__name__
+        return f
+
+    return update_and_rename_wrapper
+
+
 def _js_bit_op(op):
 
     def zeroise(x):
         return 0 if x in (None, JS_Undefined) else x
 
+    @wraps_op(op)
     def wrapped(a, b):
         return op(zeroise(a), zeroise(b)) & 0xffffffff
 
@@ -36,6 +49,7 @@ def _js_bit_op(op):
 
 def _js_arith_op(op):
 
+    @wraps_op(op)
     def wrapped(a, b):
         if JS_Undefined in (a, b):
             return float('nan')
@@ -66,6 +80,7 @@ def _js_exp(a, b):
 
 def _js_eq_op(op):
 
+    @wraps_op(op)
     def wrapped(a, b):
         if set((a, b)) <= set((None, JS_Undefined)):
             return op(a, a)
@@ -76,6 +91,7 @@ def _js_eq_op(op):
 
 def _js_comp_op(op):
 
+    @wraps_op(op)
     def wrapped(a, b):
         if JS_Undefined in (a, b):
             return False
@@ -356,6 +372,7 @@ class JSInterpreter(object):
             return right_val
 
         try:
+            # print('Eval:', opfunc.__name__, left_val, right_val)
             return opfunc(left_val, right_val)
         except Exception as e:
             raise self.Exception('Failed to evaluate {left_val!r:.50} {op} {right_val!r:.50}'.format(**locals()), expr, cause=e)
@@ -395,6 +412,7 @@ class JSInterpreter(object):
             raise self.Exception('Recursion limit reached')
         allow_recursion -= 1
 
+        # print('At: ' + stmt[:60])
         should_return = False
         # fails on (eg) if (...) stmt1; else stmt2;
         sub_statements = list(self._separate(stmt, ';')) or ['']
@@ -702,9 +720,24 @@ class JSInterpreter(object):
                 continue
 
             right_expr = separated.pop()
-            while op == '-' and len(separated) > 1 and not separated[-1].strip():
-                right_expr = '-' + right_expr
-                separated.pop()
+            # handle operators that are both unary and binary, minimal BODMAS
+            if op in ('+', '-'):
+                undone = 0
+                while len(separated) > 1 and not separated[-1].strip():
+                    undone += 1
+                    separated.pop()
+                if op == '-' and undone % 2 != 0:
+                    right_expr = op + right_expr
+                left_val = separated[-1]
+                for dm_op in ('*', '%', '/', '**'):
+                    bodmas = tuple(self._separate(left_val, dm_op, skip_delims=skip_delim))
+                    if len(bodmas) > 1 and not bodmas[-1].strip():
+                        expr = op.join(separated) + op + right_expr
+                        right_expr = None
+                        break
+                if right_expr is None:
+                    continue
+
             left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
             return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), should_return
 
@@ -955,6 +988,7 @@ class JSInterpreter(object):
     def build_function(self, argnames, code, *global_stack):
         global_stack = list(global_stack) or [{}]
         argnames = tuple(argnames)
+        # import pdb; pdb.set_trace()
 
         def resf(args, kwargs={}, allow_recursion=100):
             global_stack[0].update(
