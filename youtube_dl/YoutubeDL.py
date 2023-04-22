@@ -1777,7 +1777,7 @@ class YoutubeDL(object):
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict))
+            self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
@@ -2091,7 +2091,7 @@ class YoutubeDL(object):
                 raise
             else:
                 if self.params.get('dump_single_json', False):
-                    self.to_stdout(json.dumps(res))
+                    self.to_stdout(json.dumps(self.sanitize_info(res)))
 
         return self._download_retcode
 
@@ -2100,6 +2100,7 @@ class YoutubeDL(object):
                 [info_filename], mode='r',
                 openhook=fileinput.hook_encoded('utf-8'))) as f:
             # FileInput doesn't have a read method, we can't call json.load
+            # TODO: let's use io.open(), then
             info = self.filter_requested_info(json.loads('\n'.join(f)))
         try:
             self.process_ie_result(info, download=True)
