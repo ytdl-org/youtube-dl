@@ -3753,6 +3753,11 @@ def strip_or_none(v, default=None):
     return v.strip() if isinstance(v, compat_str) else default
 
 
+def txt_or_none(v, default=None):
+    """ Combine str/strip_or_none, disallow blank value (for traverse_obj) """
+    return default if v is None else (compat_str(v).strip() or default)
+
+
 def url_or_none(url):
     if not url or not isinstance(url, compat_str):
         return None
@@ -4096,8 +4101,8 @@ def escape_url(url):
     ).geturl()
 
 
-def parse_qs(url):
-    return compat_parse_qs(compat_urllib_parse.urlparse(url).query)
+def parse_qs(url, **kwargs):
+    return compat_parse_qs(compat_urllib_parse.urlparse(url).query, **kwargs)
 
 
 def read_batch_urls(batch_fd):
