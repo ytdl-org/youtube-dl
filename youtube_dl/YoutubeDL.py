@@ -5,7 +5,6 @@ from __future__ import absolute_import, unicode_literals
 
 import collections
 import contextlib
-import copy
 import datetime
 import errno
 import fileinput
@@ -31,14 +30,18 @@ from string import ascii_letters
 from .compat import (
     compat_basestring,
     compat_cookiejar,
+    compat_filter as filter,
     compat_get_terminal_size,
     compat_http_client,
+    compat_integer_types,
     compat_kwargs,
+    compat_map as map,
     compat_numeric_types,
     compat_os_name,
     compat_str,
     compat_tokenize_tokenize,
     compat_urllib_error,
+    compat_urllib_parse,
     compat_urllib_request,
     compat_urllib_request_DataHandler,
 )
@@ -60,9 +63,11 @@ from .utils import (
     format_bytes,
     formatSeconds,
     GeoRestrictedError,
+    HEADRequest,
     int_or_none,
     ISO3166Utils,
     locked_file,
+    LazyList,
     make_HTTPS_handler,
     MaxDownloadsReached,
     orderedSet,
@@ -73,6 +78,8 @@ from .utils import (
     PostProcessingError,
     preferredencoding,
     prepend_extension,
+    process_communicate_or_kill,
+    PUTRequest,
     register_socks_protocols,
     render_table,
     replace_extension,
@@ -720,7 +727,7 @@ class YoutubeDL(object):
                 filename = encodeFilename(filename, True).decode(preferredencoding())
             return sanitize_path(filename)
         except ValueError as err:
-            self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
+            self.report_error('Error in output template: ' + error_to_compat_str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
             return None
 
     def _match_entry(self, info_dict, incomplete):
@@ -1385,17 +1392,16 @@ class YoutubeDL(object):
                         'abr': formats_info[1].get('abr'),
                         'ext': output_ext,
                     }
-                video_selector, audio_selector = map(_build_selector_function, selector.selector)
 
                 def selector_function(ctx):
-                    for pair in itertools.product(
-                            video_selector(copy.deepcopy(ctx)), audio_selector(copy.deepcopy(ctx))):
+                    selector_fn = lambda x: _build_selector_function(x)(ctx)
+                    for pair in itertools.product(*map(selector_fn, selector.selector)):
                         yield _merge(pair)
 
             filters = [self._build_format_filter(f) for f in selector.filters]
 
             def final_selector(ctx):
-                ctx_copy = copy.deepcopy(ctx)
+                ctx_copy = dict(ctx)
                 for _filter in filters:
                     ctx_copy['formats'] = list(filter(_filter, ctx_copy['formats']))
                 return selector_function(ctx_copy)
@@ -1529,7 +1535,7 @@ class YoutubeDL(object):
                 # see http://bugs.python.org/issue1646728)
                 try:
                     upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
-                    info_dict[date_key] = upload_date.strftime('%Y%m%d')
+                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
                 except (ValueError, OverflowError, OSError):
                     pass
 
@@ -1569,9 +1575,6 @@ class YoutubeDL(object):
         else:
             formats = info_dict['formats']
 
-        if not formats:
-            raise ExtractorError('No video formats found!')
-
         def is_wellformed(f):
             url = f.get('url')
             if not url:
@@ -1584,7 +1587,10 @@ class YoutubeDL(object):
             return True
 
         # Filter out malformed formats for better extraction robustness
-        formats = list(filter(is_wellformed, formats))
+        formats = list(filter(is_wellformed, formats or []))
+
+        if not formats:
+            raise ExtractorError('No video formats found!')
 
         formats_dict = {}
 
@@ -1771,17 +1777,16 @@ class YoutubeDL(object):
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict))
+            self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
         assert info_dict.get('_type', 'video') == 'video'
 
-        max_downloads = self.params.get('max_downloads')
-        if max_downloads is not None:
-            if self._num_downloads >= int(max_downloads):
-                raise MaxDownloadsReached()
+        max_downloads = int_or_none(self.params.get('max_downloads')) or float('inf')
+        if self._num_downloads >= max_downloads:
+            raise MaxDownloadsReached()
 
         # TODO: backward compatibility, to be removed
         info_dict['fulltitle'] = info_dict['title']
@@ -1906,8 +1911,17 @@ class YoutubeDL(object):
 
         if not self.params.get('skip_download', False):
             try:
+                def checked_get_suitable_downloader(info_dict, params):
+                    ed_args = params.get('external_downloader_args')
+                    dler = get_suitable_downloader(info_dict, params)
+                    if ed_args and not params.get('external_downloader_args'):
+                        # external_downloader_args was cleared because external_downloader was rejected
+                        self.report_warning('Requested external downloader cannot be used: '
+                                            'ignoring --external-downloader-args.')
+                    return dler
+
                 def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
+                    fd = checked_get_suitable_downloader(info, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
@@ -2049,9 +2063,12 @@ class YoutubeDL(object):
                 try:
                     self.post_process(filename, info_dict)
                 except (PostProcessingError) as err:
-                    self.report_error('postprocessing: %s' % str(err))
+                    self.report_error('postprocessing: %s' % error_to_compat_str(err))
                     return
                 self.record_download_archive(info_dict)
+                # avoid possible nugatory search for further items (PR #26638)
+                if self._num_downloads >= max_downloads:
+                    raise MaxDownloadsReached()
 
     def download(self, url_list):
         """Download a given list of URLs."""
@@ -2074,7 +2091,7 @@ class YoutubeDL(object):
                 raise
             else:
                 if self.params.get('dump_single_json', False):
-                    self.to_stdout(json.dumps(res))
+                    self.to_stdout(json.dumps(self.sanitize_info(res)))
 
         return self._download_retcode
 
@@ -2083,6 +2100,7 @@ class YoutubeDL(object):
                 [info_filename], mode='r',
                 openhook=fileinput.hook_encoded('utf-8'))) as f:
             # FileInput doesn't have a read method, we can't call json.load
+            # TODO: let's use io.open(), then
             info = self.filter_requested_info(json.loads('\n'.join(f)))
         try:
             self.process_ie_result(info, download=True)
@@ -2096,10 +2114,36 @@ class YoutubeDL(object):
         return self._download_retcode
 
     @staticmethod
-    def filter_requested_info(info_dict):
-        return dict(
-            (k, v) for k, v in info_dict.items()
-            if k not in ['requested_formats', 'requested_subtitles'])
+    def sanitize_info(info_dict, remove_private_keys=False):
+        ''' Sanitize the infodict for converting to json '''
+        if info_dict is None:
+            return info_dict
+
+        if remove_private_keys:
+            reject = lambda k, v: (v is None
+                                   or k.startswith('__')
+                                   or k in ('requested_formats',
+                                            'requested_subtitles'))
+        else:
+            reject = lambda k, v: False
+
+        def filter_fn(obj):
+            if isinstance(obj, dict):
+                return dict((k, filter_fn(v)) for k, v in obj.items() if not reject(k, v))
+            elif isinstance(obj, (list, tuple, set, LazyList)):
+                return list(map(filter_fn, obj))
+            elif obj is None or any(isinstance(obj, c)
+                                    for c in (compat_integer_types,
+                                              (compat_str, float, bool))):
+                return obj
+            else:
+                return repr(obj)
+
+        return filter_fn(info_dict)
+
+    @classmethod
+    def filter_requested_info(cls, info_dict):
+        return cls.sanitize_info(info_dict, True)
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
@@ -2285,6 +2329,27 @@ class YoutubeDL(object):
         """ Start an HTTP download """
         if isinstance(req, compat_basestring):
             req = sanitized_Request(req)
+        # an embedded /../ sequence is not automatically handled by urllib2
+        # see https://github.com/yt-dlp/yt-dlp/issues/3355
+        url = req.get_full_url()
+        parts = url.partition('/../')
+        if parts[1]:
+            url = compat_urllib_parse.urljoin(parts[0] + parts[1][:1], parts[1][1:] + parts[2])
+        if url:
+            # worse, URL path may have initial /../ against RFCs: work-around
+            # by stripping such prefixes, like eg Firefox
+            parts = compat_urllib_parse.urlsplit(url)
+            path = parts.path
+            while path.startswith('/../'):
+                path = path[3:]
+            url = parts._replace(path=path).geturl()
+            # get a new Request with the munged URL
+            if url != req.get_full_url():
+                req_type = {'HEAD': HEADRequest, 'PUT': PUTRequest}.get(
+                    req.get_method(), compat_urllib_request.Request)
+                req = req_type(
+                    url, data=req.data, headers=dict(req.header_items()),
+                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
@@ -2314,7 +2379,7 @@ class YoutubeDL(object):
                 ['git', 'rev-parse', '--short', 'HEAD'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 cwd=os.path.dirname(os.path.abspath(__file__)))
-            out, err = sp.communicate()
+            out, err = process_communicate_or_kill(sp)
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
                 self._write_string('[debug] Git HEAD: ' + out + '\n')

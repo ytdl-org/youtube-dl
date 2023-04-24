@@ -33,6 +33,7 @@ from youtube_dl.compat import (
 from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
+    error_to_compat_str,
     format_bytes,
     UnavailableVideoError,
 )
@@ -100,22 +101,22 @@ def generator(test_case, tname):
 
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
+            self.skipTest(reason)
+
         if not ie.working():
             print_skipping('IE marked as not _WORKING')
-            return
 
         for tc in test_cases:
             info_dict = tc.get('info_dict', {})
             if not (info_dict.get('id') and info_dict.get('ext')):
-                raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
+                raise Exception('Test definition (%s) requires both \'id\' and \'ext\' keys present to define the output file' % (tname, ))
 
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
-            return
+
         for other_ie in other_ies:
             if not other_ie.working():
                 print_skipping('test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
-                return
 
         params = get_params(test_case.get('params', {}))
         params['outtmpl'] = tname + '_' + params['outtmpl']
@@ -147,6 +148,7 @@ def generator(test_case, tname):
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
                 try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
+
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -161,7 +163,9 @@ def generator(test_case, tname):
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
-                        raise
+                        msg = getattr(err, 'msg', error_to_compat_str(err))
+                        err.msg = '%s (%s)' % (msg, tname, )
+                        raise err
 
                     if try_num == RETRIES:
                         report_warning('%s failed due to network errors, skipping...' % tname)
@@ -210,7 +214,15 @@ def generator(test_case, tname):
                 # First, check test cases' data against extracted data alone
                 expect_info_dict(self, tc_res_dict, tc.get('info_dict', {}))
                 # Now, check downloaded file consistency
+                # support test-case with volatile ID, signalled by regexp value
+                if tc.get('info_dict', {}).get('id', '').startswith('re:'):
+                    test_id = tc['info_dict']['id']
+                    tc['info_dict']['id'] = tc_res_dict['id']
+                else:
+                    test_id = None
                 tc_filename = get_tc_filename(tc)
+                if test_id:
+                    tc['info_dict']['id'] = test_id
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)

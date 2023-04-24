@@ -22,6 +22,7 @@ from ..utils import (
     handle_youtubedl_headers,
     check_executable,
     is_outdated_version,
+    process_communicate_or_kill,
 )
 
 
@@ -104,7 +105,7 @@ class ExternalFD(FileDownloader):
 
         p = subprocess.Popen(
             cmd, stderr=subprocess.PIPE)
-        _, stderr = p.communicate()
+        _, stderr = process_communicate_or_kill(p)
         if p.returncode != 0:
             self.to_stderr(stderr.decode('utf-8', 'replace'))
         return p.returncode
@@ -141,7 +142,7 @@ class CurlFD(ExternalFD):
 
         # curl writes the progress to stderr so don't capture it.
         p = subprocess.Popen(cmd)
-        p.communicate()
+        process_communicate_or_kill(p)
         return p.returncode
 
 
@@ -199,6 +200,64 @@ class Aria2cFD(ExternalFD):
         return cmd
 
 
+class Aria2pFD(ExternalFD):
+    ''' Aria2pFD class
+    This class support to use aria2p as downloader.
+    (Aria2p, a command-line tool and Python library to interact with an aria2c daemon process
+    through JSON-RPC.)
+    It can help you to get download progress more easily.
+    To use aria2p as downloader, you need to install aria2c and aria2p, aria2p can download with pip.
+    Then run aria2c in the background and enable with the --enable-rpc option.
+    '''
+    try:
+        import aria2p
+        __avail = True
+    except ImportError:
+        __avail = False
+
+    @classmethod
+    def available(cls):
+        return cls.__avail
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        aria2 = self.aria2p.API(
+            self.aria2p.Client(
+                host='http://localhost',
+                port=6800,
+                secret=''
+            )
+        )
+
+        options = {
+            'min-split-size': '1M',
+            'max-connection-per-server': 4,
+            'auto-file-renaming': 'false',
+        }
+        options['dir'] = os.path.dirname(tmpfilename) or os.path.abspath('.')
+        options['out'] = os.path.basename(tmpfilename)
+        options['header'] = []
+        for key, val in info_dict['http_headers'].items():
+            options['header'].append('{0}: {1}'.format(key, val))
+        download = aria2.add_uris([info_dict['url']], options)
+        status = {
+            'status': 'downloading',
+            'tmpfilename': tmpfilename,
+        }
+        started = time.time()
+        while download.status in ['active', 'waiting']:
+            download = aria2.get_download(download.gid)
+            status.update({
+                'downloaded_bytes': download.completed_length,
+                'total_bytes': download.total_length,
+                'elapsed': time.time() - started,
+                'eta': download.eta.total_seconds(),
+                'speed': download.download_speed,
+            })
+            self._hook_progress(status)
+            time.sleep(.5)
+        return download.status != 'complete'
+
+
 class HttpieFD(ExternalFD):
     @classmethod
     def available(cls):
@@ -214,7 +273,7 @@ class HttpieFD(ExternalFD):
 class FFmpegFD(ExternalFD):
     @classmethod
     def supports(cls, info_dict):
-        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms')
+        return info_dict['protocol'] in ('http', 'https', 'ftp', 'ftps', 'm3u8', 'rtsp', 'rtmp', 'mms', 'http_dash_segments')
 
     @classmethod
     def available(cls):
@@ -336,14 +395,17 @@ class FFmpegFD(ExternalFD):
         proc = subprocess.Popen(args, stdin=subprocess.PIPE, env=env)
         try:
             retval = proc.wait()
-        except KeyboardInterrupt:
-            # subprocces.run would send the SIGKILL signal to ffmpeg and the
+        except BaseException as e:
+            # subprocess.run would send the SIGKILL signal to ffmpeg and the
             # mp4 file couldn't be played, but if we ask ffmpeg to quit it
             # produces a file that is playable (this is mostly useful for live
             # streams). Note that Windows is not affected and produces playable
             # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
-            if sys.platform != 'win32':
-                proc.communicate(b'q')
+            if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
+                process_communicate_or_kill(proc, b'q')
+            else:
+                proc.kill()
+                proc.wait()
             raise
         return retval
 
