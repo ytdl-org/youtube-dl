@@ -66,6 +66,7 @@ class PornHubBaseIE(InfoExtractor):
         # of guessing the right cookie out of an IP we don't currently have.
         self._set_cookie(host, 'age_verified', '1')
         self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
+        self._set_cookie(host, 'accessPH', '1')
 
     def _login(self, host):
         if self._logged_in:
