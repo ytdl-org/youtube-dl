@@ -40,7 +40,8 @@ class SBSIE(InfoExtractor):
     _TESTS = [{
         # Exceptional unrestricted show for testing, thanks SBS,
         # from an iframe of this page, handled by the generic IE, now 404:
-        # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation
+        # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation, but replaced by
+        # https://www.sbs.com.au/programs/video/320403011771/Dingo-Conservation-The-Feed
         'url': 'http://www.sbs.com.au/ondemand/video/single/320403011771/?source=drupal&vertical=thefeed',
         'md5': 'e49d0290cb4f40d893b8dfe760dce6b0',
         'info_dict': {
