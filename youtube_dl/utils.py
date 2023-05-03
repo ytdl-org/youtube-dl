@@ -4269,7 +4269,8 @@ def variadic(x, allowed_types=NO_DEFAULT):
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     exp = (lambda x: x or None) if skip_false_values else IDENTITY
-    return traverse_obj(d, *variadic(key_or_keys), expected_type=exp, default=default)
+    return traverse_obj(d, *variadic(key_or_keys), expected_type=exp,
+                        default=default, get_all=False)
 
 
 def try_call(*funcs, **kwargs):
@@ -4302,16 +4303,38 @@ def try_get(src, getter, expected_type=None):
                 return v
 
 
-def merge_dicts(*dicts):
+def merge_dicts(*dicts, **kwargs):
+    """
+        Merge the `dict`s in `dicts` using the first valid value for each key.
+        Normally valid: not None and not an empty string
+
+        Keyword-only args:
+        unblank:    allow empty string if False (default True)
+        rev:        merge dicts in reverse order (default False)
+
+        merge_dicts(dct1, dct2, ..., unblank=False, rev=True)
+        matches {**dct1, **dct2, ...}
+
+        However, merge_dicts(dct1, dct2, ..., rev=True) may often be better.
+    """
+
+    unblank = kwargs.get('unblank', True)
+    rev = kwargs.get('rev', False)
+
+    if unblank:
+        def can_merge_str(k, v, to_dict):
+            return (isinstance(v, compat_str) and v
+                    and isinstance(to_dict[k], compat_str)
+                    and not to_dict[k])
+    else:
+        can_merge_str = lambda k, v, to_dict: False
+
     merged = {}
-    for a_dict in dicts:
+    for a_dict in reversed(dicts) if rev else dicts:
         for k, v in a_dict.items():
             if v is None:
                 continue
-            if (k not in merged
-                    or (isinstance(v, compat_str) and v
-                        and isinstance(merged[k], compat_str)
-                        and not merged[k])):
+            if (k not in merged) or can_merge_str(k, v, merged):
                 merged[k] = v
     return merged
 
