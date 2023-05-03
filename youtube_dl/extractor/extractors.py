@@ -1576,6 +1576,7 @@ from .weibo import (
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
+from .whyp import WhypIE
 from .wistia import (
     WistiaIE,
     WistiaPlaylistIE,
