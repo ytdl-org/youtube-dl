@@ -226,6 +226,7 @@ from .ciscolive import (
     CiscoLiveSearchIE,
 )
 from .cjsw import CJSWIE
+from .clipchamp import ClipchampIE
 from .cliphunter import CliphunterIE
 from .clippit import ClippitIE
 from .cliprs import ClipRsIE
