@@ -905,6 +905,85 @@ class TestUtil(unittest.TestCase):
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
 
+    def test_js_to_json_vars_strings(self):
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'null': a,
+                    'nullStr': b,
+                    'true': c,
+                    'trueStr': d,
+                    'false': e,
+                    'falseStr': f,
+                    'unresolvedVar': g,
+                }''',
+                {
+                    'a': 'null',
+                    'b': '"null"',
+                    'c': 'true',
+                    'd': '"true"',
+                    'e': 'false',
+                    'f': '"false"',
+                    'g': 'var',
+                }
+            )),
+            {
+                'null': None,
+                'nullStr': 'null',
+                'true': True,
+                'trueStr': 'true',
+                'false': False,
+                'falseStr': 'false',
+                'unresolvedVar': 'var'
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'int': a,
+                    'intStr': b,
+                    'float': c,
+                    'floatStr': d,
+                }''',
+                {
+                    'a': '123',
+                    'b': '"123"',
+                    'c': '1.23',
+                    'd': '"1.23"',
+                }
+            )),
+            {
+                'int': 123,
+                'intStr': '123',
+                'float': 1.23,
+                'floatStr': '1.23',
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'object': a,
+                    'objectStr': b,
+                    'array': c,
+                    'arrayStr': d,
+                }''',
+                {
+                    'a': '{}',
+                    'b': '"{}"',
+                    'c': '[]',
+                    'd': '"[]"',
+                }
+            )),
+            {
+                'object': {},
+                'objectStr': '{}',
+                'array': [],
+                'arrayStr': '[]',
+            }
+        )
+
     def test_js_to_json_realworld(self):
         inp = '''{
             'clip':{'provider':'pseudo'}
@@ -975,10 +1054,10 @@ class TestUtil(unittest.TestCase):
             !42: 42
         }''')
         self.assertEqual(json.loads(on), {
-            'a': 0,
-            'b': 1,
-            'c': 0,
-            'd': 42.42,
+            'a': True,
+            'b': False,
+            'c': False,
+            'd': True,
             'e': [],
             'f': "abc",
             'g': "",
@@ -1048,9 +1127,25 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{ "040": "040" }')
         self.assertEqual(json.loads(on), {'040': '040'})
 
+        on = js_to_json('[1,//{},\n2]')
+        self.assertEqual(json.loads(on), [1, 2])
+
+        on = js_to_json(r'"\^\$\#"')
+        self.assertEqual(json.loads(on), R'^$#', msg='Unnecessary escapes should be stripped')
+
+        on = js_to_json('\'"\\""\'')
+        self.assertEqual(json.loads(on), '"""', msg='Unnecessary quote escape should be escaped')
+
     def test_js_to_json_malformed(self):
         self.assertEqual(js_to_json('42a1'), '42"a1"')
         self.assertEqual(js_to_json('42a-1'), '42"a"-1')
+
+    def test_js_to_json_template_literal(self):
+        self.assertEqual(js_to_json('`Hello ${name}`', {'name': '"world"'}), '"Hello world"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '"X"'}), '"XX"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '5'}), '"55"')
+        self.assertEqual(js_to_json('`${name}"${name}"`', {'name': '5'}), '"5\\"5\\""')
+        self.assertEqual(js_to_json('`${name}`', {}), '"name"')
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})

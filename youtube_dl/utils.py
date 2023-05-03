@@ -4365,46 +4365,108 @@ def strip_jsonp(code):
         r'\g<callback_data>', code)
 
 
-def js_to_json(code):
-    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*'
+def js_to_json(code, *args, **kwargs):
+
+    # vars is a dict of (var, val) pairs to substitute
+    vars = args[0] if len(args) > 0 else kwargs.get('vars', {})
+    strict = kwargs.get('strict', False)
+
+    STRING_QUOTES = '\'"`'
+    STRING_RE = '|'.join(r'{0}(?:\\.|[^\\{0}])*{0}'.format(q) for q in STRING_QUOTES)
+    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*\n'
     SKIP_RE = r'\s*(?:{comment})?\s*'.format(comment=COMMENT_RE)
     INTEGER_TABLE = (
         (r'(?s)^(0[xX][0-9a-fA-F]+){skip}:?$'.format(skip=SKIP_RE), 16),
         (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
+        (r'(?s)^(\d+){skip}:?$'.format(skip=SKIP_RE), 10),
     )
+    # compat candidate
+    JSONDecodeError = json.JSONDecodeError if 'JSONDecodeError' in dir(json) else ValueError
+
+    def process_escape(match):
+        JSON_PASSTHROUGH_ESCAPES = r'"\bfnrtu'
+        escape = match.group(1) or match.group(2)
+
+        return ('\\' + escape if escape in JSON_PASSTHROUGH_ESCAPES
+                else '\\u00' if escape == 'x'
+                else '' if escape == '\n'
+                else escape)
+
+    def template_substitute(match):
+        evaluated = js_to_json(match.group(1), vars, strict=strict)
+        if evaluated[0] == '"':
+            return json.loads(evaluated)
+        return evaluated
 
     def fix_kv(m):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        elif v.startswith('/*') or v.startswith('//') or v.startswith('!') or v == ',':
-            return ""
+        elif v in ('undefined', 'void 0'):
+            return 'null'
+        elif v.startswith('/*') or v.startswith('//') or v == ',':
+            return ''
 
-        if v[0] in ("'", '"'):
-            v = re.sub(r'(?s)\\.|"', lambda m: {
-                '"': '\\"',
-                "\\'": "'",
-                '\\\n': '',
-                '\\x': '\\u00',
-            }.get(m.group(0), m.group(0)), v[1:-1])
-        else:
-            for regex, base in INTEGER_TABLE:
-                im = re.match(regex, v)
-                if im:
-                    i = int(im.group(1), base)
-                    return '"%d":' % i if v.endswith(':') else '%d' % i
+        if v[0] in STRING_QUOTES:
+            v = re.sub(r'(?s)\${([^}]+)}', template_substitute, v[1:-1]) if v[0] == '`' else v[1:-1]
+            escaped = re.sub(r'(?s)(")|\\(.)', process_escape, v)
+            return '"{0}"'.format(escaped)
 
-        return '"%s"' % v
+        inv = IDENTITY
+        im = re.split(r'^!+', v)
+        if len(im) > 1 and not im[-1].endswith(':'):
+            if (len(v) - len(im[1])) % 2 == 1:
+                inv = lambda x: 'true' if x == 0 else 'false'
+            else:
+                inv = lambda x: 'false' if x == 0 else 'true'
+        if not any(x for x in im):
+            return
+        v = im[-1]
+
+        for regex, base in INTEGER_TABLE:
+            im = re.match(regex, v)
+            if im:
+                i = int(im.group(1), base)
+                return ('"%s":' if v.endswith(':') else '%s') % inv(i)
+
+        if v in vars:
+            try:
+                if not strict:
+                    json.loads(vars[v])
+            except JSONDecodeError:
+                return inv(json.dumps(vars[v]))
+            else:
+                return inv(vars[v])
+
+        if not strict:
+            v = try_call(inv, args=(v,), default=v)
+            if v in ('true', 'false'):
+                return v
+            return '"{0}"'.format(v)
+
+        raise ValueError('Unknown value: ' + v)
+
+    def create_map(mobj):
+        return json.dumps(dict(json.loads(js_to_json(mobj.group(1) or '[]', vars=vars))))
+
+    code = re.sub(r'new Map\((\[.*?\])?\)', create_map, code)
+    if not strict:
+        code = re.sub(r'new Date\((".+")\)', r'\g<1>', code)
+        code = re.sub(r'new \w+\((.*?)\)', lambda m: json.dumps(m.group(0)), code)
+        code = re.sub(r'parseInt\([^\d]+(\d+)[^\d]+\)', r'\1', code)
+        code = re.sub(r'\(function\([^)]*\)\s*\{[^}]*\}\s*\)\s*\(\s*(["\'][^)]*["\'])\s*\)', r'\1', code)
 
     return re.sub(r'''(?sx)
-        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
-        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
-        {comment}|,(?={skip}[\]}}])|
-        (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
-        \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
-        [0-9]+(?={skip}:)|
+        {str_}|
+        {comment}|
+        ,(?={skip}[\]}}])|
+        void\s0|
+        !*(?:(?<!\d)[eE]|[a-df-zA-DF-Z_$])[.a-zA-Z_$0-9]*|
+        (?:\b|!+)0(?:[xX][\da-fA-F]+|[0-7]+)(?:{skip}:)?|
+        !+\d+(?:\.\d*)?(?:{skip}:)?|
+        [0-9]+(?:{skip}:)|
         !+
-        '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
+        '''.format(comment=COMMENT_RE, skip=SKIP_RE, str_=STRING_RE), fix_kv, code)
 
 
 def qualities(quality_ids):
