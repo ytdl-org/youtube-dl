@@ -4268,13 +4268,8 @@ def variadic(x, allowed_types=NO_DEFAULT):
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
-    if isinstance(key_or_keys, (list, tuple)):
-        for key in key_or_keys:
-            if key not in d or d[key] is None or skip_false_values and not d[key]:
-                continue
-            return d[key]
-        return default
-    return d.get(key_or_keys, default)
+    exp = (lambda x: x or None) if skip_false_values else IDENTITY
+    return traverse_obj(d, *variadic(key_or_keys), expected_type=exp, default=default)
 
 
 def try_call(*funcs, **kwargs):
