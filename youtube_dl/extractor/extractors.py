@@ -444,6 +444,13 @@ from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
 from .giga import GigaIE
 from .glide import GlideIE
+from .globalplayer import (
+    GlobalPlayerLiveIE,
+    GlobalPlayerLivePlaylistIE,
+    GlobalPlayerAudioIE,
+    GlobalPlayerAudioEpisodeIE,
+    GlobalPlayerVideoIE
+)
 from .globo import (
     GloboIE,
     GloboArticleIE,
@@ -975,6 +982,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .pr0gramm import (
+    Pr0grammIE,
+    Pr0grammStaticIE,
+)
 from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
@@ -1678,7 +1689,3 @@ from .zingmp3 import (
 )
 from .zoom import ZoomIE
 from .zype import ZypeIE
-from .pr0gramm import (
-    Pr0grammIE,
-    Pr0grammStaticIE,
-)
