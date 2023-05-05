@@ -24,13 +24,6 @@ class GlobalPlayerBaseIE(InfoExtractor):
     def _match_valid_url(cls, url):
         return cls.re.match(cls._VALID_URL, url)
 
-    def _search_nextjs_data(self, webpage, video_id, **kw):
-        return self._parse_json(
-            self._search_regex(
-                r'(?s)<script[^>]+id=[\'"]__NEXT_DATA__[\'"][^>]*>([^<]+)</script>',
-                webpage, 'next.js data', **kw),
-            video_id, **kw)
-
     def _get_page_props(self, url, video_id):
         webpage = self._download_webpage(url, video_id)
         return self._search_nextjs_data(webpage, video_id)['props']['pageProps']
@@ -39,13 +32,14 @@ class GlobalPlayerBaseIE(InfoExtractor):
         return urlhandle_detect_ext(self._request_webpage(  # Server rejects HEAD requests
             url, video_id, note='Determining source extension'))
 
-    def _extract_audio(self, episode, series):
+    @staticmethod
+    def _clean_desc(x):
+        x = clean_html(x)
+        if x:
+            x = x.replace('\xa0', ' ')
+        return x
 
-        def clean_desc(x):
-            x = clean_html(x)
-            if x:
-                x = x.replace('\xa0', ' ')
-            return x
+    def _extract_audio(self, episode, series):
 
         return merge_dicts({
             'vcodec': 'none',
@@ -56,7 +50,7 @@ class GlobalPlayerBaseIE(InfoExtractor):
             'uploader': 'itunesAuthor',  # podcasts only
         }), traverse_obj(episode, {
             'id': 'id',
-            'description': ('description', T(clean_desc)),
+            'description': ('description', T(self._clean_desc)),
             'duration': ('duration', T(parse_duration)),
             'thumbnail': 'imageUrl',
             'url': 'streamUrl',
@@ -141,9 +135,9 @@ class GlobalPlayerLivePlaylistIE(GlobalPlayerBaseIE):
             'ext': 'aac',
             # 'live_status': 'is_live',
             'is_live': True,
-            'description': 'md5:e10f5e10b01a7f2c14ba815509fbb38d',
+            'description': r're:(?s).+\bclassical\b.+\bClassic FM Hall [oO]f Fame\b',
             'thumbnail': 'https://images.globalplayer.com/images/551379?width=450&signature=oMLPZIoi5_dBSHnTMREW0Xg76mA=',
-            'title': 're:^Classic FM Hall of Fame.+$'
+            'title': 're:Classic FM Hall of Fame.+$'
         },
     }]
 
@@ -160,7 +154,7 @@ class GlobalPlayerLivePlaylistIE(GlobalPlayerBaseIE):
             'is_live': True,
         }, traverse_obj(station, {
             'title': 'title',
-            'description': 'description',
+            'description': ('description', T(self._clean_desc)),
             'thumbnail': 'image',
         }), rev=True)
 
@@ -177,7 +171,7 @@ class GlobalPlayerAudioIE(GlobalPlayerBaseIE):
             'thumbnail': 'md5:60286e7d12d795bd1bbc9efc6cee643e',
             'categories': ['Society & Culture', 'True Crime'],
             'uploader': 'Global',
-            'description': 'md5:da5b918eac9ae319454a10a563afacf9',
+            'description': r're:(?s).+\bscam\b.+?\bseries available now\b',
         },
     }, {
         # radio catchup
@@ -203,7 +197,7 @@ class GlobalPlayerAudioIE(GlobalPlayerBaseIE):
                         series, ('episodes', lambda _, v: v['id'] and v['streamUrl']))],
             'categories': traverse_obj(series, ('categories', Ellipsis, 'name')) or None,
         }, traverse_obj(series, {
-            'description': 'description',
+            'description': ('description', T(self._clean_desc)),
             'thumbnail': 'imageUrl',
             'title': 'title',
             'uploader': 'itunesAuthor',  # podcasts only

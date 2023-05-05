@@ -35,13 +35,6 @@ class ClipchampIE(InfoExtractor):
     _STREAM_URL_TMPL = 'https://%s.cloudflarestream.com/%s/manifest/video.%s'
     _STREAM_URL_QUERY = {'parentOrigin': 'https://clipchamp.com'}
 
-    def _search_nextjs_data(self, webpage, video_id, **kw):
-        return self._parse_json(
-            self._search_regex(
-                r'(?s)<script[^>]+id=[\'"]__NEXT_DATA__[\'"][^>]*>([^<]+)</script>',
-                webpage, 'next.js data', **kw),
-            video_id, **kw)
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)

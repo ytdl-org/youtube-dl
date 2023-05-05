@@ -21,7 +21,7 @@ class WhypIE(InfoExtractor):
             'url': 'https://cdn.whyp.it/50eb17cc-e9ff-4e18-b89b-dc9206a95cb1.mp3',
             'id': '18337',
             'title': 'Home Page Example Track',
-            'description': 'md5:bd758000fb93f3159339c852b5b9133c',
+            'description': r're:(?s).+\bexample track\b',
             'ext': 'mp3',
             'duration': 52.82,
             'uploader': 'Brad',
@@ -32,29 +32,6 @@ class WhypIE(InfoExtractor):
         'url': 'https://www.whyp.it/tracks/18337',
         'only_matching': True,
     }]
-
-    def _search_nuxt_data(self, webpage, video_id, context_name='__NUXT__', fatal=True, traverse=('data', 0)):
-        """Parses Nuxt.js metadata. This works as long as the function __NUXT__ invokes is a pure function"""
-
-        import functools
-        import json
-        import re
-        from ..utils import (js_to_json, NO_DEFAULT)
-
-        re_ctx = re.escape(context_name)
-        FUNCTION_RE = r'\(function\((?P<arg_keys>.*?)\){return\s+(?P<js>{.*?})\s*;?\s*}\((?P<arg_vals>.*?)\)'
-        js, arg_keys, arg_vals = self._search_regex(
-            (p.format(re_ctx, FUNCTION_RE) for p in (r'<script>\s*window\.{0}={1}\s*\)\s*;?\s*</script>', r'{0}\(.*?{1}')),
-            webpage, context_name, group=('js', 'arg_keys', 'arg_vals'),
-            default=NO_DEFAULT if fatal else (None, None, None))
-        if js is None:
-            return {}
-
-        args = dict(zip(arg_keys.split(','), map(json.dumps, self._parse_json(
-            '[{0}]'.format(arg_vals), video_id, transform_source=js_to_json, fatal=fatal) or ())))
-
-        ret = self._parse_json(js, video_id, transform_source=functools.partial(js_to_json, vars=args), fatal=fatal)
-        return traverse_obj(ret, traverse) or {}
 
     def _real_extract(self, url):
         unique_id = self._match_id(url)
