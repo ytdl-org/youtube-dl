@@ -17,9 +17,11 @@ from ..utils import (
 
 class ToggleIE(InfoExtractor):
     IE_NAME = 'toggle'
-    _VALID_URL = r'(?:https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}|toggle:)(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:[^/]+/){1,}|toggle:)[^/]+-(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://www.mewatch.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
+        ### to be updated
+        ### deprecated
+        # 'url': 'http://www.mewatch.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
             'id': '343115',
             'ext': 'mp4',
@@ -33,7 +35,8 @@ class ToggleIE(InfoExtractor):
         }
     }, {
         'note': 'DRM-protected video',
-        'url': 'http://www.mewatch.sg/en/movies/dug-s-special-mission/341413',
+        ### url deprecated
+        # 'url': 'http://www.mewatch.sg/en/movies/dug-s-special-mission/341413',
         'info_dict': {
             'id': '341413',
             'ext': 'wvm',
@@ -45,10 +48,13 @@ class ToggleIE(InfoExtractor):
         'params': {
             'skip_download': 'DRM-protected wvm download',
         }
-    }, {
+    }, 
+    {
         # this also tests correct video id extraction
         'note': 'm3u8 links are geo-restricted, but Android/mp4 is okay',
-        'url': 'http://www.mewatch.sg/en/series/28th-sea-games-5-show/28th-sea-games-5-show-ep11/332861',
+
+        ### url deprecated
+        # 'url': 'http://www.mewatch.sg/en/series/28th-sea-games-5-show/28th-sea-games-5-show-ep11/332861',
         'info_dict': {
             'id': '332861',
             'ext': 'mp4',
@@ -61,26 +67,39 @@ class ToggleIE(InfoExtractor):
             'skip_download': 'DRM-protected wvm download',
         },
         'skip': 'm3u8 links are geo-restricted'
-    }, {
-        'url': 'http://video.toggle.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
+    }, 
+    
+    {
+        ### video.toggle.sg seems deprecated
+        # 'url': 'http://video.toggle.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
         'only_matching': True,
     }, {
-        'url': 'http://www.mewatch.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
+        'url':'https://www.mewatch.sg/clips/Seraph-Sun-Aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set-84901',
         'only_matching': True,
     }, {
-        'url': 'http://www.mewatch.sg/zh/series/zero-calling-s2-hd/ep13/336367',
+        'url':'https://www.mewatch.sg/episode/Zero-Calling-S2-E13-The-End-of-The-Beginning-55137',
         'only_matching': True,
     }, {
-        'url': 'http://www.mewatch.sg/en/series/vetri-s2/webisodes/jeeva-is-an-orphan-vetri-s2-webisode-7/342302',
+        ### webisodes no longer used
+        'url':'https://www.mewatch.sg/clips/Jeeva-is-an-orphan-Vetri-S2-Webisode-7-84944',
+        # 'url': 'http://www.mewatch.sg/en/series/vetri-s2/webisodes/jeeva-is-an-orphan-vetri-s2-webisode-7/342302',
         'only_matching': True,
     }, {
-        'url': 'http://www.mewatch.sg/en/movies/seven-days/321936',
+        ### only available in Singapore 403 forbidden
+        'url': 'https://www.mewatch.sg/movie/Seven-Days-79641',
         'only_matching': True,
     }, {
-        'url': 'https://www.mewatch.sg/en/tv-show/news/may-2017-cna-singapore-tonight/fri-19-may-2017/512456',
+        ### not working for this list, but not a big issue since old path deprecated
+        'url':'https://www.mewatch.sg/list/CNA-Singapore-Tonight-154904',
+        # 'url': 'https://www.mewatch.sg/en/tv-show/news/may-2017-cna-singapore-tonight/fri-19-may-2017/512456',
         'only_matching': True,
     }, {
-        'url': 'http://www.mewatch.sg/en/channels/eleven-plus/401585',
+        ### not working. seems deprecated
+        # 'url': 'http://www.mewatch.sg/en/channels/eleven-plus/401585',
+        'only_matching': True,
+    }, {
+        ### [20230507:shouldsee] working
+        'url' :'https://www.mewatch.sg/watch/Seraph-Sun-Aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set-84901',
         'only_matching': True,
     }]
 
@@ -90,34 +109,38 @@ class ToggleIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        lang='en'
         params = {
-            'initObj': {
-                'Locale': {
-                    'LocaleLanguage': '',
-                    'LocaleCountry': '',
-                    'LocaleDevice': '',
-                    'LocaleUserState': 0
-                },
-                'Platform': 0,
-                'SiteGuid': 0,
-                'DomainID': '0',
-                'UDID': '',
-                'ApiUser': self._API_USER,
-                'ApiPass': self._API_PASS
-            },
-            'MediaID': video_id,
-            'mediaType': 0,
-        }
+            'delivery':'stream,progressive',
+            'resolution':'External',
+            'segments':'all',
+            'lang':lang,
+            'ff':'idp,ldp,rpt,cd',
+            }        
+        video_info = self._download_json(
+            'https://cdn.mewatch.sg/api/items/'+ video_id +'/videos',
+            video_id, 'Downloading video info json', query=params)
 
-        info = self._download_json(
-            'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
-            video_id, 'Downloading video info json', data=json.dumps(params).encode('utf-8'))
+        params = {
+            # 'delivery':'stream,progressive',
+            # 'resolution':'External',
+            'segments': 'all',
+            'lang':lang,
+            'ff':'idp,ldp,rpt,cd',
+            }        
+        meta_info = self._download_json(
+            'https://cdn.mewatch.sg/api/items/'+ video_id ,
+            video_id, 'Downloading video info json', query=params)
 
-        title = info['MediaName']
-
+        # urls = info
+        info = {'Files':video_info}
+        info.update(meta_info)
+        
+        title = info['path'].rsplit('/',1)[-1]
         formats = []
-        for video_file in info.get('Files', []):
-            video_url, vid_format = video_file.get('URL'), video_file.get('Format')
+
+        for video_file in info.get('Files', []): 
+            video_url, vid_format = video_file.get('url'), video_file.get('format')
             if not video_url or video_url == 'NA' or not vid_format:
                 continue
             ext = determine_ext(video_url)
@@ -154,18 +177,16 @@ class ToggleIE(InfoExtractor):
                 })
         if not formats:
             for meta in (info.get('Metas') or []):
-                if meta.get('Key') == 'Encryption' and meta.get('Value') == '1':
-                    raise ExtractorError(
-                        'This video is DRM protected.', expected=True)
-            # Most likely because geo-blocked
-            raise ExtractorError('No downloadable videos found', expected=True)
-        self._sort_formats(formats)
+                if (not self.get_param('allow_unplayable_formats')
+                        and meta.get('Key') == 'Encryption' and meta.get('Value') == '1'):
+                    self.report_drm(video_id)
+            # Most likely because geo-blocked if no formats and no DRM
 
         thumbnails = []
-        for picture in info.get('Pictures', []):
+        for picture in info.get('images', []):
             if not isinstance(picture, dict):
                 continue
-            pic_url = picture.get('URL')
+            pic_url = picture.get('tile')
             if not pic_url:
                 continue
             thumbnail = {
@@ -227,8 +248,16 @@ class MeWatchIE(InfoExtractor):
 
     def _real_extract(self, url):
         item_id = self._match_id(url)
-        custom_id = self._download_json(
+        return self.url_result(
+            'toggle:' + item_id, ToggleIE.ie_key(), item_id)
+
+        print(f'[debug]{item_id}')
+        xdata = self._download_json(
             'https://cdn.mewatch.sg/api/items/' + item_id,
-            item_id, query={'segments': 'all'})['customId']
+            item_id, query={'segments': 'all','lang':'en','ff':'idp,ldp,rpt,cd'})
+        from pprint import pprint 
+        pprint(xdata)
+        custom_id = xdata['customId']
+        print(f'[debug]{custom_id}')
         return self.url_result(
             'toggle:' + custom_id, ToggleIE.ie_key(), custom_id)
