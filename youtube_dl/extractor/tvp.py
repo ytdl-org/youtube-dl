@@ -35,6 +35,9 @@ if not hasattr(InfoExtractor, '_match_valid_url'):
         RegexNotFoundError,
     )
 
+    def txt_or_none(v, default=None):
+        return default if v is None else (compat_str(v).strip() or default)
+
     BaseIE = InfoExtractor
 
     class InfoExtractor(BaseIE):
