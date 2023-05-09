@@ -16,7 +16,6 @@ from ..utils import (
     int_or_none,
     js_to_json,
     traverse_obj,
-    txt_or_none,
     url_or_none,
 )
 
