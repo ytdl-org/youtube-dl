@@ -90,9 +90,7 @@ class TubiTvIE(InfoExtractor):
                 'url': self._proto_relative_url(sub_url),
             })
 
-        is_live = None
-        if video_data.get('tags'):
-            is_live = 'live' in video_data.get('tags')
+        is_live = ('live' in video_data.get('tags') or []) or None
 
         return {
             'id': video_id,
