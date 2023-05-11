@@ -502,8 +502,15 @@ class JSInterpreter(object):
                 expr = self._dump(inner, local_vars) + outer
 
         if expr.startswith('('):
-            inner, outer = self._separate_at_paren(expr)
-            inner, should_abort = self.interpret_statement(inner, local_vars, allow_recursion)
+
+            m = re.match(r'\((?P<d>[a-z])%(?P<e>[a-z])\.length\+(?P=e)\.length\)%(?P=e)\.length', expr)
+            if m:
+                # short-cut eval of frequently used `(d%e.length+e.length)%e.length`, worth ~6% on `pytest -k test_nsig`
+                outer = None
+                inner, should_abort = self._offset_e_by_d(m.group('d'), m.group('e'), local_vars)
+            else:
+                inner, outer = self._separate_at_paren(expr)
+                inner, should_abort = self.interpret_statement(inner, local_vars, allow_recursion)
             if not outer or should_abort:
                 return inner, should_abort or should_return
             else:
@@ -956,6 +963,17 @@ class JSInterpreter(object):
             obj[remove_quotes(f.group('key'))] = self.build_function(argnames, f.group('code'))
 
         return obj
+
+    @staticmethod
+    def _offset_e_by_d(d, e, local_vars):
+        """ Short-cut eval: (d%e.length+e.length)%e.length """
+        try:
+            d = local_vars[d]
+            e = local_vars[e]
+            e = len(e)
+            return _js_mod(_js_mod(d, e) + e, e), False
+        except Exception:
+            return None, True
 
     def extract_function_code(self, funcname):
         """ @returns argnames, code """
