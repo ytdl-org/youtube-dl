@@ -68,8 +68,7 @@ class TubiTvIE(InfoExtractor):
         title = video_data['title']
 
         formats = self._extract_m3u8_formats(
-            self._proto_relative_url(video_data.get('url')
-                                     or video_data['video_resources'][0]['manifest']['url']),
+            self._proto_relative_url(traverse_obj(video_data, 'url', ('video_resources', 0, 'manifest', 'url'))),
             video_id, 'mp4', 'm3u8_native')
         self._sort_formats(formats)
 
