@@ -1,11 +1,12 @@
 from __future__ import unicode_literals
 
-from functools import update_wrapper
 import itertools
 import json
 import math
 import operator
 import re
+
+from functools import update_wrapper
 
 from .utils import (
     error_to_compat_str,
@@ -24,6 +25,22 @@ from .compat import (
 )
 
 
+# name JS functions
+class function_with_repr(object):
+    # from yt_dlp/utils.py, but in this module
+    # repr_ is always set
+    def __init__(self, func, repr_):
+        update_wrapper(self, func)
+        self.func, self.__repr = func, repr_
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+    def __repr__(self):
+        return self.__repr
+
+
+# name JS operators
 def wraps_op(op):
 
     def update_and_rename_wrapper(w):
@@ -35,10 +52,13 @@ def wraps_op(op):
     return update_and_rename_wrapper
 
 
+_NaN = float('nan')
+
+
 def _js_bit_op(op):
 
     def zeroise(x):
-        return 0 if x in (None, JS_Undefined) else x
+        return 0 if x in (None, JS_Undefined, _NaN) else x
 
     @wraps_op(op)
     def wrapped(a, b):
@@ -52,7 +72,7 @@ def _js_arith_op(op):
     @wraps_op(op)
     def wrapped(a, b):
         if JS_Undefined in (a, b):
-            return float('nan')
+            return _NaN
         return op(a or 0, b or 0)
 
     return wrapped
@@ -60,13 +80,13 @@ def _js_arith_op(op):
 
 def _js_div(a, b):
     if JS_Undefined in (a, b) or not (a and b):
-        return float('nan')
+        return _NaN
     return operator.truediv(a or 0, b) if b else float('inf')
 
 
 def _js_mod(a, b):
     if JS_Undefined in (a, b) or not b:
-        return float('nan')
+        return _NaN
     return (a or 0) % b
 
 
@@ -74,7 +94,7 @@ def _js_exp(a, b):
     if not b:
         return 1  # even 0 ** 0 !!
     elif JS_Undefined in (a, b):
-        return float('nan')
+        return _NaN
     return (a or 0) ** b
 
 
@@ -285,6 +305,8 @@ class JSInterpreter(object):
     def _named_object(self, namespace, obj):
         self.__named_object_counter += 1
         name = '%s%d' % (self._OBJ_NAME, self.__named_object_counter)
+        if callable(obj) and not isinstance(obj, function_with_repr):
+            obj = function_with_repr(obj, 'F<%s>' % (self.__named_object_counter, ))
         namespace[name] = obj
         return name
 
@@ -693,7 +715,7 @@ class JSInterpreter(object):
         elif expr == 'undefined':
             return JS_Undefined, should_return
         elif expr == 'NaN':
-            return float('NaN'), should_return
+            return _NaN, should_return
 
         elif md.get('return'):
             return local_vars[m.group('name')], should_return
@@ -953,7 +975,9 @@ class JSInterpreter(object):
         return self.build_arglist(func_m.group('args')), code
 
     def extract_function(self, funcname):
-        return self.extract_function_from_code(*self.extract_function_code(funcname))
+        return function_with_repr(
+            self.extract_function_from_code(*self.extract_function_code(funcname)),
+            'F<%s>' % (funcname, ))
 
     def extract_function_from_code(self, argnames, code, *global_stack):
         local_vars = {}
@@ -988,7 +1012,6 @@ class JSInterpreter(object):
     def build_function(self, argnames, code, *global_stack):
         global_stack = list(global_stack) or [{}]
         argnames = tuple(argnames)
-        # import pdb; pdb.set_trace()
 
         def resf(args, kwargs={}, allow_recursion=100):
             global_stack[0].update(
