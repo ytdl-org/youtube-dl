@@ -56,6 +56,7 @@ from .compat import (
     compat_kwargs,
     compat_os_name,
     compat_re_Match,
+    compat_re_Pattern,
     compat_shlex_quote,
     compat_str,
     compat_struct_pack,
@@ -86,7 +87,7 @@ def register_socks_protocols():
 
 
 # Unfavoured alias
-compiled_regex_type = compat_re_Match
+compiled_regex_type = compat_re_Pattern
 
 
 def random_user_agent():
