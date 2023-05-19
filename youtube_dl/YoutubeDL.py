@@ -102,6 +102,7 @@ from .utils import (
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
+    ytdl_is_updateable,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
@@ -2373,9 +2374,11 @@ class YoutubeDL(object):
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
-        self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
+        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))
+
+        writeln_debug('youtube-dl version ', __version__, (' (single file build)' if ytdl_is_updateable() else ''))
         if _LAZY_LOADER:
-            self._write_string('[debug] Lazy loading extractors enabled' + '\n')
+            writeln_debug('Lazy loading extractors enabled')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -2384,7 +2387,7 @@ class YoutubeDL(object):
             out, err = process_communicate_or_kill(sp)
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                self._write_string('[debug] Git HEAD: ' + out + '\n')
+                writeln_debug('Git HEAD: ', out)
         except Exception:
             try:
                 sys.exc_clear()
@@ -2403,13 +2406,15 @@ class YoutubeDL(object):
             except OSError:  # We may not have access to the executable
                 return []
 
-        self._write_string('[debug] Python %s (%s %s) - %s (%s%s)\n' % (
+        libc = join_nonempty(*libc_ver(), delim=' ')
+        writeln_debug('Python %s (%s %s %s) - %s - %s%s' % (
             platform.python_version(),
             python_implementation(),
+            platform.machine(),
             platform.architecture()[0],
             platform_name(),
             OPENSSL_VERSION,
-            ', %s' % (join_nonempty(*libc_ver(), delim=' ') or '-'),
+            (' - %s' % (libc, )) if libc else ''
         ))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
@@ -2422,17 +2427,17 @@ class YoutubeDL(object):
         )
         if not exe_str:
             exe_str = 'none'
-        self._write_string('[debug] exe versions: %s\n' % exe_str)
+        writeln_debug('exe versions: %s' % (exe_str, ))
 
         proxy_map = {}
         for handler in self._opener.handlers:
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
-        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        writeln_debug('Proxy map: ', compat_str(proxy_map))
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
-            self._write_string('[debug] Public IP address: %s\n' % ipaddr)
+            writeln_debug('Public IP address: %s' % (ipaddr, ))
             latest_version = self.urlopen(
                 'https://yt-dl.org/latest/version').read().decode('utf-8')
             if version_tuple(latest_version) > version_tuple(__version__):
