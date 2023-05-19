@@ -516,6 +516,9 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function x(){return 42 << NaN}')
         self.assertEqual(jsi.call_function('x'), 42)
 
+        jsi = JSInterpreter('function x(){return 42 << Infinity}')
+        self.assertEqual(jsi.call_function('x'), 42)
+
     def test_32066(self):
         jsi = JSInterpreter("function x(){return Math.pow(3, 5) + new Date('1970-01-01T08:01:42.000+08:00') / 1000 * -239 - -24205;}")
         self.assertEqual(jsi.call_function('x'), 70)

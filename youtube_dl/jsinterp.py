@@ -2,7 +2,6 @@ from __future__ import unicode_literals
 
 import itertools
 import json
-import math
 import operator
 import re
 
@@ -51,6 +50,10 @@ def wraps_op(op):
 
     return update_and_rename_wrapper
 
+
+# NB In principle NaN cannot be checked by membership.
+# Here all NaN values are actually this one, so _NaN is _NaN,
+# although _NaN != _NaN.
 
 _NaN = float('nan')
 
@@ -126,13 +129,8 @@ def _js_comp_op(op):
 
 def _js_ternary(cndn, if_true=True, if_false=False):
     """Simulate JS's ternary operator (cndn?if_true:if_false)"""
-    if cndn in (False, None, 0, '', JS_Undefined):
+    if cndn in (False, None, 0, '', JS_Undefined, _NaN):
         return if_false
-    try:
-        if math.isnan(cndn):  # NB: NaN cannot be checked by membership
-            return if_false
-    except TypeError:
-        pass
     return if_true
 
 
