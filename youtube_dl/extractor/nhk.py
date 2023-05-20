@@ -94,7 +94,6 @@ class NhkVodIE(NhkBaseIE):
     }]
 
     def _extract_episode_info(self, url, episode=None):
-        print(url)
         fetch_episode = episode is None
         lang, m_type, episode_id = re.match(NhkVodIE._VALID_URL, url).groups()
         if len(episode_id) == 7:
