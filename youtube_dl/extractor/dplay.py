@@ -411,9 +411,15 @@ class HGTVDeIE(DPlayBaseIE):
 
 
 class DiscoveryPlusBaseIE(DPlayBaseIE):
+    _DISCO_CLIENT_VER = '27.42.0'
 
     def _update_disco_api_headers(self, headers, disco_base, display_id, realm):
-        headers['x-disco-client'] = 'WEB:UNKNOWN:dplus_us:15.0.0'
+        # https://github.com/yt-dlp/yt-dlp/issues/2138#issuecomment-1546623404
+        headers.update({
+            'x-disco-params': 'realm=%s' % (realm, ),
+            'x-disco-client': 'WEB:UNKNOWN:%s:%s' % (self._PRODUCT, self._DISCO_CLIENT_VER),
+            'Authorization': self._get_auth(disco_base, display_id, realm),
+        })
 
     def _download_video_playback_info(self, disco_base, video_id, headers):
         return self._download_json(
@@ -425,14 +431,12 @@ class DiscoveryPlusBaseIE(DPlayBaseIE):
                 'videoId': video_id,
                 'wisteriaProperties': {
                     'platform': 'desktop',
-                    'product': 'dplus_us',
+                    'product': self._PRODUCT,
                 },
             }).encode('utf-8'))['data']['attributes']['streaming']
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        return self._get_disco_api_info(
-            url, display_id, 'us1-prod-direct.discoveryplus.com', 'go', 'us')
+        return self._get_disco_api_info(url, self._match_id(url), **self._DISCO_API_PARAMS)
 
 
 class DiscoveryPlusIE(DiscoveryPlusBaseIE):
@@ -453,15 +457,113 @@ class DiscoveryPlusIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        # 'skip': 'not.found - video ... filtered by validator, reasonCode=15',
+    }, {
+        'url': 'https://discoveryplus.com/ca/video/bering-sea-gold-discovery-ca/goldslingers',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.discoveryplus.com/de/video/sport/eurosport-1-germany-eurosport-1-germany-sport/weltcup-jakarta-4663856',
+        'info_dict': {
+            'id': '965152',
+            'ext': 'mp4',
+            'display_id': 'eurosport-1-germany-eurosport-1-germany-sport/weltcup-jakarta-4663856',
+        },
+        'params': {
+            'format': 'best/bestvideo',
+            'skip_download': True,
+        },
+        'expected_warnings': [
+            'Unknown MIME type image/jpeg',
+        ],
+        'skip': 'This video is only available for registered users',
+    }, {
+        'url': 'https://www.discoveryplus.com/gb/video/richard-hammonds-workshop/season-1-episode-1',
+        'info_dict': {
+            'id': '965152',
+            'ext': 'mp4',
+            'display_id': 'richard-hammonds-workshop/season-1-episode-1',
+        },
+        'params': {
+            'format': 'best/bestvideo',
+            'skip_download': True,
+        },
+        'expected_warnings': [
+            'Unknown MIME type image/jpeg',
+        ],
+        'skip': 'This video is only available for registered users',
+    }, {
+        'url': 'https://www.discoveryplus.com/it/video/i-signori-della-neve/stagione-2-episodio-1-i-preparativi',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.discoveryplus.com/it/video/super-benny/trailer',
+        'info_dict': {
+            'id': '2440530',
+            'ext': 'mp4',
+            'title': 'Trailer',
+            'description': 'In arrivo a giugno - Scopri la sigla di Super Benny!',
+            'timestamp': 1653030000,
+            'upload_date': '20220520',
+        },
+        'params': {
+            'format': 'best/bestvideo',
+            'skip_download': True,
+        },
+        'expected_warnings': [
+            'Unknown MIME type image/jpeg',
+        ],
+    }, {
+        'url': 'https://www.discoveryplus.com/no/video/estonia/forliset',
+        'info_dict': {
+            'id': '488965',
+            'ext': 'mp4',
+            'title': 'Forliset',
+            'description': 'md5:4c6d28d266dbceb0e6ccc16bc9da22f4',
+            'timestamp': 1601267400,
+            'upload_date': '20200928',
+        },
         'params': {
             'format': 'bestvideo',
+            'skip_download': True,
         },
+        'expected_warnings': [
+            'Unknown MIME type ',
+        ],
     }]
 
+    _PRODUCT = 'dplus_us'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.discoveryplus.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+    _REGIONS = {
+        'de': ('dplus_de', {
+            'disco_host': 'eu1-prod-direct.discoveryplus.com',
+            'realm': 'dplay',
+            'country': 'de',
+        }),
+        'gb': ('dplus_gb', {
+            'disco_host': 'eu1-prod-direct.discoveryplus.com',
+            'realm': 'dplay',
+            'country': 'gb',
+        }),
+        'it': ('dplus_us', {
+            'disco_host': 'eu1-prod-direct.discoveryplus.com',
+            'realm': 'dplay',
+            'country': 'it',
+        }),
+        'no': ('dplus_no', {
+            'disco_host': 'eu1-prod-direct.discoveryplus.com',
+            'realm': 'dplay',
+            'country': 'no',
+        }),
+    }
+
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        return self._get_disco_api_info(
-            url, display_id, 'eu1-prod.disco-api.com', 'hgtv', 'de')
+        region = self._REGIONS.get(self._match_valid_url(url).group('region'))
+        if region:
+            self._PRODUCT, self._DISCO_API_PARAMS = region
+        return super(DiscoveryPlusIE, self)._real_extract(url)
 
 
 class GoDiscoveryIE(DiscoveryPlusBaseIE):
