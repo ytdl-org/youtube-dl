@@ -304,6 +304,7 @@ from .douyutv import (
     DouyuTVIE,
 )
 from .dplay import (
+    DiscoveryNetworksDeIE,
     DPlayIE,
     DiscoveryPlusIE,
     HGTVDeIE,
@@ -324,7 +325,6 @@ from .discoverygo import (
     DiscoveryGoIE,
     DiscoveryGoPlaylistIE,
 )
-from .discoverynetworks import DiscoveryNetworksDeIE
 from .discoveryvr import DiscoveryVRIE
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE

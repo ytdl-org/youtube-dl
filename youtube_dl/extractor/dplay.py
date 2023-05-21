@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 import re
+import uuid
 
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
@@ -11,13 +12,183 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
-    strip_or_none,
+    join_nonempty,
+    remove_start,
+    traverse_obj,
+    txt_or_none,
     unified_timestamp,
+    url_or_none,
 )
 
 
-class DPlayIE(InfoExtractor):
+# for the 2 (?) people running Py 2.6 that has no {member} literals
+T = lambda x: set((x,))
+
+
+class DPlayBaseIE(InfoExtractor):
     _PATH_REGEX = r'/(?P<id>[^/]+/[^/?#]+)'
+    _auth_token_cache = {}
+
+    def _get_auth(self, disco_base, display_id, realm, needs_device_id=True):
+        key = (disco_base, realm)
+        st = self._get_cookies(disco_base).get('st')
+        token = (st and st.value) or self._auth_token_cache.get(key)
+
+        if not token:
+            query = {'realm': realm}
+            if needs_device_id:
+                query['deviceId'] = uuid.uuid4().hex
+            token = self._download_json(
+                disco_base + 'token', display_id, 'Downloading token',
+                query=query)['data']['attributes']['token']
+
+            # Save cache only if cookies are not being set
+            if not self._get_cookies(disco_base).get('st'):
+                self._auth_token_cache[key] = token
+
+        return 'Bearer {0}'.format(token)
+
+    def _process_errors(self, e, geo_countries=None):
+        info = self._parse_json(e.cause.read().decode('utf-8'), None, fatal=False)
+        error = traverse_obj(info, ('errors', 0, T(dict))) or {}
+        error_code = error.get('code')
+        if geo_countries is not None and error_code == 'access.denied.geoblocked':
+            self.raise_geo_restricted(countries=geo_countries)
+        elif error_code in ('access.denied.missingpackage', 'invalid.token'):
+            raise ExtractorError(
+                'This video is only available for registered users. You may want to use --cookies.', expected=True)
+        raise ExtractorError(join_nonempty(
+            'code', 'detail', delim=' - ', from_dict=error) or 'Unknown error',
+            expected=True)
+
+    def _update_disco_api_headers(self, headers, disco_base, display_id, realm):
+        headers['Authorization'] = self._get_auth(disco_base, display_id, realm, False)
+
+    def _download_video_playback_info(self, disco_base, video_id, headers):
+        streaming = self._download_json(
+            disco_base + 'playback/videoPlaybackInfo/' + video_id,
+            video_id, headers=headers)['data']['attributes']['streaming']
+        return [fmt for fmt in traverse_obj(streaming, (
+            T(lambda x: x.items()), Ellipsis, {
+                'type': (0, ),
+                'url': (1, 'url', T(url_or_none))}))]
+
+    def _get_disco_api_info(self, url, display_id, disco_host, realm, country, domain=''):
+        geo_countries = [country.upper()]
+        self._initialize_geo_bypass({
+            'countries': geo_countries,
+        })
+        disco_base = 'https://%s/' % disco_host
+        headers = {
+            'Referer': url,
+        }
+        self._update_disco_api_headers(headers, disco_base, display_id, realm)
+        try:
+            video = self._download_json(
+                disco_base + 'content/videos/' + display_id, display_id,
+                headers=headers, query={
+                    'fields[channel]': 'name',
+                    'fields[image]': 'height,src,width',
+                    'fields[show]': 'name',
+                    'fields[tag]': 'name',
+                    'fields[video]': 'description,episodeNumber,name,publishStart,seasonNumber,videoDuration',
+                    'include': 'images,primaryChannel,show,tags'
+                })
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                if e.cause.code == 400:
+                    self._process_errors(e, geo_countries)
+                elif e.cause.code == 404:
+                    self._process_errors(e)
+            raise
+        video_id = video['data']['id']
+        info = video['data']['attributes']
+        title = info['name'].strip()
+        formats = []
+        subtitles = {}
+        try:
+            streaming = self._download_video_playback_info(
+                disco_base, video_id, headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                self._process_errors(e, geo_countries)
+            raise
+        for format_dict in traverse_obj(streaming, (Ellipsis, {'type': 'type', 'url': ('url', T(url_or_none))})):
+            format_url = format_dict['url']
+            format_id = format_dict['type']
+            ext = determine_ext(format_url)
+            if format_id == 'dash' or ext == 'mpd':
+                # dash_fmts, dash_subs = self._extract_mpd_formats_and_subtitles(
+                dash_fmts, dash_subs = self._extract_mpd_formats(
+                    format_url, display_id, mpd_id='dash', fatal=False), {}
+                formats.extend(dash_fmts)
+                subtitles = self._merge_subtitles(subtitles, dash_subs)
+            elif format_id == 'hls' or ext == 'm3u8':
+                # m3u8_fmts, m3u8_subs = self._extract_m3u8_formats_and_subtitles(
+                m3u8_fmts, m3u8_subs = self._extract_m3u8_formats(
+                    format_url, display_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls',
+                    fatal=False), {}
+                formats.extend(m3u8_fmts)
+                subtitles = self._merge_subtitles(subtitles, m3u8_subs)
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+        self._sort_formats(formats)
+
+        creator = series = None
+        tags = []
+        thumbnails = []
+        for e in traverse_obj(video, ('included', lambda _, v: v['attributes'].keys())):
+            if True:
+                attributes = e['attributes']
+                e_type = e.get('type')
+                if e_type == 'channel':
+                    creator = attributes.get('name')
+                elif e_type == 'image':
+                    src = attributes.get('src')
+                    if src:
+                        thumbnails.append({
+                            'url': src,
+                            'width': int_or_none(attributes.get('width')),
+                            'height': int_or_none(attributes.get('height')),
+                        })
+                if e_type == 'show':
+                    series = attributes.get('name')
+                elif e_type == 'tag':
+                    name = attributes.get('name')
+                    if name:
+                        tags.append(name)
+
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': txt_or_none(info.get('description')),
+            'duration': float_or_none(info.get('videoDuration'), 1000),
+            'timestamp': unified_timestamp(info.get('publishStart')),
+            'series': series,
+            'season_number': int_or_none(info.get('seasonNumber')),
+            'episode_number': int_or_none(info.get('episodeNumber')),
+            'creator': creator,
+            'tags': tags,
+            'thumbnails': thumbnails,
+            'formats': formats,
+            'subtitles': subtitles,
+            'http_headers': {
+                'referer': domain,
+            },
+        }
+
+    @classmethod
+    def _match_valid_url(cls, url):
+        return re.match(cls._VALID_URL, url)
+
+
+class DPlayIE(DPlayBaseIE):
+    # Nordic/Mediterranean/Japanese Discovery: obsolete?
     _VALID_URL = r'''(?x)https?://
         (?P<domain>
             (?:www\.)?(?P<host>d
@@ -27,7 +198,7 @@ class DPlayIE(InfoExtractor):
                 )
             )|
             (?P<subdomain_country>es|it)\.dplay\.com
-        )/[^/]+''' + _PATH_REGEX
+        )/[^/]+''' + DPlayBaseIE._PATH_REGEX
 
     _TESTS = [{
         # non geo restricted, via secure api, unsigned download hls URL
@@ -154,146 +325,62 @@ class DPlayIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _process_errors(self, e, geo_countries):
-        info = self._parse_json(e.cause.read().decode('utf-8'), None)
-        error = info['errors'][0]
-        error_code = error.get('code')
-        if error_code == 'access.denied.geoblocked':
-            self.raise_geo_restricted(countries=geo_countries)
-        elif error_code in ('access.denied.missingpackage', 'invalid.token'):
-            raise ExtractorError(
-                'This video is only available for registered users. You may want to use --cookies.', expected=True)
-        raise ExtractorError(info['errors'][0]['detail'], expected=True)
-
-    def _update_disco_api_headers(self, headers, disco_base, display_id, realm):
-        headers['Authorization'] = 'Bearer ' + self._download_json(
-            disco_base + 'token', display_id, 'Downloading token',
-            query={
-                'realm': realm,
-            })['data']['attributes']['token']
-
-    def _download_video_playback_info(self, disco_base, video_id, headers):
-        streaming = self._download_json(
-            disco_base + 'playback/videoPlaybackInfo/' + video_id,
-            video_id, headers=headers)['data']['attributes']['streaming']
-        streaming_list = []
-        for format_id, format_dict in streaming.items():
-            streaming_list.append({
-                'type': format_id,
-                'url': format_dict.get('url'),
-            })
-        return streaming_list
-
-    def _get_disco_api_info(self, url, display_id, disco_host, realm, country):
-        geo_countries = [country.upper()]
-        self._initialize_geo_bypass({
-            'countries': geo_countries,
-        })
-        disco_base = 'https://%s/' % disco_host
-        headers = {
-            'Referer': url,
-        }
-        self._update_disco_api_headers(headers, disco_base, display_id, realm)
-        try:
-            video = self._download_json(
-                disco_base + 'content/videos/' + display_id, display_id,
-                headers=headers, query={
-                    'fields[channel]': 'name',
-                    'fields[image]': 'height,src,width',
-                    'fields[show]': 'name',
-                    'fields[tag]': 'name',
-                    'fields[video]': 'description,episodeNumber,name,publishStart,seasonNumber,videoDuration',
-                    'include': 'images,primaryChannel,show,tags'
-                })
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                self._process_errors(e, geo_countries)
-            raise
-        video_id = video['data']['id']
-        info = video['data']['attributes']
-        title = info['name'].strip()
-        formats = []
-        try:
-            streaming = self._download_video_playback_info(
-                disco_base, video_id, headers)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                self._process_errors(e, geo_countries)
-            raise
-        for format_dict in streaming:
-            if not isinstance(format_dict, dict):
-                continue
-            format_url = format_dict.get('url')
-            if not format_url:
-                continue
-            format_id = format_dict.get('type')
-            ext = determine_ext(format_url)
-            if format_id == 'dash' or ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    format_url, display_id, mpd_id='dash', fatal=False))
-            elif format_id == 'hls' or ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, display_id, 'mp4',
-                    entry_protocol='m3u8_native', m3u8_id='hls',
-                    fatal=False))
-            else:
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_id,
-                })
-        self._sort_formats(formats)
-
-        creator = series = None
-        tags = []
-        thumbnails = []
-        included = video.get('included') or []
-        if isinstance(included, list):
-            for e in included:
-                attributes = e.get('attributes')
-                if not attributes:
-                    continue
-                e_type = e.get('type')
-                if e_type == 'channel':
-                    creator = attributes.get('name')
-                elif e_type == 'image':
-                    src = attributes.get('src')
-                    if src:
-                        thumbnails.append({
-                            'url': src,
-                            'width': int_or_none(attributes.get('width')),
-                            'height': int_or_none(attributes.get('height')),
-                        })
-                if e_type == 'show':
-                    series = attributes.get('name')
-                elif e_type == 'tag':
-                    name = attributes.get('name')
-                    if name:
-                        tags.append(name)
-
-        return {
-            'id': video_id,
-            'display_id': display_id,
-            'title': title,
-            'description': strip_or_none(info.get('description')),
-            'duration': float_or_none(info.get('videoDuration'), 1000),
-            'timestamp': unified_timestamp(info.get('publishStart')),
-            'series': series,
-            'season_number': int_or_none(info.get('seasonNumber')),
-            'episode_number': int_or_none(info.get('episodeNumber')),
-            'creator': creator,
-            'tags': tags,
-            'thumbnails': thumbnails,
-            'formats': formats,
-        }
-
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = self._match_valid_url(url)
         display_id = mobj.group('id')
-        domain = mobj.group('domain').lstrip('www.')
+        domain = remove_start(mobj.group('domain'), 'www.')
         country = mobj.group('country') or mobj.group('subdomain_country') or mobj.group('plus_country')
         host = 'disco-api.' + domain if domain[0] == 'd' else 'eu2-prod.disco-api.com'
         return self._get_disco_api_info(
-            url, display_id, host, 'dplay' + country, country)
+            url, display_id, host, 'dplay' + country, country, domain)
+
+
+class DiscoveryNetworksDeIE(DPlayBaseIE):
+    # DE/UK pre-DiscoveryPlus: obsolete?
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:tlc|dmax)\.de|dplay\.co\.uk)/(?:programme|show|sendungen)/(?P<programme>[^/]+)/(?:video/)?(?P<alternate_id>[^/]+)'
+
+    _TESTS = [{
+        'url': 'https://www.tlc.de/programme/breaking-amish/video/die-welt-da-drauen/DCB331270001100',
+        'info_dict': {
+            'id': '78867',
+            'ext': 'mp4',
+            'title': 'Die Welt da draußen',
+            'description': 'md5:61033c12b73286e409d99a41742ef608',
+            'timestamp': 1554069600,
+            'upload_date': '20190331',
+            'creator': 'TLC',
+            'season': 'Season 1',
+            'series': 'Breaking Amish',
+            'episode_number': 1,
+            'tags': ['new york', 'großstadt', 'amische', 'landleben', 'modern', 'infos', 'tradition', 'herausforderung'],
+            'display_id': 'breaking-amish/die-welt-da-drauen',
+            'episode': 'Episode 1',
+            'duration': 2625.024,
+            'season_number': 1,
+            'thumbnail': r're:https://.+\.jpg',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'HTTP 404 Cannot GET /programme/breaking-amish/video/die-welt-da-drauen/DCB331270001100',
+    }, {
+        'url': 'https://www.dmax.de/programme/dmax-highlights/video/tuning-star-sidney-hoffmann-exklusiv-bei-dmax/191023082312316',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.dplay.co.uk/show/ghost-adventures/video/hotel-leger-103620/EHD_280313B',
+        'only_matching': True,
+    }, {
+        'url': 'https://tlc.de/sendungen/breaking-amish/die-welt-da-drauen/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        domain, programme, alternate_id = self._match_valid_url(url).groups()
+        country = 'GB' if domain == 'dplay.co.uk' else 'DE'
+        realm = 'dplay' if country == 'GB' else domain.replace('.', '')
+        return self._get_disco_api_info(
+            url, '%s/%s' % (programme, alternate_id),
+            'sonic-eu1-prod.disco-api.com', realm, country)
 
 
 class DiscoveryPlusIE(DPlayIE):
