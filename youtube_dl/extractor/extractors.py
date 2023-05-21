@@ -304,10 +304,29 @@ from .douyutv import (
     DouyuTVIE,
 )
 from .dplay import (
+    AmHistoryChannelIE,
+    AnimalPlanetIE,
+    DiscoveryLifeIE,
     DiscoveryNetworksDeIE,
-    DPlayIE,
     DiscoveryPlusIE,
+    DiscoveryPlusIndiaIE,
+    DiscoveryPlusIndiaShowIE,
+    DiscoveryPlusItalyShowIE,
+    DIYNetworkIE,
+    DPlayIE,
+    CookingChannelIE,
+    DestinationAmericaIE,
+    DiscoveryPlusIE,
+    FoodNetworkIE,
+    GoDiscoveryIE,
     HGTVDeIE,
+    HGTVUsaIE,
+    InvestigationDiscoveryIE,
+    MotorTrendIE,
+    MotorTrendOnDemandIE,
+    ScienceChannelIE,
+    TLCIE,
+    TravelChannelIE,
 )
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE

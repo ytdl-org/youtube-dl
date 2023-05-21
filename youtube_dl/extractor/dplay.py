@@ -383,26 +383,34 @@ class DiscoveryNetworksDeIE(DPlayBaseIE):
             'sonic-eu1-prod.disco-api.com', realm, country)
 
 
-class DiscoveryPlusIE(DPlayIE):
-    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.com/video' + DPlayIE._PATH_REGEX
+class HGTVDeIE(DPlayBaseIE):
+    _VALID_URL = r'https?://de\.hgtv\.com/sendungen' + DPlayBaseIE._PATH_REGEX
     _TESTS = [{
-        'url': 'https://www.discoveryplus.com/video/property-brothers-forever-home/food-and-family',
+        'url': 'https://de.hgtv.com/sendungen/tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette/',
         'info_dict': {
-            'id': '1140794',
-            'display_id': 'property-brothers-forever-home/food-and-family',
+            'id': '151205',
+            'display_id': 'tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette',
             'ext': 'mp4',
-            'title': 'Food and Family',
-            'description': 'The brothers help a Richmond family expand their single-level home.',
-            'duration': 2583.113,
-            'timestamp': 1609304400,
-            'upload_date': '20201230',
+            'title': 'Wer braucht schon eine Toilette',
+            'description': 'md5:05b40a27e7aed2c9172de34d459134e2',
+            'duration': 1177.024,
+            'timestamp': 1595705400,
+            'upload_date': '20200725',
             'creator': 'HGTV',
-            'series': 'Property Brothers: Forever Home',
-            'season_number': 1,
-            'episode_number': 1,
+            'series': 'Tiny House - klein, aber oho',
+            'season_number': 3,
+            'episode_number': 3,
         },
         'skip': 'Available for Premium users',
     }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        return self._get_disco_api_info(
+            url, display_id, 'eu1-prod.disco-api.com', 'hgtv', 'de')
+
+
+class DiscoveryPlusBaseIE(DPlayBaseIE):
 
     def _update_disco_api_headers(self, headers, disco_base, display_id, realm):
         headers['x-disco-client'] = 'WEB:UNKNOWN:dplus_us:15.0.0'
@@ -427,23 +435,23 @@ class DiscoveryPlusIE(DPlayIE):
             url, display_id, 'us1-prod-direct.discoveryplus.com', 'go', 'us')
 
 
-class HGTVDeIE(DPlayIE):
-    _VALID_URL = r'https?://de\.hgtv\.com/sendungen' + DPlayIE._PATH_REGEX
+class DiscoveryPlusIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.com/(?:(?P<region>\w{2})/)?video(?:/sport)?' + DPlayBaseIE._PATH_REGEX
     _TESTS = [{
-        'url': 'https://de.hgtv.com/sendungen/tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette/',
+        'url': 'https://www.discoveryplus.com/video/property-brothers-forever-home/food-and-family',
         'info_dict': {
-            'id': '151205',
-            'display_id': 'tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette',
+            'id': '1140794',
+            'display_id': 'property-brothers-forever-home/food-and-family',
             'ext': 'mp4',
-            'title': 'Wer braucht schon eine Toilette',
-            'description': 'md5:05b40a27e7aed2c9172de34d459134e2',
-            'duration': 1177.024,
-            'timestamp': 1595705400,
-            'upload_date': '20200725',
+            'title': 'Food and Family',
+            'description': 'The brothers help a Richmond family expand their single-level home.',
+            'duration': 2583.113,
+            'timestamp': 1609304400,
+            'upload_date': '20201230',
             'creator': 'HGTV',
-            'series': 'Tiny House - klein, aber oho',
-            'season_number': 3,
-            'episode_number': 3,
+            'series': 'Property Brothers: Forever Home',
+            'season_number': 1,
+            'episode_number': 1,
         },
         'params': {
             'format': 'bestvideo',
@@ -454,3 +462,483 @@ class HGTVDeIE(DPlayIE):
         display_id = self._match_id(url)
         return self._get_disco_api_info(
             url, display_id, 'eu1-prod.disco-api.com', 'hgtv', 'de')
+
+
+class GoDiscoveryIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:go\.)?discovery\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://go.discovery.com/video/dirty-jobs-discovery-atve-us/rodbuster-galvanizer',
+        'info_dict': {
+            'id': '4164906',
+            'display_id': 'dirty-jobs-discovery-atve-us/rodbuster-galvanizer',
+            'ext': 'mp4',
+            'title': 'Rodbuster / Galvanizer',
+            'description': 'Mike installs rebar with a team of rodbusters, then he galvanizes steel.',
+            'season_number': 9,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'dsc'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.go.discovery.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class TravelChannelIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?travelchannel\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.travelchannel.com/video/ghost-adventures-travel-channel/ghost-train-of-ely',
+        'info_dict': {
+            'id': '2220256',
+            'display_id': 'ghost-adventures-travel-channel/ghost-train-of-ely',
+            'ext': 'mp4',
+            'title': 'Ghost Train of Ely',
+            'description': 'The crew investigates the dark history of the Nevada Northern Railway.',
+            'season_number': 24,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'trav'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.travelchannel.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class CookingChannelIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?cookingchanneltv\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.cookingchanneltv.com/video/carnival-eats-cooking-channel/the-postman-always-brings-rice-2348634',
+        'info_dict': {
+            'id': '2348634',
+            'display_id': 'carnival-eats-cooking-channel/the-postman-always-brings-rice-2348634',
+            'ext': 'mp4',
+            'title': 'The Postman Always Brings Rice',
+            'description': 'Noah visits the Maui Fair and the Aurora Winter Festival in Vancouver.',
+            'season_number': 9,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'cook'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.cookingchanneltv.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class HGTVUsaIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?hgtv\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.hgtv.com/video/home-inspector-joe-hgtv-atve-us/this-mold-house',
+        'info_dict': {
+            'id': '4289736',
+            'display_id': 'home-inspector-joe-hgtv-atve-us/this-mold-house',
+            'ext': 'mp4',
+            'title': 'This Mold House',
+            'description': 'Joe and Noel help take a familys dream home from hazardous to fabulous.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'hgtv'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.hgtv.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class FoodNetworkIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?foodnetwork\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.foodnetwork.com/video/kids-baking-championship-food-network/float-like-a-butterfly',
+        'info_dict': {
+            'id': '4116449',
+            'display_id': 'kids-baking-championship-food-network/float-like-a-butterfly',
+            'ext': 'mp4',
+            'title': 'Float Like a Butterfly',
+            'description': 'The 12 kid bakers create colorful carved butterfly cakes.',
+            'season_number': 10,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'food'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.foodnetwork.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class DestinationAmericaIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?destinationamerica\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.destinationamerica.com/video/alaska-monsters-destination-america-atve-us/central-alaskas-bigfoot',
+        'info_dict': {
+            'id': '4210904',
+            'display_id': 'alaska-monsters-destination-america-atve-us/central-alaskas-bigfoot',
+            'ext': 'mp4',
+            'title': 'Central Alaskas Bigfoot',
+            'description': 'A team heads to central Alaska to investigate an aggressive Bigfoot.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'dam'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.destinationamerica.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class InvestigationDiscoveryIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?investigationdiscovery\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.investigationdiscovery.com/video/unmasked-investigation-discovery/the-killer-clown',
+        'info_dict': {
+            'id': '2139409',
+            'display_id': 'unmasked-investigation-discovery/the-killer-clown',
+            'ext': 'mp4',
+            'title': 'The Killer Clown',
+            'description': 'A wealthy Florida woman is fatally shot in the face by a clown at her door.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'ids'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.investigationdiscovery.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class AmHistoryChannelIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?ahctv\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.ahctv.com/video/modern-sniper-ahc/army',
+        'info_dict': {
+            'id': '2309730',
+            'display_id': 'modern-sniper-ahc/army',
+            'ext': 'mp4',
+            'title': 'Army',
+            'description': 'Snipers today face challenges their predecessors couldve only dreamed of.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'ahc'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.ahctv.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class ScienceChannelIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?sciencechannel\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.sciencechannel.com/video/strangest-things-science-atve-us/nazi-mystery-machine',
+        'info_dict': {
+            'id': '2842849',
+            'display_id': 'strangest-things-science-atve-us/nazi-mystery-machine',
+            'ext': 'mp4',
+            'title': 'Nazi Mystery Machine',
+            'description': 'Experts investigate the secrets of a revolutionary encryption machine.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'sci'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.sciencechannel.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class DIYNetworkIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?diynetwork\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.diynetwork.com/video/pool-kings-diy-network/bringing-beach-life-to-texas',
+        'info_dict': {
+            'id': '2309730',
+            'display_id': 'pool-kings-diy-network/bringing-beach-life-to-texas',
+            'ext': 'mp4',
+            'title': 'Bringing Beach Life to Texas',
+            'description': 'The Pool Kings give a family a day at the beach in their own backyard.',
+            'season_number': 10,
+            'episode_number': 2,
+        },
+    }]
+
+    _PRODUCT = 'diy'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.diynetwork.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class DiscoveryLifeIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?discoverylife\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.discoverylife.com/video/surviving-death-discovery-life-atve-us/bodily-trauma',
+        'info_dict': {
+            'id': '2218238',
+            'display_id': 'surviving-death-discovery-life-atve-us/bodily-trauma',
+            'ext': 'mp4',
+            'title': 'Bodily Trauma',
+            'description': 'Meet three people who tested the limits of the human body.',
+            'season_number': 1,
+            'episode_number': 2,
+        },
+    }]
+
+    _PRODUCT = 'dlf'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.discoverylife.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class AnimalPlanetIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?animalplanet\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.animalplanet.com/video/north-woods-law-animal-planet/squirrel-showdown',
+        'info_dict': {
+            'id': '3338923',
+            'display_id': 'north-woods-law-animal-planet/squirrel-showdown',
+            'ext': 'mp4',
+            'title': 'Squirrel Showdown',
+            'description': 'A woman is suspected of being in possession of flying squirrel kits.',
+            'season_number': 16,
+            'episode_number': 11,
+        },
+    }]
+
+    _PRODUCT = 'apl'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.animalplanet.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class TLCIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:go\.)?tlc\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://go.tlc.com/video/my-600-lb-life-tlc/melissas-story-part-1',
+        'info_dict': {
+            'id': '2206540',
+            'display_id': 'my-600-lb-life-tlc/melissas-story-part-1',
+            'ext': 'mp4',
+            'title': 'Melissas Story (Part 1)',
+            'description': 'At 650 lbs, Melissa is ready to begin her seven-year weight loss journey.',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+    }]
+
+    _PRODUCT = 'tlc'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.tlc.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class MotorTrendIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:watch\.)?motortrend\.com/video' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://watch.motortrend.com/video/car-issues-motortrend-atve-us/double-dakotas',
+        'info_dict': {
+            'id': '"4859182"',
+            'display_id': 'double-dakotas',
+            'ext': 'mp4',
+            'title': 'Double Dakotas',
+            'description': 'Tylers buy-one-get-one Dakota deal has the Wizard pulling double duty.',
+            'season_number': 2,
+            'episode_number': 3,
+        },
+    }]
+
+    _PRODUCT = 'vel'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.watch.motortrend.com',
+        'realm': 'go',
+        'country': 'us',
+    }
+
+
+class MotorTrendOnDemandIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?motortrendondemand\.com/detail' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.motortrendondemand.com/detail/wheelstanding-dump-truck-stubby-bobs-comeback/37699/784',
+        'info_dict': {
+            'id': '37699',
+            'display_id': 'wheelstanding-dump-truck-stubby-bobs-comeback/37699',
+            'ext': 'mp4',
+            'title': 'Wheelstanding Dump Truck! Stubby Bob’s Comeback',
+            'description': 'md5:996915abe52a1c3dfc83aecea3cce8e7',
+            'season_number': 5,
+            'episode_number': 52,
+            'episode': 'Episode 52',
+            'season': 'Season 5',
+            'thumbnail': r're:^https?://.+\.jpe?g$',
+            'timestamp': 1388534401,
+            'duration': 1887.345,
+            'creator': 'Originals',
+            'series': 'Roadkill',
+            'upload_date': '20140101',
+            'tags': [],
+        },
+    }]
+
+    _PRODUCT = 'MTOD'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'us1-prod-direct.motortrendondemand.com',
+        'realm': 'motortrend',
+        'country': 'us',
+    }
+
+
+class DiscoveryPlusIndiaIE(DiscoveryPlusBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.in/videos?' + DPlayBaseIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://www.discoveryplus.in/videos/how-do-they-do-it/fugu-and-more?seasonId=8&type=EPISODE',
+        'info_dict': {
+            'id': '27104',
+            'ext': 'mp4',
+            'display_id': 'how-do-they-do-it/fugu-and-more',
+            'title': 'Fugu and More',
+            'description': 'The Japanese catch, prepare and eat the deadliest fish on the planet.',
+            'duration': 1319.32,
+            'timestamp': 1582309800,
+            'upload_date': '20200221',
+            'series': 'How Do They Do It?',
+            'season_number': 8,
+            'episode_number': 2,
+            'creator': 'Discovery Channel',
+            'thumbnail': r're:https://.+\.jpeg',
+            'episode': 'Episode 2',
+            'season': 'Season 8',
+            'tags': [],
+        },
+        'params': {
+            'format': 'best/bestvideo',
+            'skip_download': True,
+        },
+        'expected_warnings': [
+            'Unknown MIME type image/jpeg',
+        ],
+    }]
+
+    _PRODUCT = 'dplus-india'
+    _DISCO_API_PARAMS = {
+        'disco_host': 'ap2-prod-direct.discoveryplus.in',
+        'realm': 'dplusindia',
+        'country': 'in',
+        'domain': 'https://www.discoveryplus.in/',
+    }
+
+
+class DiscoveryPlusShowBaseIE(DPlayBaseIE):
+
+    # these must be set in any subclass
+    # _DOMAIN = NotImplemented
+    # _BASE_API = NotImplemented
+    # _REALM = NotImplemented
+    # _SHOW_STR = NotImplemented
+
+    # these may need to be overridden in any subclass
+    _PRODUCT = 'dplay-client'
+    _DISCO_CLIENT_VER = '2.6.0'
+    _INDEX = 1
+    _VIDEO_IE = DPlayIE
+
+    def _update_disco_api_headers(self, headers, disco_base, display_id, realm):
+        headers.update({
+            'x-disco-client': 'WEB:UNKNOWN:%s:%s' % (self._PRODUCT, self._DISCO_CLIENT_VER),
+            'x-disco-params': 'realm=%s' % (realm, ),
+            'referer': self._DOMAIN,
+            'Authorization': self._get_auth(disco_base, display_id, realm),
+        })
+
+    def _entries(self, show_name):
+        headers = {}
+        self._update_disco_api_headers(headers, self._BASE_API, None, self._REALM)
+        show_json = self._download_json(
+            '{0}cms/routes/{1}/{2}?include=default'.format(self._BASE_API, self._SHOW_STR, show_name),
+            video_id=show_name, headers=headers)['included'][self._INDEX]['attributes']['component']
+        show_id = show_json['mandatoryParams'].split('=')[-1]
+        season_url = self._BASE_API + 'content/videos?sort=episodeNumber&filter[seasonNumber]={0}&filter[show.id]={1}&page[size]=100&page[number]={2!s}'
+        for season_id in traverse_obj(show_json, ('filters', 0, 'options', Ellipsis, 'id')):
+            total_pages, page_num = 1, 0
+            while page_num < total_pages:
+                season_json = self._download_json(
+                    season_url.format(season_id, show_id, page_num + 1), show_name, headers=headers,
+                    note='Downloading season %s JSON metadata%s' % (season_id, ' page %d' % page_num if page_num else ''))
+                if page_num == 0:
+                    total_pages = traverse_obj(season_json, ('meta', 'totalPages', T(int))) or 1
+                for episode in traverse_obj(season_json, ('data', Ellipsis, T(dict))):
+                    video_path = traverse_obj(episode, ('attributes', 'path'))
+                    if video_path:
+                        yield self.url_result(
+                            '{0}videos/{1}'.format(self._DOMAIN, video_path),
+                            ie=self._VIDEO_IE.ie_key(), video_id=episode.get('id') or video_path)
+                page_num += 1
+
+    def _real_extract(self, url):
+        show_name = self._match_valid_url(url).group('show_name')
+        return self.playlist_result(self._entries(show_name), playlist_id=show_name)
+
+
+class DiscoveryPlusItalyShowIE(DiscoveryPlusShowBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.it/programmi/(?P<show_name>[^/]+)/?(?:[?#]|$)'
+    _TESTS = [{
+        'url': 'https://www.discoveryplus.it/programmi/deal-with-it-stai-al-gioco',
+        'playlist_mincount': 168,
+        'info_dict': {
+            'id': 'deal-with-it-stai-al-gioco',
+        },
+    }]
+    _BASE_API = 'https://disco-api.discoveryplus.it/'
+    _DOMAIN = 'https://www.discoveryplus.it/'
+    _REALM = 'dplayit'
+    _SHOW_STR = 'programmi'
+
+
+class DiscoveryPlusIndiaShowIE(DiscoveryPlusShowBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.in/show/(?P<show_name>[^/]+)/?(?:[?#]|$)'
+    _TESTS = [{
+        'url': 'https://www.discoveryplus.in/show/how-do-they-do-it',
+        'playlist_mincount': 140,
+        'info_dict': {
+            'id': 'how-do-they-do-it',
+        },
+    }]
+
+    _BASE_API = 'https://ap2-prod-direct.discoveryplus.in/'
+    _DOMAIN = 'https://www.discoveryplus.in/'
+    _PRODUCT = 'dplus-india'
+    _DISCO_CLIENT_VER = 'prod'
+    _REALM = 'dplusindia'
+    _SHOW_STR = 'show'
+    _INDEX = 4
+    _VIDEO_IE = DiscoveryPlusIndiaIE
