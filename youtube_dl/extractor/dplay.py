@@ -218,9 +218,10 @@ class DPlayIE(DPlayBaseIE):
             'episode_number': 1,
         },
         'params': {
-            'format': 'bestvideo',
+            'format': 'best/bestvideo',
             'skip_download': True,
         },
+        'skip': 'HTTP redirect to D+.com, "filtered by validator, reasonCode=14"',
     }, {
         # geo restricted, via secure api, unsigned download hls URL
         'url': 'http://www.dplay.dk/videoer/ted-bundy-mind-of-a-monster/ted-bundy-mind-of-a-monster',
@@ -239,9 +240,10 @@ class DPlayIE(DPlayBaseIE):
             'episode_number': 1,
         },
         'params': {
-            'format': 'bestvideo',
+            'format': 'best/bestvideo',
             'skip_download': True,
         },
+        'skip': 'HTTP redirect to D+.com, "filtered by validator, reasonCode=14"',
     }, {
         # disco-api
         'url': 'https://www.dplay.no/videoer/i-kongens-klr/sesong-1-episode-7',
@@ -259,10 +261,10 @@ class DPlayIE(DPlayBaseIE):
             'episode_number': 7,
         },
         'params': {
-            'format': 'bestvideo',
+            'format': 'best/bestvideo',
             'skip_download': True,
         },
-        'skip': 'Available for Premium users',
+        'skip': 'HTTP redirect to D+.com, "filtered by validator, reasonCode=14"',
     }, {
         'url': 'http://it.dplay.com/nove/biografie-imbarazzanti/luigi-di-maio-la-psicosi-di-stanislawskij/',
         'md5': '2b808ffb00fc47b884a172ca5d13053c',
@@ -280,6 +282,7 @@ class DPlayIE(DPlayBaseIE):
             'episode': 'Episode 1',
             'episode_number': 1,
         },
+        'skip': 'Only available in Italy/Europe',
     }, {
         'url': 'https://es.dplay.com/dmax/la-fiebre-del-oro/temporada-8-episodio-1/',
         'info_dict': {
@@ -299,6 +302,7 @@ class DPlayIE(DPlayBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'This video is only available for registered users',
     }, {
         'url': 'https://www.dplay.fi/videot/shifting-gears-with-aaron-kaufman/episode-16',
         'only_matching': True,
@@ -401,7 +405,10 @@ class HGTVDeIE(DPlayBaseIE):
             'season_number': 3,
             'episode_number': 3,
         },
-        'skip': 'Available for Premium users',
+        'params': {
+            'format': 'best/bestvideo',
+        },
+        'skip': 'HTTP 404 Not Found',
     }]
 
     def _real_extract(self, url):
@@ -579,6 +586,7 @@ class GoDiscoveryIE(DiscoveryPlusBaseIE):
             'season_number': 9,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'dsc'
@@ -602,6 +610,7 @@ class TravelChannelIE(DiscoveryPlusBaseIE):
             'season_number': 24,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'trav'
@@ -625,6 +634,7 @@ class CookingChannelIE(DiscoveryPlusBaseIE):
             'season_number': 9,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'cook'
@@ -648,6 +658,7 @@ class HGTVUsaIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'hgtv'
@@ -671,6 +682,7 @@ class FoodNetworkIE(DiscoveryPlusBaseIE):
             'season_number': 10,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'food'
@@ -694,6 +706,7 @@ class DestinationAmericaIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'dam'
@@ -717,6 +730,7 @@ class InvestigationDiscoveryIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'ids'
@@ -740,6 +754,7 @@ class AmHistoryChannelIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'ahc'
@@ -763,6 +778,7 @@ class ScienceChannelIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'sci'
@@ -786,6 +802,7 @@ class DIYNetworkIE(DiscoveryPlusBaseIE):
             'season_number': 10,
             'episode_number': 2,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'diy'
@@ -809,6 +826,7 @@ class DiscoveryLifeIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 2,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'dlf'
@@ -832,6 +850,7 @@ class AnimalPlanetIE(DiscoveryPlusBaseIE):
             'season_number': 16,
             'episode_number': 11,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'apl'
@@ -855,6 +874,7 @@ class TLCIE(DiscoveryPlusBaseIE):
             'season_number': 1,
             'episode_number': 1,
         },
+        'skip': 'not.found - video ... could not be found',
     }]
 
     _PRODUCT = 'tlc'
@@ -878,6 +898,7 @@ class MotorTrendIE(DiscoveryPlusBaseIE):
             'season_number': 2,
             'episode_number': 3,
         },
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=15',
     }]
 
     _PRODUCT = 'vel'
@@ -910,6 +931,7 @@ class MotorTrendOnDemandIE(DiscoveryPlusBaseIE):
             'upload_date': '20140101',
             'tags': [],
         },
+        'skip': 'This video is only available for registered users.',
     }]
 
     _PRODUCT = 'MTOD'
@@ -949,6 +971,7 @@ class DiscoveryPlusIndiaIE(DiscoveryPlusBaseIE):
         'expected_warnings': [
             'Unknown MIME type image/jpeg',
         ],
+        'skip': 'not.found - video ... was filtered by validator, reasonCode=9 (but available in UK, India?, ...)?',
     }]
 
     _PRODUCT = 'dplus-india'
