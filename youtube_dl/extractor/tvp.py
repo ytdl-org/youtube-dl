@@ -112,7 +112,6 @@ if not hasattr(InfoExtractor, '_match_valid_url'):
             if not json_string:
                 return default
 
-            # self._downloader._format_err(name, self._downloader.Styles.EMPHASIS)
             try:
                 # return self._parse_json(json_string, video_id, ignore_extra=True, **kwargs)
                 return self._parse_json(json_string, video_id, **kwargs)
