@@ -381,6 +381,9 @@ class TVPIE(InfoExtractor):
             if ie_cls.suitable(urlh.url):
                 return self.url_result(urlh.url, ie=ie_cls.ie_key(), video_id=page_id)
 
+        if urlh.getcode() == 404:
+            raise compat_HTTPError(url, 404, 'HTTP Error 404: Not Found', urlh.headers, urlh)
+
         if re.search(
                 r'window\s*\.\s*__(?:video|news|website|directory)Data\s*=',
                 webpage):
