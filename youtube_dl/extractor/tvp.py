@@ -116,7 +116,6 @@ if not hasattr(InfoExtractor, '_match_valid_url'):
                 # return self._parse_json(json_string, video_id, ignore_extra=True, **kwargs)
                 return self._parse_json(json_string, video_id, **kwargs)
             except ExtractorError as e:
-            except ExtractorError as e:
                 if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
                     _name = '\033[0;34m%s\033[0m' % name
                 else:
