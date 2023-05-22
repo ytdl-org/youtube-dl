@@ -76,7 +76,7 @@ if not hasattr(InfoExtractor, '_match_valid_url'):
             elif fatal:
                 raise RegexNotFoundError('Unable to extract %s' % _name)
             else:
-                self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
+                self.report_warning('unable to extract %s' % _name + bug_reports_message())
                 return None
 
         def _html_search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
