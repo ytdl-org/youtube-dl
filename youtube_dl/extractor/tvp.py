@@ -258,6 +258,15 @@ class TVPIE(InfoExtractor):
         },
         'playlist_mincount': 19,
     }, {
+        # redirect
+        'url': 'https://vod.tvp.pl/48463890/wadowickie-spotkania-z-janem-pawlem-ii',
+        'info_dict': {
+            'id': '295157',
+            'title': 'Wadowickie spotkania z Janem Pawłem II',
+        },
+        'playlist_mincount': 12,
+        'add_ie': ['TVPEmbed', 'TVPVODSeries'],
+    }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
         'only_matching': True,
     }, {
