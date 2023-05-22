@@ -7,6 +7,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTTPError,
     compat_str,
 )
 from ..utils import (
