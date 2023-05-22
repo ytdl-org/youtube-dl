@@ -25,6 +25,7 @@ import tokenize
 import traceback
 import random
 
+from ssl import OPENSSL_VERSION
 from string import ascii_letters
 
 from .compat import (
@@ -66,6 +67,7 @@ from .utils import (
     HEADRequest,
     int_or_none,
     ISO3166Utils,
+    join_nonempty,
     locked_file,
     LazyList,
     make_HTTPS_handler,
@@ -2395,9 +2397,20 @@ class YoutubeDL(object):
                 return impl_name + ' version %d.%d.%d' % sys.pypy_version_info[:3]
             return impl_name
 
-        self._write_string('[debug] Python version %s (%s) - %s\n' % (
-            platform.python_version(), python_implementation(),
-            platform_name()))
+        def libc_ver():
+            try:
+                return platform.libc_ver()
+            except OSError:  # We may not have access to the executable
+                return []
+
+        self._write_string('[debug] Python %s (%s %s) - %s (%s%s)\n' % (
+            platform.python_version(),
+            python_implementation(),
+            platform.architecture()[0],
+            platform_name(),
+            OPENSSL_VERSION,
+            ', %s' % (join_nonempty(*libc_ver(), delim=' ') or '-'),
+        ))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()

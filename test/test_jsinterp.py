@@ -18,6 +18,7 @@ class TestJSInterpreter(unittest.TestCase):
     def test_basic(self):
         jsi = JSInterpreter('function x(){;}')
         self.assertEqual(jsi.call_function('x'), None)
+        self.assertEqual(repr(jsi.extract_function('x')), 'F<x>')
 
         jsi = JSInterpreter('function x3(){return 42;}')
         self.assertEqual(jsi.call_function('x3'), 42)
@@ -504,6 +505,16 @@ class TestJSInterpreter(unittest.TestCase):
 
         jsi = JSInterpreter('function x(){return 1236566549 << 5}')
         self.assertEqual(jsi.call_function('x'), 915423904)
+
+    def test_bitwise_operators_madness(self):
+        jsi = JSInterpreter('function x(){return null << 5}')
+        self.assertEqual(jsi.call_function('x'), 0)
+
+        jsi = JSInterpreter('function x(){return undefined >> 5}')
+        self.assertEqual(jsi.call_function('x'), 0)
+
+        jsi = JSInterpreter('function x(){return 42 << NaN}')
+        self.assertEqual(jsi.call_function('x'), 42)
 
     def test_32066(self):
         jsi = JSInterpreter("function x(){return Math.pow(3, 5) + new Date('1970-01-01T08:01:42.000+08:00') / 1000 * -239 - -24205;}")
