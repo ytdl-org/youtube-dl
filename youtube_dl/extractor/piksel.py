@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_iso8601,
+    traverse_obj,
     try_get,
     unescapeHTML,
     urljoin,
