@@ -39,7 +39,6 @@ class NhkVodIE(NhkBaseIE):
             'upload_date': '20230514',
             'timestamp': 1684083791,
         },
-
     }, {
         # video clip
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999011/',
