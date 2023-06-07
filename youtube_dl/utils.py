@@ -41,7 +41,6 @@ import zlib
 from .compat import (
     compat_HTMLParseError,
     compat_HTMLParser,
-    compat_HTTPError,
     compat_basestring,
     compat_casefold,
     compat_chr,
@@ -64,6 +63,7 @@ from .compat import (
     compat_struct_pack,
     compat_struct_unpack,
     compat_urllib_error,
+    compat_urllib_HTTPError,
     compat_urllib_parse,
     compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_urlencode,
@@ -2614,7 +2614,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     Part of this code was copied from:
 
-    http://techknack.net/python-urllib2-handlers/
+    http://techknack.net/python-urllib2-handlers/, archived at
+    https://web.archive.org/web/20130527205558/http://techknack.net/python-urllib2-handlers/
 
     Andrew Rowls, the author of that code, agreed to release it to the
     public domain.
@@ -2672,7 +2673,9 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             req._Request__original = req._Request__original.partition('#')[0]
             req._Request__r_type = req._Request__r_type.partition('#')[0]
 
-        return req
+        # Use the totally undocumented AbstractHTTPHandler per
+        # https://github.com/yt-dlp/yt-dlp/pull/4158
+        return compat_urllib_request.AbstractHTTPHandler.do_request_(self, req)
 
     def http_response(self, req, resp):
         old_resp = resp
@@ -2683,7 +2686,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             try:
                 uncompressed = io.BytesIO(gz.read())
             except IOError as original_ioerror:
-                # There may be junk add the end of the file
+                # There may be junk at the end of the file
                 # See http://stackoverflow.com/q/4928560/35070 for details
                 for i in range(1, 1024):
                     try:
@@ -2710,9 +2713,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if location:
                 # As of RFC 2616 default charset is iso-8859-1 that is respected by python 3
                 if sys.version_info >= (3, 0):
-                    location = location.encode('iso-8859-1').decode('utf-8')
-                else:
-                    location = location.decode('utf-8')
+                    location = location.encode('iso-8859-1')
+                location = location.decode('utf-8')
                 location_escaped = escape_url(location)
                 if location != location_escaped:
                     del resp.headers['Location']
@@ -2940,17 +2942,16 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
     The code is based on HTTPRedirectHandler implementation from CPython [1].
 
-    This redirect handler solves two issues:
-     - ensures redirect URL is always unicode under python 2
-     - introduces support for experimental HTTP response status code
-       308 Permanent Redirect [2] used by some sites [3]
+    This redirect handler fixes and improves the logic to better align with RFC7261
+    and what browsers tend to do [2][3]
 
     1. https://github.com/python/cpython/blob/master/Lib/urllib/request.py
-    2. https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308
-    3. https://github.com/ytdl-org/youtube-dl/issues/28768
+    2. https://datatracker.ietf.org/doc/html/rfc7231
+    3. https://github.com/python/cpython/issues/91306
     """
 
-    http_error_301 = http_error_303 = http_error_307 = http_error_308 = compat_urllib_request.HTTPRedirectHandler.http_error_302
+    # Supply possibly missing alias
+    http_error_308 = compat_urllib_request.HTTPRedirectHandler.http_error_302
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         """Return a Request or None in response to a redirect.
@@ -2962,19 +2963,16 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         else should try to handle this url.  Return None if you can't
         but another Handler might.
         """
-        m = req.get_method()
-        if (not (code in (301, 302, 303, 307, 308) and m in ("GET", "HEAD")
-                 or code in (301, 302, 303) and m == "POST")):
-            raise compat_HTTPError(req.full_url, code, msg, headers, fp)
-        # Strictly (according to RFC 2616), 301 or 302 in response to
-        # a POST MUST NOT cause a redirection without confirmation
-        # from the user (of urllib.request, in this case).  In practice,
-        # essentially all clients do redirect in this case, so we do
-        # the same.
+        if code not in (301, 302, 303, 307, 308):
+            raise compat_urllib_HTTPError(req.full_url, code, msg, headers, fp)
+
+        new_method = req.get_method()
+        new_data = req.data
+        remove_headers = []
 
         # On python 2 urlh.geturl() may sometimes return redirect URL
-        # as byte string instead of unicode. This workaround allows
-        # to force it always return unicode.
+        # as a byte string instead of unicode. This workaround forces
+        # it to return unicode.
         if sys.version_info[0] < 3:
             newurl = compat_str(newurl)
 
@@ -2983,13 +2981,29 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         # but it is kept for compatibility with other callers.
         newurl = newurl.replace(' ', '%20')
 
-        CONTENT_HEADERS = ("content-length", "content-type")
+        # A 303 must either use GET or HEAD for subsequent request
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.4
+        if code == 303 and req.get_method() != 'HEAD':
+            new_method = 'GET'
+        # 301 and 302 redirects are commonly turned into a GET from a POST
+        # for subsequent requests by browsers, so we'll do the same.
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.2
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.3
+        elif code in (301, 302) and req.get_method() == 'POST':
+            new_method = 'GET'
+
+        # only remove payload if method changed (e.g. POST to GET)
+        if new_method != req.get_method():
+            new_data = None
+            remove_headers.extend(['Content-Length', 'Content-Type'])
+
         # NB: don't use dict comprehension for python 2.6 compatibility
-        newheaders = dict((k, v) for k, v in req.headers.items()
-                          if k.lower() not in CONTENT_HEADERS)
+        new_headers = dict((k, v) for k, v in req.header_items()
+                           if k.lower() not in remove_headers)
+
         return compat_urllib_request.Request(
-            newurl, headers=newheaders, origin_req_host=req.origin_req_host,
-            unverifiable=True)
+            newurl, headers=new_headers, origin_req_host=req.origin_req_host,
+            unverifiable=True, method=new_method, data=new_data)
 
 
 def extract_timezone(date_str):
