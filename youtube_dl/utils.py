@@ -2968,7 +2968,6 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
         new_method = req.get_method()
         new_data = req.data
-        remove_headers = []
 
         # On python 2 urlh.geturl() may sometimes return redirect URL
         # as a byte string instead of unicode. This workaround forces
@@ -2980,6 +2979,11 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         # redundant with the more complete encoding done in http_error_302(),
         # but it is kept for compatibility with other callers.
         newurl = newurl.replace(' ', '%20')
+
+        # Technically the Cookie header should be in unredirected_hdrs;
+        # however in practice some may set it in normal headers anyway.
+        # We will remove it here to prevent any leaks.
+        remove_headers = ['Cookie']
 
         # A 303 must either use GET or HEAD for subsequent request
         # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.4
@@ -2999,7 +3003,7 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
         # NB: don't use dict comprehension for python 2.6 compatibility
         new_headers = dict((k, v) for k, v in req.header_items()
-                           if k.lower() not in remove_headers)
+                           if k.title() not in remove_headers)
 
         return compat_urllib_request.Request(
             newurl, headers=new_headers, origin_req_host=req.origin_req_host,
