@@ -183,6 +183,11 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             self._method('GET')
         elif self.path.startswith('/headers'):
             self._headers()
+        elif self.path.startswith('/308-to-headers'):
+            self.send_response(308)
+            self.send_header('Location', '/headers')
+            self.send_header('Content-Length', '0')
+            self.end_headers()
         elif self.path == '/trailing_garbage':
             payload = b'<html><video src="/vid.mp4" /></html>'
             compressed = gzip_compress(payload) + b'trailing garbage'
@@ -385,8 +390,31 @@ class TestHTTP(unittest.TestCase):
             ydl.cookiejar.set_cookie(compat_http_cookiejar_Cookie(
                 0, 'test', 'ytdl', None, False, '127.0.0.1', True,
                 False, '/headers', True, False, None, False, None, None, {}))
-            data = ydl.urlopen(sanitized_Request(self._test_url('headers'))).read()
-            self.assertIn(b'Cookie: test=ytdl', data)
+            data = ydl.urlopen(sanitized_Request(
+                self._test_url('headers'))).read().decode('utf-8')
+            self.assertIn('Cookie: test=ytdl', data)
+
+    def test_passed_cookie_header(self):
+        # We should accept a Cookie header being passed as in normal headers and handle it appropriately.
+        with FakeYDL() as ydl:
+            # Specified Cookie header should be used
+            res = ydl.urlopen(sanitized_Request(
+                self._test_url('headers'), headers={'Cookie': 'test=test'})).read().decode('utf-8')
+            self.assertIn('Cookie: test=test', res)
+
+            # Specified Cookie header should be removed on any redirect
+            res = ydl.urlopen(sanitized_Request(
+                self._test_url('308-to-headers'), headers={'Cookie': 'test=test'})).read().decode('utf-8')
+            self.assertNotIn('Cookie: test=test', res)
+
+            # Specified Cookie header should override global cookiejar for that request
+            ydl.cookiejar.set_cookie(compat_http_cookiejar_Cookie(
+                0, 'test', 'ytdlp', None, False, '127.0.0.1', True,
+                False, '/headers', True, False, None, False, None, None, {}))
+            data = ydl.urlopen(sanitized_Request(
+                self._test_url('headers'), headers={'Cookie': 'test=test'})).read().decode('utf-8')
+            self.assertNotIn('Cookie: test=ytdlp', data)
+            self.assertIn('Cookie: test=test', data)
 
     def test_no_compression_compat_header(self):
         with FakeYDL() as ydl:
