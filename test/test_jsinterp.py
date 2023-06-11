@@ -33,6 +33,55 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function x4(a){return 2*a+1;}')
         self.assertEqual(jsi.call_function('x4', 3), 7)
 
+    def test_add(self):
+        jsi = JSInterpreter('function f(){return 42 + 7;}')
+        self.assertEqual(jsi.call_function('f'), 49)
+        jsi = JSInterpreter('function f(){return 42 + undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 + null;}')
+        self.assertEqual(jsi.call_function('f'), 42)
+
+    def test_sub(self):
+        jsi = JSInterpreter('function f(){return 42 - 7;}')
+        self.assertEqual(jsi.call_function('f'), 35)
+        jsi = JSInterpreter('function f(){return 42 - undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 - null;}')
+        self.assertEqual(jsi.call_function('f'), 42)
+
+    def test_mul(self):
+        jsi = JSInterpreter('function f(){return 42 * 7;}')
+        self.assertEqual(jsi.call_function('f'), 294)
+        jsi = JSInterpreter('function f(){return 42 * undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 * null;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+
+    def test_div(self):
+        jsi = JSInterpreter('function f(a, b){return a / b;}')
+        self.assertTrue(math.isnan(jsi.call_function('f', 0, 0)))
+        self.assertTrue(math.isnan(jsi.call_function('f', JS_Undefined, 1)))
+        self.assertTrue(math.isinf(jsi.call_function('f', 2, 0)))
+        self.assertEqual(jsi.call_function('f', 0, 3), 0)
+
+    def test_mod(self):
+        jsi = JSInterpreter('function f(){return 42 % 7;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+        jsi = JSInterpreter('function f(){return 42 % 0;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 % undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+
+    def test_exp(self):
+        jsi = JSInterpreter('function f(){return 42 ** 2;}')
+        self.assertEqual(jsi.call_function('f'), 1764)
+        jsi = JSInterpreter('function f(){return 42 ** undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 ** null;}')
+        self.assertEqual(jsi.call_function('f'), 1)
+        jsi = JSInterpreter('function f(){return undefined ** 42;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+
     def test_empty_return(self):
         jsi = JSInterpreter('function f(){return; y()}')
         self.assertEqual(jsi.call_function('f'), None)
