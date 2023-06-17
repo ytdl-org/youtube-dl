@@ -940,15 +940,18 @@ class JSInterpreter(object):
     def extract_object(self, objname):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
-        obj_m = re.search(
-            r'''(?xs)
-                (?:{0}\s*\.\s*{1}|{1}\s*=\s*\{{\s*
-                    (?P<fields>({2}\s*:\s*function\s*\(.*?\)\s*\{{.*?}}(?:,\s*)?)*)
-                }}\s*);
-            '''.format(_NAME_RE, re.escape(objname), _FUNC_NAME_RE),
-            self.code)
-        fields = obj_m and obj_m.group('fields')
-        if fields is None:
+        fields = None
+        for obj_m in re.finditer(
+                r'''(?xs)
+                    {0}\s*\.\s*{1}|{1}\s*=\s*\{{\s*
+                        (?P<fields>({2}\s*:\s*function\s*\(.*?\)\s*\{{.*?}}(?:,\s*)?)*)
+                    }}\s*;
+                '''.format(_NAME_RE, re.escape(objname), _FUNC_NAME_RE),
+                self.code):
+            fields = obj_m.group('fields')
+            if fields:
+                break
+        else:
             raise self.Exception('Could not find object ' + objname)
         # Currently, it only supports function definitions
         fields_m = re.finditer(

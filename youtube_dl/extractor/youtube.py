@@ -1569,9 +1569,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
              r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
             jscode, 'Initial JS player signature function name', group='sig')
 
-        # temporary (please) hack for player 6ed0d907 #32314
-        ah = 'var AH={LR:function(a,b){var c=a[0];a[0]=a[b%a.length];a[b%a.length]=c},QV:function(a){a.reverse()},pO:function(a,b){a.splice(0,b)}};'
-        jsi = JSInterpreter(ah + jscode)
+        jsi = JSInterpreter(jscode)
 
         initial_function = jsi.extract_function(funcname)
 
