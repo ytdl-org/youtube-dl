@@ -941,15 +941,15 @@ class JSInterpreter(object):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
         obj_m = re.search(
-            r'''(?x)
-                (?<!this\.)%s\s*=\s*{\s*
-                    (?P<fields>(%s\s*:\s*function\s*\(.*?\)\s*{.*?}(?:,\s*)?)*)
-                }\s*;
-            ''' % (re.escape(objname), _FUNC_NAME_RE),
+            r'''(?xs)
+                (?:{0}\s*\.\s*{1}|{1}\s*=\s*\{{\s*
+                    (?P<fields>({2}\s*:\s*function\s*\(.*?\)\s*\{{.*?}}(?:,\s*)?)*)
+                }}\s*);
+            '''.format(_NAME_RE, re.escape(objname), _FUNC_NAME_RE),
             self.code)
-        if not obj_m:
+        fields = obj_m and obj_m.group('fields')
+        if fields is None:
             raise self.Exception('Could not find object ' + objname)
-        fields = obj_m.group('fields')
         # Currently, it only supports function definitions
         fields_m = re.finditer(
             r'''(?x)
