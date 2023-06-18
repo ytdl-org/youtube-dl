@@ -176,7 +176,7 @@ def parseOpts(overrideArguments=None):
         '(%APPDATA%/youtube-dl/config.txt on Windows)')
     general.add_option(
         '--config-location',
-        dest='config_location', metavar='PATH',
+        dest='config_location', metavar='FILE',
         help='Location of the configuration file; either the path to the config or its containing directory.')
     general.add_option(
         '--flat-playlist',
@@ -412,13 +412,15 @@ def parseOpts(overrideArguments=None):
         '--youtube-skip-dash-manifest',
         action='store_false', dest='youtube_include_dash_manifest',
         help='Do not download the DASH manifests and related data on YouTube videos')
+    choices = ['mkv', 'mp4', 'ogg', 'webm', 'flv']
     video_format.add_option(
         '--merge-output-format',
         action='store', dest='merge_output_format', metavar='FORMAT', default=None,
+        choices=choices,
         help=(
             'If a merge is required (e.g. bestvideo+bestaudio), '
-            'output to given container format. One of mkv, mp4, ogg, webm, flv. '
-            'Ignored if no merge is required'))
+            'output to given container format. (currently supported: {0})'
+            'Ignored if no merge is required'.format(' '.join(choices))))
 
     subtitles = optparse.OptionGroup(parser, 'Subtitle Options')
     subtitles.add_option(
@@ -517,8 +519,9 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--external-downloader',
         dest='external_downloader', metavar='COMMAND',
+        choices=list_external_downloaders(),
         help='Use the specified external downloader. '
-             'Currently supports %s' % ','.join(list_external_downloaders()))
+             '(currently supported: %s)' % ' '.join(list_external_downloaders()))
     downloader.add_option(
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
@@ -789,17 +792,22 @@ def parseOpts(overrideArguments=None):
         '-x', '--extract-audio',
         action='store_true', dest='extractaudio', default=False,
         help='Convert video files to audio-only files (requires ffmpeg/avconv and ffprobe/avprobe)')
+    choices = ["best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", "wav"]
     postproc.add_option(
         '--audio-format', metavar='FORMAT', dest='audioformat', default='best',
-        help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
+        choices=choices,
+        help='Specify audio format. (currently supported: {0}); %default by default; No effect without -x'.format(" ".join(choices)))
     postproc.add_option(
         '--audio-quality', metavar='QUALITY',
         dest='audioquality', default='5',
+        choices=list(map(str, range(10))),
         help='Specify ffmpeg/avconv audio quality, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default %default)')
+    choices = ["mp4", "flv", "ogg", "webm", "mkv", "avi"]
     postproc.add_option(
         '--recode-video',
         metavar='FORMAT', dest='recodevideo', default=None,
-        help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|avi)')
+        choices=choices,
+        help='Encode the video to another format if necessary (currently supported: {0})'.format(" ".join(choices)))
     postproc.add_option(
         '--postprocessor-args',
         dest='postprocessor_args', metavar='ARGS',
@@ -860,10 +868,12 @@ def parseOpts(overrideArguments=None):
         '--exec',
         metavar='CMD', dest='exec_cmd',
         help='Execute a command on the file after downloading and post-processing, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
+    choices = ["srt", "ass", "vtt", "lrc"]
     postproc.add_option(
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
-        help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
+        choices=choices,
+        help='Convert the subtitles to other format (currently supported: {0})'.format(" ".join(choices)))
 
     parser.add_option_group(general)
     parser.add_option_group(network)

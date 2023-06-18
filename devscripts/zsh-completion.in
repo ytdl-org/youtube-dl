@@ -1,28 +1,22 @@
-#compdef youtube-dl
+#compdef {{programs}}
+# https://github.com/zsh-users/zsh/blob/master/Etc/completion-style-guide
 
-__youtube_dl() {
-    local curcontext="$curcontext" fileopts diropts cur prev
-    typeset -A opt_args
-    fileopts="{{fileopts}}"
-    diropts="{{diropts}}"
-    cur=$words[CURRENT]
-    case $cur in
-        :)
-            _arguments '*: :(::ytfavorites ::ytrecommended ::ytsubscriptions ::ytwatchlater ::ythistory)'
+typeset -A opt_args
+_arguments -S -s \
+  {{flags}} \
+  '*:URL:_urls'
+
+case $state in
+  external-downloader-args)
+    case "${opt_args[--external-downloader]}" in
+      curl) _curl
         ;;
-        *)
-            prev=$words[CURRENT-1]
-            if [[ ${prev} =~ ${fileopts} ]]; then
-                _path_files
-            elif [[ ${prev} =~ ${diropts} ]]; then
-                _path_files -/
-            elif [[ ${prev} == "--recode-video" ]]; then
-                _arguments '*: :(mp4 flv ogg webm mkv)'
-            else
-                _arguments '*: :({{flags}})'
-            fi
+      ffmpeg) _ffmpeg
+        ;;
+      httpie) _httpie
+        ;;
+      wget) _wget
         ;;
     esac
-}
-
-__youtube_dl
+    ;;
+esac
