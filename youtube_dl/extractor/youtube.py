@@ -2430,7 +2430,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         return merge_dicts(
             info, {
-                'uploader_id': self._extract_uploader_id(owner_profile_url),
+                # 'uploader_id': self._extract_uploader_id(owner_profile_url),
                 'uploader_url': owner_profile_url,
                 'channel_id': channel_id,
                 'channel_url': channel_id and self._yt_urljoin('/channel/' + channel_id),
