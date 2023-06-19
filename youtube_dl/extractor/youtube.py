@@ -1570,7 +1570,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
+
         initial_function = jsi.extract_function(funcname)
+
         return lambda s: initial_function([s])
 
     def _decrypt_signature(self, s, video_id, player_url):

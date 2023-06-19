@@ -940,16 +940,19 @@ class JSInterpreter(object):
     def extract_object(self, objname):
         _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
         obj = {}
-        obj_m = re.search(
-            r'''(?x)
-                (?<!this\.)%s\s*=\s*{\s*
-                    (?P<fields>(%s\s*:\s*function\s*\(.*?\)\s*{.*?}(?:,\s*)?)*)
-                }\s*;
-            ''' % (re.escape(objname), _FUNC_NAME_RE),
-            self.code)
-        if not obj_m:
+        fields = None
+        for obj_m in re.finditer(
+                r'''(?xs)
+                    {0}\s*\.\s*{1}|{1}\s*=\s*\{{\s*
+                        (?P<fields>({2}\s*:\s*function\s*\(.*?\)\s*\{{.*?}}(?:,\s*)?)*)
+                    }}\s*;
+                '''.format(_NAME_RE, re.escape(objname), _FUNC_NAME_RE),
+                self.code):
+            fields = obj_m.group('fields')
+            if fields:
+                break
+        else:
             raise self.Exception('Could not find object ' + objname)
-        fields = obj_m.group('fields')
         # Currently, it only supports function definitions
         fields_m = re.finditer(
             r'''(?x)
@@ -985,9 +988,9 @@ class JSInterpreter(object):
                 \((?P<args>[^)]*)\)\s*
                 (?P<code>{.+})''' % {'name': re.escape(funcname)},
             self.code)
-        code, _ = self._separate_at_paren(func_m.group('code'))  # refine the match
         if func_m is None:
             raise self.Exception('Could not find JS function "{funcname}"'.format(**locals()))
+        code, _ = self._separate_at_paren(func_m.group('code'))  # refine the match
         return self.build_arglist(func_m.group('args')), code
 
     def extract_function(self, funcname):
