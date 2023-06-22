@@ -38,10 +38,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up supported Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      if: ${{ matrix.python-impl == 'cpython' && ! contains(fromJSON('["3.3", "3.4"]'), matrix.python-version) }}
+      # wrap broken actions/setup-python@v4
+      uses: ytdl-org/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
+        cache-build: true
+        allow-build: info
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
       uses: actions/setup-java@v2
