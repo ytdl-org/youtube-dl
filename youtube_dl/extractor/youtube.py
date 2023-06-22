@@ -448,7 +448,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             extract_attributes(self._search_regex(
                 r'''(?s)(<link\b[^>]+\bitemprop\s*=\s*("|')%s\2[^>]*>)'''
                 % re.escape(var_name),
-                get_element_by_attribute('itemprop', 'author', webpage) or '',
+                get_element_by_attribute('itemprop', 'author', webpage or '') or '',
                 'author link', default='')),
             paths[var_name][0])
 
