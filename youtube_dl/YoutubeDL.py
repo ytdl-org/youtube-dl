@@ -100,6 +100,7 @@ from .utils import (
     write_string,
     YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
+    YoutubeDLError,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
     ytdl_is_updateable,
@@ -1870,7 +1871,6 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
-            ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 sub_filename = subtitles_filename(filename, sub_lang, sub_format, info_dict.get('ext'))
@@ -1888,12 +1888,15 @@ class YoutubeDL(object):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
                             return
                     else:
+                        fd = get_suitable_downloader(sub_info, self.params)(self, self.params)
                         try:
-                            sub_data = ie._request_webpage(
-                                sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
-                                subfile.write(sub_data)
-                        except (ExtractorError, IOError, OSError, ValueError) as err:
+                            if self.params.get('verbose'):
+                                self.to_screen('[debug] Invoking subtitle downloader on %r' % sub_info.get('url'))
+                            # The FD is supposed to encodeFilename()
+                            if not fd.download(sub_filename, sub_info):
+                                # depending on the FD, it may catch errors and return False, or not
+                                raise YoutubeDLError('Subtitle download failed')
+                        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error, OSError, IOError, YoutubeDLError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue

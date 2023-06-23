@@ -251,7 +251,10 @@ class InfoExtractor(object):
                     preference, each element is a dictionary with the "ext"
                     entry and one of:
                         * "data": The subtitles file contents
-                        * "url": A URL pointing to the subtitles file
+                        * "url": A URL pointing to the subtitles resource
+                    With "url", a "protocol" entry (as for "formats" above)
+                    may be provided to indicate how the URL should be
+                    processed; by default it is a file downloaded by HTTP(S)
                     "ext" will be calculated from URL if missing
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions
@@ -1636,7 +1639,7 @@ class InfoExtractor(object):
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
                               fatal=True, live=False, data=None, headers={},
-                              query={}):
+                              query={}, include_subtitles=False):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
@@ -1651,11 +1654,11 @@ class InfoExtractor(object):
 
         return self._parse_m3u8_formats(
             m3u8_doc, m3u8_url, ext=ext, entry_protocol=entry_protocol,
-            preference=preference, m3u8_id=m3u8_id, live=live)
+            preference=preference, m3u8_id=m3u8_id, live=live, include_subtitles=include_subtitles)
 
     def _parse_m3u8_formats(self, m3u8_doc, m3u8_url, ext=None,
                             entry_protocol='m3u8', preference=None,
-                            m3u8_id=None, live=False):
+                            m3u8_id=None, live=False, include_subtitles=False):
         if '#EXT-X-FAXS-CM:' in m3u8_doc:  # Adobe Flash Access
             return []
 
@@ -1663,6 +1666,7 @@ class InfoExtractor(object):
             return []
 
         formats = []
+        subtitles = {}
 
         format_url = lambda u: (
             u
@@ -1697,13 +1701,20 @@ class InfoExtractor(object):
         groups = {}
         last_stream_inf = {}
 
-        def extract_media(x_media_line):
+        def extract_media(x_media_line, include_subtitles=False):
             media = parse_m3u8_attributes(x_media_line)
             # As per [1, 4.3.4.1] TYPE, GROUP-ID and NAME are REQUIRED
             media_type, group_id, name = media.get('TYPE'), media.get('GROUP-ID'), media.get('NAME')
             if not (media_type and group_id and name):
                 return
             groups.setdefault(group_id, []).append(media)
+            if include_subtitles and (media_type == 'SUBTITLES'):
+                subtitles[media['LANGUAGE']] = [{
+                    'url': format_url(media['URI']),
+                    'ext': media.get('SUBFORMAT', 'webtt'),
+                    'protocol': 'm3u8_native',
+                }]
+                return
             if media_type not in ('VIDEO', 'AUDIO'):
                 return
             media_url = media.get('URI')
@@ -1749,7 +1760,7 @@ class InfoExtractor(object):
         # precede EXT-X-MEDIA tags in HLS manifest such as [3].
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-MEDIA:'):
-                extract_media(line)
+                extract_media(line, include_subtitles=include_subtitles)
 
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
@@ -1829,6 +1840,8 @@ class InfoExtractor(object):
                     formats.append(http_f)
 
                 last_stream_inf = {}
+        if include_subtitles:
+            return formats, subtitles
         return formats
 
     @staticmethod
