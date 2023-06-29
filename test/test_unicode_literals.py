@@ -15,6 +15,7 @@ IGNORED_FILES = [
     'setup.py',  # http://bugs.python.org/issue13943
     'conf.py',
     'buildserver.py',
+    'get-pip.py',
 ]
 
 IGNORED_DIRS = [

@@ -10,10 +10,13 @@ import os
 import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from youtube_dl.compat import compat_register_utf8
+
 from youtube_dl.utils import encodeArgument
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+compat_register_utf8()
 
 try:
     _DEV_NULL = subprocess.DEVNULL
@@ -25,13 +28,14 @@ class TestExecution(unittest.TestCase):
     def test_import(self):
         subprocess.check_call([sys.executable, '-c', 'import youtube_dl'], cwd=rootDir)
 
+    @unittest.skipIf(sys.version_info < (2, 7), 'Python 2.6 doesn\'t support package execution')
     def test_module_exec(self):
-        if sys.version_info >= (2, 7):  # Python 2.6 doesn't support package execution
-            subprocess.check_call([sys.executable, '-m', 'youtube_dl', '--version'], cwd=rootDir, stdout=_DEV_NULL)
+        subprocess.check_call([sys.executable, '-m', 'youtube_dl', '--version'], cwd=rootDir, stdout=_DEV_NULL)
 
     def test_main_exec(self):
         subprocess.check_call([sys.executable, 'youtube_dl/__main__.py', '--version'], cwd=rootDir, stdout=_DEV_NULL)
 
+    @unittest.skipIf(sys.version_info < (2, 7), 'Python 2.6 doesn\'t support package execution')
     def test_cmdline_umlauts(self):
         p = subprocess.Popen(
             [sys.executable, 'youtube_dl/__main__.py', encodeArgument('ä'), '--version'],

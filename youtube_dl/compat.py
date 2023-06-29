@@ -31,13 +31,17 @@ try:
     compat_str, compat_basestring, compat_chr = (
         unicode, basestring, unichr
     )
-    from .casefold import casefold as compat_casefold
-
 except NameError:
     compat_str, compat_basestring, compat_chr = (
         str, str, chr
     )
+
+# casefold
+try:
+    compat_str.casefold
     compat_casefold = lambda s: s.casefold()
+except AttributeError:
+    from .casefold import casefold as compat_casefold
 
 try:
     import collections.abc as compat_collections_abc
@@ -3137,6 +3141,15 @@ else:
     compat_open = open
 
 
+# compat_register_utf8
+def compat_register_utf8():
+    if sys.platform == 'win32':
+        # https://github.com/ytdl-org/youtube-dl/issues/820
+        from codecs import register, lookup
+        register(
+            lambda name: lookup('utf-8') if name == 'cp65001' else None)
+
+
 legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -3203,6 +3216,7 @@ __all__ = [
     'compat_print',
     'compat_re_Match',
     'compat_re_Pattern',
+    'compat_register_utf8',
     'compat_setenv',
     'compat_shlex_quote',
     'compat_shlex_split',

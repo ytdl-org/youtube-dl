@@ -6,6 +6,10 @@ import os
 from os.path import dirname as dirn
 import sys
 
+from youtube_dl.compat import compat_register_utf8
+
+compat_register_utf8()
+
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
