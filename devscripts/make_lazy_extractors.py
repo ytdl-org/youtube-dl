@@ -6,10 +6,6 @@ import os
 from os.path import dirname as dirn
 import sys
 
-from youtube_dl.compat import compat_register_utf8
-
-compat_register_utf8()
-
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
@@ -22,6 +18,10 @@ try:
     os.remove(lazy_extractors_filename + 'c')
 except OSError:
     pass
+
+from youtube_dl.compat import compat_register_utf8
+
+compat_register_utf8()
 
 from youtube_dl.extractor import _ALL_CLASSES
 from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
