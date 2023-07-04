@@ -13,9 +13,7 @@ from ..utils import (
     error_to_compat_str,
     format_bytes,
     shell_quote,
-    T,
     timeconvert,
-    traverse_obj,
 )
 
 
@@ -378,9 +376,6 @@ class FileDownloader(object):
                     int(sleep_interval) if sleep_interval.is_integer()
                     else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
-
-        info_dict['http_headers'] = dict(traverse_obj(info_dict, (
-            'http_headers', T(dict.items), lambda _, pair: pair[0].lower() != 'cookie'))) or None
 
         return self.real_download(filename, info_dict)
 
