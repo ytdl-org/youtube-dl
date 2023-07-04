@@ -2912,6 +2912,19 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
                 cookie.expires = None
                 cookie.discard = True
 
+    def get_cookie_header(self, url):
+        """Generate a Cookie HTTP header for a given url"""
+        cookie_req = sanitized_Request(url)
+        self.add_cookie_header(cookie_req)
+        return cookie_req.get_header('Cookie')
+
+    def get_cookies_for_url(self, url):
+        """Generate a list of Cookie objects for a given url"""
+        # Policy `_now` attribute must be set before calling `_cookies_for_request`
+        # Ref: https://github.com/python/cpython/blob/3.7/Lib/http/cookiejar.py#L1360
+        self._policy._now = self._now = int(time.time())
+        return self._cookies_for_request(sanitized_Request(url))
+
 
 class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     def __init__(self, cookiejar=None):
