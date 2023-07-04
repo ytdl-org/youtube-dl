@@ -13,7 +13,9 @@ from ..utils import (
     error_to_compat_str,
     format_bytes,
     shell_quote,
+    T,
     timeconvert,
+    traverse_obj,
 )
 
 
@@ -339,6 +341,10 @@ class FileDownloader(object):
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
+
+        This method filters the `Cookie` header from the info_dict to prevent leaks.
+        Downloaders have their own way of handling cookies.
+        See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
         """
 
         nooverwrites_and_exists = (
@@ -372,6 +378,9 @@ class FileDownloader(object):
                     int(sleep_interval) if sleep_interval.is_integer()
                     else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
+
+        info_dict['http_headers'] = dict(traverse_obj(info_dict, (
+            'http_headers', T(dict.items), lambda _, pair: pair[0].lower() != 'cookie'))) or None
 
         return self.real_download(filename, info_dict)
 
