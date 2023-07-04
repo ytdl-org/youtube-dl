@@ -492,10 +492,12 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/; "".replace(a, ""); return a; }
         ''')
-        attrs = set(('findall', 'finditer', 'flags', 'groupindex',
-                     'groups', 'match', 'pattern', 'scanner',
-                     'search', 'split', 'sub', 'subn'))
-        self.assertTrue(set(dir(jsi.call_function('x'))) > attrs)
+        attrs = set(('findall', 'finditer', 'match', 'scanner', 'search',
+                     'split', 'sub', 'subn'))
+        if sys.version_info >= (2, 7):
+            # documented for 2.6 but may not be found
+            attrs.update(('flags', 'groupindex', 'groups', 'pattern'))
+        self.assertSetEqual(set(dir(jsi.call_function('x'))) & attrs, attrs)
 
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/i; return a; }

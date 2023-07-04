@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from __future__ import division
 
 import base64
 import binascii
 import collections
 import ctypes
+import datetime
 import email
 import getpass
 import io
@@ -3150,6 +3152,15 @@ def compat_register_utf8():
             lambda name: lookup('utf-8') if name == 'cp65001' else None)
 
 
+# compat_datetime_timedelta_total_seconds
+try:
+    compat_datetime_timedelta_total_seconds = datetime.timedelta.total_seconds
+except AttributeError:
+    # Py 2.6
+    def compat_datetime_timedelta_total_seconds(td):
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+
 legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -3187,6 +3198,7 @@ __all__ = [
     'compat_chr',
     'compat_collections_abc',
     'compat_collections_chain_map',
+    'compat_datetime_timedelta_total_seconds',
     'compat_http_cookiejar',
     'compat_http_cookiejar_Cookie',
     'compat_http_cookies',

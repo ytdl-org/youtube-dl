@@ -277,9 +277,20 @@ class JSInterpreter(object):
 
         def __getattr__(self, name):
             self.__instantiate()
+            # make Py 2.6 conform to its lying documentation
+            if name == 'flags':
+                self.flags = self.__flags
+            elif name == 'pattern':
+                self.pattern = self.__pattern_txt
+            elif name in ('groupindex', 'groups'):
+                # in case these get set after a match?
+                if hasattr(self.__self, name):
+                    setattr(self, name, getattr(self.__self, name))
+                else:
+                    return 0 if name == 'groupindex' else {}
             if hasattr(self, name):
                 return getattr(self, name)
-            return super(JSInterpreter.JS_RegExp, self).__getattr__(name)
+            raise AttributeError('{0} has no attribute named {1}'.format(self, name))
 
         @classmethod
         def regex_flags(cls, expr):

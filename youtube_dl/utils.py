@@ -47,6 +47,7 @@ from .compat import (
     compat_collections_abc,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
+    compat_datetime_timedelta_total_seconds,
     compat_etree_fromstring,
     compat_expanduser,
     compat_html_entities,
@@ -3102,7 +3103,7 @@ def unified_timestamp(date_str, day_first=True):
             pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple) + pm_delta * 3600 - timezone.total_seconds()
+        return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
 
 
 def determine_ext(url, default_ext='unknown_video'):

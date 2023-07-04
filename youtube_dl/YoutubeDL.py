@@ -25,7 +25,11 @@ import tokenize
 import traceback
 import random
 
-from ssl import OPENSSL_VERSION
+try:
+    from ssl import OPENSSL_VERSION
+except ImportError:
+    # Must be Python 2.6, should be built against 1.0.2
+    OPENSSL_VERSION = 'OpenSSL 1.0.2(?)'
 from string import ascii_letters
 
 from .compat import (
