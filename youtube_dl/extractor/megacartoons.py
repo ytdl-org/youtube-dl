@@ -18,8 +18,8 @@ from .common import InfoExtractor
 
 
 class MegaCartoonsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?megacartoons\.net/(?P<id>[a-z-]+)/'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?megacartoons\.net/(?P<id>[a-zA-Z\d-]+)/'
+    _TESTS = [{
         'url': 'https://www.megacartoons.net/help-wanted/',
         'md5': '4ba9be574f9a17abe0c074e2f955fded',
         'info_dict': {
@@ -31,7 +31,13 @@ class MegaCartoonsIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
             'description': 'md5:2c909daa6c6cb16b2d4d791dd1a31632'
         }
-    }
+    }, {
+        'url': 'https://www.megacartoons.net/1000-years-of-courage/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.megacartoons.net/911-2/',
+        'only_matching': True,
+    }]
 
     # adapted from common.py pending yt-dlp back-port
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
