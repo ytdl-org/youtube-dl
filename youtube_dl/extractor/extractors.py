@@ -304,9 +304,29 @@ from .douyutv import (
     DouyuTVIE,
 )
 from .dplay import (
-    DPlayIE,
+    AmHistoryChannelIE,
+    AnimalPlanetIE,
+    DiscoveryLifeIE,
+    DiscoveryNetworksDeIE,
     DiscoveryPlusIE,
+    DiscoveryPlusIndiaIE,
+    DiscoveryPlusIndiaShowIE,
+    DiscoveryPlusItalyShowIE,
+    DIYNetworkIE,
+    DPlayIE,
+    CookingChannelIE,
+    DestinationAmericaIE,
+    DiscoveryPlusIE,
+    FoodNetworkIE,
+    GoDiscoveryIE,
     HGTVDeIE,
+    HGTVUsaIE,
+    InvestigationDiscoveryIE,
+    MotorTrendIE,
+    MotorTrendOnDemandIE,
+    ScienceChannelIE,
+    TLCIE,
+    TravelChannelIE,
 )
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
@@ -324,7 +344,6 @@ from .discoverygo import (
     DiscoveryGoIE,
     DiscoveryGoPlaylistIE,
 )
-from .discoverynetworks import DiscoveryNetworksDeIE
 from .discoveryvr import DiscoveryVRIE
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE
