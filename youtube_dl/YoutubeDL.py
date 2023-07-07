@@ -582,7 +582,7 @@ class YoutubeDL(object):
         if self.params.get('cookiefile') is not None:
             self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
-    def trouble(self, message=None, tb=None):
+    def trouble(self, *args, **kwargs):
         """Determine action to take when a download problem appears.
 
         Depending on if the downloader has been configured to ignore
@@ -591,6 +591,11 @@ class YoutubeDL(object):
 
         tb, if given, is additional traceback information.
         """
+        # message=None, tb=None, is_error=True
+        message = args[0] if len(args) > 0 else kwargs.get('message', None)
+        tb = args[1] if len(args) > 1 else kwargs.get('tb', None)
+        is_error = args[2] if len(args) > 2 else kwargs.get('is_error', True)
+
         if message is not None:
             self.to_stderr(message)
         if self.params.get('verbose'):
@@ -603,7 +608,10 @@ class YoutubeDL(object):
                 else:
                     tb_data = traceback.format_list(traceback.extract_stack())
                     tb = ''.join(tb_data)
-            self.to_stderr(tb)
+            if tb:
+                self.to_stderr(tb)
+        if not is_error:
+            return
         if not self.params.get('ignoreerrors', False):
             if sys.exc_info()[0] and hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
                 exc_info = sys.exc_info()[1].exc_info
@@ -612,11 +620,18 @@ class YoutubeDL(object):
             raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
-    def report_warning(self, message):
+    def report_warning(self, message, only_once=False, _cache={}):
         '''
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
+        if only_once:
+            m_hash = hash((self, message))
+            m_cnt = _cache.setdefault(m_hash, 0)
+            _cache[m_hash] = m_cnt + 1
+            if m_cnt > 0:
+                return
+
         if self.params.get('logger') is not None:
             self.params['logger'].warning(message)
         else:
@@ -629,7 +644,7 @@ class YoutubeDL(object):
             warning_message = '%s %s' % (_msg_header, message)
             self.to_stderr(warning_message)
 
-    def report_error(self, message, tb=None):
+    def report_error(self, message, *args, **kwargs):
         '''
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
@@ -638,8 +653,18 @@ class YoutubeDL(object):
             _msg_header = '\033[0;31mERROR:\033[0m'
         else:
             _msg_header = 'ERROR:'
-        error_message = '%s %s' % (_msg_header, message)
-        self.trouble(error_message, tb)
+        kwargs['message'] = '%s %s' % (_msg_header, message)
+        self.trouble(*args, **kwargs)
+
+    def report_unscoped_cookies(self, *args, **kwargs):
+        # message=None, tb=False, is_error=False
+        if len(args) <= 2:
+            kwargs.setdefault('is_error', False)
+            if len(args) <= 0:
+                kwargs.setdefault(
+                    'message',
+                    'Unscoped cookies are not allowed: please specify some sort of scoping')
+        self.report_error(*args, **kwargs)
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
@@ -835,7 +860,7 @@ class YoutubeDL(object):
                 msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
                 self.report_error(msg)
             except ExtractorError as e:  # An error we somewhat expected
-                self.report_error(compat_str(e), e.format_traceback())
+                self.report_error(compat_str(e), tb=e.format_traceback())
             except MaxDownloadsReached:
                 raise
             except Exception as e:
