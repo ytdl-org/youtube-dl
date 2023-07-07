@@ -2378,10 +2378,12 @@ class YoutubeDL(object):
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
-        self._write_string('[debug] youtube-dl version ' + __version__ + (' (single file build)\n' if ytdl_is_updateable() else '\n'))
+        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))
+        writeln_debug('youtube-dl version ', __version__)
         if _LAZY_LOADER:
-            self._write_string('[debug] Lazy loading extractors enabled\n')
-        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))  # moved down for easier merge
+            writeln_debug('Lazy loading extractors enabled')
+        if ytdl_is_updateable():
+            writeln_debug('Single file build')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
