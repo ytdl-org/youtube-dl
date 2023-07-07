@@ -930,17 +930,11 @@ class TestYoutubeDL(unittest.TestCase):
     # Test case for https://github.com/ytdl-org/youtube-dl/issues/27064
     def test_ignoreerrors_for_playlist_with_url_transparent_iterable_entries(self):
 
-        class _YDL(YDL):
-            def __init__(self, *args, **kwargs):
-                super(_YDL, self).__init__(*args, **kwargs)
-
-            def trouble(self, s, tb=None):
-                pass
-
-        ydl = _YDL({
+        ydl = YDL({
             'format': 'extra',
             'ignoreerrors': True,
         })
+        ydl.trouble = lambda *_, **__: None
 
         class VideoIE(InfoExtractor):
             _VALID_URL = r'video:(?P<id>\d+)'
