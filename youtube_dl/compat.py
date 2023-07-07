@@ -21,6 +21,7 @@ import socket
 import struct
 import subprocess
 import sys
+import types
 import xml.etree.ElementTree
 
 # naming convention
@@ -55,6 +56,22 @@ try:
 except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
 
+# Also fix up lack of method arg in old Pythons
+try:
+    _req = compat_urllib_request.Request
+    _req('http://127.0.0.1', method='GET')
+except TypeError:
+    class _request(object):
+        def __new__(cls, url, *args, **kwargs):
+            method = kwargs.pop('method', None)
+            r = _req(url, *args, **kwargs)
+            if method:
+                r.get_method = types.MethodType(lambda _: method, r)
+            return r
+
+    compat_urllib_request.Request = _request
+
+
 try:
     import urllib.error as compat_urllib_error
 except ImportError:  # Python 2
@@ -78,6 +95,12 @@ try:
     import urllib.response as compat_urllib_response
 except ImportError:  # Python 2
     import urllib as compat_urllib_response
+
+try:
+    compat_urllib_response.addinfourl.status
+except AttributeError:
+    # .getcode() is deprecated in Py 3.
+    compat_urllib_response.addinfourl.status = property(lambda self: self.getcode())
 
 try:
     import http.cookiejar as compat_cookiejar
@@ -2360,6 +2383,11 @@ try:
     import http.client as compat_http_client
 except ImportError:  # Python 2
     import httplib as compat_http_client
+try:
+    compat_http_client.HTTPResponse.getcode
+except AttributeError:
+    # Py < 3.1
+    compat_http_client.HTTPResponse.getcode = lambda self: self.status
 
 try:
     from urllib.error import HTTPError as compat_HTTPError
