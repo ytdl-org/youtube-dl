@@ -544,12 +544,14 @@ def parseOpts(overrideArguments=None):
     workarounds.add_option(
         '--referer',
         metavar='URL', dest='referer', default=None,
-        help='Specify a custom referer, use if the video access is restricted to one domain',
+        help='Specify a custom Referer: use if the video access is restricted to one domain',
     )
     workarounds.add_option(
         '--add-header',
         metavar='FIELD:VALUE', dest='headers', action='append',
-        help='Specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times',
+        help=('Specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times. '
+              'NB Use --cookies rather than adding a Cookie header if its contents may be sensitive; '
+              'data from a Cookie header will be sent to all domains, not just the one intended')
     )
     workarounds.add_option(
         '--bidi-workaround',
