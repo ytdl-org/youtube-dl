@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import subprocess
+import imghdr
 
 from .ffmpeg import FFmpegPostProcessor
 
@@ -17,6 +18,8 @@ from ..utils import (
     replace_extension,
     shell_quote,
 )
+
+from base64 import b64encode
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -125,7 +128,35 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
+        elif info['ext'] in ['opus', 'ogg', 'flac']:
+            try:
+                from mutagen.oggvorbis import OggVorbis
+                from mutagen.oggopus import OggOpus
+                from mutagen.flac import Picture, FLAC
+            except ImportError:
+                raise EmbedThumbnailPPError('mutagen was not found. Please install.')
+
+            aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis}[info['ext']](filename)
+            thumbfile = open(thumbnail_filename, 'rb')
+
+            covart = Picture()
+            covart.mime = 'image/' + imghdr.what(thumbfile)
+            covart.data = thumbfile.read()
+            covart.type = 3  # as the front cover
+
+            if info['ext'] == 'flac':
+                aufile.add_picture(covart)
+            else:
+                # https://wiki.xiph.org/VorbisComment#METADATA_BLOCK_PICTURE
+                aufile['metadata_block_picture'] = b64encode(covart.write()).decode('ascii')
+
+            self._downloader.to_screen('[mutagen] Adding thumbnail to "%s"' % temp_filename)
+            aufile.save()
+
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
         else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
+            raise EmbedThumbnailPPError('Only mp3, m4a/mp4, ogg, opus and flac are supported for thumbnail embedding for now.')
 
         return [], info
