@@ -9,6 +9,7 @@ import re
 import types
 import ssl
 import sys
+import unittest
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
@@ -17,6 +18,7 @@ from youtube_dl.compat import (
     compat_str,
 )
 from youtube_dl.utils import (
+    IDENTITY,
     preferredencoding,
     write_string,
 )
@@ -298,3 +300,7 @@ def http_server_port(httpd):
     else:
         sock = httpd.socket
     return sock.getsockname()[1]
+
+
+def expectedFailureIf(cond):
+    return unittest.expectedFailure if cond else IDENTITY

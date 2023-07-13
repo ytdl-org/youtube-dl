@@ -8,6 +8,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import contextlib
 import gzip
 import io
 import ssl
@@ -154,7 +155,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
 
         def gzip_compress(p):
             buf = io.BytesIO()
-            with gzip.GzipFile(fileobj=buf, mode='wb') as f:
+            with contextlib.closing(gzip.GzipFile(fileobj=buf, mode='wb')) as f:
                 f.write(p)
             return buf.getvalue()
 
@@ -306,6 +307,10 @@ class TestHTTP(unittest.TestCase):
             else self.https_port if scheme == 'https'
             else self.http_port, path)
 
+    @unittest.skipUnless(
+        sys.version_info >= (3, 2)
+        or (sys.version_info[0] == 2 and sys.version_info[1:] >= (7, 9)),
+        'No support for certificate check in SSL')
     def test_nocheckcertificate(self):
         with FakeYDL({'logger': FakeLogger()}) as ydl:
             with self.assertRaises(compat_urllib_error.URLError):

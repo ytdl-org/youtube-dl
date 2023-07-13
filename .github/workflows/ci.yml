@@ -301,7 +301,7 @@ jobs:
       if: ${{ matrix.python-version == '2.6' }}
       shell: bash
       run: |
-        # see pip for Jython
+        # Work around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
         $PIP -qq show unittest2 || { \
           for u in "65/26/32b8464df2a97e6dd1b656ed26b2c194606c16fe163c695a992b36c11cdf/six-1.13.0-py2.py3-none-any.whl" \
               "f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl" \
@@ -312,7 +312,7 @@ jobs:
             $PIP install ${u##*/}; \
           done; }
         # make tests use unittest2
-        for test in ./test/test_*.py; do
+        for test in ./test/test_*.py ./test/helper.py; do
           sed -r -i -e '/^import unittest$/s/test/test2 as unittest/' "$test"
         done
     #-------- nose --------

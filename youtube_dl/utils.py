@@ -6198,7 +6198,8 @@ def traverse_obj(obj, *paths, **kwargs):
         elif isinstance(obj, compat_re_Match):
             result = None
             if isinstance(key, int) or casesense:
-                result = lookup_or_none(obj, key, getter=compat_re_Match.group)
+                # Py 2.6 doesn't have methods in the Match class/type
+                result = lookup_or_none(obj, key, getter=lambda _, k: obj.group(k))
 
             elif isinstance(key, str):
                 result = next((v for k, v in obj.groupdict().items()
@@ -6246,7 +6247,10 @@ def traverse_obj(obj, *paths, **kwargs):
 
             if __debug__ and callable(key):
                 # Verify function signature
-                inspect.getcallargs(key, None, None)
+                args = inspect.getargspec(key)
+                if len(args.args) != 2:
+                    # crash differently in 2.6 !
+                    inspect.getcallargs(key, None, None)
 
             new_objs = []
             for obj in objs:
