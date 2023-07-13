@@ -1,0 +1,56 @@
+# Don't change the line below!
+#! oxygen_storefront_id: 1000000680
+
+name: Storefront 1000000680
+on: [push]
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  deploy:
+    name: Deploy to Oxygen
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          check-latest: true
+
+      - name: Get yarn cache directory
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      - uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: Install dependencies
+        id: 'install-dependencies'
+        run: yarn
+
+      - name: Build and Publish to Oxygen
+        id: deploy
+        uses: shopify/oxygenctl-action@v4
+        with:
+          oxygen_deployment_token: ${{ secrets.OXYGEN_DEPLOYMENT_TOKEN_1000000680 }}
+          build_command: "HYDROGEN_ASSET_BASE_URL=$OXYGEN_ASSET_BASE_URL yarn build"
+
+      # Create GitHub Deployment
+      - name: Create GitHub Deployment
+        uses: shopify/github-deployment-action@v1
+        if: always()
+        with:
+          token: ${{ github.token }}
+          environment: 'preview'
+          preview_url: ${{ steps.deploy.outputs.url }}
+          description: ${{ github.event.head_commit.message }}
+        
