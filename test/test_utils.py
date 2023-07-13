@@ -1617,7 +1617,7 @@ Line 1
         self.assertEqual(traverse_obj(_TEST_DATA, lambda x, y: x == 'urls' and isinstance(y, list)),
                          [_TEST_DATA['urls']],
                          msg='function as query key should perform a filter based on (key, value)')
-        self.assertCountEqual(traverse_obj(_TEST_DATA, lambda _, x: isinstance(x[0], str)), {'str'},
+        self.assertCountEqual(traverse_obj(_TEST_DATA, lambda _, x: isinstance(x[0], str)), set(('str',)),
                               msg='exceptions in the query function should be catched')
         self.assertEqual(traverse_obj(iter(range(4)), lambda _, x: x % 2 == 0), [0, 2],
                          msg='function key should accept iterables')
@@ -1643,7 +1643,7 @@ Line 1
             with self.assertRaises(Exception, msg='Sets with length != 1 should raise in debug'):
                 traverse_obj(_TEST_DATA, set())
             with self.assertRaises(Exception, msg='Sets with length != 1 should raise in debug'):
-                traverse_obj(_TEST_DATA, {str.upper, str})
+                traverse_obj(_TEST_DATA, set((str.upper, str)))
 
         # Test `slice` as a key
         _SLICE_DATA = [0, 1, 2, 3, 4]
@@ -1779,7 +1779,7 @@ Line 1
                          {0: 100}, msg='type as expected_type should filter dict values')
         self.assertEqual(traverse_obj(_TEST_DATA, {0: 100, 1: 1.2, 2: 'None'}, expected_type=str_or_none),
                          {0: '100', 1: '1.2'}, msg='function as expected_type should transform dict values')
-        self.assertEqual(traverse_obj(_TEST_DATA, ({0: 1.2}, 0, {int_or_none}), expected_type=int),
+        self.assertEqual(traverse_obj(_TEST_DATA, ({0: 1.2}, 0, set((int_or_none,))), expected_type=int),
                          1, msg='expected_type should not filter non final dict values')
         self.assertEqual(traverse_obj(_TEST_DATA, {0: {0: 100, 1: 'str'}}, expected_type=int),
                          {0: {0: 100}}, msg='expected_type should transform deep dict values')
