@@ -126,12 +126,24 @@ except ImportError:  # Python 2
     import Cookie as compat_cookies
 compat_http_cookies = compat_cookies
 
-if sys.version_info[0] == 2:
+if sys.version_info[0] == 2 or sys.version_info < (3, 3):
     class compat_cookies_SimpleCookie(compat_cookies.SimpleCookie):
         def load(self, rawdata):
-            if isinstance(rawdata, compat_str):
-                rawdata = str(rawdata)
-            return super(compat_cookies_SimpleCookie, self).load(rawdata)
+            must_have_value = 0
+            if not isinstance(rawdata, dict):
+                if sys.version_info[:2] != (2, 7):
+                    # attribute must have value for parsing
+                    rawdata, must_have_value = re.subn(
+                        r'(?i)(;\s*)(secure|httponly)(\s*(?:;|$))', r'\1\2=\2\3', rawdata)
+                if sys.version_info[0] == 2:
+                    if isinstance(rawdata, compat_str):
+                        rawdata = str(rawdata)
+            super(compat_cookies_SimpleCookie, self).load(rawdata)
+            if must_have_value > 0:
+                for morsel in self.values():
+                    for attr in ('secure', 'httponly'):
+                        if morsel.get(attr):
+                            morsel[attr] = True
 else:
     compat_cookies_SimpleCookie = compat_cookies.SimpleCookie
 compat_http_cookies_SimpleCookie = compat_cookies_SimpleCookie
