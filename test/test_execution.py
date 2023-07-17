@@ -24,21 +24,24 @@ except AttributeError:
 
 
 class TestExecution(unittest.TestCase):
+    def setUp(self):
+        self.module = 'youtube_dl'
+        if sys.version_info < (2, 7):
+            self.module += '.__main__'
+
     def test_import(self):
         subprocess.check_call([sys.executable, '-c', 'import youtube_dl'], cwd=rootDir)
 
-    @unittest.skipIf(sys.version_info < (2, 7), 'Python 2.6 doesn\'t support package execution')
     def test_module_exec(self):
-        subprocess.check_call([sys.executable, '-m', 'youtube_dl', '--version'], cwd=rootDir, stdout=_DEV_NULL)
+        subprocess.check_call([sys.executable, '-m', self.module, '--version'], cwd=rootDir, stdout=_DEV_NULL)
 
     def test_main_exec(self):
         subprocess.check_call([sys.executable, os.path.normpath('youtube_dl/__main__.py'), '--version'], cwd=rootDir, stdout=_DEV_NULL)
 
-    @unittest.skipIf(sys.version_info < (2, 7), 'Python 2.6 doesn\'t support package execution')
     def test_cmdline_umlauts(self):
         os.environ['PYTHONIOENCODING'] = 'utf-8'
         p = subprocess.Popen(
-            [sys.executable, os.path.normpath('youtube_dl/__main__.py'), encodeArgument('ä'), '--version'],
+            [sys.executable, '-m', self.module, encodeArgument('ä'), '--version'],
             cwd=rootDir, stdout=_DEV_NULL, stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         self.assertFalse(stderr)
