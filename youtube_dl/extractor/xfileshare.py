@@ -53,6 +53,7 @@ class XFileShareIE(InfoExtractor):
         (r'streamty\.com', 'Streamty'),
         (r'thevideobee\.to', 'TheVideoBee'),
         (r'uqload\.com', 'Uqload'),
+        (r'uqload\.co', 'Uqload'),
         (r'vidbom\.com', 'VidBom'),
         (r'vidlo\.us', 'vidlo'),
         (r'vidlocker\.xyz', 'VidLocker'),
@@ -80,6 +81,9 @@ class XFileShareIE(InfoExtractor):
             'title': 'sample',
             'thumbnail': r're:http://.*\.jpg',
         },
+    }, {
+        'url': 'https://uqload.co/ug5somm0ctnk.html',
+        'only_matching': True,
     }, {
         'url': 'https://aparat.cam/n4d6dh0wvlpr',
         'only_matching': True,
