@@ -1682,3 +1682,4 @@ from .pr0gramm import (
     Pr0grammIE,
     Pr0grammStaticIE,
 )
+from .qpr import QPRIE
