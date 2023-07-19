@@ -18,12 +18,6 @@ from ..utils import (
 
 class GlobalPlayerBaseIE(InfoExtractor):
 
-    import re
-
-    @classmethod
-    def _match_valid_url(cls, url):
-        return cls.re.match(cls._VALID_URL, url)
-
     def _get_page_props(self, url, video_id):
         webpage = self._download_webpage(url, video_id)
         return self._search_nextjs_data(webpage, video_id)['props']['pageProps']

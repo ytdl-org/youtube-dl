@@ -83,6 +83,7 @@ from ..utils import (
     urljoin,
     url_basename,
     url_or_none,
+    variadic,
     xpath_element,
     xpath_text,
     xpath_with_ns,
@@ -371,9 +372,22 @@ class InfoExtractor(object):
     title, description etc.
 
 
-    Subclasses of this one should re-define the _real_initialize() and
-    _real_extract() methods and define a _VALID_URL regexp.
-    Probably, they should also be added to the list of extractors.
+    A subclass of InfoExtractor must be defined to handle each specific site (or
+    several sites). Such a concrete subclass should be added to the list of
+    extractors. It should also:
+    * define its _VALID_URL attribute as a regexp, or a Sequence of alternative
+      regexps (but see below)
+    * re-define the _real_extract() method
+    * optionally re-define the _real_initialize() method.
+
+    An extractor subclass may also override suitable() if necessary, but the
+    function signature must be preserved and the function must import everything
+    it needs (except other extractors), so that lazy_extractors works correctly.
+    If the subclass's suitable() and _real_extract() functions avoid using
+    _VALID_URL, the subclass need not set that class attribute.
+
+    An abstract subclass of InfoExtractor may be used to simplify implementation
+    within an extractor module; it should not be added to the list of extractors.
 
     _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
@@ -409,21 +423,32 @@ class InfoExtractor(object):
         self.set_downloader(downloader)
 
     @classmethod
+    def __match_valid_url(cls, url):
+        # This does not use has/getattr intentionally - we want to know whether
+        # we have cached the regexp for cls, whereas getattr would also
+        # match its superclass
+        if '_VALID_URL_RE' not in cls.__dict__:
+            # _VALID_URL can now be a list/tuple of patterns
+            cls._VALID_URL_RE = tuple(map(re.compile, variadic(cls._VALID_URL)))
+        # 20% faster than next(filter(None, (p.match(url) for p in cls._VALID_URL_RE)), None) in 2.7
+        for p in cls._VALID_URL_RE:
+            p = p.match(url)
+            if p:
+                return p
+
+    # The public alias can safely be overridden, as in some back-ports
+    _match_valid_url = __match_valid_url
+
+    @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-
-        # This does not use has/getattr intentionally - we want to know whether
-        # we have cached the regexp for *this* class, whereas getattr would also
-        # match the superclass
-        if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        return cls._VALID_URL_RE.match(url) is not None
+        # This function must import everything it needs (except other extractors),
+        # so that lazy_extractors works correctly
+        return cls.__match_valid_url(url) is not None
 
     @classmethod
     def _match_id(cls, url):
-        if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        m = cls._VALID_URL_RE.match(url)
+        m = cls.__match_valid_url(url)
         assert m
         return compat_str(m.group('id'))
 
