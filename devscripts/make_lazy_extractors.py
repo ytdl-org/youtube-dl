@@ -4,6 +4,7 @@ from inspect import getsource
 import io
 import os
 from os.path import dirname as dirn
+import re
 import sys
 
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
@@ -29,11 +30,18 @@ from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
 with open('devscripts/lazy_load_template.py', 'rt') as f:
     module_template = f.read()
 
+
+def get_source(m):
+    return re.sub(r'(?m)^\s*#.*\n', '', getsource(m))
+
+
 module_contents = [
-    module_template + '\n' + getsource(InfoExtractor.suitable) + '\n',
+    module_template,
+    get_source(InfoExtractor.suitable),
+    get_source(InfoExtractor._match_valid_url) + '\n',
     'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n',
     # needed for suitable() methods of Youtube extractor (see #28780)
-    'from youtube_dl.utils import parse_qs\n',
+    'from youtube_dl.utils import parse_qs, variadic\n',
 ]
 
 ie_template = '''
@@ -66,7 +74,7 @@ def build_lazy_ie(ie, name):
         valid_url=valid_url,
         module=ie.__module__)
     if ie.suitable.__func__ is not InfoExtractor.suitable.__func__:
-        s += '\n' + getsource(ie.suitable)
+        s += '\n' + get_source(ie.suitable)
     if hasattr(ie, '_make_valid_url'):
         # search extractors
         s += make_valid_template.format(valid_url=ie._make_valid_url())
