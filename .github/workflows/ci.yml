@@ -111,10 +111,12 @@ jobs:
           run-tests-ext: bat
         # jython
         - os: ubuntu-20.04
+          python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: sh
         - os: ubuntu-20.04
+          python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: sh
@@ -163,22 +165,22 @@ jobs:
             'print(sys.path)' \
             | ${expected} -
     #-------- Python 3.12 -
-    - name: Set up Python 3.12 environment
-      if: ${{ matrix.python-version == '3.12' }}
+    - name: Set up CPython 3.12 environment
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
       shell: bash
       run: |
         PYENV_ROOT=$HOME/.local/share/pyenv
         echo "PYENV_ROOT=${PYENV_ROOT}" >> "$GITHUB_ENV"
     - name: Cache Python 3.12
       id: cache312
-      if: ${{ matrix.python-version == '3.12' }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
       uses: actions/cache@v3
       with:
         key: python-3.12
         path: |
           ${{ env.PYENV_ROOT }}
     - name: Build and set up Python 3.12
-      if: ${{ matrix.python-version == '3.12' && ! steps.cache312.outputs.cache-hit }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' && ! steps.cache312.outputs.cache-hit }}
       # dl and build locally
       shell: bash
       run: |
@@ -192,7 +194,7 @@ jobs:
         git clone "https://github.com/pyenv/pyenv.git" "$PYENV_ROOT"
         pyenv install 3.12.0b4
     - name: Locate Python 3.12
-      if: ${{ matrix.python-version == '3.12' }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
       shell: bash
       run: |
         PYTHONHOME="${{ env.PYENV_ROOT }}/versions/3.12.0b4"
@@ -200,7 +202,7 @@ jobs:
         echo "PATH=${PYTHONHOME}/bin:$PATH" >> "$GITHUB_ENV"
     #-------- Python 2.7 --
     - name: Set up Python 2.7
-      if: ${{ matrix.python-version == '2.7' }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.7' }}
       # install 2.7
       shell: bash
       run: |
@@ -208,7 +210,7 @@ jobs:
         echo "PYTHONHOME=/usr" >> "$GITHUB_ENV"
     #-------- Python 2.6 --
     - name: Set up Python 2.6 environment
-      if: ${{ matrix.python-version == '2.6' }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' }}
       shell: bash
       run: |
         openssl_name=openssl-1.0.2u
@@ -228,7 +230,7 @@ jobs:
           ${{ env.openssl_dir }}
           ${{ env.PYENV_ROOT }}
     - name: Build and set up Python 2.6
-      if: ${{ matrix.python-version == '2.6' && ! steps.cache26.outputs.cache-hit }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' && ! steps.cache26.outputs.cache-hit }}
       # dl and build locally
       shell: bash
       run: |
@@ -266,7 +268,7 @@ jobs:
         export LD_LIBRARY_PATH="$openssl_lib"
         pyenv install 2.6.9
     - name: Locate Python 2.6
-      if: ${{ matrix.python-version == '2.6' }}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' }}
       shell: bash
       run: |
         PYTHONHOME="${{ env.PYENV_ROOT }}/versions/2.6.9"
@@ -288,7 +290,7 @@ jobs:
         echo "PIP=pip" >> "$GITHUB_ENV"
     - name: Cache Jython
       id: cachejy
-      if: ${{ matrix.python-impl == 'jython' }}
+      if: ${{ matrix.python-impl == 'jython' && matrix.python-version == '2.7' }}
       uses: actions/cache@v3
       with:
         # 2.7.3 now available, may solve SNI issue
@@ -296,7 +298,7 @@ jobs:
         path: |
           ${{ env.JYTHON_ROOT }}
     - name: Install Jython
-      if: ${{ matrix.python-impl == 'jython' && ! steps.cachejy.outputs.cache-hit }}
+      if: ${{ matrix.python-impl == 'jython' && matrix.python-version == '2.7' && ! steps.cachejy.outputs.cache-hit }}
       shell: bash
       run: |
         JYTHON_ROOT="${{ env.JYTHON_ROOT }}"
@@ -309,6 +311,11 @@ jobs:
       run: |
         JYTHON_ROOT="${{ env.JYTHON_ROOT }}"
         echo "${JYTHON_ROOT}/bin" >> $GITHUB_PATH
+    - name: Install supporting Python 2.7 if possible
+      if: ${{ steps.cachejy.outputs.cache-hit }}
+      shell: bash
+      run: |
+        sudo apt-get install -y python2.7 || true
     #-------- pip ---------
     - name: Set up supported Python ${{ matrix.python-version }} pip
       if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || matrix.python-version == '2.7' }}
@@ -391,6 +398,11 @@ jobs:
       if: ${{ contains(needs.select.outputs.test-set, matrix.ytdl-test-set ) }}
       shell: bash
       run: |
+        # set PYTHON_VER
+        PYTHON_VER=${{ matrix.python-version }}
+        [ "${PYTHON_VER#*-}" != "$PYTHON_VER" ] || PYTHON_VER="${{ matrix.python-impl }}-${PYTHON_VER}"
+        echo "PYTHON_VER=$PYTHON_VER" >> "$GITHUB_ENV"
+        echo "PYTHON_IMPL=${{ matrix.python-impl }}" >> "$GITHUB_ENV"
         # define a test to validate the Python version used by nosetests
         printf '%s\n' \
           'from __future__ import unicode_literals' \
@@ -405,7 +417,7 @@ jobs:
           '    def test_python_ver(self):' \
           '        self.assertEqual(["%d" % v for v in sys.version_info[:2]], self.ver[-1].split(".")[:2])' \
           '        self.assertTrue(sys.version.startswith(self.ver[-1]))' \
-          '        self.assertIn(self.ver[0], sys.version.lower())' \
+          '        self.assertIn(self.ver[0], ",".join((sys.version, platform.python_implementation())).lower())' \
           '    def test_python_impl(self):' \
           '        self.assertIn(platform.python_implementation().lower(), (os.environ["PYTHON_IMPL"], self.ver[0]))' \
           > test/test_python.py
@@ -415,8 +427,6 @@ jobs:
       continue-on-error: ${{ matrix.ytdl-test-set == 'download' || matrix.python-impl == 'jython' }}
       env:
         YTDL_TEST_SET: ${{ matrix.ytdl-test-set }}
-        PYTHON_VER: ${{ matrix.python-version }}
-        PYTHON_IMPL: ${{ matrix.python-impl }}
       run: |
         ./devscripts/run_tests.${{ matrix.run-tests-ext }}
   flake8:
