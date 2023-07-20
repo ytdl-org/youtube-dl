@@ -33,7 +33,7 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
-    
+
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
@@ -563,7 +563,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `is_live` (boolean): Whether this video is a live stream or a fixed-length video
  - `start_time` (numeric): Time in seconds where the reproduction should start, as specified in the URL
  - `end_time` (numeric): Time in seconds where the reproduction should end, as specified in the URL
- - `format` (string): A human-readable description of the format 
+ - `format` (string): A human-readable description of the format
  - `format_id` (string): Format code specified by `--format`
  - `format_note` (string): Additional info about the format
  - `width` (numeric): Width of the video
@@ -675,7 +675,7 @@ The general syntax for format selection is `--format FORMAT` or shorter `-f FORM
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
-The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific. 
+The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific.
 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
@@ -760,7 +760,7 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
 
  - Absolute dates: Dates in the format `YYYYMMDD`.
  - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
- 
+
 Examples:
 
 ```bash
@@ -1000,6 +1000,8 @@ To run the test, simply invoke your favorite test runner, or execute a test file
     python test/test_download.py
     nosetests
 
+For Python versions 3.6 and later, you can use [pynose](https://pypi.org/project/pynose/) to implement `nosetests`. The original [nose](https://pypi.org/project/nose/) has not been upgraded for 3.10 and later.
+
 See item 6 of [new extractor tutorial](#adding-support-for-a-new-site) for how to run extractor specific test cases.
 
 If you want to create a build of youtube-dl yourself, you'll need
@@ -1091,7 +1093,7 @@ In any case, thank you very much for your contributions!
 
 ## youtube-dl coding conventions
 
-This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
+This section introduces guidelines for writing idiomatic, robust and future-proof extractor code.
 
 Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hosters out of your control and this layout tends to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize dependency on the source's layout and even to make the code foresee potential future changes and be ready for that. This is important because it will allow the extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with a fix incorporated, all the previous versions become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say, some non rolling release distros may never receive an update at all.
 
@@ -1114,7 +1116,7 @@ Say you have some source dictionary `meta` that you've fetched as JSON with HTTP
 ```python
 meta = self._download_json(url, video_id)
 ```
-    
+
 Assume at this point `meta`'s layout is:
 
 ```python
@@ -1158,7 +1160,7 @@ description = self._search_regex(
 ```
 
 On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
- 
+
 ### Provide fallbacks
 
 When extracting metadata try to do so from multiple sources. For example if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
@@ -1206,7 +1208,7 @@ r'(id|ID)=(?P<id>\d+)'
 #### Make regular expressions relaxed and flexible
 
 When using regular expressions try to write them fuzzy, relaxed and flexible, skipping insignificant parts that are more likely to change, allowing both single and double quotes for quoted values and so on.
- 
+
 ##### Example
 
 Say you need to extract `title` from the following HTML code:
@@ -1230,7 +1232,7 @@ title = self._search_regex(
     webpage, 'title', group='title')
 ```
 
-Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute:
 
 The code definitely should not look like:
 
@@ -1331,26 +1333,113 @@ Wrap all extracted numeric data into safe functions from [`youtube_dl/utils.py`]
 
 Use `url_or_none` for safe URL processing.
 
-Use `try_get` for safe metadata extraction from parsed JSON.
+Use `traverse_obj` for safe metadata extraction from parsed JSON.
 
-Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction.
 
 Explore [`youtube_dl/utils.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 
 #### More examples
 
 ##### Safely extract optional description from parsed JSON
+
+When processing complex JSON, as often returned by site API requests or stashed in web pages for "hydration", you can use the `traverse_obj()` utility function to handle multiple fallback values and to ensure the expected type of metadata items. The function's docstring defines how the function works: also review usage in the codebase for more examples.
+
+In this example, a text `description`, or `None`, is pulled from the `.result.video[0].summary` member of the parsed JSON `response`, if available.
+
+```python
+description = traverse_obj(response, ('result', 'video', 0, 'summary', T(compat_str)))
+```
+`T(...)` is a shorthand for a set literal; if you hate people who still run Python 2.6, `T(type_or_transformation)` could be written as a set literal `{type_or_transformation}`.
+
+Some extractors use the older and less capable `try_get()` function in the same way.
+
 ```python
 description = try_get(response, lambda x: x['result']['video'][0]['summary'], compat_str)
 ```
 
 ##### Safely extract more optional metadata
+
+In this example, various optional metadata values are extracted from the `.result.video[0]` member of the parsed JSON `response`, which is expected to be a JS object, parsed into a `dict`, with no crash if that isn't so, or if any of the target values are missing or invalid.
+
 ```python
-video = try_get(response, lambda x: x['result']['video'][0], dict) or {}
+video = traverse_obj(response, ('result', 'video', 0, T(dict))) or {}
+# formerly:
+# video = try_get(response, lambda x: x['result']['video'][0], dict) or {}
 description = video.get('summary')
 duration = float_or_none(video.get('durationMs'), scale=1000)
 view_count = int_or_none(video.get('views'))
 ```
+
+#### Safely extract nested lists
+
+Suppose you've extracted JSON like this into a Python data structure named `media_json` using, say, the `_download_json()` or `_parse_json()` methods of `InfoExtractor`:
+```json
+{
+    "title": "Example video",
+    "comment": "try extracting this",
+    "media": [{
+        "type": "bad",
+        "size": 320,
+        "url": "https://some.cdn.site/bad.mp4"
+    }, {
+        "type": "streaming",
+        "url": "https://some.cdn.site/hls.m3u8"
+    }, {
+        "type": "super",
+        "size": 1280,
+        "url": "https://some.cdn.site/good.webm"
+    }],
+    "moreStuff": "more values",
+    ...
+}
+```
+
+Then extractor code like this can collect the various fields of the JSON:
+```python
+...
+from ..utils import (
+    determine_ext,
+    int_or_none,
+    T,
+    traverse_obj,
+    txt_or_none,
+    url_or_none,
+)
+...
+        ...
+        info_dict = {}
+        # extract title and description if valid and not empty
+        info_dict.update(traverse_obj(media_json, {
+            'title': ('title', T(txt_or_none)),
+            'description': ('comment', T(txt_or_none)),
+        }))
+
+        # extract any recognisable media formats
+        fmts = []
+        # traverse into "media" list, extract `dict`s with desired keys
+        for fmt in traverse_obj(media_json, ('media', Ellipsis, {
+                'format_id': ('type', T(txt_or_none)),
+                'url': ('url', T(url_or_none)),
+                'width': ('size', T(int_or_none)), })):
+            # bad `fmt` values were `None` and removed
+            if 'url' not in fmt:
+                continue
+            fmt_url = fmt['url']  # known to be valid URL
+            ext = determine_ext(fmt_url)
+            if ext == 'm3u8':
+                fmts.extend(self._extract_m3u8_formats(fmt_url, video_id, 'mp4', fatal=False))
+            else:
+                fmt['ext'] = ext
+                fmts.append(fmt)
+
+        # sort, raise if no formats
+        self._sort_formats(fmts)
+
+        info_dict['formats'] = fmts
+        ...
+```
+The extractor raises an exception rather than random crashes if the JSON structure changes so that no formats are found.
 
 # EMBEDDING YOUTUBE-DL
 
