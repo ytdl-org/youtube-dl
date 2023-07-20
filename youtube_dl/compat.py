@@ -131,7 +131,7 @@ if sys.version_info[0] == 2 or sys.version_info < (3, 3):
         def load(self, rawdata):
             must_have_value = 0
             if not isinstance(rawdata, dict):
-                if sys.version_info[:2] != (2, 7):
+                if sys.version_info[:2] != (2, 7) or sys.platform.startswith('java'):
                     # attribute must have value for parsing
                     rawdata, must_have_value = re.subn(
                         r'(?i)(;\s*)(secure|httponly)(\s*(?:;|$))', r'\1\2=\2\3', rawdata)

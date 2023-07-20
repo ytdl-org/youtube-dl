@@ -118,3 +118,14 @@ module_src = '\n'.join(module_contents) + '\n'
 
 with io.open(lazy_extractors_filename, 'wt', encoding='utf-8') as f:
     f.write(module_src)
+
+# work around JVM byte code module limit in Jython
+if sys.platform.startswith('java') and sys.version_info[:2] == (2, 7):
+    import subprocess
+    from youtube_dl.compat import compat_subprocess_get_DEVNULL
+    # if Python 2.7 is available, use it to compile the module for Jython
+    try:
+        # if Python 2.7 is available, use it to compile the module for Jython
+        subprocess.check_call(['python2.7', '-m', 'py_compile', lazy_extractors_filename], stdout=compat_subprocess_get_DEVNULL())
+    except Exception:
+        pass
