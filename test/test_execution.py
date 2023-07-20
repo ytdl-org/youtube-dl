@@ -10,17 +10,14 @@ import os
 import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.compat import compat_register_utf8
+from youtube_dl.compat import compat_register_utf8, compat_subprocess_get_DEVNULL
 from youtube_dl.utils import encodeArgument
 
 compat_register_utf8()
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-try:
-    _DEV_NULL = subprocess.DEVNULL
-except AttributeError:
-    _DEV_NULL = open(os.devnull, 'wb')
+_DEV_NULL = compat_subprocess_get_DEVNULL()
 
 
 class TestExecution(unittest.TestCase):
