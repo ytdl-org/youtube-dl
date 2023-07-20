@@ -2996,7 +2996,8 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         # Technically the Cookie header should be in unredirected_hdrs;
         # however in practice some may set it in normal headers anyway.
         # We will remove it here to prevent any leaks.
-        remove_headers = ['Cookie']
+        # Also remove unwanted and undocumented Host header for old URL
+        remove_headers = ['Cookie', 'Host']
 
         # A 303 must either use GET or HEAD for subsequent request
         # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.4
