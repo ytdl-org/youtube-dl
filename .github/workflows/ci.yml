@@ -1,22 +1,34 @@
 name: CI
 
 env:
-  # add 3.10+ after patching nose (https://github.com/nose-devs/nose/issues/1099)
-  # or switching to fork of https://github.com/mdmintz/pynose
-  all-cpython-versions: 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9
-  main-cpython-versions: 2.7, 3.2, 3.5, 3.9
+  all-cpython-versions: 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
+  main-cpython-versions: 2.7, 3.2, 3.5, 3.9, 3.11
   pypy-versions: pypy-2.7, pypy-3.6, pypy-3.7
   cpython-versions: main
-  test-set: both
+  test-set: core
 
 on:
   push:
+    inputs:
+      cpython-versions:
+        type: string
+        default: all
+      test-set:
+        type: string
+        default: core
   pull_request:
+    inputs:
+      cpython-versions:
+        type: string
+        default: main
+      test-set:
+        type: string
+        default: both
   workflow_dispatch:
     inputs:
       cpython-versions:
         type: choice
-        description: CPython versions (main = 2.7, 3.2, 3.5, 3.9)
+        description: CPython versions (main = 2.7, 3.2, 3.5, 3.9, 3.11)
         options:
           - all
           - main
@@ -30,7 +42,7 @@ on:
           - core
           - download
         required: true
-        default: core
+        default: both
 
 permissions:
   contents: read
@@ -44,7 +56,8 @@ jobs:
       test-set: ${{ steps.run.outputs.test-set }}
       own-pip-versions: ${{ steps.run.outputs.own-pip-versions }}
     steps:
-    - id: run
+    - name: Make version array
+      id: run
       run: |
         # Make a JSON Array from comma/space-separated string (no extra escaping)
         json_list() { \
@@ -66,7 +79,6 @@ jobs:
         # versions with a special get-pip.py in a per-version subdirectory
         printf 'own-pip-versions=%s\n' \
           "$(json_list 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6)" >> "$GITHUB_OUTPUT"
-
   tests:
     name: Run tests
     needs: select
@@ -82,19 +94,18 @@ jobs:
       fail-fast: true
       matrix:
         os: [ubuntu-20.04]
-        # outside steps, use github.env...., not env....
         python-version: ${{ fromJSON(needs.select.outputs.cpython-versions) }}
         python-impl: [cpython]
         ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
         run-tests-ext: [sh]
         include:
         - os: windows-2019
-          python-version: 3.2
+          python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: bat
         - os: windows-2019
-          python-version: 3.2
+          python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: bat
@@ -205,17 +216,14 @@ jobs:
           make install )
         rm -rf $openssl_name
         rmdir $openssl_ssl/certs && ln -s /etc/ssl/certs $openssl_ssl/certs
-
         # Download PyEnv from its GitHub repository.
         export PYENV_ROOT=${{ env.PYENV_ROOT }}
         export PATH=$PYENV_ROOT/bin:$PATH
         git clone "https://github.com/pyenv/pyenv.git" "$PYENV_ROOT"
-
         # Prevent pyenv build trying (and failing) to update pip
         export GET_PIP=get-pip-2.6.py
         echo 'import sys; sys.exit(0)' > ${GET_PIP}
         GET_PIP=$(realpath $GET_PIP)
-
         # Build and install Python
         export CFLAGS="-I$openssl_inc"
         export LDFLAGS="-L$openssl_lib"
@@ -322,7 +330,12 @@ jobs:
       run: |
         echo "$PATH"
         echo "$PYTHONHOME"
-        $PIP -qq show nose || $PIP install nose
+        # Use PyNose for recent Pythons instead of Nose
+        py3ver="${{ matrix.python-version }}"
+        py3ver=${py3ver#3.}
+        [ "$py3ver" != "${{ matrix.python-version }}" ] && py3ver=${py3ver%.*} || py3ver=0
+        [ "$py3ver" -ge 9 ] && nose=pynose || nose=nose
+        $PIP -qq show $nose || $PIP install $nose
     - name: Install nose for other Python 2
       if: ${{ matrix.python-impl == 'jython' || matrix.python-version == '2.6' }}
       shell: bash
@@ -354,7 +367,7 @@ jobs:
           '    def setUp(self):' \
           '        self.ver = os.environ["PYTHON_VER"].split("-")' \
           '    def test_python_ver(self):' \
-          '        self.assertEqual(sys.version[:3], self.ver[-1])' \
+          '        self.assertEqual(["%d" % v for v in sys.version_info[:2]], self.ver[-1].split(".")[:2])' \
           '        self.assertTrue(sys.version.startswith(self.ver[-1]))' \
           '        self.assertIn(self.ver[0], sys.version.lower())' \
           '    def test_python_impl(self):' \
@@ -370,7 +383,6 @@ jobs:
         PYTHON_IMPL: ${{ matrix.python-impl }}
       run: |
         ./devscripts/run_tests.${{ matrix.run-tests-ext }}
-
   flake8:
     name: Linter
     runs-on: ubuntu-latest
