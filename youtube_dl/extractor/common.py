@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import base64
 import datetime
+import functools
 import hashlib
 import json
 import netrc
@@ -23,6 +24,7 @@ from ..compat import (
     compat_getpass,
     compat_integer_types,
     compat_http_client,
+    compat_map as map,
     compat_os_name,
     compat_str,
     compat_urllib_error,
@@ -31,6 +33,7 @@ from ..compat import (
     compat_urllib_request,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_zip as zip,
 )
 from ..downloader.f4m import (
     get_base_url,
@@ -70,6 +73,8 @@ from ..utils import (
     str_or_none,
     str_to_int,
     strip_or_none,
+    traverse_obj,
+    try_get,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -78,6 +83,7 @@ from ..utils import (
     urljoin,
     url_basename,
     url_or_none,
+    variadic,
     xpath_element,
     xpath_text,
     xpath_with_ns,
@@ -366,9 +372,22 @@ class InfoExtractor(object):
     title, description etc.
 
 
-    Subclasses of this one should re-define the _real_initialize() and
-    _real_extract() methods and define a _VALID_URL regexp.
-    Probably, they should also be added to the list of extractors.
+    A subclass of InfoExtractor must be defined to handle each specific site (or
+    several sites). Such a concrete subclass should be added to the list of
+    extractors. It should also:
+    * define its _VALID_URL attribute as a regexp, or a Sequence of alternative
+      regexps (but see below)
+    * re-define the _real_extract() method
+    * optionally re-define the _real_initialize() method.
+
+    An extractor subclass may also override suitable() if necessary, but the
+    function signature must be preserved and the function must import everything
+    it needs (except other extractors), so that lazy_extractors works correctly.
+    If the subclass's suitable() and _real_extract() functions avoid using
+    _VALID_URL, the subclass need not set that class attribute.
+
+    An abstract subclass of InfoExtractor may be used to simplify implementation
+    within an extractor module; it should not be added to the list of extractors.
 
     _GEO_BYPASS attribute may be set to False in order to disable
     geo restriction bypass mechanisms for a particular extractor.
@@ -404,21 +423,32 @@ class InfoExtractor(object):
         self.set_downloader(downloader)
 
     @classmethod
+    def __match_valid_url(cls, url):
+        # This does not use has/getattr intentionally - we want to know whether
+        # we have cached the regexp for cls, whereas getattr would also
+        # match its superclass
+        if '_VALID_URL_RE' not in cls.__dict__:
+            # _VALID_URL can now be a list/tuple of patterns
+            cls._VALID_URL_RE = tuple(map(re.compile, variadic(cls._VALID_URL)))
+        # 20% faster than next(filter(None, (p.match(url) for p in cls._VALID_URL_RE)), None) in 2.7
+        for p in cls._VALID_URL_RE:
+            p = p.match(url)
+            if p:
+                return p
+
+    # The public alias can safely be overridden, as in some back-ports
+    _match_valid_url = __match_valid_url
+
+    @classmethod
     def suitable(cls, url):
         """Receives a URL and returns True if suitable for this IE."""
-
-        # This does not use has/getattr intentionally - we want to know whether
-        # we have cached the regexp for *this* class, whereas getattr would also
-        # match the superclass
-        if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        return cls._VALID_URL_RE.match(url) is not None
+        # This function must import everything it needs (except other extractors),
+        # so that lazy_extractors works correctly
+        return cls.__match_valid_url(url) is not None
 
     @classmethod
     def _match_id(cls, url):
-        if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        m = cls._VALID_URL_RE.match(url)
+        m = cls.__match_valid_url(url)
         assert m
         return compat_str(m.group('id'))
 
@@ -1004,6 +1034,8 @@ class InfoExtractor(object):
             if group is None:
                 # return the first matching group
                 return next(g for g in mobj.groups() if g is not None)
+            elif isinstance(group, (list, tuple)):
+                return tuple(mobj.group(g) for g in group)
             else:
                 return mobj.group(group)
         elif default is not NO_DEFAULT:
@@ -1019,10 +1051,9 @@ class InfoExtractor(object):
         Like _search_regex, but strips HTML tags and unescapes entities.
         """
         res = self._search_regex(pattern, string, name, default, fatal, flags, group)
-        if res:
-            return clean_html(res).strip()
-        else:
-            return res
+        if isinstance(res, tuple):
+            return tuple(map(clean_html, res))
+        return clean_html(res)
 
     def _get_netrc_login_info(self, netrc_machine=None):
         username = None
@@ -1086,7 +1117,7 @@ class InfoExtractor(object):
     # Helper functions for extracting OpenGraph info
     @staticmethod
     def _og_regexes(prop):
-        content_re = r'content=(?:"([^"]+?)"|\'([^\']+?)\'|\s*([^\s"\'=<>`]+?))'
+        content_re = r'content=(?:"([^"]+?)"|\'([^\']+?)\'|\s*([^\s"\'=<>`]+?)(?=\s|/?>))'
         property_re = (r'(?:name|property)=(?:\'og[:-]%(prop)s\'|"og[:-]%(prop)s"|\s*og[:-]%(prop)s\b)'
                        % {'prop': re.escape(prop)})
         template = r'<meta[^>]+?%s[^>]+?%s'
@@ -1346,6 +1377,44 @@ class InfoExtractor(object):
                 else:
                     break
         return dict((k, v) for k, v in info.items() if v is not None)
+
+    def _search_nextjs_data(self, webpage, video_id, **kw):
+        nkw = dict((k, v) for k, v in kw.items() if k in ('transform_source', 'fatal'))
+        kw.pop('transform_source', None)
+        next_data = self._search_regex(
+            r'''<script[^>]+\bid\s*=\s*('|")__NEXT_DATA__\1[^>]*>(?P<nd>[^<]+)</script>''',
+            webpage, 'next.js data', group='nd', **kw)
+        if not next_data:
+            return {}
+        return self._parse_json(next_data, video_id, **nkw)
+
+    def _search_nuxt_data(self, webpage, video_id, *args, **kwargs):
+        """Parses Nuxt.js metadata. This works as long as the function __NUXT__ invokes is a pure function"""
+
+        # self, webpage, video_id, context_name='__NUXT__', *, fatal=True, traverse=('data', 0)
+        context_name = args[0] if len(args) > 0 else kwargs.get('context_name', '__NUXT__')
+        fatal = kwargs.get('fatal', True)
+        traverse = kwargs.get('traverse', ('data', 0))
+
+        re_ctx = re.escape(context_name)
+
+        FUNCTION_RE = (r'\(\s*function\s*\((?P<arg_keys>[\s\S]*?)\)\s*\{\s*'
+                       r'return\s+(?P<js>\{[\s\S]*?})\s*;?\s*}\s*\((?P<arg_vals>[\s\S]*?)\)')
+
+        js, arg_keys, arg_vals = self._search_regex(
+            (p.format(re_ctx, FUNCTION_RE) for p in
+             (r'<script>\s*window\s*\.\s*{0}\s*=\s*{1}\s*\)\s*;?\s*</script>',
+              r'{0}\s*\([\s\S]*?{1}')),
+            webpage, context_name, group=('js', 'arg_keys', 'arg_vals'),
+            default=NO_DEFAULT if fatal else (None, None, None))
+        if js is None:
+            return {}
+
+        args = dict(zip(arg_keys.split(','), map(json.dumps, self._parse_json(
+            '[{0}]'.format(arg_vals), video_id, transform_source=js_to_json, fatal=fatal) or ())))
+
+        ret = self._parse_json(js, video_id, transform_source=functools.partial(js_to_json, vars=args), fatal=fatal)
+        return traverse_obj(ret, traverse) or {}
 
     @staticmethod
     def _hidden_inputs(html):
@@ -2494,7 +2563,8 @@ class InfoExtractor(object):
                 return f
             return {}
 
-        def _media_formats(src, cur_media_type, type_info={}):
+        def _media_formats(src, cur_media_type, type_info=None):
+            type_info = type_info or {}
             full_url = absolute_url(src)
             ext = type_info.get('ext') or determine_ext(full_url)
             if ext == 'm3u8':
@@ -2512,6 +2582,7 @@ class InfoExtractor(object):
                 formats = [{
                     'url': full_url,
                     'vcodec': 'none' if cur_media_type == 'audio' else None,
+                    'ext': ext,
                 }]
             return is_plain_url, formats
 
@@ -2520,7 +2591,7 @@ class InfoExtractor(object):
         # so we wll include them right here (see
         # https://www.ampproject.org/docs/reference/components/amp-video)
         # For dl8-* tags see https://delight-vr.com/documentation/dl8-video/
-        _MEDIA_TAG_NAME_RE = r'(?:(?:amp|dl8(?:-live)?)-)?(video|audio)'
+        _MEDIA_TAG_NAME_RE = r'(?:(?:amp|dl8(?:-live)?)-)?(video(?:-js)?|audio)'
         media_tags = [(media_tag, media_tag_name, media_type, '')
                       for media_tag, media_tag_name, media_type
                       in re.findall(r'(?s)(<(%s)[^>]*/>)' % _MEDIA_TAG_NAME_RE, webpage)]
@@ -2538,7 +2609,8 @@ class InfoExtractor(object):
             media_attributes = extract_attributes(media_tag)
             src = strip_or_none(media_attributes.get('src'))
             if src:
-                _, formats = _media_formats(src, media_type)
+                f = parse_content_type(media_attributes.get('type'))
+                _, formats = _media_formats(src, media_type, f)
                 media_info['formats'].extend(formats)
             media_info['thumbnail'] = absolute_url(media_attributes.get('poster'))
             if media_content:
@@ -2713,7 +2785,7 @@ class InfoExtractor(object):
 
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
-            r'(?s)jwplayer\((?P<quote>[\'"])[^\'" ]+(?P=quote)\)(?!</script>).*?\.setup\s*\((?P<options>[^)]+)\)',
+            r'''(?s)jwplayer\s*\(\s*(?P<q>'|")(?!(?P=q)).+(?P=q)\s*\)(?!</script>).*?\.\s*setup\s*\(\s*(?P<options>(?:\([^)]*\)|[^)])+)\s*\)''',
             webpage)
         if mobj:
             try:
@@ -2734,9 +2806,14 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True,
                              m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
+        flat_pl = try_get(jwplayer_data, lambda x: x.get('playlist') or True)
+        if flat_pl is None:
+            # not even a dict
+            return []
+
         # JWPlayer backward compatibility: flattened playlists
         # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
-        if 'playlist' not in jwplayer_data:
+        if flat_pl is True:
             jwplayer_data = {'playlist': [jwplayer_data]}
 
         entries = []
@@ -2784,6 +2861,13 @@ class InfoExtractor(object):
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
+                'alt_title': clean_html(video_data.get('subtitle')),  # attributes used e.g. by Tele5 ...
+                'genre': clean_html(video_data.get('genre')),
+                'channel': clean_html(dict_get(video_data, ('category', 'channel'))),
+                'season_number': int_or_none(video_data.get('season')),
+                'episode_number': int_or_none(video_data.get('episode')),
+                'release_year': int_or_none(video_data.get('releasedate')),
+                'age_limit': int_or_none(video_data.get('age_restriction')),
             }
             # https://github.com/jwplayer/jwplayer/blob/master/src/js/utils/validator.js#L32
             if len(formats) == 1 and re.search(r'^(?:http|//).*(?:youtube\.com|youtu\.be)/.+', formats[0]['url']):
@@ -2792,7 +2876,9 @@ class InfoExtractor(object):
                     'url': formats[0]['url'],
                 })
             else:
-                self._sort_formats(formats)
+                # avoid exception in case of only sttls
+                if formats:
+                    self._sort_formats(formats)
                 entry['formats'] = formats
             entries.append(entry)
         if len(entries) == 1:
@@ -2802,7 +2888,7 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
-        urls = []
+        urls = set()
         formats = []
         for source in jwplayer_sources_data:
             if not isinstance(source, dict):
@@ -2811,14 +2897,14 @@ class InfoExtractor(object):
                 base_url, self._proto_relative_url(source.get('file')))
             if not source_url or source_url in urls:
                 continue
-            urls.append(source_url)
+            urls.add(source_url)
             source_type = source.get('type') or ''
             ext = mimetype2ext(source_type) or determine_ext(source_url)
-            if source_type == 'hls' or ext == 'm3u8':
+            if source_type == 'hls' or ext == 'm3u8' or 'format=m3u8-aapl' in source_url:
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=m3u8_id, fatal=False))
-            elif source_type == 'dash' or ext == 'mpd':
+            elif source_type == 'dash' or ext == 'mpd' or 'format=mpd-time-csf' in source_url:
                 formats.extend(self._extract_mpd_formats(
                     source_url, video_id, mpd_id=mpd_id, fatal=False))
             elif ext == 'smil':
@@ -2833,20 +2919,23 @@ class InfoExtractor(object):
                     'ext': ext,
                 })
             else:
+                format_id = str_or_none(source.get('label'))
                 height = int_or_none(source.get('height'))
-                if height is None:
+                if height is None and format_id:
                     # Often no height is provided but there is a label in
                     # format like "1080p", "720p SD", or 1080.
-                    height = int_or_none(self._search_regex(
-                        r'^(\d{3,4})[pP]?(?:\b|$)', compat_str(source.get('label') or ''),
-                        'height', default=None))
+                    height = parse_resolution(format_id).get('height')
                 a_format = {
                     'url': source_url,
                     'width': int_or_none(source.get('width')),
                     'height': height,
-                    'tbr': int_or_none(source.get('bitrate')),
+                    'tbr': int_or_none(source.get('bitrate'), scale=1000),
+                    'filesize': int_or_none(source.get('filesize')),
                     'ext': ext,
                 }
+                if format_id:
+                    a_format['format_id'] = format_id
+
                 if source_url.startswith('rtmp'):
                     a_format['ext'] = 'flv'
                     # See com/longtailvideo/jwplayer/media/RTMPMediaProvider.as

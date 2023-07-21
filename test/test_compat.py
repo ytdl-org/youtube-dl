@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from youtube_dl.compat import (
+    compat_casefold,
     compat_getenv,
     compat_setenv,
     compat_etree_Element,
@@ -47,10 +48,11 @@ class TestCompat(unittest.TestCase):
 
     def test_all_present(self):
         import youtube_dl.compat
-        all_names = youtube_dl.compat.__all__
-        present_names = set(filter(
+        all_names = sorted(
+            youtube_dl.compat.__all__ + youtube_dl.compat.legacy)
+        present_names = set(map(compat_str, filter(
             lambda c: '_' in c and not c.startswith('_'),
-            dir(youtube_dl.compat))) - set(['unicode_literals'])
+            dir(youtube_dl.compat)))) - set(['unicode_literals'])
         self.assertEqual(all_names, sorted(present_names))
 
     def test_compat_urllib_parse_unquote(self):
@@ -118,8 +120,20 @@ class TestCompat(unittest.TestCase):
 <smil xmlns="http://www.w3.org/2001/SMIL20/Language"></smil>'''
         compat_etree_fromstring(xml)
 
-    def test_struct_unpack(self):
+    def test_compat_struct_unpack(self):
         self.assertEqual(compat_struct_unpack('!B', b'\x00'), (0,))
+
+    def test_compat_casefold(self):
+        if hasattr(compat_str, 'casefold'):
+            # don't bother to test str.casefold() (again)
+            return
+        # thanks https://bugs.python.org/file24232/casefolding.patch
+        self.assertEqual(compat_casefold('hello'), 'hello')
+        self.assertEqual(compat_casefold('hELlo'), 'hello')
+        self.assertEqual(compat_casefold('ß'), 'ss')
+        self.assertEqual(compat_casefold('ﬁ'), 'fi')
+        self.assertEqual(compat_casefold('\u03a3'), '\u03c3')
+        self.assertEqual(compat_casefold('A\u0345\u03a3'), 'a\u03b9\u03c3')
 
 
 if __name__ == '__main__':
