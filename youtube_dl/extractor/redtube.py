@@ -25,7 +25,7 @@ class RedTubeIE(InfoExtractor):
     _EMBED_REGEX = [r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//embed\.redtube\.com/\?.*?\bid=\d+)']
     _TESTS = [{
         'url': 'https://www.redtube.com/38864951',
-        'md5': '4fba70cbca3aefd25767ab4b523c9878',
+        'md5': 'd7de9cb32e8adb3f6379f1a30f655fae',
         'info_dict': {
             'id': '38864951',
             'ext': 'mp4',
@@ -38,6 +38,11 @@ class RedTubeIE(InfoExtractor):
             'age_limit': 18,
             'thumbnail': r're:https://\wi-ph\.rdtcdn\.com/videos/.+/.+\.jpg',
         },
+        'expected_warnings': [
+            'Failed to download m3u8 information: HTTP Error 404',
+        ],
+        'params': {
+            'format': '[format_id !^= hls]',
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
