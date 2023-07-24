@@ -1,7 +1,6 @@
 from __future__ import unicode_literals, print_function
 
 from inspect import getsource
-import io
 import os
 from os.path import dirname as dirn
 import re
@@ -9,17 +8,20 @@ import sys
 
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
 
-sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
 
 lazy_extractors_filename = sys.argv[1]
 if os.path.exists(lazy_extractors_filename):
     os.remove(lazy_extractors_filename)
 # Py2: may be confused by leftover lazy_extractors.pyc
-try:
-    os.remove(lazy_extractors_filename + 'c')
-except OSError:
-    pass
+if sys.version_info[0] < 3:
+    for c in ('c', 'o'):
+        try:
+            os.remove(lazy_extractors_filename + 'c')
+        except OSError:
+            pass
 
+from devscripts.utils import read_file, write_file
 from youtube_dl.compat import compat_register_utf8
 
 compat_register_utf8()
@@ -27,8 +29,7 @@ compat_register_utf8()
 from youtube_dl.extractor import _ALL_CLASSES
 from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
 
-with open('devscripts/lazy_load_template.py', 'rt') as f:
-    module_template = f.read()
+module_template = read_file('devscripts/lazy_load_template.py')
 
 
 def get_source(m):
@@ -114,10 +115,9 @@ for ie in ordered_cls:
 module_contents.append(
     '_ALL_CLASSES = [{0}]'.format(', '.join(names)))
 
-module_src = '\n'.join(module_contents) + '\n'
+module_src = '\n'.join(module_contents)
 
-with io.open(lazy_extractors_filename, 'wt', encoding='utf-8') as f:
-    f.write(module_src)
+write_file(lazy_extractors_filename, module_src + '\n')
 
 # work around JVM byte code module limit in Jython
 if sys.platform.startswith('java') and sys.version_info[:2] == (2, 7):
