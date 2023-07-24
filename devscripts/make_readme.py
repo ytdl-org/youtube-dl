@@ -4,6 +4,8 @@ import io
 import sys
 import re
 
+from youtube_dl.compat import compat_open as open
+
 README_FILE = 'README.md'
 helptext = sys.stdin.read()
 
@@ -20,7 +22,7 @@ options = helptext[helptext.index('  General Options:') + 19:]
 options = re.sub(r'(?m)^  (\w.+)$', r'## \1', options)
 options = '# OPTIONS\n' + options + '\n'
 
-with io.open(README_FILE, 'w', encoding='utf-8') as f:
+with open(README_FILE, 'w', encoding='utf-8') as f:
     f.write(header)
     f.write(options)
     f.write(footer)

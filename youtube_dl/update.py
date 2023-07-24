@@ -9,7 +9,10 @@ import subprocess
 import sys
 from zipimport import zipimporter
 
-from .compat import compat_realpath
+from .compat import (
+    compat_open as open,
+    compat_realpath,
+)
 from .utils import encode_compat_str
 
 from .version import __version__
@@ -127,7 +130,7 @@ def update_self(to_screen, verbose, opener):
 
         try:
             bat = os.path.join(directory, 'youtube-dl-updater.bat')
-            with io.open(bat, 'w') as batfile:
+            with open(bat, 'w') as batfile:
                 batfile.write('''
 @echo off
 echo Waiting for file handle to be closed ...
