@@ -25,6 +25,7 @@ from ..compat import (
     compat_integer_types,
     compat_http_client,
     compat_map as map,
+    compat_open as open,
     compat_os_name,
     compat_str,
     compat_urllib_error,

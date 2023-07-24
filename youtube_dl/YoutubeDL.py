@@ -4,11 +4,9 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
-import contextlib
 import copy
 import datetime
 import errno
-import fileinput
 import io
 import itertools
 import json
@@ -45,6 +43,7 @@ from .compat import (
     compat_kwargs,
     compat_map as map,
     compat_numeric_types,
+    compat_open as open,
     compat_os_name,
     compat_str,
     compat_tokenize_tokenize,
@@ -1977,7 +1976,7 @@ class YoutubeDL(object):
             else:
                 try:
                     self.to_screen('[info] Writing video description to: ' + descfn)
-                    with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
+                    with open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                         descfile.write(info_dict['description'])
                 except (OSError, IOError):
                     self.report_error('Cannot write description file ' + descfn)
@@ -1992,7 +1991,7 @@ class YoutubeDL(object):
             else:
                 try:
                     self.to_screen('[info] Writing video annotations to: ' + annofn)
-                    with io.open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
+                    with open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
                         annofile.write(info_dict['annotations'])
                 except (KeyError, TypeError):
                     self.report_warning('There are no annotations to write.')
@@ -2019,7 +2018,7 @@ class YoutubeDL(object):
                         try:
                             # Use newline='' to prevent conversion of newline characters
                             # See https://github.com/ytdl-org/youtube-dl/issues/10268
-                            with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
+                            with open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                                 subfile.write(sub_info['data'])
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
@@ -2028,7 +2027,7 @@ class YoutubeDL(object):
                         try:
                             sub_data = ie._request_webpage(
                                 sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                            with open(encodeFilename(sub_filename), 'wb') as subfile:
                                 subfile.write(sub_data)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
@@ -2232,12 +2231,8 @@ class YoutubeDL(object):
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with contextlib.closing(fileinput.FileInput(
-                [info_filename], mode='r',
-                openhook=fileinput.hook_encoded('utf-8'))) as f:
-            # FileInput doesn't have a read method, we can't call json.load
-            # TODO: let's use io.open(), then
-            info = self.filter_requested_info(json.loads('\n'.join(f)))
+        with open(info_filename, encoding='utf-8') as f:
+            info = self.filter_requested_info(json.load(f))
         try:
             self.process_ie_result(info, download=True)
         except DownloadError:

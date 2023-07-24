@@ -20,15 +20,15 @@ from test.helper import (
 
 
 import hashlib
-import io
 import json
 import socket
 
 import youtube_dl.YoutubeDL
 from youtube_dl.compat import (
     compat_http_client,
-    compat_urllib_error,
     compat_HTTPError,
+    compat_open as open,
+    compat_urllib_error,
 )
 from youtube_dl.utils import (
     DownloadError,
@@ -245,7 +245,7 @@ def generator(test_case, tname):
                 self.assertTrue(
                     os.path.exists(info_json_fn),
                     'Missing info file %s' % info_json_fn)
-                with io.open(info_json_fn, encoding='utf-8') as infof:
+                with open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:

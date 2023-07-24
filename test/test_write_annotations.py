@@ -11,12 +11,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from test.helper import get_params, try_rm
 
 
-import io
-
 import xml.etree.ElementTree
 
 import youtube_dl.YoutubeDL
 import youtube_dl.extractor
+from youtube_dl.compat import compat_open as open
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
@@ -51,7 +50,7 @@ class TestAnnotations(unittest.TestCase):
         ydl.download([TEST_ID])
         self.assertTrue(os.path.exists(ANNOTATIONS_FILE))
         annoxml = None
-        with io.open(ANNOTATIONS_FILE, 'r', encoding='utf-8') as annof:
+        with open(ANNOTATIONS_FILE, 'r', encoding='utf-8') as annof:
             annoxml = xml.etree.ElementTree.parse(annof)
         self.assertTrue(annoxml is not None, 'Failed to parse annotations XML')
         root = annoxml.getroot()
