@@ -8,14 +8,16 @@ import unittest
 import sys
 import os
 import subprocess
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+sys.path.insert(0, rootDir)
 
 from youtube_dl.compat import compat_register_utf8, compat_subprocess_get_DEVNULL
 from youtube_dl.utils import encodeArgument
 
 compat_register_utf8()
 
-rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _DEV_NULL = compat_subprocess_get_DEVNULL()
 
@@ -49,10 +51,10 @@ class TestExecution(unittest.TestCase):
             subprocess.check_call([sys.executable, os.path.normpath('devscripts/make_lazy_extractors.py'), lazy_extractors], cwd=rootDir, stdout=_DEV_NULL)
             subprocess.check_call([sys.executable, os.path.normpath('test/test_all_urls.py')], cwd=rootDir, stdout=_DEV_NULL)
         finally:
-            for x in ['', 'c'] if sys.version_info[0] < 3 else ['']:
+            for x in ('', 'c') if sys.version_info[0] < 3 else ('',):
                 try:
                     os.remove(lazy_extractors + x)
-                except (IOError, OSError):
+                except OSError:
                     pass
 
 
