@@ -41,6 +41,7 @@ from youtube_dl.compat import (
 
 from youtube_dl.utils import (
     sanitized_Request,
+    update_Request,
     urlencode_postdata,
 )
 
@@ -394,6 +395,18 @@ class TestHTTP(unittest.TestCase):
             r = sanitized_Request(self._test_url('headers'), data=urlencode_postdata({'test': 'test'}))
             headers = ydl.urlopen(r).read().decode('utf-8')
             self.assertIn('Content-Type: application/x-www-form-urlencoded', headers)
+
+    def test_update_req(self):
+        req = sanitized_Request('http://example.com')
+        assert req.data is None
+        assert req.get_method() == 'GET'
+        assert not req.has_header('Content-Type')
+        # Test that zero-byte payloads will be sent
+        req = update_Request(req, data=b'')
+        assert req.data == b''
+        assert req.get_method() == 'POST'
+        # yt-dl expects data to be encoded and Content-Type to be added by sender
+        # assert req.get_header('Content-Type') == 'application/x-www-form-urlencoded'
 
     def test_cookiejar(self):
         with FakeYDL() as ydl:

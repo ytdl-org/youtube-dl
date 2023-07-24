@@ -2996,8 +2996,7 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         # Technically the Cookie header should be in unredirected_hdrs;
         # however in practice some may set it in normal headers anyway.
         # We will remove it here to prevent any leaks.
-        # Also remove unwanted and undocumented Host header for old URL
-        remove_headers = ['Cookie', 'Host']
+        remove_headers = ['Cookie']
 
         # A 303 must either use GET or HEAD for subsequent request
         # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.4
@@ -3016,7 +3015,7 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
             remove_headers.extend(['Content-Length', 'Content-Type'])
 
         # NB: don't use dict comprehension for python 2.6 compatibility
-        new_headers = dict((k, v) for k, v in req.header_items()
+        new_headers = dict((k, v) for k, v in req.headers.items()
                            if k.title() not in remove_headers)
 
         return compat_urllib_request.Request(
@@ -4187,7 +4186,7 @@ def update_url_query(url, query):
 def update_Request(req, url=None, data=None, headers={}, query={}):
     req_headers = req.headers.copy()
     req_headers.update(headers)
-    req_data = data or req.data
+    req_data = data if data is not None else req.data
     req_url = update_url_query(url or req.get_full_url(), query)
     req_get_method = req.get_method()
     if req_get_method == 'HEAD':
