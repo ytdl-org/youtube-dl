@@ -43,7 +43,7 @@ def build_completion(opt_parser):
 
     template = read_file(FISH_COMPLETION_TEMPLATE)
     filled_template = template.replace('{{commands}}', '\n'.join(commands))
-    write_file(filled_template)
+    write_file(FISH_COMPLETION_FILE, filled_template)
 
 
 parser = youtube_dl.parseOpts()[0]
