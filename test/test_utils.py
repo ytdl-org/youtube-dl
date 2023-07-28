@@ -64,6 +64,7 @@ from youtube_dl.utils import (
     parse_age_limit,
     parse_duration,
     parse_filesize,
+    parse_codecs,
     parse_count,
     parse_iso8601,
     parse_resolution,
@@ -114,7 +115,7 @@ from youtube_dl.utils import (
     cli_option,
     cli_valueless_option,
     cli_bool_option,
-    parse_codecs,
+    YoutubeDLHandler,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -904,6 +905,32 @@ class TestUtil(unittest.TestCase):
             'http://xn--e1aybc.xn--p1ai/%D0%B0%D0%B1%D0%B2?%D0%B0%D0%B1%D0%B2=%D0%B0%D0%B1%D0%B2#%D0%B0%D0%B1%D0%B2'
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
+
+    def test_remove_dot_segments(self):
+
+        def remove_dot_segments(p):
+            q = '' if p.startswith('/') else '/'
+            p = 'http://example.com' + q + p
+            p = compat_urlparse.urlsplit(YoutubeDLHandler._fix_path(p)).path
+            return p[1:] if q else p
+
+        self.assertEqual(remove_dot_segments('/a/b/c/./../../g'), '/a/g')
+        self.assertEqual(remove_dot_segments('mid/content=5/../6'), 'mid/6')
+        self.assertEqual(remove_dot_segments('/ad/../cd'), '/cd')
+        self.assertEqual(remove_dot_segments('/ad/../cd/'), '/cd/')
+        self.assertEqual(remove_dot_segments('/..'), '/')
+        self.assertEqual(remove_dot_segments('/./'), '/')
+        self.assertEqual(remove_dot_segments('/./a'), '/a')
+        self.assertEqual(remove_dot_segments('/abc/./.././d/././e/.././f/./../../ghi'), '/ghi')
+        self.assertEqual(remove_dot_segments('/'), '/')
+        self.assertEqual(remove_dot_segments('/t'), '/t')
+        self.assertEqual(remove_dot_segments('t'), 't')
+        self.assertEqual(remove_dot_segments(''), '')
+        self.assertEqual(remove_dot_segments('/../a/b/c'), '/a/b/c')
+        self.assertEqual(remove_dot_segments('../a'), 'a')
+        self.assertEqual(remove_dot_segments('./a'), 'a')
+        self.assertEqual(remove_dot_segments('.'), '')
+        self.assertEqual(remove_dot_segments('////'), '////')
 
     def test_js_to_json_vars_strings(self):
         self.assertDictEqual(

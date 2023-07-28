@@ -180,6 +180,12 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             respond()
         elif self.path == '/%c7%9f':
             respond()
+        elif self.path == '/redirect_dotsegments':
+            self.send_response(301)
+            # redirect to /headers but with dot segments before
+            self.send_header('Location', '/a/b/./../../headers')
+            self.send_header('Content-Length', '0')
+            self.end_headers()
         elif self.path.startswith('/redirect_'):
             self._redirect()
         elif self.path.startswith('/method'):
@@ -488,6 +494,14 @@ class TestHTTP(unittest.TestCase):
                     headers={'ytdl-encoding': 'unsupported'}))
             self.assertEqual(res.headers.get('Content-Encoding'), 'unsupported')
             self.assertEqual(res.read(), b'raw')
+
+    def test_remove_dot_segments(self):
+        with FakeYDL() as ydl:
+            res = ydl.urlopen(sanitized_Request(self._test_url('a/b/./../../headers')))
+            self.assertEqual(compat_urllib_parse.urlparse(res.geturl()).path, '/headers')
+
+            res = ydl.urlopen(sanitized_Request(self._test_url('redirect_dotsegments')))
+            self.assertEqual(compat_urllib_parse.urlparse(res.geturl()).path, '/headers')
 
 
 def _build_proxy_handler(name):
