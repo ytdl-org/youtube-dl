@@ -461,33 +461,23 @@ class TestHTTP(unittest.TestCase):
                 sanitized_Request(
                     self._test_url('content-encoding'),
                     headers={'ytdl-encoding': encoding}))
-            self.assertEqual(res.headers.get('Content-Encoding'), encoding)
+            # decoded encodings are removed: only check for valid decompressed data
             self.assertEqual(res.read(), b'<html><video src="/vid.mp4" /></html>')
 
     @unittest.skipUnless(brotli, 'brotli support is not installed')
-    @unittest.expectedFailure
     def test_brotli(self):
         self.__test_compression('br')
 
-    @unittest.expectedFailure
     def test_deflate(self):
         self.__test_compression('deflate')
 
-    @unittest.expectedFailure
     def test_gzip(self):
         self.__test_compression('gzip')
 
-    @unittest.expectedFailure  # not yet implemented
     def test_multiple_encodings(self):
         # https://www.rfc-editor.org/rfc/rfc9110.html#section-8.4
-        with FakeYDL() as ydl:
-            for pair in ('gzip,deflate', 'deflate, gzip', 'gzip, gzip', 'deflate, deflate'):
-                res = ydl.urlopen(
-                    sanitized_Request(
-                        self._test_url('content-encoding'),
-                        headers={'ytdl-encoding': pair}))
-                self.assertEqual(res.headers.get('Content-Encoding'), pair)
-                self.assertEqual(res.read(), b'<html><video src="/vid.mp4" /></html>')
+        for pair in ('gzip,deflate', 'deflate, gzip', 'gzip, gzip', 'deflate, deflate'):
+            self.__test_compression(pair)
 
     def test_unsupported_encoding(self):
         # it should return the raw content
