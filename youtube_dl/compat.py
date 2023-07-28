@@ -3200,6 +3200,18 @@ except AttributeError:
     def compat_datetime_timedelta_total_seconds(td):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
+# optional decompression packages
+# PyPi brotli package implements 'br' Content-Encoding
+try:
+    import brotli as compat_brotli
+except ImportError:
+    compat_brotli = None
+# PyPi ncompress package implements 'compress' Content-Encoding
+try:
+    import ncompress as compat_ncompress
+except ImportError:
+    compat_ncompress = None
+
 
 legacy = [
     'compat_HTMLParseError',
@@ -3234,6 +3246,7 @@ __all__ = [
     'compat_Struct',
     'compat_base64_b64decode',
     'compat_basestring',
+    'compat_brotli',
     'compat_casefold',
     'compat_chr',
     'compat_collections_abc',
@@ -3259,6 +3272,7 @@ __all__ = [
     'compat_itertools_zip_longest',
     'compat_kwargs',
     'compat_map',
+    'compat_ncompress',
     'compat_numeric_types',
     'compat_open',
     'compat_ord',
