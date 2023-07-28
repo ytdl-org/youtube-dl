@@ -2678,17 +2678,52 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     def compress(data):
         return data and ncompress.decompress(data)
 
+    @staticmethod
+    def _fix_path(url):
+        # an embedded /../ or /./ sequence is not automatically handled by urllib2
+        # see https://github.com/yt-dlp/yt-dlp/issues/3355
+        parsed_url = compat_urllib_parse.urlsplit(url)
+        path = parsed_url.path
+        if not path.endswith('/'):
+            path += '/'
+        parts = path.partition('/./')
+        if not parts[1]:
+            parts = path.partition('/../')
+        if parts[1]:
+            path = compat_urllib_parse.urljoin(
+                parts[0] + parts[1][:1],
+                parts[1][1:] + (parts[2] if parsed_url.path.endswith('/') else parts[2][:-1]))
+            url = parsed_url._replace(path=path).geturl()
+        if '/.' in url:
+            # worse, URL path may have initial /../ against RFCs: work-around
+            # by stripping such prefixes, like eg Firefox
+            path = parsed_url.path + '/'
+            while path.startswith('/.'):
+                if path.startswith('/../'):
+                    path = path[3:]
+                elif path.startswith('/./'):
+                    path = path[2:]
+                else:
+                    break
+            path = path[:-1]
+            if not path.startswith('/') and parsed_url.path.startswith('/'):
+                path = '/' + path
+            url = parsed_url._replace(path=path).geturl()
+        return url
+
     def http_request(self, req):
-        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
-        # always respected by websites, some tend to give out URLs with non percent-encoded
+        url = req.get_full_url()
+        # resolve embedded . and ..
+        url_fixed = self._fix_path(url)
+        # According to RFC 3986, URLs can not contain non-ASCII characters; however this is not
+        # always respected by websites: some tend to give out URLs with non percent-encoded
         # non-ASCII characters (see telemb.py, ard.py [#3412])
         # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
         # To work around aforementioned issue we will replace request's original URL with
         # percent-encoded one
         # Since redirects are also affected (e.g. http://www.southpark.de/alle-episoden/s18e09)
         # the code of this workaround has been moved here from YoutubeDL.urlopen()
-        url = req.get_full_url()
-        url_escaped = escape_url(url)
+        url_escaped = escape_url(url_fixed)
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
@@ -2702,10 +2737,13 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
         req.headers = handle_youtubedl_headers(req.headers)
 
-        if sys.version_info < (2, 7) and '#' in req.get_full_url():
-            # Python 2.6 is brain-dead when it comes to fragments
-            req._Request__original = req._Request__original.partition('#')[0]
-            req._Request__r_type = req._Request__r_type.partition('#')[0]
+        if sys.version_info < (2, 7):
+            # avoid possible race where __r_type may be unset
+            req.get_type()
+            if '#' in req.get_full_url():
+                # Python 2.6 is brain-dead when it comes to fragments
+                req._Request__original = req._Request__original.partition('#')[0]
+                req._Request__r_type = req._Request__r_type.partition('#')[0]
 
         # Use the totally undocumented AbstractHTTPHandler per
         # https://github.com/yt-dlp/yt-dlp/pull/4158
@@ -2775,10 +2813,13 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
                 if sys.version_info >= (3, 0):
                     location = location.encode('iso-8859-1')
                 location = location.decode('utf-8')
-                location_escaped = escape_url(location)
+                # resolve embedded . and ..
+                location_fixed = self._fix_path(location)
+                location_escaped = escape_url(location_fixed)
                 if location != location_escaped:
                     del resp.headers['Location']
-                    if sys.version_info < (3, 0):
+                    # if sys.version_info < (3, 0):
+                    if not isinstance(location_escaped, str):
                         location_escaped = location_escaped.encode('utf-8')
                     resp.headers['Location'] = location_escaped
         return resp
@@ -4248,13 +4289,8 @@ def update_Request(req, url=None, data=None, headers={}, query={}):
     req_headers.update(headers)
     req_data = data if data is not None else req.data
     req_url = update_url_query(url or req.get_full_url(), query)
-    req_get_method = req.get_method()
-    if req_get_method == 'HEAD':
-        req_type = HEADRequest
-    elif req_get_method == 'PUT':
-        req_type = PUTRequest
-    else:
-        req_type = compat_urllib_request.Request
+    req_type = {'HEAD': HEADRequest, 'PUT': PUTRequest}.get(
+        req.get_method(), compat_urllib_request.Request)
     new_req = req_type(
         req_url, data=req_data, headers=req_headers,
         origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
