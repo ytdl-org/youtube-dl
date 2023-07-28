@@ -278,7 +278,7 @@ jobs:
     #-------- Jython ------
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
-      uses: actions/setup-java@v2
+      uses: actions/setup-java@v3
       with:
         java-version: 8
         distribution: 'zulu'
