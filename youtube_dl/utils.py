@@ -1678,9 +1678,7 @@ def random_user_agent():
 
 std_headers = {
     'User-Agent': random_user_agent(),
-    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
 
@@ -2723,6 +2721,13 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             # The dict keys are capitalized because of this bug by urllib
             if h.capitalize() not in req.headers:
                 req.add_header(h, v)
+
+        # Similarly, 'Accept-encoding'
+        if 'Accept-encoding' not in req.headers:
+            req.add_header(
+                'Accept-Encoding', join_nonempty(
+                    'gzip', 'deflate', brotli and 'br', ncompress and 'compress',
+                    delim=', '))
 
         req.headers = handle_youtubedl_headers(req.headers)
 
