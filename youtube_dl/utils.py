@@ -2235,7 +2235,7 @@ def _htmlentity_transform(entity_with_semicolon):
 def unescapeHTML(s):
     if s is None:
         return None
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
@@ -3418,7 +3418,7 @@ def _windows_write_string(s, out):
 def write_string(s, out=None, encoding=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     if sys.platform == 'win32' and encoding is None and hasattr(out, 'fileno'):
         if _windows_write_string(s, out):
@@ -4459,8 +4459,10 @@ TV_PARENTAL_GUIDELINES = {
 
 
 def parse_age_limit(s):
-    if type(s) == int:
-        return s if 0 <= s <= 21 else None
+    if not isinstance(s, bool):
+        age = int_or_none(s)
+        if age is not None:
+            return age if 0 <= age <= 21 else None
     if not isinstance(s, compat_basestring):
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
