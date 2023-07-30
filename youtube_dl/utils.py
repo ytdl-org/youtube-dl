@@ -2586,7 +2586,7 @@ def handle_youtubedl_headers(headers):
     filtered_headers = headers
 
     if 'Youtubedl-no-compression' in filtered_headers:
-        filtered_headers = dict((k, v) for k, v in filtered_headers.items() if k.lower() != 'accept-encoding')
+        filtered_headers = filter_dict(filtered_headers, cndn=lambda k, _: k.lower() != 'accept-encoding')
         del filtered_headers['Youtubedl-no-compression']
 
     return filtered_headers
@@ -3102,9 +3102,7 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
             new_data = None
             remove_headers.extend(['Content-Length', 'Content-Type'])
 
-        # NB: don't use dict comprehension for python 2.6 compatibility
-        new_headers = dict((k, v) for k, v in req.headers.items()
-                           if k.title() not in remove_headers)
+        new_headers = filter_dict(req.headers, cndn=lambda k, _: k.title() not in remove_headers)
 
         return compat_urllib_request.Request(
             newurl, headers=new_headers, origin_req_host=req.origin_req_host,
@@ -4375,6 +4373,11 @@ def try_get(src, getter, expected_type=None):
         else:
             if expected_type is None or isinstance(v, expected_type):
                 return v
+
+
+def filter_dict(dct, cndn=lambda _, v: v is not None):
+    # NB: don't use dict comprehension for python 2.6 compatibility
+    return dict((k, v) for k, v in dct.items() if cndn(k, v))
 
 
 def merge_dicts(*dicts, **kwargs):
