@@ -36,7 +36,7 @@ try:
     )
 except NameError:
     compat_str, compat_basestring, compat_chr = (
-        str, str, chr
+        str, (str, bytes), chr
     )
 
 # casefold
