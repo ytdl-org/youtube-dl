@@ -1087,6 +1087,7 @@ from .rutube import (
 from .rutv import RUTVIE
 from .ruutu import RuutuIE
 from .ruv import RuvIE
+from .s4c import S4CIE
 from .safari import (
     SafariIE,
     SafariApiIE,
