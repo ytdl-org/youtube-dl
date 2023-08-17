@@ -25,7 +25,7 @@ class CaffeineIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = re.match(self._VALID_URL, url).group('video_id')
         json_data = self._download_json('https://api.caffeine.tv/social/public/activity/' + video_id, video_id)
-        broadcast_info = json_data['broadcast_info']
+        broadcast_info = json_data.get('broadcast_info')
         title = broadcast_info['broadcast_title']
         video_url = broadcast_info['video_url']
 
