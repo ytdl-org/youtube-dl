@@ -21,7 +21,7 @@ class MediasetIE(ThePlatformBaseIE):
                     (?:
                         mediaset:|
                         https?://
-                            (?:(?:www|static3)\.)?mediaset(?:play|infinity)\.mediaset\.it/
+                            (?:(?:www|(?P<s3>static3))\.)?mediaset(?(s3)play|(?:play|infinity))\.mediaset\.it/
                             (?:
                                 (?:video|on-demand|movie)/(?:[^/]+/)+[^/]+_|
                                 player(?:/v\d+)?/index\.html\?.*?\bprogramGuid=
