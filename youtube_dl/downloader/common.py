@@ -339,6 +339,10 @@ class FileDownloader(object):
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
+
+        This method filters the `Cookie` header from the info_dict to prevent leaks.
+        Downloaders have their own way of handling cookies.
+        See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
         """
 
         nooverwrites_and_exists = (

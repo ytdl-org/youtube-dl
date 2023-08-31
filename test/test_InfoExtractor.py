@@ -3,18 +3,36 @@
 from __future__ import unicode_literals
 
 # Allow direct execution
-import io
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL, expect_dict, expect_value, http_server_port
-from youtube_dl.compat import compat_etree_fromstring, compat_http_server
-from youtube_dl.extractor.common import InfoExtractor
-from youtube_dl.extractor import YoutubeIE, get_info_extractor
-from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
 import threading
+
+from test.helper import (
+    expect_dict,
+    expect_value,
+    FakeYDL,
+    http_server_port,
+)
+from youtube_dl.compat import (
+    compat_etree_fromstring,
+    compat_http_server,
+    compat_open as open,
+)
+from youtube_dl.extractor.common import InfoExtractor
+from youtube_dl.extractor import (
+    get_info_extractor,
+    YoutubeIE,
+)
+from youtube_dl.utils import (
+    encode_data_uri,
+    ExtractorError,
+    RegexNotFoundError,
+    strip_jsonp,
+)
 
 
 TEAPOT_RESPONSE_STATUS = 418
@@ -99,6 +117,71 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertEqual(ie._html_search_meta(('z', 'x', 'c'), html), '3')
         self.assertRaises(RegexNotFoundError, ie._html_search_meta, 'z', html, None, fatal=True)
         self.assertRaises(RegexNotFoundError, ie._html_search_meta, ('z', 'x'), html, None, fatal=True)
+
+    def test_search_nextjs_data(self):
+        html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content=
+  "text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Test _search_nextjs_data()</title>
+</head>
+<body>
+  <div id="__next">
+    <div style="background-color:#17171E" class="FU" dir="ltr">
+      <div class="sc-93de261d-0 dyzzYE">
+        <div>
+          <header class="HD"></header>
+          <main class="MN">
+            <div style="height:0" class="HT0">
+              <div style="width:NaN%" data-testid=
+              "stream-container" class="WDN"></div>
+            </div>
+          </main>
+        </div>
+        <footer class="sc-6e5faf91-0 dEGaHS"></footer>
+      </div>
+    </div>
+  </div>
+  <script id="__NEXT_DATA__" type="application/json">
+  {"props":{"pageProps":{"video":{"id":"testid"}}}}
+  </script>
+</body>
+</html>
+'''
+        search = self.ie._search_nextjs_data(html, 'testID')
+        self.assertEqual(search['props']['pageProps']['video']['id'], 'testid')
+
+    def test_search_nuxt_data(self):
+        html = '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="content-type" content=
+  "text/html; charset=utf-8">
+  <title>Nuxt.js Test Page</title>
+  <meta name="viewport" content=
+  "width=device-width, initial-scale=1">
+  <meta data-hid="robots" name="robots" content="all">
+</head>
+<body class="BD">
+  <div id="__layout">
+    <h1 class="H1">Example heading</h1>
+    <div class="IN">
+      <p>Decoy text</p>
+    </div>
+  </div>
+  <script>
+  window.__NUXT__=(function(a,b,c,d,e,f,g,h){return {decoy:" default",data:[{track:{id:f,title:g}}]}}(null,null,"c",null,null,"testid","Nuxt.js title",null));
+  </script>
+  <script src="/_nuxt/a12345b.js" defer="defer"></script>
+</body>
+</html>
+'''
+        search = self.ie._search_nuxt_data(html, 'testID')
+        self.assertEqual(search['track']['id'], 'testid')
 
     def test_search_json_ld_realworld(self):
         # https://github.com/ytdl-org/youtube-dl/issues/23306
@@ -344,6 +427,24 @@ class TestInfoExtractor(unittest.TestCase):
             {
                 'formats': [{
                     'url': 'https://www.klarna.com/uk/wp-content/uploads/sites/11/2019/01/KL062_Smooth3_0_DogWalking_5s_920x080_.mp4',
+                    'ext': 'mp4',
+                }],
+            })
+
+        # from https://0000.studio/
+        # with type attribute but without extension in URL
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://0000.studio',
+                r'''
+                <video src="https://d1ggyt9m8pwf3g.cloudfront.net/protected/ap-northeast-1:1864af40-28d5-492b-b739-b32314b1a527/archive/clip/838db6a7-8973-4cd6-840d-8517e4093c92"
+                    controls="controls" type="video/mp4" preload="metadata" autoplay="autoplay" playsinline class="object-contain">
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://d1ggyt9m8pwf3g.cloudfront.net/protected/ap-northeast-1:1864af40-28d5-492b-b739-b32314b1a527/archive/clip/838db6a7-8973-4cd6-840d-8517e4093c92',
                     'ext': 'mp4',
                 }],
             })
@@ -801,8 +902,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         ]
 
         for m3u8_file, m3u8_url, expected_formats in _TEST_CASES:
-            with io.open('./test/testdata/m3u8/%s.m3u8' % m3u8_file,
-                         mode='r', encoding='utf-8') as f:
+            with open('./test/testdata/m3u8/%s.m3u8' % m3u8_file,
+                      mode='r', encoding='utf-8') as f:
                 formats = self.ie._parse_m3u8_formats(
                     f.read(), m3u8_url, ext='mp4')
                 self.ie._sort_formats(formats)
@@ -1026,8 +1127,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         ]
 
         for mpd_file, mpd_url, mpd_base_url, expected_formats in _TEST_CASES:
-            with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
-                         mode='r', encoding='utf-8') as f:
+            with open('./test/testdata/mpd/%s.mpd' % mpd_file,
+                      mode='r', encoding='utf-8') as f:
                 formats = self.ie._parse_mpd_formats(
                     compat_etree_fromstring(f.read().encode('utf-8')),
                     mpd_base_url=mpd_base_url, mpd_url=mpd_url)
@@ -1053,8 +1154,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         ]
 
         for f4m_file, f4m_url, expected_formats in _TEST_CASES:
-            with io.open('./test/testdata/f4m/%s.f4m' % f4m_file,
-                         mode='r', encoding='utf-8') as f:
+            with open('./test/testdata/f4m/%s.f4m' % f4m_file,
+                      mode='r', encoding='utf-8') as f:
                 formats = self.ie._parse_f4m_formats(
                     compat_etree_fromstring(f.read().encode('utf-8')),
                     f4m_url, None)
@@ -1101,8 +1202,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         ]
 
         for xspf_file, xspf_url, expected_entries in _TEST_CASES:
-            with io.open('./test/testdata/xspf/%s.xspf' % xspf_file,
-                         mode='r', encoding='utf-8') as f:
+            with open('./test/testdata/xspf/%s.xspf' % xspf_file,
+                      mode='r', encoding='utf-8') as f:
                 entries = self.ie._parse_xspf(
                     compat_etree_fromstring(f.read().encode('utf-8')),
                     xspf_file, xspf_url=xspf_url, xspf_base_url=xspf_url)

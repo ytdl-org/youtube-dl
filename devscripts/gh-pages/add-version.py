@@ -6,16 +6,21 @@ import sys
 import hashlib
 import os.path
 
+dirn = os.path.dirname
+
+sys.path.insert(0, dirn(dirn(dirn(os.path.abspath(__file__)))))
+
+from devscripts.utils import read_file, write_file
+from youtube_dl.compat import compat_open as open
 
 if len(sys.argv) <= 1:
     print('Specify the version number as parameter')
     sys.exit()
 version = sys.argv[1]
 
-with open('update/LATEST_VERSION', 'w') as f:
-    f.write(version)
+write_file('update/LATEST_VERSION', version)
 
-versions_info = json.load(open('update/versions.json'))
+versions_info = json.loads(read_file('update/versions.json'))
 if 'signature' in versions_info:
     del versions_info['signature']
 
@@ -39,5 +44,5 @@ for key, filename in filenames.items():
 versions_info['versions'][version] = new_version
 versions_info['latest'] = version
 
-with open('update/versions.json', 'w') as jsonf:
-    json.dump(versions_info, jsonf, indent=4, sort_keys=True)
+with open('update/versions.json', 'w', encoding='utf-8') as jsonf:
+    json.dumps(versions_info, jsonf, indent=4, sort_keys=True)

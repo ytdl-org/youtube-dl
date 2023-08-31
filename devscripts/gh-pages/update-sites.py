@@ -5,15 +5,17 @@ import sys
 import os
 import textwrap
 
+dirn = os.path.dirname
+
 # We must be able to import youtube_dl
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(0, dirn(dirn(dirn(os.path.abspath(__file__)))))
 
 import youtube_dl
+from devscripts.utils import read_file, write_file
 
 
 def main():
-    with open('supportedsites.html.in', 'r', encoding='utf-8') as tmplf:
-        template = tmplf.read()
+    template = read_file('supportedsites.html.in')
 
     ie_htmls = []
     for ie in youtube_dl.list_extractors(age_limit=None):
@@ -29,8 +31,7 @@ def main():
 
     template = template.replace('@SITES@', textwrap.indent('\n'.join(ie_htmls), '\t'))
 
-    with open('supportedsites.html', 'w', encoding='utf-8') as sitesf:
-        sitesf.write(template)
+    write_file('supportedsites.html', template)
 
 
 if __name__ == '__main__':

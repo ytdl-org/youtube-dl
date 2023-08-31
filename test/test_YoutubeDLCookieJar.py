@@ -46,6 +46,20 @@ class TestYoutubeDLCookieJar(unittest.TestCase):
         # will be ignored
         self.assertFalse(cookiejar._cookies)
 
+    def test_get_cookie_header(self):
+        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/httponly_cookies.txt')
+        cookiejar.load(ignore_discard=True, ignore_expires=True)
+        header = cookiejar.get_cookie_header('https://www.foobar.foobar')
+        self.assertIn('HTTPONLY_COOKIE', header)
+
+    def test_get_cookies_for_url(self):
+        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/session_cookies.txt')
+        cookiejar.load(ignore_discard=True, ignore_expires=True)
+        cookies = cookiejar.get_cookies_for_url('https://www.foobar.foobar/')
+        self.assertEqual(len(cookies), 2)
+        cookies = cookiejar.get_cookies_for_url('https://foobar.foobar/')
+        self.assertFalse(cookies)
+
 
 if __name__ == '__main__':
     unittest.main()
