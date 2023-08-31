@@ -368,7 +368,7 @@ jobs:
         done
     #-------- nose --------
     - name: Install nose for Python ${{ matrix.python-version }}
-      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || matrix.python-version == '2.7' || matrix.python-version == '3.12' }}
+      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || (matrix.python-impl == 'cpython' && (matrix.python-version == '2.7' || matrix.python-version == '3.12')) }}
       shell: bash
       run: |
         echo "$PATH"
@@ -380,7 +380,7 @@ jobs:
         [ "$py3ver" -ge 9 ] && nose=pynose || nose=nose
         $PIP -qq show $nose || $PIP install $nose
     - name: Install nose for other Python 2
-      if: ${{ matrix.python-impl == 'jython' || matrix.python-version == '2.6' }}
+      if: ${{ matrix.python-impl == 'jython' || (matrix.python-impl == 'cpython' && matrix.python-version == '2.6') }}
       shell: bash
       run: |
         # Work around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
