@@ -1,0 +1,598 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "id": "https://rg3.github.io/youtube-dl/schema-info.json",
+  "description": "Data for a video",
+  "type": "object",
+  "required": [
+    "_filename",
+    "webpage_url"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "_filename": {
+      "type": "string"
+    },
+    "abr": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "acodec": {
+      "type": "string"
+    },
+    "age_limit": {
+      "type": "number"
+    },
+    "alt_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "annotations": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "automatic_captions": {
+      "type": "object"
+    },
+    "average_rating": {
+      "type": "number"
+    },
+    "categories": {
+      "items": {
+        "type": "string"
+      },
+      "type": [
+        "array",
+        "null"
+      ]
+    },
+    "chapters": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "start_time",
+          "end_time"
+        ],
+        "properties": {
+          "start_time": {
+            "type": "number"
+          },
+          "end_time": {
+            "type": "number"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "creator": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "dislike_count": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "display_id": {
+      "type": "string"
+    },
+    "duration": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "end_time": {
+      "type": [
+        "null"
+      ]
+    },
+    "episode_number": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "ext": {
+      "type": "string"
+    },
+    "extractor": {
+      "type": "string"
+    },
+    "extractor_key": {
+      "type": "string"
+    },
+    "format": {
+      "type": "string"
+    },
+    "format_id": {
+      "type": "string"
+    },
+    "formats": {
+      "items": {
+        "properties": {
+          "acodec": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "format_note": {
+            "type": "string"
+          },
+          "container": {
+            "type": "string"
+          },
+          "fps": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "resolution": {
+            "type": "string"
+          },
+          "manifest_url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "preference": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "asr": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fragments": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "duration": {
+                  "type": "number"
+                },
+                "path": {
+                  "type": "string"
+                },
+                "url": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "fragment_base_url": {
+            "type": "string"
+          },
+          "stretched_ratio": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "quality": {
+            "type": "number"
+          },
+          "vbr": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "filesize_approx": {
+            "type": "number"
+          },
+          "play_path": {
+            "type": "string"
+          },
+          "abr": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "codec": {
+            "type": "string"
+          },
+          "downloader_options": {
+            "properties": {
+              "http_chunk_size": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": false,
+            "type": "object"
+          },
+          "ext": {
+            "type": "string"
+          },
+          "filesize": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "format": {
+            "type": "string"
+          },
+          "format_id": {
+            "type": "string"
+          },
+          "height": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "http_headers": {
+            "type": "object"
+          },
+          "player_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "protocol": {
+            "type": "string"
+          },
+          "tbr": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "vcodec": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "width": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "fps": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "fulltitle": {
+      "type": "string"
+    },
+    "height": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "id": {
+      "type": "string"
+    },
+    "is_live": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "license": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "like_count": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "n_entries": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "playlist": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "playlist_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "playlist_index": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "playlist_title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "playlist_uploader": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "playlist_uploader_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "resolution": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "season_number": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "series": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "start_time": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "stretched_ratio": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "subtitles": {
+      "type": [
+        "object",
+        "null"
+      ]
+    },
+    "tags": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "thumbnail": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "thumbnails": {
+      "items": {
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "width": {
+            "type": "number"
+          },
+          "height": {
+            "type": "number"
+          },
+          "resolution": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "title": {
+      "type": "string"
+    },
+    "upload_date": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uploader": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uploader_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "uploader_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "vbr": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "vcodec": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "view_count": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "webpage_url": {
+      "type": "string"
+    },
+    "webpage_url_basename": {
+      "type": "string"
+    },
+    "width": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    },
+    "manifest_url": {
+      "type": "string"
+    },
+    "tbr": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "preference": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "http_headers": {
+      "type": "object"
+    },
+    "direct": {
+      "type": "boolean"
+    },
+    "timestamp": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "player_url": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "format_note": {
+      "type": "string"
+    },
+    "quality": {
+      "type": "number"
+    },
+    "season": {
+      "type": "string"
+    },
+    "episode": {
+      "type": "string"
+    },
+    "filesize": {
+      "type": [
+        "null",
+        "number"
+      ]
+    },
+    "asr": {
+      "type": "number"
+    },
+    "container": {
+      "type": "string"
+    },
+    "language": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "comment_count": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "comments": {
+      "type": "array"
+    },
+    "filesize_approx": {
+      "type": "number"
+    }
+  }
+}
