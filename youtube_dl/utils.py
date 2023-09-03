@@ -4257,7 +4257,7 @@ def update_url(url, **kwargs):
     query = kwargs.pop('query_update', None)
     if query:
         qs = compat_parse_qs(url.query)
-        qs.update(query)
+        qs.update((k, [v]) for k, v in query.items())
         kwargs['query'] = compat_urllib_parse_urlencode(qs, True)
         kwargs = compat_kwargs(kwargs)
     return compat_urllib_parse.urlunparse(url._replace(**kwargs))
