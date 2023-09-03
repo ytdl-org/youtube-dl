@@ -4248,6 +4248,7 @@ def update_url(url, **kwargs):
        url: compat_str or parsed URL tuple
        if query_update is in kwargs, update query with
        its value instead of replacing (overrides any `query`)
+       NB: query_update expects parse_qs() format: [key: value_list, ...]
        returns: compat_str
     """
     if not kwargs:
@@ -4257,7 +4258,7 @@ def update_url(url, **kwargs):
     query = kwargs.pop('query_update', None)
     if query:
         qs = compat_parse_qs(url.query)
-        qs.update((k, [v]) for k, v in query.items())
+        qs.update(query)
         kwargs['query'] = compat_urllib_parse_urlencode(qs, True)
         kwargs = compat_kwargs(kwargs)
     return compat_urllib_parse.urlunparse(url._replace(**kwargs))
