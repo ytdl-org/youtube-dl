@@ -552,6 +552,10 @@ from .jamendo import (
     JamendoAlbumIE,
 )
 from .jeuxvideo import JeuxVideoIE
+from .jiosaavn import (
+    JioSaavnSongIE,
+    JioSaavnAlbumIE,
+)
 from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
