@@ -2635,12 +2635,12 @@ class YoutubeDL(object):
             self.to_screen(msg('[info] %s is already present', label.title()))
             return 'exists'
         else:
-            self.to_screen(msg('[info] Writing %s as JSON to: ' + infofn, label))
+            self.to_screen(msg('[info] Writing %s as JSON to: ', label) + infofn)
             try:
                 write_json_file(self.filter_requested_info(info_dict), infofn)
                 return True
             except (OSError, IOError):
-                self.report_error(msg('Cannot write %s to JSON file ' + infofn, label))
+                self.report_error(msg('Cannot write %s to JSON file ', label) + infofn)
                 return
 
     def _write_thumbnails(self, info_dict, filename):
