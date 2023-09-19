@@ -438,7 +438,7 @@ class FacebookIE(InfoExtractor):
 
         if not video_data:
             data = extract_relay_prefetched_data(
-                r'"(?:dash_manifest|playable_url(?:_quality_hd)?)"\s*:\s*"[^"]+"')
+                r'"(?:dash_manifest|playable_url(?:_quality_hd)?|browser_native_(?:sd|hd)_url)"\s*:\s*"[^"]+"')
             if data:
                 entries = []
 
