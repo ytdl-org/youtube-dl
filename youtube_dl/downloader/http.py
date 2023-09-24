@@ -294,7 +294,7 @@ class HttpFD(FileDownloader):
 
                 # Progress message
                 speed = self.calc_speed(start, now, byte_counter - ctx.resume_len)
-                eta = self.calc_eta(speed, ctx.data_len and (ctx.data_len - ctx.resume_len))
+                eta = self.calc_eta(speed, ctx.data_len and (ctx.data_len - byte_counter))
 
                 self._hook_progress({
                     'status': 'downloading',
