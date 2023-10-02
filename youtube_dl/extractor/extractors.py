@@ -1602,6 +1602,10 @@ from .xfileshare import XFileShareIE
 from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
+    XHamsterCategoryIE,
+    XHamsterCreatorIE,
+    XHamsterSearchIE,
+    XHamsterSearchKeyIE,
     XHamsterUserIE,
 )
 from .xiami import (

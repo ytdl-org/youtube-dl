@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 import itertools
 import re
 
-from .common import InfoExtractor
+from math import isinf
+
+from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_kwargs,
     compat_urlparse,
@@ -417,15 +419,95 @@ class XHamsterEmbedIE(XHamsterBaseIE):
         return self.url_result(video_url, 'XHamster')
 
 
-class XHamsterUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)' % XHamsterIE._DOMAINS
+class XHamsterPlaylistIE(XHamsterBaseIE):
+    _NEXT_PAGE_RE = r'(<a\b[^>]+\bdata-page\s*=\s*["\']next[^>]+>)'
+
+    def _page_url(self, user_id, page_num, url=None):
+        return self._PAGE_URL_TPL % (user_id, page_num)
+
+    def _extract_entries(self, page, user_id):
+        for video_tag_match in re.finditer(
+                r'<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>',
+                page):
+            video_url = traverse_obj(video_tag_match, (
+                0, T(extract_attributes), 'href', T(url_or_none)))
+            if not video_url or not XHamsterIE.suitable(video_url):
+                continue
+            video_id = XHamsterIE._match_id(video_url)
+            yield self.url_result(
+                video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
+
+    def _next_page_url(self, page, user_id, page_num):
+        return traverse_obj(
+            self._search_regex(self._NEXT_PAGE_RE, page, 'next page', default=None),
+            (T(extract_attributes), 'href', T(url_or_none)))
+
+    def _entries(self, user_id, page_num=None, page=None, url=None):
+        page_1 = 1 if page_num is None else page_num
+        next_page_url = self._page_url(user_id, page_1, url)
+        for pagenum in itertools.count(page_1):
+            if not page:
+                page = self._download_webpage(
+                    next_page_url, user_id, 'Downloading page' + ((' %d' % pagenum) if pagenum > 1 else ''),
+                    fatal=False)
+            if not page:
+                break
+
+            for from_ in self._extract_entries(page, user_id):
+                yield from_
+
+            if page_num is not None:
+                break
+            next_page_url = self._next_page_url(page, user_id, page_num)
+            if not next_page_url:
+                break
+            page = None
+
+    def _fancy_page_url(self, user_id, page_num, url):
+        sub = self._match_valid_url(url).group('sub')
+        n_url = self._PAGE_URL_TPL % (
+            join_nonempty(user_id, sub, delim='/'), page_num)
+        return compat_urlparse.urljoin(n_url, url)
+
+    def _fancy_get_title(self, user_id, page_num, url):
+        sub = self._match_valid_url(url).group('sub')
+        sub = (sub or '').split('/')
+        sub.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        sub.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*sub, delim=','))
+
+    @staticmethod
+    def _get_title(user_id, page_num, url=None):
+        return '%s (%s)' % (user_id, 'all' if page_num is None else ('p%d' % page_num))
+
+    def _real_extract(self, url):
+        mobj = self._match_valid_url(url)
+        user_id = mobj.group('id')
+        page_num = int_or_none(mobj.groupdict().get('pnum'))
+        return self.playlist_result(
+            self._entries(user_id, page_num, url=url), user_id,
+            self._get_title(user_id, page_num, url=url))
+
+
+class XHamsterUserIE(XHamsterPlaylistIE):
+    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)(?:/videos/(?P<pnum>\d+))?' % XHamsterIE._DOMAINS
+    _PAGE_URL_TPL = 'https://xhamster.com/users/%s/videos/%s'
     _TESTS = [{
         # Paginated user profile
         'url': 'https://xhamster.com/users/netvideogirls/videos',
         'info_dict': {
             'id': 'netvideogirls',
+            'title': 'netvideogirls (all)',
         },
         'playlist_mincount': 267,
+    }, {
+        # Page from paginated user profile
+        'url': 'https://xhamster.com/users/netvideogirls/videos/2',
+        'info_dict': {
+            'id': 'netvideogirls',
+            'title': 'netvideogirls (p2)',
+        },
+        'playlist_count': 30,
     }, {
         # Non-paginated user profile
         'url': 'https://xhamster.com/users/firatkaan/videos',
@@ -440,29 +522,213 @@ class XHamsterUserIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _entries(self, user_id):
-        next_page_url = 'https://xhamster.com/users/%s/videos/1' % user_id
-        for pagenum in itertools.count(1):
-            page = self._download_webpage(
-                next_page_url, user_id, 'Downloading page %s' % pagenum)
-            for video_tag in re.findall(
-                    r'(<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>)',
-                    page):
-                video = extract_attributes(video_tag)
-                video_url = url_or_none(video.get('href'))
-                if not video_url or not XHamsterIE.suitable(video_url):
-                    continue
-                video_id = XHamsterIE._match_id(video_url)
-                yield self.url_result(
-                    video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
-            mobj = re.search(r'<a[^>]+data-page=["\']next[^>]+>', page)
-            if not mobj:
-                break
-            next_page = extract_attributes(mobj.group(0))
-            next_page_url = url_or_none(next_page.get('href'))
-            if not next_page_url:
-                break
+
+class XHamsterCreatorIE(XHamsterPlaylistIE):
+    # `pornstars`, `celebrities` and `creators` share the same namespace
+    _VALID_URL = r'''(?x)
+        https?://(?:.+?\.)?%s
+                /(?:(?:gay|shemale)/)?(?:creators|pornstars|celebrities)
+                /(?P<id>[^/?#]+)
+                (?:(?P<sub>(?:/(?:hd|4k|newest|full-length|exclusive))+))?
+                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
+    ''' % XHamsterIE._DOMAINS
+    _PAGE_URL_TPL = 'https://xhamster.com/creators/%s/%s'
+    _TESTS = [{
+        # Paginated creator profile
+        'url': 'https://xhamster.com/creators/mini-elfie',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (all)',
+        },
+        'playlist_mincount': 70,
+    }, {
+        # Paginated pornstar profile
+        'url': 'https://xhamster.com/pornstars/mariska-x',
+        'info_dict': {
+            'id': 'mariska-x',
+            'title': 'mariska-x (all)',
+        },
+        'playlist_mincount': 163,
+    }, {
+        # creator profile filtered by path
+        'url': 'https://xhamster.com/creators/mini-elfie/4k',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (4k,all)',
+        },
+        'playlist_mincount': 5,
+        'playlist_maxcount': 30,
+    }, {
+        # creator profile filtered by query
+        'url': 'https://xhamster.com/creators/mini-elfie/?category=pov',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (category=pov,all)',
+        },
+        'playlist_mincount': 8,
+        'playlist_maxcount': 30,
+    }]
+
+    def _page_url(self, user_id, page_num, url):
+        return self._fancy_page_url(user_id, page_num, url)
+
+    def _get_title(self, user_id, page_num, url):
+        return self._fancy_get_title(user_id, page_num, url)
+
+
+class XHamsterCategoryIE(XHamsterPlaylistIE):
+    # `tags` and `categories` share the same namespace
+    _VALID_URL = r'''(?x)
+        https?://(?:.+?\.)?%s
+                (?:(?P<queer>gay|shemale)/)?(?:/categories|/tags|(?=/hd))
+                /(?P<id>[^/?#]+)
+                (?P<sub>(?:/(?:hd|4k|producer|creator|best(?:/(?:weekly|monthly|year-\d{4}))?))+)?
+                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
+    ''' % XHamsterIE._DOMAINS
+    _PAGE_URL_TPL = 'https://xhamster.com/categories/%s/%s'
+    _NEXT_PAGE_RE = r'(<a\b[^>]+\bclass\s*=\s*("|\')(?:[\w-]+\s+)*?prev-next-list-link--next(?:\s+[\w-]+)*\2[^>]+>)'
+    _TESTS = [{
+        # Paginated category/tag
+        'url': 'https://xhamster.com/tags/hawaiian',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (all)',
+        },
+        'playlist_mincount': 250,
+    }, {
+        # Single page category/tag
+        'url': 'https://xhamster.com/categories/aruban',
+        'info_dict': {
+            'id': 'aruban',
+            'title': 'aruban (all)',
+        },
+        'playlist_mincount': 5,
+        'playlist_maxcount': 30,
+    }, {
+        # category/tag filtered by path
+        'url': 'https://xhamster.com/categories/hawaiian/4k',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (4k,all)',
+        },
+        'playlist_mincount': 1,
+        'playlist_maxcount': 20,
+    }, {
+        # category/tag filtered by query
+        'url': 'https://xhamster.com/tags/hawaiian?fps=60',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (fps=60,all)',
+        },
+        'playlist_mincount': 1,
+        'playlist_maxcount': 20,
+    }]
+
+    def _page_url(self, user_id, page_num, url):
+        queer, sub = self._match_valid_url(url).group('queer', 'sub')
+        n_url = self._PAGE_URL_TPL % (
+            join_nonempty(queer, user_id, sub, delim='/'), page_num)
+        return compat_urlparse.urljoin(n_url, url)
+
+    def _get_title(self, user_id, page_num, url):
+        queer, sub = self._match_valid_url(url).group('queer', 'sub')
+        queer = [] if queer is None else [queer]
+        sub = queer + (sub or '').split('/')
+        sub.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        sub.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*sub, delim=','))
+
+
+class XHamsterSearchIE(XHamsterPlaylistIE):
+    _VALID_URL = r'''(?x)
+        https?://(?:.+?\.)?%s
+                /search/(?P<id>[^/?#]+)
+    ''' % XHamsterIE._DOMAINS
+    _TESTS = [{
+        # Single page result
+        'url': 'https://xhamster.com/search/latvia',
+        'info_dict': {
+            'id': 'latvia',
+            'title': 'latvia (all)',
+        },
+        'playlist_mincount': 10,
+        'playlist_maxcount': 30,
+    }, {
+        # Paginated result
+        'url': 'https://xhamster.com/search/latvia+estonia+moldova+lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (all)',
+        },
+        'playlist_mincount': 63,
+    }, {
+        # Single page of paginated result
+        'url': 'https://xhamster.com/search/latvia+estonia+moldova+lithuania?page=2',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (p2)',
+        },
+        'playlist_count': 47,
+    }]
+
+    @staticmethod
+    def _page_url(user_id, page_num, url):
+        return url
+
+    def _get_title(self, user_id, page_num, url=None):
+        return super(XHamsterSearchIE, self)._get_title(
+            user_id.replace('+', ' '), page_num, url)
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
-        return self.playlist_result(self._entries(user_id), user_id)
+        page_num = traverse_obj(url, (
+            T(parse_qs), 'page', -1, T(int_or_none)))
+        return self.playlist_result(
+            self._entries(user_id, page_num, url=url), user_id,
+            self._get_title(user_id, page_num))
+
+
+class XHamsterSearchKeyIE(SearchInfoExtractor, XHamsterSearchIE):
+    _SEARCH_KEY = 'xhsearch'
+    _MAX_RESULTS = float('inf')
+    _TESTS = [{
+        # Single page result
+        'url': 'xhsearchall:latvia',
+        'info_dict': {
+            'id': 'latvia',
+            'title': 'latvia (all)',
+        },
+        'playlist_mincount': 10,
+        'playlist_maxcount': 30,
+    }, {
+        # Paginated result
+        'url': 'xhsearchall:latvia estonia moldova lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (all)',
+        },
+        'playlist_mincount': 63,
+    }, {
+        # Subset of paginated result
+        'url': 'xhsearch50:latvia estonia moldova lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (first 50)',
+        },
+        'playlist_count': 50,
+    }]
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+
+        result = XHamsterSearchIE._real_extract(
+            self, 'https://xhamster.com/search/' + query.replace(' ', '+'))
+
+        if not isinf(n):
+            # with the secret knowledge that `result['entries'] is a
+            # generator, it can be sliced efficiently
+            result['entries'] = itertools.islice(result['entries'], n)
+            if result.get('title') is not None:
+                result['title'] = result['title'].replace('(all)', '(first %d)' % n)
+
+        return result
