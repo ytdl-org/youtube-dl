@@ -14,7 +14,7 @@ class ChelseafcIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?chelseafc\.com(?:/[a-z]+)?/video/(?P<id>[a-z0-9]+(?:-[a-z0-9]+)*)'
     _TESTS = [{
         'url': 'https://www.chelseafc.com/en/video/full-match-chelsea-2-2-everton',
-        'md5': '16c0df4e6909ad5ae96eab68fc584d75',
+        'md5': '2fda617911b7148a2a19bec55b75d30a',
         'info_dict': {
             'id': 'full-match-chelsea-2-2-everton',
             'ext': 'mp4',
@@ -29,7 +29,7 @@ class ChelseafcIE(InfoExtractor):
     },
         {
         'url': 'https://www.chelseafc.com/en/video/manchester-city-vs-chelsea-2-0-or-highlights-or-efl-cup',
-        'md5': 'c20c52f3954d938bc5da4d6fe358c81d',
+        'md5': '2905365c3c9cf4612f303fbb99c2f4ca',
         'info_dict': {
             'id': 'manchester-city-vs-chelsea-2-0-or-highlights-or-efl-cup',
             'ext': 'mp4',
