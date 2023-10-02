@@ -142,7 +142,7 @@ def expect_value(self, got, expected, field):
         self.assertTrue(
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
-    elif isinstance(expected, compat_str) and re.match(r'^lambda \w+:', expected):
+    elif isinstance(expected, compat_str) and re.match(r'lambda \w+:', expected):
         fn = eval(expected)
         suite = expected.split(':', 1)[1].strip()
         self.assertTrue(

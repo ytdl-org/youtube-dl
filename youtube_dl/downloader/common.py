@@ -96,7 +96,7 @@ class FileDownloader(object):
                 return None
             return int(float(remaining) / rate)
         start, now = (start_or_rate, now_or_remaining)
-        total, current = args
+        total, current = args[:2]
         if total is None:
             return None
         if now is None:
