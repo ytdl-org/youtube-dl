@@ -96,7 +96,7 @@ class FileDownloader(object):
                 return None
             return int(float(remaining) / rate)
         start, now = (start_or_rate, now_or_remaining)
-        total, current = args
+        total, current = args[:2]
         if total is None:
             return None
         if now is None:
@@ -339,6 +339,10 @@ class FileDownloader(object):
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
+
+        This method filters the `Cookie` header from the info_dict to prevent leaks.
+        Downloaders have their own way of handling cookies.
+        See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
         """
 
         nooverwrites_and_exists = (

@@ -18,6 +18,7 @@ class TestJSInterpreter(unittest.TestCase):
     def test_basic(self):
         jsi = JSInterpreter('function x(){;}')
         self.assertEqual(jsi.call_function('x'), None)
+        self.assertEqual(repr(jsi.extract_function('x')), 'F<x>')
 
         jsi = JSInterpreter('function x3(){return 42;}')
         self.assertEqual(jsi.call_function('x3'), 42)
@@ -31,6 +32,55 @@ class TestJSInterpreter(unittest.TestCase):
     def test_calc(self):
         jsi = JSInterpreter('function x4(a){return 2*a+1;}')
         self.assertEqual(jsi.call_function('x4', 3), 7)
+
+    def test_add(self):
+        jsi = JSInterpreter('function f(){return 42 + 7;}')
+        self.assertEqual(jsi.call_function('f'), 49)
+        jsi = JSInterpreter('function f(){return 42 + undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 + null;}')
+        self.assertEqual(jsi.call_function('f'), 42)
+
+    def test_sub(self):
+        jsi = JSInterpreter('function f(){return 42 - 7;}')
+        self.assertEqual(jsi.call_function('f'), 35)
+        jsi = JSInterpreter('function f(){return 42 - undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 - null;}')
+        self.assertEqual(jsi.call_function('f'), 42)
+
+    def test_mul(self):
+        jsi = JSInterpreter('function f(){return 42 * 7;}')
+        self.assertEqual(jsi.call_function('f'), 294)
+        jsi = JSInterpreter('function f(){return 42 * undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 * null;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+
+    def test_div(self):
+        jsi = JSInterpreter('function f(a, b){return a / b;}')
+        self.assertTrue(math.isnan(jsi.call_function('f', 0, 0)))
+        self.assertTrue(math.isnan(jsi.call_function('f', JS_Undefined, 1)))
+        self.assertTrue(math.isinf(jsi.call_function('f', 2, 0)))
+        self.assertEqual(jsi.call_function('f', 0, 3), 0)
+
+    def test_mod(self):
+        jsi = JSInterpreter('function f(){return 42 % 7;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+        jsi = JSInterpreter('function f(){return 42 % 0;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 % undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+
+    def test_exp(self):
+        jsi = JSInterpreter('function f(){return 42 ** 2;}')
+        self.assertEqual(jsi.call_function('f'), 1764)
+        jsi = JSInterpreter('function f(){return 42 ** undefined;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
+        jsi = JSInterpreter('function f(){return 42 ** null;}')
+        self.assertEqual(jsi.call_function('f'), 1)
+        jsi = JSInterpreter('function f(){return undefined ** 42;}')
+        self.assertTrue(math.isnan(jsi.call_function('f')))
 
     def test_empty_return(self):
         jsi = JSInterpreter('function f(){return; y()}')
@@ -442,10 +492,12 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/; "".replace(a, ""); return a; }
         ''')
-        attrs = set(('findall', 'finditer', 'flags', 'groupindex',
-                     'groups', 'match', 'pattern', 'scanner',
-                     'search', 'split', 'sub', 'subn'))
-        self.assertTrue(set(dir(jsi.call_function('x'))) > attrs)
+        attrs = set(('findall', 'finditer', 'match', 'scanner', 'search',
+                     'split', 'sub', 'subn'))
+        if sys.version_info >= (2, 7):
+            # documented for 2.6 but may not be found
+            attrs.update(('flags', 'groupindex', 'groups', 'pattern'))
+        self.assertSetEqual(set(dir(jsi.call_function('x'))) & attrs, attrs)
 
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/i; return a; }
@@ -504,6 +556,30 @@ class TestJSInterpreter(unittest.TestCase):
 
         jsi = JSInterpreter('function x(){return 1236566549 << 5}')
         self.assertEqual(jsi.call_function('x'), 915423904)
+
+    def test_bitwise_operators_madness(self):
+        jsi = JSInterpreter('function x(){return null << 5}')
+        self.assertEqual(jsi.call_function('x'), 0)
+
+        jsi = JSInterpreter('function x(){return undefined >> 5}')
+        self.assertEqual(jsi.call_function('x'), 0)
+
+        jsi = JSInterpreter('function x(){return 42 << NaN}')
+        self.assertEqual(jsi.call_function('x'), 42)
+
+        jsi = JSInterpreter('function x(){return 42 << Infinity}')
+        self.assertEqual(jsi.call_function('x'), 42)
+
+    def test_32066(self):
+        jsi = JSInterpreter("function x(){return Math.pow(3, 5) + new Date('1970-01-01T08:01:42.000+08:00') / 1000 * -239 - -24205;}")
+        self.assertEqual(jsi.call_function('x'), 70)
+
+    def test_unary_operators(self):
+        jsi = JSInterpreter('function f(){return 2  -  - - 2;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+        # fails
+        # jsi = JSInterpreter('function f(){return 2 + - + - - 2;}')
+        # self.assertEqual(jsi.call_function('f'), 0)
 
     """ # fails so far
     def test_packed(self):
