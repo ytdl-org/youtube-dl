@@ -21,6 +21,9 @@ from ..utils import (
 )
 
 
+def txt_or_none(v, default=None):
+    return default if v is None else (compat_str(v).strip() or default)
+
 if not hasattr(InfoExtractor, '_match_valid_url'):
 
     import sys
@@ -34,9 +37,6 @@ if not hasattr(InfoExtractor, '_match_valid_url'):
         NO_DEFAULT,
         RegexNotFoundError,
     )
-
-    def txt_or_none(v, default=None):
-        return default if v is None else (compat_str(v).strip() or default)
 
     BaseIE = InfoExtractor
 
