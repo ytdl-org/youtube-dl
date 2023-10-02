@@ -5,7 +5,10 @@ import itertools
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_kwargs,
+    compat_str,
+)
 from ..utils import (
     clean_html,
     determine_ext,
@@ -23,7 +26,28 @@ from ..utils import (
 )
 
 
-class XHamsterIE(InfoExtractor):
+class XHamsterBaseIE(InfoExtractor):
+    def _download_webpage_handle(self, url, video_id, *args, **kwargs):
+        # note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None)
+        # default UA to 'Mozilla' (only) to avoid interstitial page
+        headers = (args[5] if len(args) > 5 else kwargs.get('headers'))
+        if 'User-Agent' not in (headers or {}):
+            if len(args) > 5:
+                args = list(args)
+                headers = headers or {}
+                args[5] = headers
+            elif not isinstance(headers, dict):
+                headers = {}
+            headers['User-Agent'] = 'Mozilla'
+            if len(args) <= 5:
+                if not kwargs.get('headers'):
+                    kwargs['headers'] = headers
+                kwargs = compat_kwargs(kwargs)
+        return super(XHamsterBaseIE, self)._download_webpage_handle(
+            url, video_id, *args, **kwargs)
+
+
+class XHamsterIE(XHamsterBaseIE):
     _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
     _VALID_URL = r'''(?x)
                     https?://
@@ -377,7 +401,7 @@ class XHamsterIE(InfoExtractor):
         }
 
 
-class XHamsterEmbedIE(InfoExtractor):
+class XHamsterEmbedIE(XHamsterBaseIE):
     _VALID_URL = r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % XHamsterIE._DOMAINS
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
