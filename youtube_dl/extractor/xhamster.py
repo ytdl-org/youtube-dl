@@ -48,7 +48,17 @@ class XHamsterBaseIE(InfoExtractor):
 
 
 class XHamsterIE(XHamsterBaseIE):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
+    # base domains that don't redirect to xhamster.com (not xhday\d\.com, eg)
+    _DOMAINS = '(?:%s)' % '|'.join((
+        r'xhamster\d*\.(?:com|desi)',
+        r'xhamster\.one',
+        r'xhms\.pro',
+        r'xh(?:open|access|victory|big|channel)\.com',
+        r'(?:full|mega)xh\.com',
+        r'xh(?:vid|official|planet)\d*\.com',
+        # requires Tor
+        r'xhamster[a-z2-7]+\.onion',
+    ))
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
@@ -145,9 +155,7 @@ class XHamsterIE(XHamsterBaseIE):
         'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
         'only_matching': True,
     }, {
-        'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
-        'only_matching': True,
-    }, {
+        # 'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
         'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
         'only_matching': True,
     }]
@@ -458,9 +466,8 @@ class XHamsterUserIE(InfoExtractor):
         },
         'playlist_mincount': 1,
     }, {
-        'url': 'https://xhday.com/users/mobhunter',
-        'only_matching': True,
-    }, {
+        # the below doesn't match but is redirected via generic
+        # 'url': 'https://xhday.com/users/mobhunter',
         'url': 'https://xhvid.com/users/pelushe21',
         'only_matching': True,
     }]
