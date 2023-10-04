@@ -502,7 +502,9 @@ class XHamsterPlaylistIE(XHamsterBaseIE):
 
 
 class XHamsterUserIE(XHamsterPlaylistIE):
-    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)(?:/videos/(?P<pnum>\d+))?' % XHamsterIE._DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)(?P<sub>/favorites)?(?:/videos/(?P<pnum>\d+))?' % cls._DOMAINS)
     _PAGE_URL_TPL = 'https://xhamster.com/users/%s/videos/%s'
     _TESTS = [{
         # Paginated user profile
@@ -525,10 +527,27 @@ class XHamsterUserIE(XHamsterPlaylistIE):
         'url': 'https://xhamster.com/users/firatkaan/videos',
         'info_dict': {
             'id': 'firatkaan',
+            'title': 'firatkaan (all)',
         },
         'playlist_mincount': 1,
     }, {
-        # the below doesn't match but is redirected via generic
+        # User with `favorites`
+        'url': 'https://xhamster.com/users/cubafidel/videos/',
+        'info_dict': {
+            'id': 'cubafidel',
+            'title': 'cubafidel (all)',
+        },
+        'playlist_maxcount': 300,
+    }, {
+        # Faves of user with `favorites`
+        'url': 'https://xhamster.com/users/cubafidel/favorites/videos/',
+        'info_dict': {
+            'id': 'cubafidel',
+            'title': 'cubafidel (favorites,all)',
+        },
+        'playlist_mincount': 400,
+    }, {
+        # below URL doesn't match but is redirected via generic
         # 'url': 'https://xhday.com/users/mobhunter',
         'url': 'https://xhvid.com/users/pelushe21',
         'only_matching': True,
