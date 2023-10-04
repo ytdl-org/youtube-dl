@@ -12,6 +12,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    classpropinit,
     clean_html,
     determine_ext,
     extract_attributes,
@@ -32,6 +33,18 @@ from ..utils import (
 
 
 class XHamsterBaseIE(InfoExtractor):
+    # base domains that don't redirect to xhamster.com (not xhday\d\.com, eg)
+    _DOMAINS = '(?:%s)' % '|'.join((
+        r'xhamster\d*\.(?:com|desi)',
+        r'xhamster\.one',
+        r'xhms\.pro',
+        r'xh(?:open|access|victory|big|channel)\.com',
+        r'(?:full|mega)xh\.com',
+        r'xh(?:vid|official|planet)\d*\.com',
+        # requires Tor
+        r'xhamster[a-z2-7]+\.onion',
+    ))
+
     def _download_webpage_handle(self, url, video_id, *args, **kwargs):
         # note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None)
         # default UA to 'Mozilla' (only) to avoid interstitial page
@@ -53,25 +66,16 @@ class XHamsterBaseIE(InfoExtractor):
 
 
 class XHamsterIE(XHamsterBaseIE):
-    # base domains that don't redirect to xhamster.com (not xhday\d\.com, eg)
-    _DOMAINS = '(?:%s)' % '|'.join((
-        r'xhamster\d*\.(?:com|desi)',
-        r'xhamster\.one',
-        r'xhms\.pro',
-        r'xh(?:open|access|victory|big|channel)\.com',
-        r'(?:full|mega)xh\.com',
-        r'xh(?:vid|official|planet)\d*\.com',
-        # requires Tor
-        r'xhamster[a-z2-7]+\.onion',
-    ))
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:.+?\.)?%s/
-                        (?:
-                            movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
-                        )
-                    ''' % _DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+            r'''(?x)
+                https?://
+                    (?:.+?\.)?%s/
+                    (?:
+                        movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
+                        videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
+                    )
+            ''' % cls._DOMAINS)
     _TESTS = [{
         'url': 'https://xhamster.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
         'md5': '34e1ab926db5dc2750fed9e1f34304bb',
@@ -379,7 +383,9 @@ class XHamsterIE(XHamsterBaseIE):
 
 
 class XHamsterEmbedIE(XHamsterBaseIE):
-    _VALID_URL = r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % XHamsterIE._DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % cls._DOMAINS)
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
         'info_dict': {
@@ -421,6 +427,12 @@ class XHamsterEmbedIE(XHamsterBaseIE):
 
 class XHamsterPlaylistIE(XHamsterBaseIE):
     _NEXT_PAGE_RE = r'(<a\b[^>]+\bdata-page\s*=\s*["\']next[^>]+>)'
+    _VALID_URL_TPL = r'''(?x)
+        https?://(?:.+?\.)?%s
+                /%s/(?P<id>[^/?#]+)
+                (?:(?P<sub>(?:/%s)+))?
+                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
+    '''
 
     def _page_url(self, user_id, page_num, url=None):
         return self._PAGE_URL_TPL % (user_id, page_num)
@@ -525,13 +537,13 @@ class XHamsterUserIE(XHamsterPlaylistIE):
 
 class XHamsterCreatorIE(XHamsterPlaylistIE):
     # `pornstars`, `celebrities` and `creators` share the same namespace
-    _VALID_URL = r'''(?x)
-        https?://(?:.+?\.)?%s
-                /(?:(?:gay|shemale)/)?(?:creators|pornstars|celebrities)
-                /(?P<id>[^/?#]+)
-                (?:(?P<sub>(?:/(?:hd|4k|newest|full-length|exclusive))+))?
-                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
-    ''' % XHamsterIE._DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?:gay|shemale)/)?(?:creators|pornstars|celebrities)',
+            r'(?:hd|4k|newest|full-length|exclusive|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
     _PAGE_URL_TPL = 'https://xhamster.com/creators/%s/%s'
     _TESTS = [{
         # Paginated creator profile
@@ -578,13 +590,13 @@ class XHamsterCreatorIE(XHamsterPlaylistIE):
 
 class XHamsterCategoryIE(XHamsterPlaylistIE):
     # `tags` and `categories` share the same namespace
-    _VALID_URL = r'''(?x)
-        https?://(?:.+?\.)?%s
-                (?:(?P<queer>gay|shemale)/)?(?:/categories|/tags|(?=/hd))
-                /(?P<id>[^/?#]+)
-                (?P<sub>(?:/(?:hd|4k|producer|creator|best(?:/(?:weekly|monthly|year-\d{4}))?))+)?
-                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
-    ''' % XHamsterIE._DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?P<queer>gay|shemale)/)?(?:categories|tags|(?=hd))',
+            r'(?:hd|4k|producer|creator|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
     _PAGE_URL_TPL = 'https://xhamster.com/categories/%s/%s'
     _NEXT_PAGE_RE = r'(<a\b[^>]+\bclass\s*=\s*("|\')(?:[\w-]+\s+)*?prev-next-list-link--next(?:\s+[\w-]+)*\2[^>]+>)'
     _TESTS = [{
@@ -640,10 +652,12 @@ class XHamsterCategoryIE(XHamsterPlaylistIE):
 
 
 class XHamsterSearchIE(XHamsterPlaylistIE):
-    _VALID_URL = r'''(?x)
-        https?://(?:.+?\.)?%s
-                /search/(?P<id>[^/?#]+)
-    ''' % XHamsterIE._DOMAINS
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'''(?x)
+            https?://(?:.+?\.)?%s
+                    /search/(?P<id>[^/?#]+)
+        ''' % cls._DOMAINS)
     _TESTS = [{
         # Single page result
         'url': 'https://xhamster.com/search/latvia',
