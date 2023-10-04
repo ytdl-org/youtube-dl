@@ -6540,3 +6540,33 @@ class classproperty(object):
         elif cls not in self._cache:
             self._cache[cls] = self.func(cls)
         return self._cache[cls]
+
+
+class classpropinit(classproperty):
+    """ A Python fubar: parent class vars are not in scope when the
+        `class suite` is evaluated, so disallowing `childvar = fn(parentvar)`.
+        Instead, the parent class has to be mentioned redundantly and
+        unmaintainably, since the current class isn't yet bound.
+        This decorator evaluates a class method and assigns its result
+        in place of the method.
+
+        class child(parent):
+            # before
+            childvar = fn(parent.parentvar)
+            # now
+            @classpropinit
+            def childvar(cls):
+                return fn(cls.parentvar)
+            # or
+            childvar = classpropinit(lambda cls: fn(cls.parentvar))
+    """
+
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.name = func.__name__
+        self.func = func
+
+    def __get__(self, _, cls):
+        val = self.func(cls)
+        setattr(cls, self.name, val)
+        return val
