@@ -1603,6 +1603,7 @@ from .xhamster import (
     XHamsterIE,
     XHamsterEmbedIE,
     XHamsterCategoryIE,
+    XHamsterChannelIE,
     XHamsterCreatorIE,
     XHamsterSearchIE,
     XHamsterSearchKeyIE,

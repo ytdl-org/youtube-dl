@@ -23,6 +23,7 @@ from ..utils import (
     merge_dicts,
     parse_duration,
     parse_qs,
+    remove_start,
     T,
     traverse_obj,
     txt_or_none,
@@ -434,8 +435,12 @@ class XHamsterPlaylistIE(XHamsterBaseIE):
                 (?:/(?P<pnum>\d+))?(?:[/?#]|$)
     '''
 
-    def _page_url(self, user_id, page_num, url=None):
-        return self._PAGE_URL_TPL % (user_id, page_num)
+    def _page_url(self, user_id, subs, page_num, url):
+        n_url = self._PAGE_URL_TPL % (
+            join_nonempty(user_id, *subs, delim='/'), page_num)
+        n_url = compat_urlparse.urlsplit(n_url)
+        url = compat_urlparse.urlsplit(url)
+        return compat_urlparse.urlunsplit(n_url[:3] + url[3:])
 
     def _extract_entries(self, page, user_id):
         for video_tag_match in re.finditer(
@@ -454,9 +459,9 @@ class XHamsterPlaylistIE(XHamsterBaseIE):
             self._search_regex(self._NEXT_PAGE_RE, page, 'next page', default=None),
             (T(extract_attributes), 'href', T(url_or_none)))
 
-    def _entries(self, user_id, page_num=None, page=None, url=None):
+    def _entries(self, user_id, subs, page_num=None, page=None, url=None):
         page_1 = 1 if page_num is None else page_num
-        next_page_url = self._page_url(user_id, page_1, url)
+        next_page_url = self._page_url(user_id, subs, page_1, url)
         for pagenum in itertools.count(page_1):
             if not page:
                 page = self._download_webpage(
@@ -475,30 +480,22 @@ class XHamsterPlaylistIE(XHamsterBaseIE):
                 break
             page = None
 
-    def _fancy_page_url(self, user_id, page_num, url):
-        sub = self._match_valid_url(url).group('sub')
-        n_url = self._PAGE_URL_TPL % (
-            join_nonempty(user_id, sub, delim='/'), page_num)
-        return compat_urlparse.urljoin(n_url, url)
-
-    def _fancy_get_title(self, user_id, page_num, url):
-        sub = self._match_valid_url(url).group('sub')
-        sub = (sub or '').split('/')
-        sub.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
-        sub.append('all' if page_num is None else ('p%d' % page_num))
-        return '%s (%s)' % (user_id, join_nonempty(*sub, delim=','))
-
     @staticmethod
-    def _get_title(user_id, page_num, url=None):
-        return '%s (%s)' % (user_id, 'all' if page_num is None else ('p%d' % page_num))
+    def _get_title(user_id, subs, page_num, url):
+        subs = subs[:]
+        if url:
+            subs.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        subs.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*subs, delim=','))
 
     def _real_extract(self, url):
-        mobj = self._match_valid_url(url)
-        user_id = mobj.group('id')
-        page_num = int_or_none(mobj.groupdict().get('pnum'))
+        mobj = self._match_valid_url(url).groupdict()
+        user_id = mobj['id']
+        page_num = int_or_none(mobj.get('pnum'))
+        subs = remove_start(mobj.get('sub') or '', '/').split('/')
         return self.playlist_result(
-            self._entries(user_id, page_num, url=url), user_id,
-            self._get_title(user_id, page_num, url=url))
+            self._entries(user_id, subs, page_num, url=url), user_id,
+            self._get_title(user_id, subs, page_num, url=url))
 
 
 class XHamsterUserIE(XHamsterPlaylistIE):
@@ -600,14 +597,57 @@ class XHamsterCreatorIE(XHamsterPlaylistIE):
         'playlist_maxcount': 30,
     }]
 
-    def _page_url(self, user_id, page_num, url):
-        return self._fancy_page_url(user_id, page_num, url)
 
-    def _get_title(self, user_id, page_num, url):
-        return self._fancy_get_title(user_id, page_num, url)
+class XHamsterChannelBaseIE(XHamsterPlaylistIE):
+    _NEXT_PAGE_RE = r'(<a\b[^>]+\bclass\s*=\s*("|\')(?:[\w-]+\s+)*?prev-next-list-link--next(?:\s+[\w-]+)*\2[^>]+>)'
 
 
-class XHamsterCategoryIE(XHamsterPlaylistIE):
+class XHamsterChannelIE(XHamsterChannelBaseIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?:gay|shemale)/)?channels',
+            r'(?:hd|4k|newest|full-length|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
+    _PAGE_URL_TPL = 'https://xhamster.com/channels/%s/%s'
+    _TESTS = [{
+        # Paginated channel
+        'url': 'https://xhamster.com/channels/freeuse-fantasy',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (all)',
+        },
+        'playlist_mincount': 90,
+    }, {
+        # Non-paginated channel (for now?)
+        'url': 'https://xhamster.com/channels/oopsie',
+        'info_dict': {
+            'id': 'oopsie',
+            'title': 'oopsie (all)',
+        },
+        'playlist_mincount': 30,
+        'playlist_maxcount': 48,
+    }, {
+        # Channel filtered by path
+        'url': 'https://xhamster.com/channels/freeuse-fantasy/best/year-2022',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (best,year-2022,all)',
+        },
+        'playlist_count': 30,
+    }, {
+        # Channel filtered by query
+        'url': 'https://xhamster.com/channels/freeuse-fantasy?min-duration=40',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (min-duration=40,all)',
+        },
+        'playlist_maxcount': 10,
+    }]
+
+
+class XHamsterCategoryIE(XHamsterChannelBaseIE):
     # `tags` and `categories` share the same namespace
     _VALID_URL = classpropinit(
         lambda cls:
@@ -617,7 +657,6 @@ class XHamsterCategoryIE(XHamsterPlaylistIE):
             r'(?:hd|4k|producer|creator|best(?:/(?:weekly|monthly|year-\d{4}))?)',
         ))
     _PAGE_URL_TPL = 'https://xhamster.com/categories/%s/%s'
-    _NEXT_PAGE_RE = r'(<a\b[^>]+\bclass\s*=\s*("|\')(?:[\w-]+\s+)*?prev-next-list-link--next(?:\s+[\w-]+)*\2[^>]+>)'
     _TESTS = [{
         # Paginated category/tag
         'url': 'https://xhamster.com/tags/hawaiian',
@@ -655,19 +694,19 @@ class XHamsterCategoryIE(XHamsterPlaylistIE):
         'playlist_maxcount': 20,
     }]
 
-    def _page_url(self, user_id, page_num, url):
-        queer, sub = self._match_valid_url(url).group('queer', 'sub')
+    def _page_url(self, user_id, subs, page_num, url):
+        queer = self._match_valid_url(url).group('queer')
         n_url = self._PAGE_URL_TPL % (
-            join_nonempty(queer, user_id, sub, delim='/'), page_num)
+            join_nonempty(queer, user_id, *subs, delim='/'), page_num)
         return compat_urlparse.urljoin(n_url, url)
 
-    def _get_title(self, user_id, page_num, url):
-        queer, sub = self._match_valid_url(url).group('queer', 'sub')
-        queer = [] if queer is None else [queer]
-        sub = queer + (sub or '').split('/')
-        sub.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
-        sub.append('all' if page_num is None else ('p%d' % page_num))
-        return '%s (%s)' % (user_id, join_nonempty(*sub, delim=','))
+    def _get_title(self, user_id, subs, page_num, url):
+        queer = self._match_valid_url(url).group('queer')
+        if queer:
+            subs = [queer] + subs
+        subs.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        subs.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*subs, delim=','))
 
 
 class XHamsterSearchIE(XHamsterPlaylistIE):
@@ -705,20 +744,20 @@ class XHamsterSearchIE(XHamsterPlaylistIE):
     }]
 
     @staticmethod
-    def _page_url(user_id, page_num, url):
+    def _page_url(user_id, subs, page_num, url):
         return url
 
-    def _get_title(self, user_id, page_num, url=None):
+    def _get_title(self, user_id, subs, page_num, url=None):
         return super(XHamsterSearchIE, self)._get_title(
-            user_id.replace('+', ' '), page_num, url)
+            user_id.replace('+', ' '), [], page_num, url)
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
         page_num = traverse_obj(url, (
             T(parse_qs), 'page', -1, T(int_or_none)))
         return self.playlist_result(
-            self._entries(user_id, page_num, url=url), user_id,
-            self._get_title(user_id, page_num))
+            self._entries(user_id, None, page_num, url=url), user_id,
+            self._get_title(user_id, None, page_num))
 
 
 class XHamsterSearchKeyIE(SearchInfoExtractor, XHamsterSearchIE):
