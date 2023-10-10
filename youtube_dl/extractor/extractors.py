@@ -726,6 +726,7 @@ from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
 from .movingimage import MovingImageIE
 from .msn import MSNIE
+from .mtvaarchivum import MtvaArchivumIE
 from .mtv import (
     MTVIE,
     MTVVideoIE,
