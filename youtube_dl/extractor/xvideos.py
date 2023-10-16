@@ -274,110 +274,201 @@ class XVideosIE(InfoExtractor):
             'channel_url': uploader_url,
         } if '/channels/' in (uploader_url or '') else {})
 
-class XVideosPlaylistIE(InfoExtractor):
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:[^/]+\.)?xvideos2?\.com/
-                          (?:c(?:/[sm]:[^/]+)*|
-                             profiles|
-                             favorite)/
-                            (?P<id>[^#?/]+)
-                  '''
-    _TESTS = []
 
+class XVideosPlaylistBaseIE(InfoExtractor):
     def _extract_videos_from_json_list(self, json_list, path='video'):
-        return (
-            'https://www.xvideos.com/%s%d' % (path, x.get('id'), )
-            for x in json_list if isinstance(x, dict))
+        return traverse_obj(json_list, (
+            Ellipsis, 'id', T(int_or_none),
+            T(lambda x: self.url_result('https://www.xvideos.com/%s%d' % (path, x)))))
 
     def _get_playlist_url(self, url, playlist_id):
         """URL of first playlist page"""
-        id_match = re.match(self._VALID_URL, url).groupdict()
-        video_sort = id_match.get('sort')
-        if video_sort:
-            url, _ = compat_urlparse.urldefrag(url)
-            if url.endswith('/'):
-                url = url[:-1]
-            url = '%s/%s' % (url, video_sort.replace('-', '/'))
         return url
+
+    def _get_playlist_id(self, playlist_id, **kwargs):
+        pnum = kwargs.get('pnum')
+        return join_nonempty(playlist_id, pnum, delim='/')
+
+    def _can_be_paginated(self, playlist_id):
+        return False
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        """title of playlist"""
+        title = (
+            self._og_search_title(page, default=None)
+            or self._html_search_regex(
+                r'<title\b[^>]*>([^<]+?)(?:\s+-\s+XVIDEOS\.COM)?</title>',
+                page, 'title', default=None)
+            or 'XVideos playlist %s' % playlist_id)
+        pnum = kwargs.get('pnum')
+        pnum = ('p%s' % pnum) if pnum is not None else (
+            'all' if self._can_be_paginated(playlist_id) else None)
+        if pnum:
+            title = '%s (%s)' % (title, pnum)
+        return title
+
+    def _get_description(self, page, playlist_id):
+        return None
 
     def _get_next_page(self, url, num, page):
         '''URL of num'th continuation page of url'''
         if page.startswith('{'):
             url, sub = re.subn(r'(/)(\d{1,7})($|[#?/])', r'\g<1>%d\3' % (num, ), url)
             if sub == 0:
-                url += '/%d' % (num, )
+                url += '/%d' % num
             return url
-        next_page = self._search_regex(
-            r'''(?s)(<a\s[^>]*?\bclass\s*=\s*(?P<q>'|").*?\bnext-page\b.*?(?P=q)[^>]*?>)''',
-            page, 'next page', default=None)
-        if next_page:
-            next_page = extract_attributes(next_page)
-            next_page = next_page.get('href')
-            if next_page:
-                return urljoin(url, next_page)
-        return False
+        return traverse_obj(
+            self._search_regex(
+                r'''(?s)(<a\s[^>]*?\bclass\s*=\s*(?P<q>'|")[^>]*?\bnext-page\b.*?(?P=q)[^>]*>)''',
+                page, 'next page', default=None),
+            (T(extract_attributes), 'href', T(lambda u: urljoin(url, u)))) or False
 
     def _extract_videos(self, url, playlist_id, num, page):
-        """Get iterable videos plus stop flag"""
-        return ((
-            'https://www.xvideos.com/video' + x.group('video_id')
-            for x in re.finditer(r'''<div\s[^>]*?id\s*=\s*(\'|")video_(?P<video_id>[0-9]+)\1''', page)),
+        """Get iterable video entries plus stop flag"""
+        return (
+            traverse_obj(
+                re.finditer(
+                    r'''<div\s[^>]*?id\s*=\s*(\'|")video_(?P<video_id>[0-9]+)\1''', page),
+                (Ellipsis, 'video_id', T(lambda x: self.url_result('xvideos:' + x, ie=XVideosIE.ie_key())))),
             None)
 
     def _real_extract(self, url):
-        id_match = re.match(self._VALID_URL, url).groupdict()
-
-        playlist_id = id_match['id']
-        if url.endswith(playlist_id):
-            url += '/0'
+        mobj = self._match_valid_url(url)
+        playlist_id = mobj.group('id')
+        pnum = mobj.groupdict().get('pnum')
+        webpage = self._download_webpage(url, playlist_id, fatal=False) or ''
         next_page = self._get_playlist_url(url, playlist_id)
-        matches = []
-        for count in itertools.count(0):
-            webpage = self._download_webpage(
-                next_page,
-                '%s (+%d)' % (playlist_id, count) if count > 0 else playlist_id)
+        playlist_id = self._get_playlist_id(playlist_id, pnum=pnum, url=url)
 
-            vids, stop = self._extract_videos(next_page, playlist_id, count, webpage)
+        def entries(url, webpage):
+            next_page = url
+            ids = set()
+            for count in itertools.count(0):
+                if not webpage:
+                    webpage = self._download_webpage(
+                        next_page,
+                        '%s (+%d)' % (playlist_id, count) if count > 0 else playlist_id)
 
-            if vids:
-                matches.append(vids)
+                vids, stop = self._extract_videos(next_page, playlist_id, count, webpage)
 
-            if stop:
-                break
-            next_page = self._get_next_page(next_page, count + 1, webpage)
-            if not next_page:
-                break
+                for from_ in vids:
+                    h_id = hash(from_['url'])
+                    if h_id not in ids:
+                        yield from_
+                        ids.add(h_id)
 
-        return self.playlist_from_matches(
-            itertools.chain.from_iterable(matches), playlist_id)
+                if stop or pnum is not None:
+                    break
+                next_page = self._get_next_page(next_page, count + 1, webpage)
+                if not next_page:
+                    break
+                webpage = None
+
+        playlist_title = self._get_title(webpage, playlist_id, pnum=pnum)
+        # text may have a final + as an expand widget
+        description = remove_end(self._get_description(webpage, playlist_id), '+')
+
+        return merge_dicts(self.playlist_result(
+            LazyList(entries(next_page, webpage if next_page == url else None)),
+            playlist_id, playlist_title), {
+                'description': description,
+        })
 
 
-class XVideosRelatedIE(XVideosPlaylistIE):
+class XVideosRelatedIE(XVideosPlaylistBaseIE):
+    IE_DESC = 'Related videos/playlists in the respective tabs of a video page'
     _VALID_URL = XVideosIE._VALID_URL + r'(?:/[^/]+)*?\#_related-(?P<related>videos|playlists)'
 
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://www.xvideos.com/video46474569/solo_girl#_related-videos',
+        'info_dict': {
+            'id': '46474569/related/videos',
+            'title': 'solo girl (related videos)',
+        },
+        'playlist_mincount': 40,
+    }, {
+        'url': 'https://www.xvideos.com/video46474569/solo_girl#_related-playlists',
+        'info_dict': {
+            'id': '46474569/related/playlists',
+            'title': 'solo girl (related playlists)',
+        },
+        'playlist_mincount': 20,
+    }]
+
+    def _get_playlist_id(self, playlist_id, **kwargs):
+        url = kwargs.get('url')
+        return '/related/'.join((
+            playlist_id,
+            self._match_valid_url(url).group('related')))
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        return '%s (%s)' % (
+            super(XVideosRelatedIE, self)._get_title(page, playlist_id),
+            playlist_id.split('/', 1)[-1].replace('/', ' '))
 
     def _extract_videos(self, url, playlist_id, num, page):
-        id_match = re.match(self._VALID_URL, url).groupdict()
-        related = id_match.get('related')
+        related = playlist_id.rsplit('/', 1)[-1]
         if not related:
             return super(XVideosRelatedIE, self)._extract_videos(url, playlist_id, num, page)
 
         if related == 'videos':
             related_json = self._search_regex(
-                r'(?s)videos_related\s*=\s*(\[.*?])\s*;',
+                r'(?s)videos?_related\s*=\s*(\[.*?])\s*;',
                 page, 'related', default='[]')
             related_json = self._parse_json(related_json, playlist_id, fatal=False) or []
             return (self._extract_videos_from_json_list(related_json), True)
         # playlists
         related_json = self._download_json(
-            'https://www.xvideos.com/video-playlists/' + playlist_id, playlist_id, fatal=False)
+            'https://www.xvideos.com/video-playlists/' + playlist_id.split('/', 1)[0], playlist_id, fatal=False)
         return (
             self._extract_videos_from_json_list(
-                try_get(related_json, lambda x: x['playlists'], list) or [],
+                traverse_obj(related_json, ('playlists', Ellipsis)),
                 path='favorite/'),
             True)
+
+
+class XVideosPlaylistIE(XVideosPlaylistBaseIE):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:[^/]+\.)?xvideos\d*\.com/
+                          (?P<id>gay|shemale|best(?:/\d{4}-\d{2})|(?P<fav>favorite)/\d+)(?:(?(fav)[\w-]+/|)/(?P<pnum>\d+))?
+                  '''
+    _TESTS = [{
+        'url': 'https://www.xvideos.com/best/2023-08/4',
+        'info_dict': {
+            'id': 'best/2023-08/4',
+            'title': 'Playlist best (2023-08, p4)',
+        },
+        'playlist_count': 27,
+    }, {
+        'url': 'https://www.xvideos.com/favorite/84800989/mental_health',
+        'info_dict': {
+            'id': 'favorite/84800989',
+            'title': 'Playlist favorite/84800989',
+        },
+        'playlist_count': 5,
+    }]
+
+    def _can_be_paginated(self, playlist_id):
+        return True
+
+    def _get_playlist_url(self, url, playlist_id):
+        if url.endswith(playlist_id):
+            url += '/0'
+        return super(XVideosPlaylistIE, self)._get_playlist_url(url, playlist_id)
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        pl_id = playlist_id.split('/')
+        if pl_id[0] == 'favorite':
+            pl_id[0] = '/'.join(pl_id[:2])
+            del pl_id[1]
+        pnum = int_or_none(pl_id[-1])
+        if pnum is not None:
+            pl_id[-1] = ' p%d' % pnum
+        title = 'Playlist ' + pl_id[0]
+        if len(pl_id) > 1:
+            title = '%s (%s)' % (title, ','.join(pl_id[1:]))
+        return title
 
 
 class XVideosChannelIE(XVideosPlaylistIE):
