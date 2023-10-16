@@ -1626,6 +1626,7 @@ from .xvideos import (
     XVideosPlaylistIE,
     XVideosRelatedIE,
     XVideosSearchIE,
+    XVideosSearchKeyIE,
 )
 from .xxxymovies import XXXYMoviesIE
 from .yahoo import (

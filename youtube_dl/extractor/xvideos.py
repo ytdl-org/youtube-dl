@@ -1008,3 +1008,38 @@ class XVideosSearchIE(XVideosPlaylistBaseIE):
         if sub:
             title = '%s (%s)' % (title, sub)
         return title
+
+
+class XVideosSearchKeyIE(SearchInfoExtractor, XVideosSearchIE):
+    _SEARCH_KEY = 'xvsearch'
+    _MAX_RESULTS = float('inf')
+    _TESTS = [{
+        'note': 'full search',
+        'url': 'xvsearchall:lithuania',
+        'info_dict': {
+            'id': 'lithuania',
+            'title': 'lithuania (all)',
+        },
+        'playlist_mincount': 75,
+    }, {
+        'note': 'Subset of paginated result',
+        'url': 'xvsearch50:lithuania',
+        'info_dict': {
+            'id': 'lithuania',
+            'title': 'lithuania (first 50)',
+        },
+        'playlist_count': 50,
+    }]
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+
+        result = XVideosSearchIE._real_extract(
+            self, 'https://www.xvideos.com/?k=' + query.replace(' ', '+'))
+
+        if not isinf(n):
+            result['entries'] = itertools.islice(result['entries'], n)
+            if result.get('title') is not None:
+                result['title'] = result['title'].replace('(all)', '(first %d)' % n)
+
+        return result
