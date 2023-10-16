@@ -1621,6 +1621,7 @@ from .xtube import XTubeUserIE, XTubeIE
 from .xuite import XuiteIE
 from .xvideos import (
     XVideosIE,
+    XVideosCategoryIE,
     XVideosChannelIE,
     XVideosPlaylistIE,
     XVideosRelatedIE,

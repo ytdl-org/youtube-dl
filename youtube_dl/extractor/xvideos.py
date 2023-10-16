@@ -471,6 +471,95 @@ class XVideosPlaylistIE(XVideosPlaylistBaseIE):
         return title
 
 
+class XVideosCategoryIE(XVideosPlaylistBaseIE):
+    _VALID_URL = r'''(?x)
+                     https?://
+                         (?:[^/]+\.)?xvideos\d*\.com/
+                         (?P<type>(?P<c>c)|tags)
+                         (?P<sub>(?:/[dmqs]:[\w-]+)*)/(?P<id>\w+(?(c)-\d+))
+                         (?:/(?P<pnum>\d+))?
+                 '''
+    _TESTS = [{
+        'note': 'videos in category for this month',
+        'url': 'https://www.xvideos.com/c/m:month/ASMR-229',
+        'info_dict': {
+            'id': 'c/ASMR-229/m:month',
+            'title': 'Category:ASMR (m=month)',
+        },
+        'playlist_mincount': 100,
+    }, {
+        'note': 'page 3 of videos in category for this month',
+        'url': 'https://www.xvideos.com/c/m:month/ASMR-229/2',
+        'info_dict': {
+            'id': 'c/ASMR-229/m:month/2',
+            'title': 'Category:ASMR (m=month,p3)',
+        },
+        'playlist_count': 27,
+    }, {
+        'note': 'videos tagged yiff',
+        'url': 'https://www.xvideos.com/tags/yiff',
+        'info_dict': {
+            'id': 'tags/yiff',
+            'title': 'Tag:yiff',
+        },
+        'playlist_mincount': 80,
+    }, {
+        'note': 'page 3 of videos tagged yiff',
+        'url': 'https://www.xvideos.com/tags/yiff/2',
+        'info_dict': {
+            'id': 'tags/yiff/2',
+            'title': 'Tag:yiff (p3)',
+        },
+        'playlist_count': 27,
+    }, {
+        'note': 'long videos tagged yiff',
+        'url': 'https://www.xvideos.com/tags/d:10-20min/yiff',
+        'info_dict': {
+            'id': 'tags/yiff/d:10-20min',
+            'title': 'Tag:yiff (d=10-20min)',
+        },
+        'playlist_mincount': 20,
+        'playlist_maxcount': 40,
+    }, {
+        'note': 'videos tagged yiff, longest first',
+        'url': 'https://www.xvideos.com/tags/s:length/yiff',
+        'info_dict': {
+            'id': 'tags/yiff/s:length',
+            'title': 'Tag:yiff (s=length)',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': r're:\d+',
+                'ext': 'mp4',
+                'title': r're:\w+',
+                'uploader': r're:\w+',
+                'age_limit': int,
+                'duration': 'lambda c: c >= 1321'  # for video 38266161
+            },
+        }],
+    }]
+
+    def _get_playlist_id(self, playlist_id, **kwargs):
+        url = kwargs['url']
+        c_type, sub = self._match_valid_url(url).group('type', 'sub')
+        sub = sub.split('/')
+        sub.append(kwargs.get('pnum'))
+        return join_nonempty(c_type, playlist_id, *sub, delim='/')
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        pl_id = playlist_id.split('/')
+        title = '%s:%s' % ((
+            'Category', pl_id[1].rsplit('-', 1)[0]) if pl_id[0] == 'c'
+            else ('Tag', pl_id[1]))
+        pnum = int_or_none(pl_id[-1])
+        if pnum:
+            pl_id[-1] = 'p%d' % (pnum + 1)
+        subs = ','.join(x.replace(':', '=', 1) for x in pl_id[2:])
+        if subs:
+            title = '%s (%s)' % (title, subs)
+        return title
+
+
 class XVideosChannelIE(XVideosPlaylistBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
