@@ -4,22 +4,39 @@ from __future__ import unicode_literals
 import re
 import itertools
 
-from .common import InfoExtractor
+from math import isinf
+
+from .common import (
+    InfoExtractor,
+    SearchInfoExtractor,
+)
 from ..compat import (
-    compat_parse_qs,
+    compat_kwargs,
     compat_str,
     compat_urlparse,
     compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
+    compat_urllib_request,
 )
 from ..utils import (
     clean_html,
     determine_ext,
     extract_attributes,
     ExtractorError,
+    get_element_by_class,
+    get_element_by_id,
+    get_elements_by_class,
     int_or_none,
+    join_nonempty,
+    LazyList,
+    merge_dicts,
+    parse_count,
     parse_duration,
-    try_get,
+    remove_end,
+    remove_start,
+    T,
+    traverse_obj,
+    try_call,
+    txt_or_none,
     url_basename,
     urljoin,
 )
@@ -27,14 +44,18 @@ from ..utils import (
 
 class XVideosIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            (?:[^/]+\.)?xvideos2?\.com/(?:video|prof-video-click/model/[^/]+/)|
-                            (?:www\.)?xvideos\.es/video|
-                            (?:www|flashservice)\.xvideos\.com/embedframe/|
-                            static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
-                        )
-                        (?P<id>\d+)
+                    (?:
+                        https?://
+                            (?:
+                                # xvideos\d+\.com redirects to xvideos.com
+                                # (?P<country>[a-z]{2})\.xvideos.com too: catch it anyway
+                                (?:[^/]+\.)?xvideos\.com/(?:video|prof-video-click/model/[^/]+/)|
+                                (?:www\.)?xvideos\.es/video|
+                                (?:www|flashservice)\.xvideos\.com/embedframe/|
+                                static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
+                            )|
+                        xvideos:
+                    )(?P<id>\d+)
                  '''
     _TESTS = [{
         'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
@@ -45,19 +66,51 @@ class XVideosIE(InfoExtractor):
             'title': 'Biker Takes his Girl',
             'duration': 108,
             'age_limit': 18,
-        }
+        },
+        'skip': 'Sorry, this video has been deleted',
+    }, {
+        'url': 'https://www.xvideos.com/video78250973/hot_blonde_gets_excited_in_the_middle_of_the_club.',
+        'md5': '0bc6e46ef55907533ffa0542e45958b6',
+        'info_dict': {
+            'id': '78250973',
+            'ext': 'mp4',
+            'title': 'Hot blonde gets excited in the middle of the club.',
+            'uploader': 'Deny Barbie Official',
+            'age_limit': 18,
+            'duration': 302,
+        },
     }, {
         # Broken HLS formats
         'url': 'https://www.xvideos.com/video65982001/what_s_her_name',
-        'md5': 'b82d7d7ef7d65a84b1fa6965f81f95a5',
+        'md5': '18ff7d57d4edc3c908fc5b06166dd63d',
         'info_dict': {
             'id': '65982001',
             'ext': 'mp4',
             'title': 'what\'s her name?',
-            'duration': 120,
+            'uploader': 'Skakdjskdk',
             'age_limit': 18,
-            'thumbnail': r're:^https://img-hw.xvideos-cdn.com/.+\.jpg',
+            'duration': 120,
+            'thumbnail': r're:^https://img-[a-z]+.xvideos-cdn.com/.+\.jpg',
         }
+    }, {
+        # from PR #30689
+        'url': 'https://www.xvideos.com/video50011247/when_girls_play_-_adriana_chechik_abella_danger_-_tradimento_-_twistys',
+        'md5': 'aa54f96311768b3a8bfe54b8c8fda070',
+        'info_dict': {
+            'id': '50011247',
+            'ext': 'mp4',
+            'title': 'When Girls Play - (Adriana Chechik, Abella Danger) - Betrayal - Twistys',
+            'duration': 720,
+            'age_limit': 18,
+            'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
+            'creator': 'Twistys',
+            'uploader': 'Twistys',
+            'uploader_url': 'https://www.xvideos.com/channels/twistys1',
+            'cast': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
+            'view_count': 'lambda c: c >= 4038715',
+            'like_count': 'lambda c: c >= 8800',
+            'dislike_count': 'lambda c: c >= 3100',
+        },
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
         'only_matching': True,
@@ -138,7 +191,7 @@ class XVideosIE(InfoExtractor):
         duration = int_or_none(self._og_search_property(
             'duration', webpage, default=None)) or parse_duration(
             self._search_regex(
-                r'<span[^>]+class=["\']duration["\'][^>]*>.*?(\d[^<]+)',
+                r'''<span [^>]*\bclass\s*=\s*["']duration\b[^>]+>.*?(\d[^<]+)''',
                 webpage, 'duration', fatal=False))
 
         formats = []
@@ -169,15 +222,57 @@ class XVideosIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        return {
+        # adapted from PR #30689
+        ignore_tags = set(('xvideos', 'xvideos.com', 'x videos', 'x video', 'porn', 'video', 'videos'))
+        tags = self._html_search_meta('keywords', webpage) or ''
+        tags = [t for t in re.split(r'\s*,\s*', tags) if t not in ignore_tags]
+
+        mobj = re.search(
+            r'''(?sx)
+                (?P<ul><a\b[^>]+\bclass\s*=\s*["'](?:[\w-]+\s+)*uploader-tag(?:\s+[\w-]+)*[^>]+>)
+                \s*<span\s+class\s*=\s*["']name\b[^>]+>\s*(?P<name>.+?)\s*<
+            ''', webpage)
+        creator = None
+        uploader_url = None
+        if mobj:
+            uploader_url = urljoin(url, extract_attributes(mobj.group('ul')).get('href'))
+            creator = mobj.group('name')
+
+        def get_actor_data(mobj):
+            ul_url = extract_attributes(mobj.group('ul')).get('href')
+            if '/pornstars/' in ul_url:
+                return {
+                    'given_name': mobj.group('name'),
+                    'url': urljoin(url, ul_url),
+                }
+
+        actors = traverse_obj(re.finditer(
+            r'''(?sx)
+                (?P<ul><a\b[^>]+\bclass\s*=\s*["'](?:[\w-]+\s+)*profile(?:\s+[\w-]+)*[^>]+>)
+                \s*<span\s+class\s*=\s*["']name\b[^>]+>\s*(?P<name>.+?)\s*<
+            ''', webpage), (Ellipsis, T(get_actor_data)))
+
+        return merge_dicts({
             'id': video_id,
             'formats': formats,
             'title': title,
-            'duration': duration,
-            'thumbnails': thumbnails,
             'age_limit': 18,
-        }
-
+        }, {
+            'duration': duration,
+            'thumbnails': thumbnails or None,
+            'tags': tags or None,
+            'creator': creator,
+            'uploader': creator,
+            'uploader_url': uploader_url,
+            'cast': actors or None,
+            'view_count': parse_count(get_element_by_class(
+                'mobile-hide', get_element_by_id('v-views', webpage))),
+            'like_count': parse_count(get_element_by_class('rating-good-nbr', webpage)),
+            'dislike_count': parse_count(get_element_by_class('rating-bad-nbr', webpage)),
+        }, {
+            'channel': creator,
+            'channel_url': uploader_url,
+        } if '/channels/' in (uploader_url or '') else {})
 
 class XVideosPlaylistIE(InfoExtractor):
     _VALID_URL = r'''(?x)
