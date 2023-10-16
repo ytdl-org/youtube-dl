@@ -934,24 +934,77 @@ class XVideosChannelIE(XVideosPlaylistBaseIE):
         return super(XVideosChannelIE, self)._real_extract(url)
 
 
-class XVideosSearchIE(XVideosPlaylistIE):
+class XVideosSearchIE(XVideosPlaylistBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:[^/]+\.)?xvideos2?\.com/
                           \?k=(?P<id>[^#?/&]+)
+                          (?:&[^&]+)*?(?:&p=(?P<pnum>\d+))?
                  '''
     _TESTS = [{
-        # uninteresting search with probably at least two pages of results,
-        # but not too many more
-        'url': 'http://www.xvideos.com/?k=libya&sort=length',
-        'playlist_mincount': 30,
-    }, ]
+        'note': 'paginated search result',
+        'url': 'http://www.xvideos.com/?k=lithuania',
+        'info_dict': {
+            'id': 'lithuania',
+            'title': 'lithuania (all)',
+        },
+        'playlist_mincount': 75,
+    }, {
+        'note': 'second page of paginated search result',
+        'url': 'http://www.xvideos.com/?k=lithuania&p=1',
+        'info_dict': {
+            'id': 'lithuania/1',
+            'title': 'lithuania (p2)',
+        },
+        'playlist_count': 27,
+    }, {
+        'note': 'search with sort',
+        'url': 'http://www.xvideos.com/?k=lithuania&sort=length',
+        'info_dict': {
+            'id': 'lithuania/sort=length',
+            'title': 'lithuania (sort=length,all)',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': r're:\d+',
+                'ext': 'mp4',
+                'title': r're:\w+',
+                'uploader': r're:\w+',
+                'age_limit': int,
+                'duration': 'lambda d: d >= 4954',  # for video 56455303:
+            },
+        }],
+    }]
 
-    def _get_next_page(self, url, num, page):
-        parsed_url = compat_urlparse.urlparse(url)
-        qs = compat_parse_qs(parsed_url.query)
-        qs['p'] = [num]
-        parsed_url = (
-            list(parsed_url[:4])
-            + [compat_urllib_parse_urlencode(qs, True), None])
-        return compat_urlparse.urlunparse(parsed_url), False
+    def _get_playlist_id(self, playlist_id, **kwargs):
+        url = kwargs['url']
+        sub = compat_urlparse.urlsplit(url).query
+        sub = re.sub(r'(^|&)k=[^&]+(?:&|$)', r'\1', sub)
+        sub = re.sub(r'(^|&)p=', r'\1', sub)
+        return join_nonempty(
+            playlist_id, sub.replace('&', '/') or None, delim='/')
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        pnum = int_or_none(kwargs.pop('pnum', None))
+        title = super(XVideosSearchIE, self)._get_title(page, playlist_id, **kwargs)
+        title, t_pnum = (title.split(', page ') + [None])[:2]
+        # actually, let's ignore the page title
+        title = playlist_id.split('/')
+        sub = title[1:]
+        title = title[0]
+        id_pnum = traverse_obj(sub, (
+            -1, T(lambda s: s.split('=')), -1, T(int_or_none)))
+        if id_pnum is not None:
+            del sub[-1]
+            if pnum is None:
+                pnum = id_pnum
+        if pnum is None:
+            t_pnum = int_or_none(t_pnum)
+            if t_pnum is not None:
+                pnum = t_pnum
+        sub.append(('p%s' % (pnum + 1)) if pnum is not None else 'all')
+
+        sub = join_nonempty(*sub, delim=',')
+        if sub:
+            title = '%s (%s)' % (title, sub)
+        return title
