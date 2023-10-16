@@ -471,49 +471,318 @@ class XVideosPlaylistIE(XVideosPlaylistBaseIE):
         return title
 
 
-class XVideosChannelIE(XVideosPlaylistIE):
+class XVideosChannelIE(XVideosPlaylistBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:[^/]+\.)?xvideos2?\.com/
                           (?:
                              (?:amateur-|pornstar-|model-)?channel|
-                             pornstar
+                             pornstar|model|profile
                           )s/
                             (?P<id>[^#?/]+)
-                              (?:\#_tab(?P<tab>Videos|Favorites|Playlists|AboutMe)(?:,(?P<sort>[^,]+))?)?
+                              (?:\#(?:
+                                (?P<qky>quickies)(?:/a/(?P<vid>\d+))?|
+                                _tab(?P<tab>Videos|Favorites|Playlists|AboutMe)
+                                    (?:,(?P<sort>new|rating|comments))?
+                                    (?:,page-(?P<pnum>\d+))?))?
                  '''
     _TESTS = [{
+        'note': 'pornstar-channels',
         'url': 'https://www.xvideos.com/pornstar-channels/sienna-west',
+        'info_dict': {
+            'id': 'sienna-west',
+            'title': 'Sienna West - Pornstar / Channel page',
+            'description': r're:Welcome to my official website SiennaWest\.com[\s\S]+!$',
+        },
         'playlist_mincount': 5,
-    }, ]
+    }, {
+        'note': 'amateur-channels, no explicit activity',
+        'url': 'https://www.xvideos.com/amateur-channels/linamigurtt',
+        'info_dict': {
+            'id': 'linamigurtt',
+            'title': 'Linamigurtt - Amateur / Channel page',
+            'description': 'Couple, Amateur, 22y',
+        },
+        'playlist_mincount': 30,
+    }, {
+        'note': 'amateur-channels, video tab explicitly selected',
+        'url': 'https://www.xvideos.com/amateur-channels/linamigurtt#_tabVideos',
+        'info_dict': {
+            'id': 'linamigurtt/videos',
+            'title': 'Linamigurtt - Amateur / Channel page (videos,all)',
+            'description': 'Couple, Amateur, 22y',
+        },
+        'playlist_mincount': 30,
+    },
+        # tests from https://github.com/yt-dlp/yt-dlp/pull/2515
+        {
+        'note': 'channels profile, video tab explicitly selected',
+        # not seen in  the wild? 'https://www.xvideos.com/channels/college_girls_gone_bad#_tabVideos,videos-best',
+        'url': 'https://www.xvideos.com/channels/college_girls_gone_bad#_tabVideos',
+        'info_dict': {
+            'id': 'college_girls_gone_bad/videos',
+            'title': 'College Girls Gone Bad - Channel page (videos,all)',
+            'description': 'Hot college girls in real sorority hazing acts!',
+        },
+        'playlist_mincount': 100,  # 9 fewer now
+    }, {
+        'note': 'model-channels profile, video tab explicitly selected',
+        # not seen in  the wild? 'https://www.xvideos.com/model-channels/shonariver#_tabVideos,videos-best',
+        'url': 'https://www.xvideos.com/model-channels/shonariver#_tabVideos',
+        'info_dict': {
+            'id': 'shonariver/videos',
+            'title': 'Shona River - Model / Channel page (videos,all)',
+            'description': r're:Thanks for taking an interest in me\. [\s\S]+filming all over the world\.',
+        },
+        'playlist_mincount': 183,  # fewer now
+    }, {
+        'note': 'amateur-channels, default tab',
+        'url': 'https://www.xvideos.com/amateur-channels/queanfuckingcucking',
+        'info_dict': {
+            'id': 'queanfuckingcucking',
+            'title': 'Queanfuckingcucking - Amateur / Channel page',
+            'description': r're:I’m a cuckquean (?:\w+\s+)+please me by pleasing other women',
+        },
+        'playlist_mincount': 8,
+    }, {
+        'note': 'profiles, default tab',
+        'url': 'https://www.xvideos.com/profiles/jacobsy',
+        'info_dict': {
+            'id': 'jacobsy',
+            'title': 'Jacobsy - Profile page',
+            'description': 'fetishist and bdsm lover...',
+        },
+        'playlist_mincount': 84,
+    }, {
+        'note': 'profiles, no description',  # and now, no videos
+        'url': 'https://www.xvideos.com/profiles/espoder',
+        'info_dict': {
+            'id': 'espoder',
+            'title': 'Espoder - Profile page',
+            'description': 'Man',
+        },
+        'playlist_count': 0,
+    },
+        # from https://github.com/yt-dlp/yt-dlp/pull/6414
+        {
+        'note': 'quickie video',
+        'add_ie': ['XVideos'],
+        'url': 'https://www.xvideos.com/amateur-channels/wifeluna#quickies/a/47258683',
+        'md5': '132e6303f32c051d7461223303ae6730',
+        'info_dict': {
+            'id': '47258683',
+            'ext': 'mp4',
+            'title': 'Verification video',
+            'uploader': 'My Wife Luna',
+            'age_limit': 18,
+            'duration': 16,
+            'thumbnail': r're:^https://img-\w+\.xvideos-cdn\.com/.+\.jpg',
+        }
+    },
+        # additional tests for coverage
+        {
+        'note': 'quickie playlist',  # all items, any screen orientation
+        'url': 'https://www.xvideos.com/amateur-channels/wifeluna#quickies',
+        'info_dict': {
+            'id': 'wifeluna/quickies',
+            'title': 'My Wife Luna - Amateur / Channel page (quickies)',
+            'description': r're:Subscribe to our channel to stay updated on new videos\b',
+        },
+        'playlist_mincount': 9,
+    }, {
+        'note': 'model-channels',  # no pagination here: get all videos from tab including premium
+        'url': 'https://www.xvideos.com/model-channels/carlacute1',
+        'info_dict': {
+            'id': 'carlacute1',
+            'title': 'Carlacute1 - Model / Channel page',
+            'description': r're:Hey, I\'m Carla\.Every single one of my videos is made with a lot of love, passion and joy\.',
+        },
+        'playlist_mincount': 60,
+    }, {
+        'note': 'pornstars',
+        'url': 'https://www.xvideos.com/pornstars/foxy-di',
+        'info_dict': {
+            'id': 'foxy-di',
+            'title': 'Foxy Di - Pornstar page',
+            # AKAs (automatically generated?) may be in any order
+            'description': r're:AKA(?: (?:Nensi B Medina|Foxi Di|Kleine Punci)(?:,|$)){3}',
+        },
+        # When checked, 161 in activities with 19 duplicates
+        # check may be a bit wobbly :-)
+        'playlist_mincount': 142,
+    }, {
+        'note': 'pornstars',
+        'url': 'https://www.xvideos.com/pornstars/foxy-di#_tabVideos',
+        'info_dict': {
+            'id': 'foxy-di/videos',
+            'title': 'Foxy Di - Pornstar page (videos,all)',
+            'description': r're:AKA(?: (?:Nensi B Medina|Foxi Di|Kleine Punci)(?:,|$)){3}',
+        },
+        # When checked, 9 pages with 36*4, 35*2, 2*36, 34 videos
+        # Site says 324, possibly just 9*36
+        'playlist_mincount': 320,
+    }, {
+        'note': 'models',
+        'url': 'https://www.xvideos.com/models/mihanika-1',
+        'info_dict': {
+            'id': 'mihanika-1',
+            'title': 'Mihanika - Model page',
+            'description': 'AKA Mihanika69',
+        },
+        # When checked, 90 videos + 2*6 Red promo videos
+        'playlist_mincount': 102,
+    }, {
+        'note': 'models with About Me tab selected',
+        'url': 'https://www.xvideos.com/models/mihanika-1#_tabAboutMe',
+        'info_dict': {
+            'id': 'mihanika-1/aboutme',
+            'title': 'Mihanika - Model page (aboutme)',
+            'description': 'AKA Mihanika69',
+        },
+        'playlist_mincount': 8,
+    }, {
+        'note': 'channel with several playlists',
+        'url': 'https://www.xvideos.com/amateur-channels/haitianhershydred#_tabFavorites',
+        'info_dict': {
+            'id': 'haitianhershydred/favorites',
+            'title': 'Haitianhershydred - Amateur / Channel page (favorites,all)',
+            'description': r're:I am a bisexual, BDSM, vampire, Hentai lover\b',
+        },
+        'playlist_mincount': 5,
+    }, {
+        'note': 'one page',
+        'url': 'https://www.xvideos.com/models/mihanika-1#_tabVideos,page-1',
+        'info_dict': {
+            'id': 'mihanika-1/videos/1',
+            'title': 'Mihanika - Model page (videos,p1)',
+            'description': 'AKA Mihanika69',
+        },
+        'playlist_count': 36,
+    }, {
+        'note': 'sort by rating, first page',
+        'url': 'https://www.xvideos.com/models/mihanika-1#_tabVideos,rating,page-1',
+        'info_dict': {
+            'id': 'mihanika-1/videos/rating/1',
+            'title': 'Mihanika - Model page (videos,rating,p1)',
+            'description': 'AKA Mihanika69',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': r're:\d+',
+                'ext': 'mp4',
+                'title': r're:\w+',
+                'uploader': r're:\w+',
+                'age_limit': int,
+                'view_count': 'lambda c: c >= 6798143'  # for video 53924863
+            },
+        }],
+    },
+
+    ]
+
+    @staticmethod
+    def _is_quickies_api_url(url_or_req):
+        url = url_or_req.get_full_url() if isinstance(url_or_req, compat_urllib_request.Request) else url_or_req
+        return '/quickies-api/' in url
+
+    def _get_playlist_id(self, playlist_id, **kwargs):
+        url = kwargs['url']
+        sub = list(self._match_valid_url(url).group('qky', 'tab', 'sort'))
+        qky = sub.pop(0)
+        if qky:
+            sub = ('quickies',)
+        else:
+            if sub[0]:
+                sub[0] = sub[0].lower()
+            sub.append(kwargs.get('pnum'))
+        return join_nonempty(playlist_id, *sub, delim='/')
+
+    def _get_title(self, page, playlist_id, **kwargs):
+        pnum = kwargs.pop('pnum', None)
+        title = super(XVideosChannelIE, self)._get_title(page, playlist_id, **kwargs)
+        sub = playlist_id.split('/')[1:]
+        id_pnum = traverse_obj(sub, (-1, T(int_or_none)))
+        if id_pnum is not None:
+            del sub[-1]
+            if pnum is None:
+                pnum = id_pnum + 1
+        sub.append(('p%s' % pnum) if pnum is not None else (
+            'all' if len(sub) > 0 and sub[0] in ('videos', 'favorites')
+            else None))
+        sub = join_nonempty(*sub, delim=',')
+        if sub:
+            title = '%s (%s)' % (title, sub)
+        return title
+
+    def _get_description(self, page, playlist_id):
+        return (
+            clean_html(get_element_by_id('header-about-me', page))
+            or ''.join([
+                txt for txt in map(clean_html, get_elements_by_class('mobile-hide', page))
+                if txt][1:2])
+            or super(XVideosChannelIE, self)._get_description(page, playlist_id))
+
+    # specialisation to get 50 quickie items instead of 20
+    def _download_webpage(self, url_or_req, video_id, *args, **kwargs):
+        # note, errnote, fatal, tries, timeout, encoding, data=None,
+        # headers, query, expected_status
+        if self._is_quickies_api_url(url_or_req):
+            data = args[6] if len(args) > 6 else kwargs.get('data')
+            ndata = data or ''
+            ndata = remove_start(ndata + '&nb_videos=50', '&')
+            if len(args) <= 6:
+                kwargs['data'] = ndata.encode('utf-8')
+                kwargs = compat_kwargs(kwargs)
+            elif len(args) > 6 and not data:
+                args = args[:6] + (ndata,) + args[7:]
+
+        return super(XVideosChannelIE, self)._download_webpage(url_or_req, video_id, *args, **kwargs)
 
     def _get_playlist_url(self, url, playlist_id):
-        webpage = self._download_webpage(url, playlist_id)
-        id_match = re.match(self._VALID_URL, url).groupdict()
-        tab = (id_match.get('tab') or '').lower()
-        if tab:
+
+        def get_url_for_tab(tab, url):
             if tab in ('videos', 'favorites'):
-                url, frag = compat_urlparse.urldefrag(url)
+                new_url, frag = compat_urlparse.urldefrag(url)
                 if not url.endswith('/'):
-                    url += '/'
-                frag = frag.split(',')
-                url += tab
+                    new_url += '/'
+                frag = frag.split(',')[1:]
+                pnum = traverse_obj(frag, (-1, T(lambda s: s.replace('page-', '')), T(int_or_none)))
+                if pnum is None or pnum < 1:
+                    pnum = '0'
+                else:
+                    pnum = compat_str(pnum - 1)
+                    del frag[-1]
                 if tab == 'videos':
-                    url += '/' + (frag[1] if len(frag) > 1 else 'best')
-                url += '/0'
+                    if not frag:
+                        frag = ['best']
+                else:
+                    frag = []
+                return new_url + '/'.join([tab] + frag + [pnum])
             return url
 
-        # activity
+        tab = traverse_obj(self._match_valid_url(url), (
+            'tab', T(compat_str.lower)))
+        if tab:
+            return get_url_for_tab(tab, url)
+
+        # no explicit tab: default to activity, or quickies if specified
+        webpage = self._download_webpage(url, playlist_id, note='Getting activity details')
+        quickies = self._match_valid_url(url).group('qky')
+        if not (quickies or get_element_by_id('tab-activity', webpage)):
+            # page has no activity tab: videos is populated instead
+            return get_url_for_tab('videos', url)
         conf = self._search_regex(
             r'(?s)\.\s*xv\s*\.\s*conf\s*=\s*(\{.*?})[\s;]*</script',
             webpage, 'XV conf')
         conf = self._parse_json(conf, playlist_id)
-        act = try_get(conf,
-                      ((lambda x: x['dyn'][y])
-                       for y in ('page_main_cat', 'user_main_cat')),
-                      compat_str) or 'straight'
-
+        act = traverse_obj(conf, (
+            'dyn', ('page_main_cat', 'user_main_cat'), T(txt_or_none)), get_all=False) or 'straight'
         url, _ = compat_urlparse.urldefrag(url)
+        if quickies:
+            user_id = traverse_obj(conf, ('data', 'user', 'id_user', T(txt_or_none)))
+            return urljoin(
+                # .../N/... seems to be the same as .../B/...
+                url, '/quickies-api/profilevideos/all/%s/B/%s/0' % (act, user_id))
         if url.endswith('/'):
             url = url[:-1]
 
@@ -522,6 +791,11 @@ class XVideosChannelIE(XVideosPlaylistIE):
     def _get_next_page(self, url, num, page):
         if page.startswith('{') or '#_tab' in url:
             return super(XVideosChannelIE, self)._get_next_page(url, num, page)
+
+        if '/favorites/' in url:
+            if get_element_by_class('next-page', page):
+                return re.sub(r'(/)\d+($|[#?/])', r'\g<1>%d\2' % (num, ), url)
+            return None
 
         act_time = int_or_none(url_basename(url)) or 0
         last_act = int(self._search_regex(
@@ -535,23 +809,40 @@ class XVideosChannelIE(XVideosPlaylistIE):
             else url + ('/%d' % (last_act, )))
 
     def _extract_videos(self, url, playlist_id, num, page):
-        tab = next((x for x in ('videos', 'favorites') if '/%s/' % (x, ) in url), None)
-        if tab == 'videos':
+        if self._is_quickies_api_url(url):
             tab_json = self._parse_json(page, playlist_id, fatal=False) or {}
-            more = try_get(tab_json, lambda x: x['current_page'] + 1, int)
-            more = int_or_none(more, scale=tab_json.get('nb_videos'), invscale=tab_json.get('nb_per_page'), default=0)
             return (
                 self._extract_videos_from_json_list(
-                    try_get(tab_json, lambda x: x['videos'], list) or []),
-                more > 0)
+                    traverse_obj(tab_json, ('videos', Ellipsis))),
+                not traverse_obj(tab_json, ('hasMoreVideos', T(lambda h: h is True))))
+
+        tab = traverse_obj(re.search(r'/(videos|favorites)/', url), 1)
+        if tab == 'videos':
+            tab_json = self._parse_json(page, playlist_id, fatal=False) or {}
+            more = try_call(
+                lambda cp, nv, np: nv - (cp + 1) * np,
+                args=(traverse_obj(tab_json, x) for x in (
+                    'current_page', 'nb_videos', 'nb_per_page')))
+
+            return (
+                self._extract_videos_from_json_list(
+                    traverse_obj(tab_json, ('videos', Ellipsis))),
+                True if more is None else more <= 0)
 
         if tab == 'favorites':
             return ((
-                'https://www.xvideos.com' + x.group('playlist')
+                self.url_result('https://www.xvideos.com' + x.group('playlist'))
                 for x in re.finditer(r'''<a\s[^>]*?href\s*=\s*('|")(?P<playlist>/favorite/\d+/[^#?]+?)\1''', page)),
                 None)
 
         return super(XVideosChannelIE, self)._extract_videos(url, playlist_id, num, page)
+
+    # specialisation to resolve Quickie video URLs
+    def _real_extract(self, url):
+        video_id = self._match_valid_url(url).group('vid')
+        if video_id:
+            return self.url_result('xvideos:' + video_id)
+        return super(XVideosChannelIE, self)._real_extract(url)
 
 
 class XVideosSearchIE(XVideosPlaylistIE):
