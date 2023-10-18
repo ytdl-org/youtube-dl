@@ -2365,7 +2365,11 @@ def bug_reports_message():
         update_cmd = 'type  youtube-dl -U  to update'
     else:
         update_cmd = 'see  https://yt-dl.org/update  on how to update'
-    msg = '; please report this issue on https://yt-dl.org/bug .'
+    msg = '; if you did not run the failing \'youtube-dl\' command yourself, '
+    msg += 'either directly or from a script that you control, please report '
+    msg += 'this issue to the owner of the application, service or script in '
+    msg += 'which this instance of \'youtube-dl\' is embedded; otherwise '
+    msg += 'please report this issue on https://yt-dl.org/bug .'
     msg += ' Make sure you are using the latest version; %s.' % update_cmd
     msg += ' Be sure to call youtube-dl with the --verbose flag and include its complete output.'
     return msg
