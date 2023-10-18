@@ -121,6 +121,12 @@ jobs:
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: sh
     steps:
+    - name: Prepare Linux
+      if: ${{ startswith(matrix.os, 'ubuntu') }}
+      shell: bash
+      run: |
+        # apt in runner, if needed, may not be up-to-date
+        sudo apt-get update
     - name: Checkout
       uses: actions/checkout@v3
     #-------- Python 3 -----
@@ -128,6 +134,7 @@ jobs:
       id: setup-python
       if: ${{ matrix.python-impl == 'cpython' && matrix.python-version != '2.6' && matrix.python-version != '2.7' && matrix.python-version != '3.12'}}
       # wrap broken actions/setup-python@v4
+      # NB may run apt-get install in Linux
       uses: ytdl-org/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
