@@ -214,6 +214,7 @@ from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .charlierose import CharlieRoseIE
 from .chaturbate import ChaturbateIE
+from .chelseafc import ChelseafcIE
 from .chilloutzone import ChilloutzoneIE
 from .chirbit import (
     ChirbitIE,
@@ -566,6 +567,7 @@ from .khanacademy import (
     KhanAcademyIE,
     KhanAcademyUnitIE,
 )
+from .kick import KickIE
 from .kickstarter import KickStarterIE
 from .kinja import KinjaEmbedIE
 from .kinopoisk import KinoPoiskIE
@@ -994,6 +996,10 @@ from .pr0gramm import (
 from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
+)
+from .pr0gramm import (
+    Pr0grammIE,
+    Pr0grammStaticIE,
 )
 from .presstv import PressTVIE
 from .prosiebensat1 import ProSiebenSat1IE
@@ -1441,6 +1447,7 @@ from .uplynk import (
     UplynkIE,
     UplynkPreplayIE,
 )
+from .upride import UprideIE
 from .urort import UrortIE
 from .urplay import URPlayIE
 from .usanetwork import USANetworkIE
@@ -1548,6 +1555,7 @@ from .vrv import (
 )
 from .vshare import VShareIE
 from .vtm import VTMIE
+from .vtv import VTVIE
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
