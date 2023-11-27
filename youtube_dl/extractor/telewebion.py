@@ -3,6 +3,12 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import (
+    float_or_none,
+    int_or_none,
+    url_or_none,
+)
+
 
 class TelewebionIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?telewebion\.com/(episode|clip)/(?P<id>[a-zA-Z0-9]+)'
@@ -36,15 +42,11 @@ class TelewebionIE(InfoExtractor):
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, ext='mp4', m3u8_id='hls')
 
-        thumbnails = [{
-            'url': episode_image,
-        }]
-
         return {
             'id': video_id,
-            'title': episode_details.get('title'),
+            'title': episode_details['title'],
             'formats': formats,
-            'thumbnails': thumbnails,
+            'thumbnail': url_or_none(episode_image),
             'view_count': int_or_none(episode_details.get('view_count')),
             'duration': float_or_none(episode_details.get('duration')),
         }
