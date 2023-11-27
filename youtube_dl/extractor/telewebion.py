@@ -13,7 +13,7 @@ class TelewebionIE(InfoExtractor):
             'id': '0x1b3139c',
             'ext': 'mp4',
             'title': 'قرعه\u200cکشی لیگ قهرمانان اروپا',
-            'thumbnail': r're:^https?://static.telewebion.com/episodeImages/.*/default',
+            'thumbnail': r're:^https?://static\.telewebion\.com/episodeImages/.*/default',
             'view_count': int,
         },
         'params': {
@@ -25,14 +25,14 @@ class TelewebionIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        episode_details = self._download_json('https://gateway.telewebion.ir/kandoo/episode/getEpisodeDetail/?EpisodeId={}'.format(video_id), video_id)
-        episode_details = episode_details["body"]["queryEpisode"][0]
+        episode_details = self._download_json('https://gateway.telewebion.ir/kandoo/episode/getEpisodeDetail/?EpisodeId={0}'.format(video_id), video_id)
+        episode_details = episode_details['body']['queryEpisode'][0]
 
-        channel_id = episode_details["channel"]["descriptor"]
-        episode_image_id = episode_details.get("image")
-        episode_image = "https://static.telewebion.com/episodeImages/{}/default".format(episode_image_id)
+        channel_id = episode_details['channel']['descriptor']
+        episode_image_id = episode_details.get('image')
+        episode_image = 'https://static.telewebion.com/episodeImages/{0}/default'.format(episode_image_id) if episode_image_id else None
 
-        m3u8_url = 'https://cdna.telewebion.com/{channel_id}/episode/{video_id}/playlist.m3u8'.format(channel_id=channel_id, video_id=video_id)
+        m3u8_url = 'https://cdna.telewebion.com/{0}/episode/{1}/playlist.m3u8'.format(channel_id, video_id)
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, ext='mp4', m3u8_id='hls')
 
@@ -45,6 +45,6 @@ class TelewebionIE(InfoExtractor):
             'title': episode_details.get('title'),
             'formats': formats,
             'thumbnails': thumbnails,
-            'view_count': episode_details.get('view_count'),
-            'duration': episode_details.get('duration')
+            'view_count': int_or_none(episode_details.get('view_count')),
+            'duration': float_or_none(episode_details.get('duration')),
         }
