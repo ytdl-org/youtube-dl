@@ -9,6 +9,7 @@ env:
 
 on:
   push:
+    # push inputs aren't known to GitHub
     inputs:
       cpython-versions:
         type: string
@@ -17,6 +18,7 @@ on:
         type: string
         default: core
   pull_request:
+    # pull_request inputs aren't known to GitHub
     inputs:
       cpython-versions:
         type: string
@@ -56,6 +58,23 @@ jobs:
       test-set: ${{ steps.run.outputs.test-set }}
       own-pip-versions: ${{ steps.run.outputs.own-pip-versions }}
     steps:
+    # push and pull_request inputs aren't known to GitHub (pt3)
+    - name: Set push defaults
+      if: ${{ github.event_name == 'push' }}
+      env:
+        cpython-versions: all
+        test-set: core
+      run: |
+        echo "cpython-versions=${{env.cpython-versions}}" >> "$GITHUB_ENV"
+        echo "test_set=${{env.test_set}}" >> "$GITHUB_ENV"
+    - name: Get pull_request inputs
+      if: ${{ github.event_name == 'pull_request' }}
+      env:
+        cpython-versions: main
+        test-set: both
+      run: |
+        echo "cpython-versions=${{env.cpython-versions}}" >> "$GITHUB_ENV"
+        echo "test_set=${{env.test_set}}" >> "$GITHUB_ENV"
     - name: Make version array
       id: run
       run: |
@@ -79,6 +98,7 @@ jobs:
         # versions with a special get-pip.py in a per-version subdirectory
         printf 'own-pip-versions=%s\n' \
           "$(json_list 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6)" >> "$GITHUB_OUTPUT"
+
   tests:
     name: Run tests
     needs: select
