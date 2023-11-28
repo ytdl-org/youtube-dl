@@ -2121,7 +2121,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
         if restricted and (char in '!&\'()[]{}$;`^,#' or char.isspace()):
             return '_'
         if restricted and ord(char) > 127:
-            return '_'
+            return '' if unicodedata.category(char)[0] in 'CM' else '_'
+
         return char
 
     # Replace look-alike Unicode glyphs
