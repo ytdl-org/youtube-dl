@@ -6,6 +6,9 @@ env:
   pypy-versions: pypy-2.7, pypy-3.6, pypy-3.7
   cpython-versions: main
   test-set: core
+  # Python beta version to be built using pyenv before setup-python support
+  # Must also be included in all-cpython-versions 
+  next: 3.13
 
 on:
   push:
@@ -152,7 +155,7 @@ jobs:
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
-      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version != '2.6' && matrix.python-version != '2.7' && matrix.python-version != '3.12'}}
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version != '2.6' && matrix.python-version != '2.7' && matrix.python-version != env.next }}
       # wrap broken actions/setup-python@v4
       # NB may run apt-get install in Linux
       uses: ytdl-org/setup-python@v1
@@ -191,23 +194,23 @@ jobs:
             'import sys' \
             'print(sys.path)' \
             | ${expected} -
-    #-------- Python 3.12 -
-    - name: Set up CPython 3.12 environment
-      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
+    #-------- Python next (was 3.12) -
+    - name: Set up CPython 3.next environment
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
       shell: bash
       run: |
         PYENV_ROOT=$HOME/.local/share/pyenv
         echo "PYENV_ROOT=${PYENV_ROOT}" >> "$GITHUB_ENV"
-    - name: Cache Python 3.12
-      id: cache312
-      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
+    - name: Cache Python 3.next 
+      id: cachenext
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
       uses: actions/cache@v3
       with:
-        key: python-3.12
+        key: python-${{ env.next }}
         path: |
           ${{ env.PYENV_ROOT }}
-    - name: Build and set up Python 3.12
-      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' && ! steps.cache312.outputs.cache-hit }}
+    - name: Build and set up Python 3.next
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next && ! steps.cachenext.outputs.cache-hit }}
       # dl and build locally
       shell: bash
       run: |
@@ -219,12 +222,13 @@ jobs:
         export PYENV_ROOT=${{ env.PYENV_ROOT }}
         export PATH=$PYENV_ROOT/bin:$PATH
         git clone "https://github.com/pyenv/pyenv.git" "$PYENV_ROOT"
-        pyenv install 3.12.0b4
-    - name: Locate Python 3.12
-      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '3.12' }}
+        pyenv install ${{ env.next }}
+    - name: Locate Python 3.next
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
       shell: bash
       run: |
-        PYTHONHOME="${{ env.PYENV_ROOT }}/versions/3.12.0b4"
+        PYTHONHOME="$(echo "${{ env.PYENV_ROOT }}/versions/${{ env.next }}."*)"
+        test -n "$PYTHONHOME"
         echo "PYTHONHOME=$PYTHONHOME" >> "$GITHUB_ENV"
         echo "PATH=${PYTHONHOME}/bin:$PATH" >> "$GITHUB_ENV"
     #-------- Python 2.7 --
@@ -395,7 +399,7 @@ jobs:
         done
     #-------- nose --------
     - name: Install nose for Python ${{ matrix.python-version }}
-      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || (matrix.python-impl == 'cpython' && (matrix.python-version == '2.7' || matrix.python-version == '3.12')) }}
+      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || (matrix.python-impl == 'cpython' && (matrix.python-version == '2.7' || matrix.python-version == env.next)) }}
       shell: bash
       run: |
         echo "$PATH"
