@@ -1950,6 +1950,10 @@ class YoutubeDL(object):
         if filename is None:
             return
 
+        # ETHAN
+        if self.params.get('usetrim', False):
+            filename = "/trimmed_video/" + filename
+
         def ensure_dir_exists(path):
             try:
                 dn = os.path.dirname(path)

@@ -714,6 +714,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='usetitle', default=False,
         help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
+        '--trim',
+        action='store_true', dest='usetrim', default=False,
+        help=optparse.SUPPRESS_HELP)
+    filesystem.add_option(
         '-l', '--literal', default=False,
         action='store_true', dest='usetitle',
         help=optparse.SUPPRESS_HELP)
