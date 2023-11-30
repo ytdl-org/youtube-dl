@@ -28,23 +28,21 @@ class EpidemicSoundIE(InfoExtractor):
             'thumbnail': 'https://cdn.epidemicsound.com/curation-assets/commercial-release-cover-images/default-sfx/3000x3000.jpg',
             'timestamp': 1415320353,
             'upload_date': '20141107',
-        }
-    },
-        {
-            'url': 'https://www.epidemicsound.com/track/mj8GTTwsZd/',
-            'md5': 'c82b745890f9baf18dc2f8d568ee3830',
-            'info_dict': {
-                'id': 'mj8GTTwsZd',
-                'ext': 'mp3',
-                'tags': ["liquid drum n bass", "energetic"],
-                'title': 'Noplace',
-                'duration': 237,
-                'thumbnail': 'https://cdn.epidemicsound.com/curation-assets/commercial-release-cover-images/11138/3000x3000.jpg',
-                'timestamp': 1694426482,
-                'upload_date': '20230911',
-            }
         },
-    ]
+    }, {
+        'url': 'https://www.epidemicsound.com/track/mj8GTTwsZd/',
+        'md5': 'c82b745890f9baf18dc2f8d568ee3830',
+        'info_dict': {
+            'id': 'mj8GTTwsZd',
+            'ext': 'mp3',
+            'tags': ['liquid drum n bass', 'energetic'],
+            'title': 'Noplace',
+            'duration': 237,
+            'thumbnail': 'https://cdn.epidemicsound.com/curation-assets/commercial-release-cover-images/11138/3000x3000.jpg',
+            'timestamp': 1694426482,
+            'upload_date': '20230911',
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
