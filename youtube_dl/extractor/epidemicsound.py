@@ -3,13 +3,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     float_or_none,
     txt_or_none,
     unified_timestamp,
     url_or_none,
     traverse_obj,
-    str_or_none,
     T,
 )
 
@@ -28,6 +26,8 @@ class EpidemicSoundIE(InfoExtractor):
             'thumbnail': 'https://cdn.epidemicsound.com/curation-assets/commercial-release-cover-images/default-sfx/3000x3000.jpg',
             'timestamp': 1415320353,
             'upload_date': '20141107',
+            'age_limit': None,
+            'format': 'full',
         },
     }, {
         'url': 'https://www.epidemicsound.com/track/mj8GTTwsZd/',
@@ -40,7 +40,10 @@ class EpidemicSoundIE(InfoExtractor):
             'duration': 237,
             'thumbnail': 'https://cdn.epidemicsound.com/curation-assets/commercial-release-cover-images/11138/3000x3000.jpg',
             'timestamp': 1694426482,
+            'release_timestamp': 1700535606,
             'upload_date': '20230911',
+            'age_limit': None,
+            'format': 'full',
         },
     }]
 
@@ -48,38 +51,46 @@ class EpidemicSoundIE(InfoExtractor):
         video_id = self._match_id(url)
         json_data = self._download_json('https://www.epidemicsound.com/json/track/' + video_id, video_id)
 
-        if not traverse_obj(json_data, ('stems', Ellipsis)):
-            raise ExtractorError('No downloadable content found')
+        def fmt_or_none(f):
+            if not f.get('format'):
+                f['format'] = f.get('format_id')
+            elif not f.get('format_id'):
+                f['format_id'] = f['format']
+            if not (f['url'] and f['format']):
+                return
+            if f.get('format_note'):
+                f['format_note'] = 'track ID ' + f['format_note']
+            f['preference'] = -1 if f['format'] == 'full' else -2
+            return f
 
-        formats = list(reversed([
-            {
-                'format_id': str_or_none(key),
-                'url': url_or_none(value.get('lqMp3Url'))
-            } for key, value in json_data.get('stems').items()
-        ]))
+        formats = traverse_obj(json_data, (
+            'stems', T(dict.items), Ellipsis, {
+                'format': (0, T(txt_or_none)),
+                'format_note': (1, 's3TrackId', T(txt_or_none)),
+                'format_id': (1, 'stemType', T(txt_or_none)),
+                'url': (1, 'lqMp3Url', T(url_or_none)),
+            }, T(fmt_or_none)))
 
-        for f in formats:
-            for key, value in f.items():
-                if value is None or key is None:
-                    del f
-
-        if len(formats) == 0:
-            raise ExtractorError('No downloadable content found')
+        self._sort_formats(formats)
 
         info = traverse_obj(json_data, {
             'tags': ('metadataTags', Ellipsis, T(txt_or_none)),
             'title': ('title', T(txt_or_none)),
             'duration': ('length', T(float_or_none)),
             'timestamp': ('added', T(unified_timestamp)),
-            'thumbnail': ('imageUrl', T(url_or_none))})
+            'thumbnail': (('imageUrl', 'cover'), T(url_or_none)),
+            'age_limit': ('isExplicit', T(lambda b: 18 if b else None)),
+            'release_timestamp': ('releaseDate', T(unified_timestamp)),
+        }, get_all=False)
 
-        info['id'] = video_id
-        info['formats'] = formats
+        info.update(traverse_obj(json_data, {
+            'categories': ('genres', Ellipsis, 'tag', T(txt_or_none)),
+            'tags': ('metadataTags', Ellipsis, T(txt_or_none)),
+        }))
 
-        if not info.get('tags'):
-            del info['tags']
-
-        if not info.get('title'):
-            raise ExtractorError('No title found')
+        info.update({
+            'id': video_id,
+            'formats': formats,
+        })
 
         return info
