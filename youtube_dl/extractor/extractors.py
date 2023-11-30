@@ -179,6 +179,7 @@ from .carambatv import (
     CarambaTVIE,
     CarambaTVPageIE,
 )
+from .captiongenerator import CaptionGeneratorIE
 from .cartoonnetwork import CartoonNetworkIE
 from .cbc import (
     CBCIE,
