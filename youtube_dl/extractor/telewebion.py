@@ -40,7 +40,8 @@ class TelewebionIE(InfoExtractor):
 
         m3u8_url = 'https://cdna.telewebion.com/{0}/episode/{1}/playlist.m3u8'.format(channel_id, video_id)
         formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, ext='mp4', m3u8_id='hls')
+            m3u8_url, video_id, ext='mp4', m3u8_id='hls',
+            entry_protocol='m3u8_native')
 
         return {
             'id': video_id,
