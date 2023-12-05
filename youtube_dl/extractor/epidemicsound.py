@@ -18,7 +18,8 @@ class EpidemicSoundIE(InfoExtractor):
         'url': 'https://www.epidemicsound.com/track/yFfQVRpSPz/',
         'md5': 'd98ff2ddb49e8acab9716541cbc9dfac',
         'info_dict': {
-            'id': 'yFfQVRpSPz',
+            'id': '45014',
+            'display_id': 'yFfQVRpSPz',
             'ext': 'mp3',
             'tags': ['foley', 'door', 'knock', 'glass', 'window', 'glass door knock'],
             'title': 'Door Knock Door 1',
@@ -27,15 +28,16 @@ class EpidemicSoundIE(InfoExtractor):
             'timestamp': 1415320353,
             'upload_date': '20141107',
             'age_limit': None,
-              # check that the "best" format was found, since test file MD5 doesn't
-              # distinguish the formats
+            # check that the "best" format was found, since test file MD5 doesn't
+            # distinguish the formats
             'format': 'full',
         },
     }, {
         'url': 'https://www.epidemicsound.com/track/mj8GTTwsZd/',
         'md5': 'c82b745890f9baf18dc2f8d568ee3830',
         'info_dict': {
-            'id': 'mj8GTTwsZd',
+            'id': '148700',
+            'display_id': 'mj8GTTwsZd',
             'ext': 'mp3',
             'tags': ['liquid drum n bass', 'energetic'],
             'title': 'Noplace',
@@ -76,6 +78,7 @@ class EpidemicSoundIE(InfoExtractor):
         self._sort_formats(formats)
 
         info = traverse_obj(json_data, {
+            'id': ('id', T(txt_or_none)),
             'tags': ('metadataTags', Ellipsis, T(txt_or_none)),
             'title': ('title', T(txt_or_none)),
             'duration': ('length', T(float_or_none)),
@@ -91,7 +94,7 @@ class EpidemicSoundIE(InfoExtractor):
         }))
 
         info.update({
-            'id': video_id,
+            'display_id': video_id,
             'formats': formats,
         })
 
