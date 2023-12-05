@@ -4,11 +4,11 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
+    T,
+    traverse_obj,
     txt_or_none,
     unified_timestamp,
     url_or_none,
-    traverse_obj,
-    T,
 )
 
 
@@ -27,6 +27,8 @@ class EpidemicSoundIE(InfoExtractor):
             'timestamp': 1415320353,
             'upload_date': '20141107',
             'age_limit': None,
+              # check that the "best" format was found, since test file MD5 doesn't
+              # distinguish the formats
             'format': 'full',
         },
     }, {
