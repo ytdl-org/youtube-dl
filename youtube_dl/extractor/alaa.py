@@ -68,5 +68,5 @@ class AlaaPlaylistIE(InfoExtractor):
         set_id = self._match_id(url)
         set_data = self._download_json('https://alaatv.com/api/v2/set/{0}'.format(set_id), set_id)
         set_title = set_data['data']['title']
-        set_content = map(lambda x: x['url']['web'], set_data['data']['content'])
+        set_content = list(map(lambda x: x['url']['web'], set_data['data']['contents']))
         return self.playlist_result(set_content, set_id, set_title)
