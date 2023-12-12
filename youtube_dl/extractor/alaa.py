@@ -50,3 +50,23 @@ class AlaaIE(InfoExtractor):
             'thumbnail': url_or_none(video_image),
             'duration': int_or_none(parse_duration(video_details.get('duration') + ":00"))
         }
+
+
+class AlaaPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?alaatv.com/set/(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'https://alaatv.com/set/181',
+        'info_dict': {
+            'title': 'صفر تا صد فیزیک یازدهم - فرشید داداشی',
+            'id': '181',
+        },
+        'playlist_count': 81,
+    }
+
+    def _real_extract(self, url):
+        set_id = self._match_id(url)
+        set_data = self._download_json('https://alaatv.com/api/v2/set/{0}'.format(set_id), set_id)
+        set_title = set_data['data']['title']
+        set_content = map(lambda x: x['url']['web'], set_data['data']['content'])
+        return self.playlist_result(set_content, set_id, set_title)
