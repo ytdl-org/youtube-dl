@@ -35,10 +35,10 @@ class AlaaIE(InfoExtractor):
 
         def map_formats(v):
             return {
-                "url": v.get("link"),
-                "filesize": parse_filesize(v.get("size")),
-                "format_id": v.get("res"),
-                "ext": v.get("ext"),
+                'url': v.get('link'),
+                'filesize': parse_filesize(v.get('size')),
+                'format_id': v.get('res'),
+                'ext': v.get('ext'),
             }
 
         formats = list(map(map_formats, video_details['file']['video']))
@@ -48,7 +48,7 @@ class AlaaIE(InfoExtractor):
             'title': video_details['title'],
             'formats': formats,
             'thumbnail': url_or_none(video_image),
-            'duration': int_or_none(parse_duration(video_details.get('duration') + ":00"))
+            'duration': int_or_none(parse_duration(video_details.get('duration') + ':00'))
         }
 
 
