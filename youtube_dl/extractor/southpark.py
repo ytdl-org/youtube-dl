@@ -6,7 +6,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark(?:\.cc|studios)\.com/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark(?:\.cc|studios)\.(?:com|nu)/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
 
@@ -108,7 +108,7 @@ class SouthParkNlIE(SouthParkIE):
 
 class SouthParkDkIE(SouthParkIE):
     IE_NAME = 'southparkstudios.dk'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.(?:dk|nu)/(?:clips|full-episodes|collections)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southparkstudios.dk/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -120,8 +120,5 @@ class SouthParkDkIE(SouthParkIE):
         'playlist_mincount': 3,
     }, {
         'url': 'http://www.southparkstudios.dk/collections/2476/superhero-showdown/1',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.southparkstudios.nu/collections/2476/superhero-showdown/1',
         'only_matching': True,
     }]
