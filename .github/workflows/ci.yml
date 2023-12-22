@@ -122,7 +122,7 @@ jobs:
           run-tests-ext: sh
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
@@ -433,7 +433,7 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
