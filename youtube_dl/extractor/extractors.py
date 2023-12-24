@@ -526,6 +526,7 @@ from .imgur import (
 from .ina import InaIE
 from .inc import IncIE
 from .indavideo import IndavideoEmbedIE
+from .infomaniak import InfomaniakVOD2IE
 from .infoq import InfoQIE
 from .instagram import (
     InstagramIE,
