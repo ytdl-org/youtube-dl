@@ -26,8 +26,11 @@ class SkylineWebcamsIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         stream_url = self._search_regex(
-            r'(?:url|source)\s*:\s*(["\'])(?P<url>(?:https?:)?//.+?\.m3u8.*?)\1', webpage,
+            r'(?:url|source)\s*:\s*(["\'])(?P<url>(?:https?:)?(?://)?\S+?\.m3u8.*?)\1', webpage,
             'stream url', group='url')
+
+        if 'skylinewebcams.com' not in stream_url and 'livee.m3u8' in stream_url:
+            stream_url = stream_url.replace('livee.m3u8', 'https://hd-auth.skylinewebcams.com/live.m3u8')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
