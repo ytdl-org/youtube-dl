@@ -397,6 +397,15 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWQ2NDJjYWEzLTMwZWYtNGI4NS1iMTI2LTU1N2UxYTcxOGIzOQ/tatort-duo-koeln-leipzig-ihr-kinderlein-kommet',
         'only_matching': True,
+    }, {
+        'url': 'https://ardmediathek.de/sendung/saartalk/saartalk-gesellschaftsgift-haltung-gegen-hass/sr-fernsehen/Y3JpZDovL3NyLW9ubGluZS5kZS9TVF84MTY4MA/',
+        'only_matching': True,
+    }, {
+        'url': 'https://ardmediathek.de/serie/saartalk/saartalk-gesellschaftsgift-haltung-gegen-hass/sr-fernsehen/Y3JpZDovL3NyLW9ubGluZS5kZS9TVF84MTY4MA/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/br/dahoam-is-dahoam',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
