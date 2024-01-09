@@ -476,7 +476,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
                     'alt_title':  alt_title
                 }
             )
-        if episode_name_match:
+        elif episode_name_match:
             episode_number = episode_name_match.group(1).replace("Folge ", "")
 
             alt_title = re.sub(r"(Folge\s\d+)", "", title)
