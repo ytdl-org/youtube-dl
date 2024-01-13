@@ -17,6 +17,7 @@ youtube-dl - download videos from youtube.com or other video platforms
 - [COPYRIGHT](#copyright)
 
 # INSTALLATION
+
 To install it right away for all UNIX users (Linux, macOS, etc.), type:
 
     sudo curl -L https://github.com/ytdl-org/youtube-dl/releases/latest/download/youtube-dl -o /usr/local/bin/youtube-dl
