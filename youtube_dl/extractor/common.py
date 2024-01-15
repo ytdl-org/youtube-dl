@@ -596,6 +596,14 @@ class InfoExtractor(object):
         """Sets the downloader for this IE."""
         self._downloader = downloader
 
+    @property
+    def cache(self):
+        return self._downloader.cache
+
+    @property
+    def cookiejar(self):
+        return self._downloader.cookiejar
+
     def _real_initialize(self):
         """Real initialization process. Redefine in subclasses."""
         pass
@@ -942,14 +950,47 @@ class InfoExtractor(object):
             else:
                 self.report_warning(errmsg + str(ve))
 
-    def report_warning(self, msg, video_id=None):
+    def __ie_msg(self, *msg):
+        return '[{0}] {1}'.format(self.IE_NAME, ''.join(msg))
+
+    # msg, video_id=None, *args, only_once=False, **kwargs
+    def report_warning(self, msg, *args, **kwargs):
+        if len(args) > 0:
+            video_id = args[0]
+            args = args[1:]
+        else:
+            video_id = kwargs.pop('video_id', None)
         idstr = '' if video_id is None else '%s: ' % video_id
         self._downloader.report_warning(
-            '[%s] %s%s' % (self.IE_NAME, idstr, msg))
+            self.__ie_msg(idstr, msg), *args, **kwargs)
 
     def to_screen(self, msg):
         """Print msg to screen, prefixing it with '[ie_name]'"""
-        self._downloader.to_screen('[%s] %s' % (self.IE_NAME, msg))
+        self._downloader.to_screen(self.__ie_msg(msg))
+
+    def write_debug(self, msg, only_once=False, _cache=[]):
+        '''Log debug message or Print message to stderr'''
+        if not self.get_param('verbose', False):
+            return
+        message = '[debug] ' + self.__ie_msg(msg)
+        logger = self.get_param('logger')
+        if logger:
+            logger.debug(message)
+        else:
+            if only_once and hash(message) in _cache:
+                return
+            self._downloader.to_stderr(message)
+            _cache.append(hash(message))
+
+    # name, default=None, *args, **kwargs
+    def get_param(self, name, *args, **kwargs):
+        default, args = (args[0], args[1:]) if len(args) > 0 else (kwargs.pop('default', None), args)
+        if self._downloader:
+            return self._downloader.params.get(name, default, *args, **kwargs)
+        return default
+
+    def report_drm(self, video_id):
+        self.raise_no_formats('This video is DRM protected', expected=True, video_id=video_id)
 
     def report_extraction(self, id_or_name):
         """Report information extraction."""
@@ -976,6 +1017,15 @@ class InfoExtractor(object):
     @staticmethod
     def raise_geo_restricted(msg='This video is not available from your location due to geo restriction', countries=None):
         raise GeoRestrictedError(msg, countries=countries)
+
+    def raise_no_formats(self, msg, expected=False, video_id=None):
+        if expected and (
+                self.get_param('ignore_no_formats_error') or self.get_param('wait_for_video')):
+            self.report_warning(msg, video_id)
+        elif isinstance(msg, ExtractorError):
+            raise msg
+        else:
+            raise ExtractorError(msg, expected=expected, video_id=video_id)
 
     # Methods for following #608
     @staticmethod
