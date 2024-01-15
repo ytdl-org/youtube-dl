@@ -39,6 +39,7 @@ from ..utils import (
     mimetype2ext,
     NO_DEFAULT,
     parse_codecs,
+    parse_count,
     parse_duration,
     parse_qs,
     qualities,
@@ -46,6 +47,7 @@ from ..utils import (
     smuggle_url,
     str_or_none,
     str_to_int,
+    T,
     traverse_obj,
     try_call,
     try_get,
@@ -1250,7 +1252,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': 'IMG 3456',
                 'description': '',
                 'upload_date': '20170613',
-                'uploader': 'ElevageOrVert',
+                'uploader': "l'Or Vert asbl",
                 'uploader_id': '@ElevageOrVert',
             },
             'params': {
@@ -2474,6 +2476,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             'like_count': str_to_int(like_count),
                             'dislike_count': str_to_int(dislike_count),
                         })
+                    else:
+                        info['like_count'] = traverse_obj(vpir, (
+                            'videoActions', 'menuRenderer', 'topLevelButtons', Ellipsis,
+                            'segmentedLikeDislikeButtonViewModel', 'likeButtonViewModel', 'likeButtonViewModel',
+                            'toggleButtonViewModel', 'toggleButtonViewModel', 'defaultButtonViewModel',
+                            'buttonViewModel', (('title', ('accessibilityText', T(lambda s: s.split()), Ellipsis))), T(parse_count)),
+                            get_all=False)
+
                 vsir = content.get('videoSecondaryInfoRenderer')
                 if vsir:
                     rows = try_get(
@@ -2588,7 +2598,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'playlist_mincount': 94,
         'info_dict': {
             'id': 'UCqj7Cz7revf5maW9g5pgNcg',
-            'title': 'Igor Kleiner - Playlists',
+            'title': r're:Igor Kleiner(?: Ph\.D\.)? - Playlists',
             'description': 'md5:be97ee0f14ee314f1f002cf187166ee2',
             'uploader': 'Igor Kleiner',
             'uploader_id': '@IgorDataScience',
@@ -2599,7 +2609,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'playlist_mincount': 94,
         'info_dict': {
             'id': 'UCqj7Cz7revf5maW9g5pgNcg',
-            'title': 'Igor Kleiner - Playlists',
+            'title': r're:Igor Kleiner(?: Ph\.D\.)? - Playlists',
             'description': 'md5:be97ee0f14ee314f1f002cf187166ee2',
             'uploader': 'Igor Kleiner',
             'uploader_id': '@IgorDataScience',
@@ -2711,7 +2721,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'url': 'https://www.youtube.com/channel/UCKfVa3S1e4PHvxWcwyMMg8w/channels',
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
-            'title': 'lex will - Channels',
+            'title': r're:lex will - (?:Home|Channels)',
             'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
             'uploader': 'lex will',
             'uploader_id': '@lexwill718',
