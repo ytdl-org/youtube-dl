@@ -58,19 +58,26 @@ except ImportError:  # Python 2
 
 # Also fix up lack of method arg in old Pythons
 try:
-    _req = compat_urllib_request.Request
-    _req('http://127.0.0.1', method='GET')
+    type(compat_urllib_request.Request('http://127.0.0.1', method='GET'))
 except TypeError:
-    class _request(object):
-        def __new__(cls, url, *args, **kwargs):
-            method = kwargs.pop('method', None)
-            r = _req(url, *args, **kwargs)
-            if method:
-                r.get_method = types.MethodType(lambda _: method, r)
-            return r
+    def _add_init_method_arg(cls):
 
-    compat_urllib_request.Request = _request
+        init = cls.__init__
 
+        def wrapped_init(self, *args, **kwargs):
+            method = kwargs.pop('method', 'GET')
+            init(self, *args, **kwargs)
+            if any(callable(x.__dict__.get('get_method')) for x in (self.__class__, self) if x != cls):
+                # allow instance or its subclass to override get_method()
+                return
+            if self.has_data() and method == 'GET':
+                method = 'POST'
+            self.get_method = types.MethodType(lambda _: method, self)
+
+        cls.__init__ = wrapped_init
+
+    _add_init_method_arg(compat_urllib_request.Request)
+    del _add_init_method_arg
 
 try:
     import urllib.error as compat_urllib_error
