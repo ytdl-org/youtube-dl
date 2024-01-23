@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..utils import (
+    ExtractorError,
     merge_dicts,
     T,
     traverse_obj,
@@ -32,7 +33,7 @@ class BandlabIE(InfoExtractor):
         track_url = traverse_obj(config, ('track', 'sample', 'audioUrl', T(url_or_none)))
         if not track_url:
             raise ExtractorError(
-                '[%s] 'No video formats found!' % (self.ie_key(), ),
+                '[%s] No video formats found!' % (self.ie_key(), ),
                 video_id=track_id, expected=True)
         title = config['track']['name']
 
