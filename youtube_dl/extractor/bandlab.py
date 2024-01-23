@@ -1,17 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_str,
-)
-
 from ..utils import (
-    strip_or_none,
-    try_get,
+    merge_dicts,
+    T,
+    traverse_obj,
+    txt_or_none,
     url_or_none,
 )
 
@@ -33,19 +29,23 @@ class BandlabIE(InfoExtractor):
         track_id = self._match_id(url)
         config = self._download_json(
             'http://www.bandlab.com/api/v1.3/posts/%s' % track_id, track_id)
-        track_url = config['track']['sample']['audioUrl']
+        track_url = traverse_obj(config, ('track', 'sample', 'audioUrl', T(url_or_none)))
+        if not track_url:
+            raise ExtractorError(
+                '[%s] 'No video formats found!' % (self.ie_key(), ),
+                video_id=track_id, expected=True)
+        title = config['track']['name']
 
         return {
             'id': track_id,
-            'title': config['track']['name'],
+            'title': title,
             'url': track_url,
-            'artist': config['creator']['name']
+            'artist': traverse_obj(config, ('creator', 'name', T(txt_or_none))),
         }
 
 
 class BandlabAlbumOrPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/(?P<kind>albums|collections)/(?P<id>[^/]+)'
-    _TRACK_ID_RE = r'.+/(?P<id>[^/]+)\.m4a'
     _TESTS = [{
         'url': 'https://www.bandlab.com/sbsdasani/albums/dc26e307-e51f-ed11-95d7-002248452390',
         'playlist': [
@@ -137,21 +137,22 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        resource_id, kind = re.match(self._VALID_URL, url).group('id', 'kind')
+        resource_id, kind = self._match_valid_url(url).group('id', 'kind')
         config = self._download_json(
             'http://www.bandlab.com/api/v1.3/%s/%s' % (kind, resource_id), resource_id)
         entries = []
-        for track in try_get(config, lambda x: x['posts'], list) or []:
-            url, name = try_get(
-                track,
-                (lambda x: (x['track']['sample']['audioUrl'], x['track']['name']),
-                 lambda x: (x['revision']['mixdown']['file'], x['revision']['song']['name'])),
-                tuple) or (None, '', )
-            url = url_or_none(url)
-            name = strip_or_none(name)
+        for track in traverse_obj(config, ('posts', Ellipsis)):
+            url, name = (traverse_obj(track, ('track', {
+                'url': ('sample', 'audioUrl', T(url_or_none)
+                'name': ('name', T(txt_or_none)),
+            }), ('revision', {
+                'url': ('mixdown', 'file', T(url_or_none)),
+                'name': ('song', 'name', T(txt_or_none)),
+            })).get(x) for x in ('url', 'name'))
             if not (url and name):
                 continue
-            track_id = re.match(self._TRACK_ID_RE, url).group('id')
+            track_id = self._search_regex(
+                r'/([^/]+)\.m4a$', url, 'track id', default=None)
             if not track_id:
                 continue
             entries.append({
@@ -160,10 +161,9 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
                 'title': name,
             })
 
-        return {
-            '_type': 'playlist',
-            'id': resource_id,
-            'entries': entries,
-            'album': try_get(config, lambda x: x['name'].strip(), compat_str),
-            'artist': try_get(config, lambda x: x['creator']['name'].strip(), compat_str)
-        }
+        return merge_dicts(
+            self.playlist_result(entries, playlist_id=resource_id),
+            traverse_obj(config, {
+                'album': ('name', T(txt_or_none)),
+                'artist': ('creator', 'name', T(txt_or_none)),
+            }))
