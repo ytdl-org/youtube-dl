@@ -144,7 +144,7 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
         entries = []
         for track in traverse_obj(config, ('posts', Ellipsis)):
             url, name = (traverse_obj(track, ('track', {
-                'url': ('sample', 'audioUrl', T(url_or_none)
+                'url': ('sample', 'audioUrl', T(url_or_none)),
                 'name': ('name', T(txt_or_none)),
             }), ('revision', {
                 'url': ('mixdown', 'file', T(url_or_none)),
