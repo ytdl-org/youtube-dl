@@ -1127,6 +1127,72 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 }],
                 {},
             ), (
+                # https://github.com/ytdl-org/youtube-dl/issues/30235
+                # Bento4 generated test mpd
+                # mp4dash --mpd-name=manifest.mpd --no-split --use-segment-list mediafiles
+                'url_and_range',
+                'http://unknown/manifest.mpd',  # mpd_url
+                'http://unknown/',  # mpd_base_url
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'fragment_base_url': 'http://unknown/',
+                    'ext': 'm4a',
+                    'format_id': 'audio-und-mp4a.40.2',
+                    'format_note': 'DASH audio',
+                    'container': 'm4a_dash',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 98.808,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'fragment_base_url': 'http://unknown/',
+                    'ext': 'mp4',
+                    'format_id': 'video-avc1',
+                    'format_note': 'DASH video',
+                    'container': 'mp4_dash',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4D401E',
+                    'tbr': 699.597,
+                    'width': 768,
+                    'height': 432
+                }],
+                {},
+            ), (
+                # https://github.com/ytdl-org/youtube-dl/issues/27575
+                # GPAC generated test mpd
+                # MP4Box -dash 10000 -single-file -out manifest.mpd mediafiles
+                'range_only',
+                'http://unknown/manifest.mpd',  # mpd_url
+                'http://unknown/',  # mpd_base_url
+                [{
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'fragment_base_url': 'http://unknown/audio_dashinit.mp4',
+                    'ext': 'm4a',
+                    'format_id': '2',
+                    'format_note': 'DASH audio',
+                    'container': 'm4a_dash',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 98.096,
+                }, {
+                    'manifest_url': 'http://unknown/manifest.mpd',
+                    'fragment_base_url': 'http://unknown/video_dashinit.mp4',
+                    'ext': 'mp4',
+                    'format_id': '1',
+                    'format_note': 'DASH video',
+                    'container': 'mp4_dash',
+                    'protocol': 'http_dash_segments',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4D401E',
+                    'tbr': 526.987,
+                    'width': 768,
+                    'height': 432
+                }],
+                {},
+            ), (
                 'subtitles',
                 'https://sdn-global-streaming-cache-3qsdn.akamaized.net/stream/3144/files/17/07/672975/3144-kZT4LWMQw6Rh7Kpd.ism/manifest.mpd',
                 'https://sdn-global-streaming-cache-3qsdn.akamaized.net/stream/3144/files/17/07/672975/3144-kZT4LWMQw6Rh7Kpd.ism/',
