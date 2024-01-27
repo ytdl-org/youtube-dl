@@ -5,6 +5,7 @@ import re
 import time
 
 from .common import InfoExtractor
+from ..compat import compat_kwargs
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -74,6 +75,27 @@ class Vbox7IE(InfoExtractor):
         mobj = re.search(cls._EMBED_REGEX[0], webpage)
         if mobj:
             return mobj.group('url')
+
+    # transform_source=None, fatal=True
+    def _parse_json(self, json_string, video_id, *args, **kwargs):
+        if '"@context"' in json_string[:30]:
+            # this is ld+json, or that's the way to bet
+            transform_source = args[0] if len(args) > 0 else kwargs.get('transform_source')
+            if not transform_source:
+
+                def fix_chars(src):
+                    # fix malformed ld+json: replace raw CRLFs with escaped LFs
+                    return re.sub(
+                        r'"[^"]+"', lambda m: re.sub(r'\r?\n', r'\\n', m.group(0)), src)
+
+                if len(args) > 0:
+                    args = (fix_chars,) + args[1:]
+                else:
+                    kwargs['transform_source'] = fix_chars
+                    kwargs = compat_kwargs(kwargs)
+
+        return super(Vbox7IE, self)._parse_json(
+            json_string, video_id, *args, **kwargs)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
