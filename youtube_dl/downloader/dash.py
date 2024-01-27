@@ -35,6 +35,7 @@ class DashSegmentsFD(FragmentFD):
         for frag_index, fragment in enumerate(fragments, 1):
             if frag_index <= ctx['fragment_index']:
                 continue
+            success = False
             # In DASH, the first segment contains necessary headers to
             # generate a valid MP4 file, so always abort for the first segment
             fatal = frag_index == 1 or not skip_unavailable_fragments
@@ -42,10 +43,14 @@ class DashSegmentsFD(FragmentFD):
             if not fragment_url:
                 assert fragment_base_url
                 fragment_url = urljoin(fragment_base_url, fragment['path'])
-            success = False
+            headers = info_dict.get('http_headers')
+            fragment_range = fragment.get('range')
+            if fragment_range:
+                headers = headers.copy() if headers else {}
+                headers['Range'] = 'bytes=%s' % (fragment_range,)
             for count in itertools.count():
                 try:
-                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict)
+                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict, headers)
                     if not success:
                         return False
                     self._append_fragment(ctx, frag_content)
