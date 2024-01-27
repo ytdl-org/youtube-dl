@@ -2262,9 +2262,24 @@ class InfoExtractor(object):
         def is_drm_protected(element):
             return element.find(_add_ns('ContentProtection')) is not None
 
+        from ..utils import YoutubeDLHandler
+        fix_path = YoutubeDLHandler._fix_path
+
+        def resolve_base_url(element, parent_base_url=None):
+            # TODO: use native XML traversal when ready
+            b_url = traverse_obj(element, (
+                T(lambda e: e.find(_add_ns('BaseURL')).text)))
+            if parent_base_url and b_url:
+                if not parent_base_url[-1] in ('/', ':'):
+                    parent_base_url += '/'
+                b_url = compat_urlparse.urljoin(parent_base_url, b_url)
+            if b_url:
+                b_url = fix_path(b_url)
+            return b_url or parent_base_url
+
         def extract_multisegment_info(element, ms_parent_info):
             ms_info = ms_parent_info.copy()
-            base_url = ms_info.get('base_url')
+            base_url = ms_info['base_url'] = resolve_base_url(element, ms_info.get('base_url'))
 
             # As per [1, 5.3.9.2.2] SegmentList and SegmentTemplate share some
             # common attributes and elements.  We will only extract relevant
@@ -2336,11 +2351,13 @@ class InfoExtractor(object):
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats, subtitles = [], {}
         stream_numbers = collections.defaultdict(int)
+        mpd_base_url = resolve_base_url(mpd_doc, mpd_base_url or mpd_url)
         for period in mpd_doc.findall(_add_ns('Period')):
             period_duration = parse_duration(period.get('duration')) or mpd_duration
             period_ms_info = extract_multisegment_info(period, {
                 'start_number': 1,
                 'timescale': 1,
+                'base_url': mpd_base_url,
             })
             for adaptation_set in period.findall(_add_ns('AdaptationSet')):
                 if is_drm_protected(adaptation_set):
@@ -2561,7 +2578,7 @@ class InfoExtractor(object):
                     # assumption is not necessarily correct since we may simply have no support for
                     # some forms of fragmented media renditions yet, but for now we'll use this fallback.
                     if 'fragments' in representation_ms_info:
-                        base_url = representation_ms_info['base_url'] 
+                        base_url = representation_ms_info['base_url']
                         f.update({
                             # NB: mpd_url may be empty when MPD manifest is parsed from a string
                             'url': mpd_url or base_url,
