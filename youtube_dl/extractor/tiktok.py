@@ -107,10 +107,18 @@ class TikTokIE(TikTokBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        page_props = self._parse_json(self._search_regex(
-            r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
-            webpage, 'data'), video_id)['props']['pageProps']
-        data = try_get(page_props, lambda x: x['itemInfo']['itemStruct'], dict)
+        try:
+            page_props = self._parse_json(self._search_regex(
+                r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
+                webpage, 'data'), video_id)['props']['pageProps']
+            data = try_get(page_props, lambda x: x['itemInfo']['itemStruct'], dict)
+        except:
+            page_props = self._parse_json(self._search_regex(
+                r'<script[^>]+\bid=["\']sigi-persisted-data[^>]+>window\[\'SIGI_STATE\']=({.+?});window\[',
+                webpage, 'data'), video_id)
+            data = try_get(page_props, lambda x: x['ItemModule'][video_id], dict)
+            author = try_get(page_props, lambda x: x['UserModule']['users'][data['author']], dict)
+            data['author'] = author
         if not data and page_props.get('statusCode') == 10216:
             raise ExtractorError('This video is private', expected=True)
         return self._extract_video(data, video_id)
