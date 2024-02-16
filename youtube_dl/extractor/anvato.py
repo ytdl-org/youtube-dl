@@ -17,6 +17,7 @@ from ..utils import (
     intlist_to_bytes,
     int_or_none,
     strip_jsonp,
+    try_get,
     unescapeHTML,
     unsmuggle_url,
 )
@@ -203,23 +204,29 @@ class AnvatoIE(InfoExtractor):
         'telemundo': 'anvato_mcp_telemundo_web_prod_c5278d51ad46fda4b6ca3d0ea44a7846a054f582'
     }
 
+    _API_PREFIX = 'https://tkx.mp.lura.live/rest/v2/'
     _API_KEY = '3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA'
 
-    _ANVP_RE = r'<script[^>]+\bdata-anvp\s*=\s*(["\'])(?P<anvp>(?:(?!\1).)+)\1'
+    _ANVP_RE = (
+        r'<script[^>]*>[^<]*?\bAnvatoPlayer\s*\(\s*["\w]+\s*\)\s*\.\s*init\s*\(\s*(?P<anvp>{[^<]+?})\s*\);',
+        r'<script[^>]+\bdata-anvp\s*=\s*(["\'])(?P<anvp>(?:(?!\1).)+)\1')
     _AUTH_KEY = b'\x31\xc2\x42\x84\x9e\x73\xa0\xce'
 
     _TESTS = [{
         # from https://www.boston25news.com/news/watch-humpback-whale-breaches-right-next-to-fishing-boat-near-nh/817484874
         'url': 'anvato:8v9BEynrwx8EFLYpgfOWcG1qJqyXKlRM:4465496',
+        'only_matching': True,
+    }, {
+        # from https://miami.cbslocal.com/2022/02/12/no-appetite-for-new-miami-restaurant-glorifying-castro-communism/
+        'url': 'anvato:5VD6Eyd6djewbCmNwBFnsJj17YAvGRwl:6197559',  # 8v9BEynrwx8EFLYpgfOWcG1qJqyXKlRM:4465496',
         'info_dict': {
-            'id': '4465496',
+            'id': '6197559',
             'ext': 'mp4',
-            'title': 'VIDEO: Humpback whale breaches right next to NH boat',
-            'description': 'VIDEO: Humpback whale breaches right next to NH boat. Footage courtesy: Zach Fahey.',
-            'duration': 22,
-            'timestamp': 1534855680,
-            'upload_date': '20180821',
-            'uploader': 'ANV',
+            'upload_date': '20220209',
+            'uploader': 'CBS',
+            'description': 'CBS4\'s Joel Waldman has more on the backlash Cafe Habana is receiving.',
+            'timestamp': 1644381300,
+            'title': 'Miamians Want No Part Of New Restaurant Set To Open In Brickell That Glorifies Fidel Castro & Communism',
         },
         'params': {
             'skip_download': True,
@@ -228,46 +235,85 @@ class AnvatoIE(InfoExtractor):
         # from https://sanfrancisco.cbslocal.com/2016/06/17/source-oakland-cop-on-leave-for-having-girlfriend-help-with-police-reports/
         'url': 'anvato:DVzl9QRzox3ZZsP9bNu5Li3X7obQOnqP:3417601',
         'only_matching': True,
+    }, {
+        # from https://sanfrancisco.cbslocal.com/2022/02/16/san-francisco-voters-recall-embattled-school-board-members/
+        'url': 'anvato:5VD6Eyd6djewbCmNwBFnsJj17YAvGRwl:6201051',
+        'info_dict': {
+            'id': '6201051',
+            'ext': 'mp4',
+            'upload_date': '20220216',
+            'uploader': 'CBS',
+            'description': 'Voters were successful in their high-profile effort to recall three San Francisco school board members. Anne Makovec reports.',
+            'timestamp': 1645043880,
+            'title': 'Voters Recall San Francisco School Board Members',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def __init__(self, *args, **kwargs):
         super(AnvatoIE, self).__init__(*args, **kwargs)
         self.__server_time = None
 
-    def _server_time(self, access_key, video_id):
+    def _server_time(self, access_key, video_id, server_url=None):
         if self.__server_time is not None:
             return self.__server_time
 
+        if not server_url:
+            server_url = self._API_PREFIX + 'server_time?anvack={ANVACK}'
+
         self.__server_time = int(self._download_json(
-            self._api_prefix(access_key) + 'server_time?anvack=' + access_key, video_id,
+            server_url.format(ANVACK=access_key), video_id,
             note='Fetching server time')['server_time'])
 
         return self.__server_time
 
-    def _api_prefix(self, access_key):
-        return 'https://tkx2-%s.anvato.net/rest/v2/' % ('prod' if 'prod' in access_key else 'stage')
-
     def _get_video_json(self, access_key, video_id):
-        # See et() in anvplayer.min.js, which is an alias of getVideoJSON()
-        video_data_url = self._api_prefix(access_key) + 'mcp/video/%s?anvack=%s' % (video_id, access_key)
-        server_time = self._server_time(access_key, video_id)
+
+        def fix_template_vars(template):
+            return re.sub(r'\{(\{\w+})}', r'\1', template)
+
+        # https://access.mp.lura.live/anvacks/5VD6Eyd6djewbCmNwBFnsJj17YAvGRwl?apikey=3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA
+        access_info = self._download_json(
+            'https://access.mp.lura.live/anvacks/%s?apikey=%s'
+            % (access_key, self._API_KEY),
+            video_id, note='Downloading access details')
+        server_time_url = try_get(access_info, lambda x: x['api']['time'])
+
+        server_time_url = (
+            server_time_url
+            and fix_template_vars(server_time_url).format(ANVACK=access_key))
+        server_time = self._server_time(access_key, video_id, server_time_url)
+
+        video_data_url = access_info['api'].get('video')
+
+        if not video_data_url:
+            # use special knowledge
+            video_data_url = self._API_PREFIX + 'mcp/video/{{VIDEO_ID}}?anvack={{ANVACK}}'
+
+        video_data_url = fix_template_vars(video_data_url).format(ANVACK=access_key, VIDEO_ID=video_id)
+
         input_data = '%d~%s~%s' % (server_time, md5_text(video_data_url), md5_text(server_time))
 
         auth_secret = intlist_to_bytes(aes_encrypt(
             bytes_to_intlist(input_data[:64]), bytes_to_intlist(self._AUTH_KEY)))
 
-        video_data_url += '&X-Anvato-Adst-Auth=' + base64.b64encode(auth_secret).decode('ascii')
         anvrid = md5_text(time.time() * 1000 * random.random())[:30]
+
+        query = {
+            'X-Anvato-Adst-Auth': base64.b64encode(auth_secret).decode('ascii'),
+            'rtyp': 'fp',
+        }
         api = {
             'anvrid': anvrid,
             'anvts': server_time,
+            'anvstk2': 'default',
         }
-        api['anvstk'] = md5_text('%s|%s|%d|%s' % (
-            access_key, anvrid, server_time,
-            self._ANVACK_TABLE.get(access_key, self._API_KEY)))
-
         return self._download_json(
             video_data_url, video_id, transform_source=strip_jsonp,
+            note='Downloading video details',
+            query=query,
             data=json.dumps({'api': api}).encode('utf-8'))
 
     def _get_anvato_videos(self, access_key, video_id):
@@ -337,26 +383,28 @@ class AnvatoIE(InfoExtractor):
     @staticmethod
     def _extract_urls(ie, webpage, video_id):
         entries = []
-        for mobj in re.finditer(AnvatoIE._ANVP_RE, webpage):
-            anvplayer_data = ie._parse_json(
-                mobj.group('anvp'), video_id, transform_source=unescapeHTML,
-                fatal=False)
-            if not anvplayer_data:
-                continue
-            video = anvplayer_data.get('video')
-            if not isinstance(video, compat_str) or not video.isdigit():
-                continue
-            access_key = anvplayer_data.get('accessKey')
-            if not access_key:
-                mcp = anvplayer_data.get('mcp')
-                if mcp:
-                    access_key = AnvatoIE._MCP_TO_ACCESS_KEY_TABLE.get(
-                        mcp.lower())
-            if not access_key:
-                continue
-            entries.append(ie.url_result(
-                'anvato:%s:%s' % (access_key, video), ie=AnvatoIE.ie_key(),
-                video_id=video))
+        anvp_res = AnvatoIE._ANVP_RE
+        for anvp_re in anvp_res if isinstance(anvp_res, (list, tuple, )) else (anvp_res, ):
+            for mobj in re.finditer(anvp_re, webpage):
+                anvplayer_data = ie._parse_json(
+                    mobj.group('anvp'), video_id, transform_source=unescapeHTML,
+                    fatal=False)
+                if not anvplayer_data:
+                    continue
+                video = anvplayer_data.get('video')
+                if not isinstance(video, compat_str) or not video.isdigit():
+                    continue
+                access_key = anvplayer_data.get('accessKey')
+                if not access_key:
+                    mcp = anvplayer_data.get('mcp')
+                    if mcp:
+                        access_key = AnvatoIE._MCP_TO_ACCESS_KEY_TABLE.get(
+                            mcp.lower())
+                if not access_key:
+                    continue
+                entries.append(ie.url_result(
+                    'anvato:%s:%s' % (access_key, video), ie=AnvatoIE.ie_key(),
+                    video_id=video))
         return entries
 
     def _extract_anvato_videos(self, webpage, video_id):

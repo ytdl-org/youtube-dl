@@ -5,6 +5,7 @@ from .anvato import AnvatoIE
 from .sendtonews import SendtoNewsIE
 from ..compat import compat_urlparse
 from ..utils import (
+    merge_dicts,
     parse_iso8601,
     unified_timestamp,
 )
@@ -13,6 +14,8 @@ from ..utils import (
 class CBSLocalIE(AnvatoIE):
     _VALID_URL_BASE = r'https?://[a-z]+\.cbslocal\.com/'
     _VALID_URL = _VALID_URL_BASE + r'video/(?P<id>\d+)'
+
+    _OLD_ANVATO_KEY = 'anvato_cbslocal_app_web_prod_547f3e49241ef0e5d30c79b2efbca5d92c698f67'
 
     _TESTS = [{
         'url': 'http://newyork.cbslocal.com/video/3580809-a-very-blue-anniversary/',
@@ -30,10 +33,6 @@ class CBSLocalIE(AnvatoIE):
             },
             'categories': [
                 'Stations\\Spoken Word\\WCBSTV',
-                'Syndication\\AOL',
-                'Syndication\\MSN',
-                'Syndication\\NDN',
-                'Syndication\\Yahoo',
                 'Content\\News',
                 'Content\\News\\Local News',
             ],
@@ -42,12 +41,21 @@ class CBSLocalIE(AnvatoIE):
         'params': {
             'skip_download': True,
         },
+        'expected_warnings': ('Failed to download m3u8 information', ),
     }]
 
     def _real_extract(self, url):
+
         mcp_id = self._match_id(url)
-        return self.url_result(
-            'anvato:anvato_cbslocal_app_web_prod_547f3e49241ef0e5d30c79b2efbca5d92c698f67:' + mcp_id, 'Anvato', mcp_id)
+        webpage = self._download_webpage(url, mcp_id)
+
+        json_ld = self._search_json_ld(webpage, mcp_id, fatal=False) or {}
+        json_ld.pop('url', None)
+
+        return merge_dicts(
+            self._extract_anvato_videos(webpage, mcp_id)
+            or self.url_result(self._OLD_ANVATO_KEY + ':' + mcp_id, 'Anvato', mcp_id),
+            json_ld)
 
 
 class CBSLocalArticleIE(AnvatoIE):
@@ -56,30 +64,25 @@ class CBSLocalArticleIE(AnvatoIE):
     _TESTS = [{
         # Anvato backend
         'url': 'http://losangeles.cbslocal.com/2016/05/16/safety-advocates-say-fatal-car-seat-failures-are-public-health-crisis',
-        'md5': 'f0ee3081e3843f575fccef901199b212',
+        'only_matching': True
+    }, {
+        'url': 'https://losangeles.cbslocal.com/2022/02/16/rams-super-bowl-parade-to-take-place-wednesday/',
+        'md5': '36bdac3fb24ec8a6d7790218a0357b08',
         'info_dict': {
-            'id': '3401037',
+            'id': '6201053',
             'ext': 'mp4',
-            'title': 'Safety Advocates Say Fatal Car Seat Failures Are \'Public Health Crisis\'',
-            'description': 'Collapsing seats have been the focus of scrutiny for decades, though experts say remarkably little has been done to address the issue. Randy Paige reports.',
-            'thumbnail': 're:^https?://.*',
-            'timestamp': 1463440500,
-            'upload_date': '20160516',
+            'display_id': 'rams-super-bowl-parade-to-take-place-wednesday',
+            'upload_date': '20220216',
             'uploader': 'CBS',
-            'subtitles': {
-                'en': 'mincount:5',
-            },
+            'description': 'Jeff Nguyen is live from outside the L.A. Memorial Coliseum where fans cheered on the Los Angeles Rams.',
+            'timestamp': 1645044990,
+            'title': 'Rams Fans Gather Outside The LA Memorial Coliseum',
             'categories': [
-                'Stations\\Spoken Word\\KCBSTV',
-                'Syndication\\MSN',
-                'Syndication\\NDN',
-                'Syndication\\AOL',
-                'Syndication\\Yahoo',
-                'Syndication\\Tribune',
-                'Syndication\\Curb.tv',
-                'Content\\News'
+                'Stations\\Spoken Word\\KCALTV',
+                'Content\\News',
+                'Content\\Top Story',
             ],
-            'tags': ['CBS 2 News Evening'],
+            'tags': ['KCAL 9 News Afternoon'],
         },
     }, {
         # SendtoNews embed
@@ -92,18 +95,24 @@ class CBSLocalArticleIE(AnvatoIE):
             # m3u8 download
             'skip_download': True,
         },
+        'skip': 'Redirects to CBS News home page',
     }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
+        json_ld = self._search_json_ld(webpage, display_id, fatal=False) or {}
+        json_ld.pop('url', None)
+
         sendtonews_url = SendtoNewsIE._extract_url(webpage)
         if sendtonews_url:
-            return self.url_result(
+            result = self.url_result(
                 compat_urlparse.urljoin(url, sendtonews_url),
                 ie=SendtoNewsIE.ie_key())
+            return merge_dicts(result, json_ld)
 
+        # returns a dict, or raises
         info_dict = self._extract_anvato_videos(webpage, display_id)
 
         timestamp = unified_timestamp(self._html_search_regex(
@@ -111,9 +120,10 @@ class CBSLocalArticleIE(AnvatoIE):
             'released date', default=None)) or parse_iso8601(
             self._html_search_meta('uploadDate', webpage))
 
-        info_dict.update({
-            'display_id': display_id,
-            'timestamp': timestamp,
-        })
-
-        return info_dict
+        return merge_dicts(
+            info_dict,
+            json_ld,
+            {
+                'display_id': display_id,
+                'timestamp': timestamp,
+            })
