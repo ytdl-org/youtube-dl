@@ -28,8 +28,8 @@ import re
 import youtube_dl.YoutubeDL
 from youtube_dl.compat import (
     compat_filter as filter,
-    compat_map as map,
     compat_http_client,
+    compat_map as map,
     compat_urllib_error,
     compat_HTTPError,
 )
