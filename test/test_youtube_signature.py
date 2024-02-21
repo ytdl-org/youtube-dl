@@ -8,11 +8,14 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import io
 import re
 import string
 
-from youtube_dl.compat import compat_str, compat_urlretrieve
+from youtube_dl.compat import (
+    compat_open as open,
+    compat_str,
+    compat_urlretrieve,
+)
 
 from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
@@ -67,6 +70,10 @@ _SIG_TESTS = [
 ]
 
 _NSIG_TESTS = [
+    (
+        'https://www.youtube.com/s/player/7862ca1f/player_ias.vflset/en_US/base.js',
+        'X_LCxVDjAavgE5t', 'yxJ1dM6iz5ogUg',
+    ),
     (
         'https://www.youtube.com/s/player/9216d1f7/player_ias.vflset/en_US/base.js',
         'SLp9F5bwjAdhE9F-', 'gWnb9IK2DJ8Q1w',
@@ -135,6 +142,22 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/5a3b6271/player_ias.vflset/en_US/base.js',
         'B2j7f_UPT4rfje85Lu_e', 'm5DmNymaGQ5RdQ',
     ),
+    (
+        'https://www.youtube.com/s/player/dac945fd/player_ias.vflset/en_US/base.js',
+        'o8BkRxXhuYsBCWi6RplPdP', '3Lx32v_hmzTm6A',
+    ),
+    (
+        'https://www.youtube.com/s/player/6f20102c/player_ias.vflset/en_US/base.js',
+        'lE8DhoDmKqnmJJ', 'pJTTX6XyJP2BYw',
+    ),
+    (
+        'https://www.youtube.com/s/player/cfa9e7cb/player_ias.vflset/en_US/base.js',
+        'qO0NiMtYQ7TeJnfFG2', 'k9cuJDHNS5O7kQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/b7910ca8/player_ias.vflset/en_US/base.js',
+        '_hXMCwMt9qE310D', 'LoZMgkkofRMCZQ',
+    ),
 ]
 
 
@@ -188,7 +211,7 @@ def t_factory(name, sig_func, url_pattern):
 
             if not os.path.exists(fn):
                 compat_urlretrieve(url, fn)
-            with io.open(fn, encoding='utf-8') as testf:
+            with open(fn, encoding='utf-8') as testf:
                 jscode = testf.read()
             self.assertEqual(sig_func(jscode, sig_input), expected_sig)
 

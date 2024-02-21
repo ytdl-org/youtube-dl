@@ -261,27 +261,33 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            (?:
-                                www|
-                                player
-                            )
-                            \.
-                        )?
-                        vimeo(?:pro)?\.com/
-                        (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
-                        (?:.*?/)??
-                        (?:
-                            (?:
-                                play_redirect_hls|
-                                moogaloop\.swf)\?clip_id=
-                            )?
-                        (?:videos?/)?
-                        (?P<id>[0-9]+)
-                        (?:/(?P<unlisted_hash>[\da-f]{10}))?
-                        /?(?:[?&].*)?(?:[#].*)?$
-                    '''
+                     https?://
+                         (?:
+                             (?:
+                                 www|
+                                 player
+                             )
+                             \.
+                         )?
+                         vimeo(?:pro)?\.com/
+                         (?:
+                             (?P<u>user)|
+                             (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
+                             (?:.*?/)??
+                             (?P<q>
+                                 (?:
+                                     play_redirect_hls|
+                                     moogaloop\.swf)\?clip_id=
+                             )?
+                             (?:videos?/)?
+                         )
+                         (?P<id>[0-9]+)
+                         (?(u)
+                             /(?!videos|likes)[^/?#]+/?|
+                             (?(q)|/(?P<unlisted_hash>[\da-f]{10}))?
+                         )
+                         (?:(?(q)[&]|(?(u)|/?)[?]).+?)?(?:[#].*)?$
+                 '''
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -539,7 +545,12 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
-        }
+        },
+        {
+            # user playlist alias -> https://vimeo.com/258705797
+            'url': 'https://vimeo.com/user26785108/newspiritualguide',
+            'only_matching': True,
+        },
         # https://gettingthingsdone.com/workflowmap/
         # vimeo embed with check-password page protected by Referer header
     ]
@@ -663,7 +674,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
         if '//player.vimeo.com/video/' in url:
             config = self._parse_json(self._search_regex(
-                r'\b(?:playerC|c)onfig\s*=\s*({.+?})\s*;', webpage, 'info section'), video_id)
+                r'(?s)\b(?:playerC|c)onfig\s*=\s*({.+?})\s*[;\n]', webpage, 'info section'), video_id)
             if config.get('view') == 4:
                 config = self._verify_player_video_password(
                     redirect_url, video_id, headers)

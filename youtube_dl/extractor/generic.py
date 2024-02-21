@@ -2320,6 +2320,25 @@ class GenericIE(InfoExtractor):
                 'height': 720,
                 'age_limit': 18,
             },
+        }, {
+            # would like to use the yt-dl test video but searching for
+            # '"\'/\\ä↭𝕐' fails, so using an old vid from YouTube Korea
+            'note': 'Test default search',
+            'url': 'Shorts로 허락 필요없이 놀자! (BTS편)',
+            'info_dict': {
+                'id': 'usDGO4Zb-dc',
+                'ext': 'mp4',
+                'title': 'YouTube Shorts로 허락 필요없이 놀자! (BTS편)',
+                'description': 'md5:96e31607eba81ab441567b5e289f4716',
+                'upload_date': '20211107',
+                'uploader': 'YouTube Korea',
+                'location': '대한민국',
+            },
+            'params': {
+                'default_search': 'ytsearch',
+                'skip_download': True,
+            },
+            'expected_warnings': ['uploader id'],
         },
     ]
 

@@ -1663,5 +1663,5 @@ def casefold(s):
 
 
 __all__ = [
-    casefold
+    'casefold',
 ]

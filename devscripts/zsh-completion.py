@@ -7,6 +7,8 @@ import sys
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
+from utils import read_file, write_file
+
 
 ZSH_COMPLETION_FILE = "youtube-dl.zsh"
 ZSH_COMPLETION_TEMPLATE = "devscripts/zsh-completion.in"
@@ -34,15 +36,13 @@ def build_completion(opt_parser):
 
     flags = [opt.get_opt_string() for opt in opts]
 
-    with open(ZSH_COMPLETION_TEMPLATE) as f:
-        template = f.read()
+    template = read_file(ZSH_COMPLETION_TEMPLATE)
 
     template = template.replace("{{fileopts}}", "|".join(fileopts))
     template = template.replace("{{diropts}}", "|".join(diropts))
     template = template.replace("{{flags}}", " ".join(flags))
 
-    with open(ZSH_COMPLETION_FILE, "w") as f:
-        f.write(template)
+    write_file(ZSH_COMPLETION_FILE, template)
 
 
 parser = youtube_dl.parseOpts()[0]

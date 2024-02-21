@@ -7,6 +7,7 @@ import subprocess
 import tempfile
 
 from ..compat import (
+    compat_open as open,
     compat_urlparse,
     compat_kwargs,
 )
