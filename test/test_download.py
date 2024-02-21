@@ -65,7 +65,7 @@ class YoutubeDL(youtube_dl.YoutubeDL):
 def _file_md5(fn, length=None):
     with open(fn, 'rb') as f:
         return hashlib.md5(
-            f.read(length) if length is not None else f.read()).hexdigest()
+            f.read() if length is None else f.read(length)).hexdigest()
 
 
 defs = gettestcases()
@@ -94,7 +94,7 @@ class TestDownload(unittest.TestCase):
     def addTest(cls, test_method, test_method_name, add_ie):
         test_method.__name__ = str(test_method_name)
         test_method.add_ie = add_ie
-        setattr(TestDownload, test_method.__name__, test_method)
+        setattr(cls, test_method.__name__, test_method)
         del test_method
 
     def setUp(self):
