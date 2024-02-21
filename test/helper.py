@@ -86,6 +86,7 @@ class FakeYDL(YoutubeDL):
         # Silence an expected warning matching a regex
         expect_warnings(self, regex)
 
+
 class FakeLogger(object):
     def debug(self, msg):
         pass
@@ -279,7 +280,7 @@ def assertEqual(self, got, expected, msg=None):
 
 def expect_warnings(ydl, warnings_re):
     real_warning = ydl.report_warning
-    # to facilitate matching, don't prettify messages 
+    # to facilitate matching, don't prettify messages
     ydl.params['no_color'] = True
 
     def _report_warning(self, w, *args, **kwargs):
