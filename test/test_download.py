@@ -29,7 +29,6 @@ from youtube_dl.compat import (
     compat_filter as filter,
     compat_http_client,
     compat_map as map,
-    compat_urllib_error,
     compat_HTTPError,
     compat_open as open,
     compat_urllib_error,
