@@ -20,6 +20,7 @@ from test.helper import (
 
 
 import hashlib
+import itertools
 import json
 import socket
 import re
@@ -175,8 +176,7 @@ def generator(test_case, tname):
 
         try_rm_tcs_files()
         try:
-            try_num = 1
-            while True:
+            for try_num in itertools.count(1):
                 try:
                     # We're not using .download here since that is just a shim
                     # for outside error handling, and returns the exit code
@@ -185,7 +185,7 @@ def generator(test_case, tname):
                         test_case['url'],
                         force_generic_extractor=params.get('force_generic_extractor', False))
                 except (DownloadError, ExtractorError) as err:
-                    # Check if the exception is not a network related one
+                    # Retry, or raise if the exception is not network-related
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
                         msg = getattr(err, 'msg', error_to_compat_str(err))
                         err.msg = '%s (%s)' % (msg, tname, )
@@ -196,8 +196,6 @@ def generator(test_case, tname):
                         return
 
                     print('Retrying: {0} failed tries\n\n##########\n\n'.format(try_num))
-
-                    try_num += 1
                 else:
                     break
 
