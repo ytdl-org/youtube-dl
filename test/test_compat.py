@@ -23,6 +23,7 @@ from youtube_dl.compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
+    compat_urllib_request,
 )
 
 
@@ -134,6 +135,19 @@ class TestCompat(unittest.TestCase):
         self.assertEqual(compat_casefold('ﬁ'), 'fi')
         self.assertEqual(compat_casefold('\u03a3'), '\u03c3')
         self.assertEqual(compat_casefold('A\u0345\u03a3'), 'a\u03b9\u03c3')
+
+    def test_compat_urllib_request_Request(self):
+        self.assertEqual(
+            compat_urllib_request.Request('http://127.0.0.1', method='PUT').get_method(),
+            'PUT')
+
+        class PUTrequest(compat_urllib_request.Request):
+            def get_method(self):
+                return 'PUT'
+
+        self.assertEqual(
+            PUTrequest('http://127.0.0.1').get_method(),
+            'PUT')
 
 
 if __name__ == '__main__':

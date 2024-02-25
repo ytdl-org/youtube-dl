@@ -15,7 +15,7 @@ import email.utils
 import email.header
 import errno
 import functools
-import gzip
+import inspect
 import io
 import itertools
 import json
@@ -40,13 +40,14 @@ import zlib
 from .compat import (
     compat_HTMLParseError,
     compat_HTMLParser,
-    compat_HTTPError,
     compat_basestring,
+    compat_brotli as brotli,
     compat_casefold,
     compat_chr,
     compat_collections_abc,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
+    compat_datetime_timedelta_total_seconds,
     compat_etree_fromstring,
     compat_expanduser,
     compat_html_entities,
@@ -54,13 +55,16 @@ from .compat import (
     compat_http_client,
     compat_integer_types,
     compat_kwargs,
+    compat_ncompress as ncompress,
     compat_os_name,
     compat_re_Match,
+    compat_re_Pattern,
     compat_shlex_quote,
     compat_str,
     compat_struct_pack,
     compat_struct_unpack,
     compat_urllib_error,
+    compat_urllib_HTTPError,
     compat_urllib_parse,
     compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_urlencode,
@@ -86,7 +90,7 @@ def register_socks_protocols():
 
 
 # Unfavoured alias
-compiled_regex_type = compat_re_Match
+compiled_regex_type = compat_re_Pattern
 
 
 def random_user_agent():
@@ -1674,9 +1678,7 @@ def random_user_agent():
 
 std_headers = {
     'User-Agent': random_user_agent(),
-    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
 }
 
@@ -1822,11 +1824,11 @@ def write_json_file(obj, fn):
     if sys.version_info < (3, 0) and sys.platform != 'win32':
         encoding = get_filesystem_encoding()
         # os.path.basename returns a bytes object, but NamedTemporaryFile
-        # will fail if the filename contains non ascii characters unless we
+        # will fail if the filename contains non-ascii characters unless we
         # use a unicode object
-        path_basename = lambda f: os.path.basename(fn).decode(encoding)
+        path_basename = lambda f: os.path.basename(f).decode(encoding)
         # the same for os.path.dirname
-        path_dirname = lambda f: os.path.dirname(fn).decode(encoding)
+        path_dirname = lambda f: os.path.dirname(f).decode(encoding)
     else:
         path_basename = os.path.basename
         path_dirname = os.path.dirname
@@ -1890,9 +1892,9 @@ else:
                 return f
         return None
 
+
 # On python2.6 the xml.etree.ElementTree.Element methods don't support
 # the namespace parameter
-
 
 def xpath_with_ns(path, ns_map):
     components = [c.split(':') for c in path.split('/')]
@@ -1910,7 +1912,7 @@ def xpath_element(node, xpath, name=None, fatal=False, default=NO_DEFAULT):
     def _find_xpath(xpath):
         return node.find(compat_xpath(xpath))
 
-    if isinstance(xpath, (str, compat_str)):
+    if isinstance(xpath, compat_basestring):
         n = _find_xpath(xpath)
     else:
         for xp in xpath:
@@ -2119,7 +2121,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
         if restricted and (char in '!&\'()[]{}$;`^,#' or char.isspace()):
             return '_'
         if restricted and ord(char) > 127:
-            return '_'
+            return '' if unicodedata.category(char)[0] in 'CM' else '_'
+
         return char
 
     # Replace look-alike Unicode glyphs
@@ -2231,7 +2234,7 @@ def _htmlentity_transform(entity_with_semicolon):
 def unescapeHTML(s):
     if s is None:
         return None
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
@@ -2258,39 +2261,32 @@ def get_subprocess_encoding():
     return encoding
 
 
-def encodeFilename(s, for_subprocess=False):
-    """
-    @param s The name of the file
-    """
+# Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
+if sys.version_info < (3, 0) and not sys.platform.startswith('java'):
 
-    assert type(s) == compat_str
+    def encodeFilename(s, for_subprocess=False):
+        """
+        @param s The name of the file
+        """
+
+        # Pass '' directly to use Unicode APIs on Windows 2000 and up
+        # (Detecting Windows NT 4 is tricky because 'major >= 4' would
+        # match Windows 9x series as well. Besides, NT 4 is obsolete.)
+        if (not for_subprocess
+                and sys.platform == 'win32'
+                and sys.getwindowsversion()[0] >= 5
+                and isinstance(s, compat_str)):
+            return s
+
+        return _encode_compat_str(s, get_subprocess_encoding(), 'ignore')
+
+    def decodeFilename(b, for_subprocess=False):
+        return _decode_compat_str(b, get_subprocess_encoding(), 'ignore')
+
+else:
 
     # Python 3 has a Unicode API
-    if sys.version_info >= (3, 0):
-        return s
-
-    # Pass '' directly to use Unicode APIs on Windows 2000 and up
-    # (Detecting Windows NT 4 is tricky because 'major >= 4' would
-    # match Windows 9x series as well. Besides, NT 4 is obsolete.)
-    if not for_subprocess and sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
-        return s
-
-    # Jython assumes filenames are Unicode strings though reported as Python 2.x compatible
-    if sys.platform.startswith('java'):
-        return s
-
-    return s.encode(get_subprocess_encoding(), 'ignore')
-
-
-def decodeFilename(b, for_subprocess=False):
-
-    if sys.version_info >= (3, 0):
-        return b
-
-    if not isinstance(b, bytes):
-        return b
-
-    return b.decode(get_subprocess_encoding(), 'ignore')
+    encodeFilename = decodeFilename = lambda *s, **k: s[0]
 
 
 def encodeArgument(s):
@@ -2309,11 +2305,7 @@ def decodeArgument(b):
 def decodeOption(optval):
     if optval is None:
         return optval
-    if isinstance(optval, bytes):
-        optval = optval.decode(preferredencoding())
-
-    assert isinstance(optval, compat_str)
-    return optval
+    return _decode_compat_str(optval)
 
 
 def formatSeconds(secs):
@@ -2359,7 +2351,7 @@ def make_HTTPS_handler(params, **kwargs):
 
     if sys.version_info < (3, 2):
         return YoutubeDLHTTPSHandler(params, **kwargs)
-    else:  # Python < 3.4
+    else:  # Python3 < 3.4
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
@@ -2593,7 +2585,7 @@ def handle_youtubedl_headers(headers):
     filtered_headers = headers
 
     if 'Youtubedl-no-compression' in filtered_headers:
-        filtered_headers = dict((k, v) for k, v in filtered_headers.items() if k.lower() != 'accept-encoding')
+        filtered_headers = filter_dict(filtered_headers, cndn=lambda k, _: k.lower() != 'accept-encoding')
         del filtered_headers['Youtubedl-no-compression']
 
     return filtered_headers
@@ -2611,7 +2603,8 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
 
     Part of this code was copied from:
 
-    http://techknack.net/python-urllib2-handlers/
+    http://techknack.net/python-urllib2-handlers/, archived at
+    https://web.archive.org/web/20130527205558/http://techknack.net/python-urllib2-handlers/
 
     Andrew Rowls, the author of that code, agreed to release it to the
     public domain.
@@ -2634,23 +2627,91 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             req)
 
     @staticmethod
-    def deflate(data):
+    def deflate_gz(data):
         try:
-            return zlib.decompress(data, -zlib.MAX_WBITS)
+            # format:zlib,gzip + windowsize:32768
+            return data and zlib.decompress(data, 32 + zlib.MAX_WBITS)
         except zlib.error:
-            return zlib.decompress(data)
+            # raw zlib * windowsize:32768 (RFC 9110: "non-conformant")
+            return zlib.decompress(data, -zlib.MAX_WBITS)
+
+    @staticmethod
+    def gzip(data):
+
+        from gzip import GzipFile
+
+        def _gzip(data):
+            with io.BytesIO(data) as data_buf:
+                gz = GzipFile(fileobj=data_buf, mode='rb')
+                return gz.read()
+
+        try:
+            return _gzip(data)
+        except IOError as original_ioerror:
+            # There may be junk at the end of the file
+            # See http://stackoverflow.com/q/4928560/35070 for details
+            for i in range(1, 1024):
+                try:
+                    return _gzip(data[:-i])
+                except IOError:
+                    continue
+            else:
+                raise original_ioerror
+
+    @staticmethod
+    def brotli(data):
+        return data and brotli.decompress(data)
+
+    @staticmethod
+    def compress(data):
+        return data and ncompress.decompress(data)
+
+    @staticmethod
+    def _fix_path(url):
+        # an embedded /../ or /./ sequence is not automatically handled by urllib2
+        # see https://github.com/yt-dlp/yt-dlp/issues/3355
+        parsed_url = compat_urllib_parse.urlsplit(url)
+        path = parsed_url.path
+        if not path.endswith('/'):
+            path += '/'
+        parts = path.partition('/./')
+        if not parts[1]:
+            parts = path.partition('/../')
+        if parts[1]:
+            path = compat_urllib_parse.urljoin(
+                parts[0] + parts[1][:1],
+                parts[1][1:] + (parts[2] if parsed_url.path.endswith('/') else parts[2][:-1]))
+            url = parsed_url._replace(path=path).geturl()
+        if '/.' in url:
+            # worse, URL path may have initial /../ against RFCs: work-around
+            # by stripping such prefixes, like eg Firefox
+            path = parsed_url.path + '/'
+            while path.startswith('/.'):
+                if path.startswith('/../'):
+                    path = path[3:]
+                elif path.startswith('/./'):
+                    path = path[2:]
+                else:
+                    break
+            path = path[:-1]
+            if not path.startswith('/') and parsed_url.path.startswith('/'):
+                path = '/' + path
+            url = parsed_url._replace(path=path).geturl()
+        return url
 
     def http_request(self, req):
-        # According to RFC 3986, URLs can not contain non-ASCII characters, however this is not
-        # always respected by websites, some tend to give out URLs with non percent-encoded
+        url = req.get_full_url()
+        # resolve embedded . and ..
+        url_fixed = self._fix_path(url)
+        # According to RFC 3986, URLs can not contain non-ASCII characters; however this is not
+        # always respected by websites: some tend to give out URLs with non percent-encoded
         # non-ASCII characters (see telemb.py, ard.py [#3412])
         # urllib chokes on URLs with non-ASCII characters (see http://bugs.python.org/issue3991)
         # To work around aforementioned issue we will replace request's original URL with
         # percent-encoded one
         # Since redirects are also affected (e.g. http://www.southpark.de/alle-episoden/s18e09)
         # the code of this workaround has been moved here from YoutubeDL.urlopen()
-        url = req.get_full_url()
-        url_escaped = escape_url(url)
+        url_escaped = escape_url(url_fixed)
 
         # Substitute URL if any change after escaping
         if url != url_escaped:
@@ -2662,44 +2723,82 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if h.capitalize() not in req.headers:
                 req.add_header(h, v)
 
+        # Similarly, 'Accept-encoding'
+        if 'Accept-encoding' not in req.headers:
+            req.add_header(
+                'Accept-Encoding', join_nonempty(
+                    'gzip', 'deflate', brotli and 'br', ncompress and 'compress',
+                    delim=', '))
+
         req.headers = handle_youtubedl_headers(req.headers)
 
-        if sys.version_info < (2, 7) and '#' in req.get_full_url():
-            # Python 2.6 is brain-dead when it comes to fragments
-            req._Request__original = req._Request__original.partition('#')[0]
-            req._Request__r_type = req._Request__r_type.partition('#')[0]
+        if sys.version_info < (2, 7):
+            # avoid possible race where __r_type may be unset
+            req.get_type()
+            if '#' in req.get_full_url():
+                # Python 2.6 is brain-dead when it comes to fragments
+                req._Request__original = req._Request__original.partition('#')[0]
+                req._Request__r_type = req._Request__r_type.partition('#')[0]
 
-        return req
+        # Use the totally undocumented AbstractHTTPHandler per
+        # https://github.com/yt-dlp/yt-dlp/pull/4158
+        return compat_urllib_request.AbstractHTTPHandler.do_request_(self, req)
 
     def http_response(self, req, resp):
         old_resp = resp
-        # gzip
-        if resp.headers.get('Content-encoding', '') == 'gzip':
-            content = resp.read()
-            gz = gzip.GzipFile(fileobj=io.BytesIO(content), mode='rb')
-            try:
-                uncompressed = io.BytesIO(gz.read())
-            except IOError as original_ioerror:
-                # There may be junk add the end of the file
-                # See http://stackoverflow.com/q/4928560/35070 for details
-                for i in range(1, 1024):
-                    try:
-                        gz = gzip.GzipFile(fileobj=io.BytesIO(content[:-i]), mode='rb')
-                        uncompressed = io.BytesIO(gz.read())
-                    except IOError:
-                        continue
-                    break
-                else:
-                    raise original_ioerror
-            resp = compat_urllib_request.addinfourl(uncompressed, old_resp.headers, old_resp.url, old_resp.code)
+
+        # Content-Encoding header lists the encodings in order that they were applied [1].
+        # To decompress, we simply do the reverse.
+        # [1]: https://datatracker.ietf.org/doc/html/rfc9110#name-content-encoding
+        decoded_response = None
+        decoders = {
+            'gzip': self.deflate_gz,
+            'deflate': self.deflate_gz,
+        }
+        if brotli:
+            decoders['br'] = self.brotli
+        if ncompress:
+            decoders['compress'] = self.compress
+        if sys.platform.startswith('java'):
+            # Jython zlib implementation misses gzip
+            decoders['gzip'] = self.gzip
+
+        def encodings(hdrs):
+            # A header field that allows multiple values can have multiple instances [2].
+            # [2]: https://datatracker.ietf.org/doc/html/rfc9110#name-fields
+            for e in reversed(','.join(hdrs).split(',')):
+                if e:
+                    yield e.strip()
+
+        encodings_left = []
+        try:
+            resp.headers.get_all
+            hdrs = resp.headers
+        except AttributeError:
+            # Py2 has no get_all() method: headers are rfc822.Message
+            from email.message import Message
+            hdrs = Message()
+            for k, v in resp.headers.items():
+                hdrs[k] = v
+
+        decoder, decoded_response = True, None
+        for encoding in encodings(hdrs.get_all('Content-Encoding', [])):
+            # "SHOULD consider" x-compress, x-gzip as compress, gzip
+            decoder = decoder and decoders.get(remove_start(encoding, 'x-'))
+            if not decoder:
+                encodings_left.insert(0, encoding)
+                continue
+            decoded_response = decoder(decoded_response or resp.read())
+        if decoded_response is not None:
+            resp = compat_urllib_request.addinfourl(
+                io.BytesIO(decoded_response), old_resp.headers, old_resp.url, old_resp.code)
             resp.msg = old_resp.msg
-            del resp.headers['Content-encoding']
-        # deflate
-        if resp.headers.get('Content-encoding', '') == 'deflate':
-            gz = io.BytesIO(self.deflate(resp.read()))
-            resp = compat_urllib_request.addinfourl(gz, old_resp.headers, old_resp.url, old_resp.code)
-            resp.msg = old_resp.msg
-            del resp.headers['Content-encoding']
+            del resp.headers['Content-Length']
+            resp.headers['Content-Length'] = '%d' % len(decoded_response)
+        del resp.headers['Content-Encoding']
+        if encodings_left:
+            resp.headers['Content-Encoding'] = ', '.join(encodings_left)
+
         # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986 (see
         # https://github.com/ytdl-org/youtube-dl/issues/6457).
         if 300 <= resp.code < 400:
@@ -2707,13 +2806,14 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             if location:
                 # As of RFC 2616 default charset is iso-8859-1 that is respected by python 3
                 if sys.version_info >= (3, 0):
-                    location = location.encode('iso-8859-1').decode('utf-8')
-                else:
-                    location = location.decode('utf-8')
-                location_escaped = escape_url(location)
+                    location = location.encode('iso-8859-1')
+                location = location.decode('utf-8')
+                # resolve embedded . and ..
+                location_fixed = self._fix_path(location)
+                location_escaped = escape_url(location_fixed)
                 if location != location_escaped:
                     del resp.headers['Location']
-                    if sys.version_info < (3, 0):
+                    if not isinstance(location_escaped, str):  # Py 2 case
                         location_escaped = location_escaped.encode('utf-8')
                     resp.headers['Location'] = location_escaped
         return resp
@@ -2907,6 +3007,19 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
                 cookie.expires = None
                 cookie.discard = True
 
+    def get_cookie_header(self, url):
+        """Generate a Cookie HTTP header for a given url"""
+        cookie_req = sanitized_Request(url)
+        self.add_cookie_header(cookie_req)
+        return cookie_req.get_header('Cookie')
+
+    def get_cookies_for_url(self, url):
+        """Generate a list of Cookie objects for a given url"""
+        # Policy `_now` attribute must be set before calling `_cookies_for_request`
+        # Ref: https://github.com/python/cpython/blob/3.7/Lib/http/cookiejar.py#L1360
+        self._policy._now = self._now = int(time.time())
+        return self._cookies_for_request(sanitized_Request(url))
+
 
 class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     def __init__(self, cookiejar=None):
@@ -2937,17 +3050,16 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
     The code is based on HTTPRedirectHandler implementation from CPython [1].
 
-    This redirect handler solves two issues:
-     - ensures redirect URL is always unicode under python 2
-     - introduces support for experimental HTTP response status code
-       308 Permanent Redirect [2] used by some sites [3]
+    This redirect handler fixes and improves the logic to better align with RFC7261
+    and what browsers tend to do [2][3]
 
     1. https://github.com/python/cpython/blob/master/Lib/urllib/request.py
-    2. https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/308
-    3. https://github.com/ytdl-org/youtube-dl/issues/28768
+    2. https://datatracker.ietf.org/doc/html/rfc7231
+    3. https://github.com/python/cpython/issues/91306
     """
 
-    http_error_301 = http_error_303 = http_error_307 = http_error_308 = compat_urllib_request.HTTPRedirectHandler.http_error_302
+    # Supply possibly missing alias
+    http_error_308 = compat_urllib_request.HTTPRedirectHandler.http_error_302
 
     def redirect_request(self, req, fp, code, msg, headers, newurl):
         """Return a Request or None in response to a redirect.
@@ -2959,34 +3071,48 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         else should try to handle this url.  Return None if you can't
         but another Handler might.
         """
-        m = req.get_method()
-        if (not (code in (301, 302, 303, 307, 308) and m in ("GET", "HEAD")
-                 or code in (301, 302, 303) and m == "POST")):
-            raise compat_HTTPError(req.full_url, code, msg, headers, fp)
-        # Strictly (according to RFC 2616), 301 or 302 in response to
-        # a POST MUST NOT cause a redirection without confirmation
-        # from the user (of urllib.request, in this case).  In practice,
-        # essentially all clients do redirect in this case, so we do
-        # the same.
+        if code not in (301, 302, 303, 307, 308):
+            raise compat_urllib_HTTPError(req.full_url, code, msg, headers, fp)
+
+        new_method = req.get_method()
+        new_data = req.data
 
         # On python 2 urlh.geturl() may sometimes return redirect URL
-        # as byte string instead of unicode. This workaround allows
-        # to force it always return unicode.
-        if sys.version_info[0] < 3:
-            newurl = compat_str(newurl)
+        # as a byte string instead of unicode. This workaround forces
+        # it to return unicode.
+        newurl = _decode_compat_str(newurl)
 
         # Be conciliant with URIs containing a space.  This is mainly
         # redundant with the more complete encoding done in http_error_302(),
         # but it is kept for compatibility with other callers.
         newurl = newurl.replace(' ', '%20')
 
-        CONTENT_HEADERS = ("content-length", "content-type")
-        # NB: don't use dict comprehension for python 2.6 compatibility
-        newheaders = dict((k, v) for k, v in req.headers.items()
-                          if k.lower() not in CONTENT_HEADERS)
+        # Technically the Cookie header should be in unredirected_hdrs;
+        # however in practice some may set it in normal headers anyway.
+        # We will remove it here to prevent any leaks.
+        remove_headers = ['Cookie']
+
+        # A 303 must either use GET or HEAD for subsequent request
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.4
+        if code == 303 and req.get_method() != 'HEAD':
+            new_method = 'GET'
+        # 301 and 302 redirects are commonly turned into a GET from a POST
+        # for subsequent requests by browsers, so we'll do the same.
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.2
+        # https://datatracker.ietf.org/doc/html/rfc7231#section-6.4.3
+        elif code in (301, 302) and req.get_method() == 'POST':
+            new_method = 'GET'
+
+        # only remove payload if method changed (e.g. POST to GET)
+        if new_method != req.get_method():
+            new_data = None
+            remove_headers.extend(['Content-Length', 'Content-Type'])
+
+        new_headers = filter_dict(req.headers, cndn=lambda k, _: k.title() not in remove_headers)
+
         return compat_urllib_request.Request(
-            newurl, headers=newheaders, origin_req_host=req.origin_req_host,
-            unverifiable=True)
+            newurl, headers=new_headers, origin_req_host=req.origin_req_host,
+            unverifiable=True, method=new_method, data=new_data)
 
 
 def extract_timezone(date_str):
@@ -3101,7 +3227,7 @@ def unified_timestamp(date_str, day_first=True):
             pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple) + pm_delta * 3600 - timezone.total_seconds()
+        return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
 
 
 def determine_ext(url, default_ext='unknown_video'):
@@ -3190,15 +3316,15 @@ class DateRange(object):
     def __str__(self):
         return '%s - %s' % (self.start.isoformat(), self.end.isoformat())
 
+    def __eq__(self, other):
+        return (isinstance(other, DateRange)
+                and self.start == other.start and self.end == other.end)
+
 
 def platform_name():
     """ Returns the platform name as a compat_str """
     res = platform.platform()
-    if isinstance(res, bytes):
-        res = res.decode(preferredencoding())
-
-    assert isinstance(res, compat_str)
-    return res
+    return _decode_compat_str(res)
 
 
 def _windows_write_string(s, out):
@@ -3279,7 +3405,7 @@ def _windows_write_string(s, out):
 def write_string(s, out=None, encoding=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     if sys.platform == 'win32' and encoding is None and hasattr(out, 'fileno'):
         if _windows_write_string(s, out):
@@ -3428,9 +3554,8 @@ def shell_quote(args):
     quoted_args = []
     encoding = get_filesystem_encoding()
     for a in args:
-        if isinstance(a, bytes):
-            # We may get a filename encoded with 'encodeFilename'
-            a = a.decode(encoding)
+        # We may get a filename encoded with 'encodeFilename'
+        a = _decode_compat_str(a, encoding)
         quoted_args.append(compat_shlex_quote(a))
     return ' '.join(quoted_args)
 
@@ -3594,8 +3719,9 @@ def parse_resolution(s):
 
 
 def parse_bitrate(s):
-    if not isinstance(s, compat_str):
-        return
+    s = txt_or_none(s)
+    if not s:
+        return None
     mobj = re.search(r'\b(\d+)\s*kbps', s)
     if mobj:
         return int(mobj.group(1))
@@ -3683,18 +3809,17 @@ def base_url(url):
 
 
 def urljoin(base, path):
-    if isinstance(path, bytes):
-        path = path.decode('utf-8')
-    if not isinstance(path, compat_str) or not path:
+    path = _decode_compat_str(path, encoding='utf-8', or_none=True)
+    if not path:
         return None
     if re.match(r'^(?:[a-zA-Z][a-zA-Z0-9+-.]*:)?//', path):
         return path
-    if isinstance(base, bytes):
-        base = base.decode('utf-8')
-    if not isinstance(base, compat_str) or not re.match(
-            r'^(?:https?:)?//', base):
+    base = _decode_compat_str(base, encoding='utf-8', or_none=True)
+    if not base:
         return None
-    return compat_urllib_parse.urljoin(base, path)
+    return (
+        re.match(r'^(?:https?:)?//', base)
+        and compat_urllib_parse.urljoin(base, path))
 
 
 class HEADRequest(compat_urllib_request.Request):
@@ -3747,6 +3872,11 @@ def bool_or_none(v, default=None):
 
 def strip_or_none(v, default=None):
     return v.strip() if isinstance(v, compat_str) else default
+
+
+def txt_or_none(v, default=None):
+    """ Combine str/strip_or_none, disallow blank value (for traverse_obj) """
+    return default if v is None else (compat_str(v).strip() or default)
 
 
 def url_or_none(url):
@@ -3854,8 +3984,7 @@ def get_exe_version(exe, args=['--version'],
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
     except OSError:
         return False
-    if isinstance(out, bytes):  # Python 2.x
-        out = out.decode('ascii', 'ignore')
+    out = _decode_compat_str(out, 'ascii', 'ignore')
     return detect_exe_version(out, version_re, unrecognized)
 
 
@@ -3870,7 +3999,7 @@ def detect_exe_version(output, version_re=None, unrecognized='present'):
         return unrecognized
 
 
-class LazyList(compat_collections_abc.Sequence):
+class LazyList(compat_collections_abc.Iterable):
     """Lazy immutable list from an iterable
     Note that slices of a LazyList are lists and not LazyList"""
 
@@ -4074,8 +4203,8 @@ def lowercase_escape(s):
 
 def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
-    if sys.version_info < (3, 0) and isinstance(s, compat_str):
-        s = s.encode('utf-8')
+    if sys.version_info < (3, 0):
+        s = _encode_compat_str(s, 'utf-8')
     # ensure unicode: after quoting, it can always be converted
     return compat_str(compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]"))
 
@@ -4092,14 +4221,13 @@ def escape_url(url):
     ).geturl()
 
 
-def parse_qs(url):
-    return compat_parse_qs(compat_urllib_parse.urlparse(url).query)
+def parse_qs(url, **kwargs):
+    return compat_parse_qs(compat_urllib_parse.urlparse(url).query, **kwargs)
 
 
 def read_batch_urls(batch_fd):
     def fixup(url):
-        if not isinstance(url, compat_str):
-            url = url.decode('utf-8', 'replace')
+        url = _decode_compat_str(url, 'utf-8', 'replace')
         BOM_UTF8 = '\xef\xbb\xbf'
         if url.startswith(BOM_UTF8):
             url = url[len(BOM_UTF8):]
@@ -4121,6 +4249,7 @@ def update_url(url, **kwargs):
        url: compat_str or parsed URL tuple
        if query_update is in kwargs, update query with
        its value instead of replacing (overrides any `query`)
+       NB: query_update expects parse_qs() format: [key: value_list, ...]
        returns: compat_str
     """
     if not kwargs:
@@ -4143,15 +4272,10 @@ def update_url_query(url, query):
 def update_Request(req, url=None, data=None, headers={}, query={}):
     req_headers = req.headers.copy()
     req_headers.update(headers)
-    req_data = data or req.data
+    req_data = data if data is not None else req.data
     req_url = update_url_query(url or req.get_full_url(), query)
-    req_get_method = req.get_method()
-    if req_get_method == 'HEAD':
-        req_type = HEADRequest
-    elif req_get_method == 'PUT':
-        req_type = PUTRequest
-    else:
-        req_type = compat_urllib_request.Request
+    req_type = {'HEAD': HEADRequest, 'PUT': PUTRequest}.get(
+        req.get_method(), compat_urllib_request.Request)
     new_req = req_type(
         req_url, data=req_data, headers=req_headers,
         origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
@@ -4166,10 +4290,8 @@ def _multipart_encode_impl(data, boundary):
     out = b''
     for k, v in data.items():
         out += b'--' + boundary.encode('ascii') + b'\r\n'
-        if isinstance(k, compat_str):
-            k = k.encode('utf-8')
-        if isinstance(v, compat_str):
-            v = v.encode('utf-8')
+        k = _encode_compat_str(k, 'utf-8')
+        v = _encode_compat_str(v, 'utf-8')
         # RFC 2047 requires non-ASCII field names to be encoded, while RFC 7578
         # suggests sending UTF-8 directly. Firefox sends UTF-8, too
         content = b'Content-Disposition: form-data; name="' + k + b'"\r\n\r\n' + v + b'\r\n'
@@ -4212,18 +4334,22 @@ def multipart_encode(data, boundary=None):
     return out, content_type
 
 
-def variadic(x, allowed_types=(compat_str, bytes, dict)):
-    return x if isinstance(x, compat_collections_abc.Iterable) and not isinstance(x, allowed_types) else (x,)
+def is_iterable_like(x, allowed_types=compat_collections_abc.Iterable, blocked_types=NO_DEFAULT):
+    if blocked_types is NO_DEFAULT:
+        blocked_types = (compat_str, bytes, compat_collections_abc.Mapping)
+    return isinstance(x, allowed_types) and not isinstance(x, blocked_types)
+
+
+def variadic(x, allowed_types=NO_DEFAULT):
+    if isinstance(allowed_types, compat_collections_abc.Iterable):
+        allowed_types = tuple(allowed_types)
+    return x if is_iterable_like(x, blocked_types=allowed_types) else (x,)
 
 
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
-    if isinstance(key_or_keys, (list, tuple)):
-        for key in key_or_keys:
-            if key not in d or d[key] is None or skip_false_values and not d[key]:
-                continue
-            return d[key]
-        return default
-    return d.get(key_or_keys, default)
+    exp = (lambda x: x or None) if skip_false_values else IDENTITY
+    return traverse_obj(d, *variadic(key_or_keys), expected_type=exp,
+                        default=default, get_all=False)
 
 
 def try_call(*funcs, **kwargs):
@@ -4256,22 +4382,67 @@ def try_get(src, getter, expected_type=None):
                 return v
 
 
-def merge_dicts(*dicts):
+def filter_dict(dct, cndn=lambda _, v: v is not None):
+    # NB: don't use dict comprehension for python 2.6 compatibility
+    return dict((k, v) for k, v in dct.items() if cndn(k, v))
+
+
+def merge_dicts(*dicts, **kwargs):
+    """
+        Merge the `dict`s in `dicts` using the first valid value for each key.
+        Normally valid: not None and not an empty string
+
+        Keyword-only args:
+        unblank:    allow empty string if False (default True)
+        rev:        merge dicts in reverse order (default False)
+
+        merge_dicts(dct1, dct2, ..., unblank=False, rev=True)
+        matches {**dct1, **dct2, ...}
+
+        However, merge_dicts(dct1, dct2, ..., rev=True) may often be better.
+    """
+
+    unblank = kwargs.get('unblank', True)
+    rev = kwargs.get('rev', False)
+
+    if unblank:
+        def can_merge_str(k, v, to_dict):
+            return (isinstance(v, compat_str) and v
+                    and isinstance(to_dict[k], compat_str)
+                    and not to_dict[k])
+    else:
+        can_merge_str = lambda k, v, to_dict: False
+
     merged = {}
-    for a_dict in dicts:
+    for a_dict in reversed(dicts) if rev else dicts:
         for k, v in a_dict.items():
             if v is None:
                 continue
-            if (k not in merged
-                    or (isinstance(v, compat_str) and v
-                        and isinstance(merged[k], compat_str)
-                        and not merged[k])):
+            if (k not in merged) or can_merge_str(k, v, merged):
                 merged[k] = v
     return merged
 
 
-def encode_compat_str(string, encoding=preferredencoding(), errors='strict'):
-    return string if isinstance(string, compat_str) else compat_str(string, encoding, errors)
+# very poor choice of name, as if Python string encodings weren't confusing enough
+def encode_compat_str(s, encoding=preferredencoding(), errors='strict'):
+    assert isinstance(s, compat_basestring)
+    return s if isinstance(s, compat_str) else compat_str(s, encoding, errors)
+
+
+# what it could have been
+def _decode_compat_str(s, encoding=preferredencoding(), errors='strict', or_none=False):
+    if not or_none:
+        assert isinstance(s, compat_basestring)
+    return (
+        s if isinstance(s, compat_str)
+        else compat_str(s, encoding, errors) if isinstance(s, compat_basestring)
+        else None)
+
+
+# the real encode_compat_str, but only for internal use
+def _encode_compat_str(s, encoding=preferredencoding(), errors='strict'):
+    assert isinstance(s, compat_basestring)
+    return s.encode(encoding, errors) if isinstance(s, compat_str) else s
 
 
 US_RATINGS = {
@@ -4294,8 +4465,10 @@ TV_PARENTAL_GUIDELINES = {
 
 
 def parse_age_limit(s):
-    if type(s) == int:
-        return s if 0 <= s <= 21 else None
+    if not isinstance(s, bool):
+        age = int_or_none(s)
+        if age is not None:
+            return age if 0 <= age <= 21 else None
     if not isinstance(s, compat_basestring):
         return None
     m = re.match(r'^(?P<age>\d{1,2})\+?$', s)
@@ -4319,46 +4492,108 @@ def strip_jsonp(code):
         r'\g<callback_data>', code)
 
 
-def js_to_json(code):
-    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*'
+def js_to_json(code, *args, **kwargs):
+
+    # vars is a dict of (var, val) pairs to substitute
+    vars = args[0] if len(args) > 0 else kwargs.get('vars', {})
+    strict = kwargs.get('strict', False)
+
+    STRING_QUOTES = '\'"`'
+    STRING_RE = '|'.join(r'{0}(?:\\.|[^\\{0}])*{0}'.format(q) for q in STRING_QUOTES)
+    COMMENT_RE = r'/\*(?:(?!\*/).)*?\*/|//[^\n]*\n'
     SKIP_RE = r'\s*(?:{comment})?\s*'.format(comment=COMMENT_RE)
     INTEGER_TABLE = (
         (r'(?s)^(0[xX][0-9a-fA-F]+){skip}:?$'.format(skip=SKIP_RE), 16),
         (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
+        (r'(?s)^(\d+){skip}:?$'.format(skip=SKIP_RE), 10),
     )
+    # compat candidate
+    JSONDecodeError = json.JSONDecodeError if 'JSONDecodeError' in dir(json) else ValueError
+
+    def process_escape(match):
+        JSON_PASSTHROUGH_ESCAPES = r'"\bfnrtu'
+        escape = match.group(1) or match.group(2)
+
+        return ('\\' + escape if escape in JSON_PASSTHROUGH_ESCAPES
+                else '\\u00' if escape == 'x'
+                else '' if escape == '\n'
+                else escape)
+
+    def template_substitute(match):
+        evaluated = js_to_json(match.group(1), vars, strict=strict)
+        if evaluated[0] == '"':
+            return json.loads(evaluated)
+        return evaluated
 
     def fix_kv(m):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        elif v.startswith('/*') or v.startswith('//') or v.startswith('!') or v == ',':
-            return ""
+        elif v in ('undefined', 'void 0'):
+            return 'null'
+        elif v.startswith('/*') or v.startswith('//') or v == ',':
+            return ''
 
-        if v[0] in ("'", '"'):
-            v = re.sub(r'(?s)\\.|"', lambda m: {
-                '"': '\\"',
-                "\\'": "'",
-                '\\\n': '',
-                '\\x': '\\u00',
-            }.get(m.group(0), m.group(0)), v[1:-1])
-        else:
-            for regex, base in INTEGER_TABLE:
-                im = re.match(regex, v)
-                if im:
-                    i = int(im.group(1), base)
-                    return '"%d":' % i if v.endswith(':') else '%d' % i
+        if v[0] in STRING_QUOTES:
+            v = re.sub(r'(?s)\${([^}]+)}', template_substitute, v[1:-1]) if v[0] == '`' else v[1:-1]
+            escaped = re.sub(r'(?s)(")|\\(.)', process_escape, v)
+            return '"{0}"'.format(escaped)
 
-        return '"%s"' % v
+        inv = IDENTITY
+        im = re.split(r'^!+', v)
+        if len(im) > 1 and not im[-1].endswith(':'):
+            if (len(v) - len(im[1])) % 2 == 1:
+                inv = lambda x: 'true' if x == 0 else 'false'
+            else:
+                inv = lambda x: 'false' if x == 0 else 'true'
+        if not any(x for x in im):
+            return
+        v = im[-1]
+
+        for regex, base in INTEGER_TABLE:
+            im = re.match(regex, v)
+            if im:
+                i = int(im.group(1), base)
+                return ('"%s":' if v.endswith(':') else '%s') % inv(i)
+
+        if v in vars:
+            try:
+                if not strict:
+                    json.loads(vars[v])
+            except JSONDecodeError:
+                return inv(json.dumps(vars[v]))
+            else:
+                return inv(vars[v])
+
+        if not strict:
+            v = try_call(inv, args=(v,), default=v)
+            if v in ('true', 'false'):
+                return v
+            return '"{0}"'.format(v)
+
+        raise ValueError('Unknown value: ' + v)
+
+    def create_map(mobj):
+        return json.dumps(dict(json.loads(js_to_json(mobj.group(1) or '[]', vars=vars))))
+
+    code = re.sub(r'new Map\((\[.*?\])?\)', create_map, code)
+    if not strict:
+        code = re.sub(r'new Date\((".+")\)', r'\g<1>', code)
+        code = re.sub(r'new \w+\((.*?)\)', lambda m: json.dumps(m.group(0)), code)
+        code = re.sub(r'parseInt\([^\d]+(\d+)[^\d]+\)', r'\1', code)
+        code = re.sub(r'\(function\([^)]*\)\s*\{[^}]*\}\s*\)\s*\(\s*(["\'][^)]*["\'])\s*\)', r'\1', code)
 
     return re.sub(r'''(?sx)
-        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
-        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
-        {comment}|,(?={skip}[\]}}])|
-        (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
-        \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
-        [0-9]+(?={skip}:)|
+        {str_}|
+        {comment}|
+        ,(?={skip}[\]}}])|
+        void\s0|
+        !*(?:(?<!\d)[eE]|[a-df-zA-DF-Z_$])[.a-zA-Z_$0-9]*|
+        (?:\b|!+)0(?:[xX][\da-fA-F]+|[0-7]+)(?:{skip}:)?|
+        !+\d+(?:\.\d*)?(?:{skip}:)?|
+        [0-9]+(?:{skip}:)|
         !+
-        '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
+        '''.format(comment=COMMENT_RE, skip=SKIP_RE, str_=STRING_RE), fix_kv, code)
 
 
 def qualities(quality_ids):
@@ -4410,12 +4645,7 @@ def args_to_str(args):
 
 
 def error_to_compat_str(err):
-    err_str = str(err)
-    # On python 2 error byte string must be decoded with proper
-    # encoding rather than ascii
-    if sys.version_info[0] < 3:
-        err_str = err_str.decode(preferredencoding())
-    return err_str
+    return _decode_compat_str(str(err))
 
 
 def mimetype2ext(mt):
@@ -5978,9 +6208,40 @@ def clean_podcast_url(url):
         )/''', '', url)
 
 
+if __debug__:
+    # Raise TypeError if args can't be bound
+    # needs compat owing to unstable inspect API, thanks PSF :-(
+    try:
+        inspect.signature
+
+        def _try_bind_args(fn, *args, **kwargs):
+            inspect.signature(fn).bind(*args, **kwargs)
+    except AttributeError:
+        # Py < 3.3
+        def _try_bind_args(fn, *args, **kwargs):
+            fn_args = inspect.getargspec(fn)
+            # Py2: ArgInfo(args, varargs, keywords, defaults)
+            # Py3: ArgSpec(args, varargs, keywords, defaults)
+            if not fn_args.keywords:
+                for k in kwargs:
+                    if k not in (fn_args.args or []):
+                        raise TypeError("got an unexpected keyword argument: '{0}'".format(k))
+            if not fn_args.varargs:
+                args_to_bind = len(args)
+                bindable = len(fn_args.args or [])
+                if args_to_bind > bindable:
+                    raise TypeError('too many positional arguments')
+                bindable -= len(fn_args.defaults or [])
+                if args_to_bind < bindable:
+                    if kwargs:
+                        bindable -= len(set(fn_args.args or []) & set(kwargs))
+                    if bindable > args_to_bind:
+                        raise TypeError("missing a required argument: '{0}'".format(fn_args.args[args_to_bind]))
+
+
 def traverse_obj(obj, *paths, **kwargs):
     """
-    Safely traverse nested `dict`s and `Sequence`s
+    Safely traverse nested `dict`s and `Iterable`s
 
     >>> obj = [{}, {"key": "value"}]
     >>> traverse_obj(obj, (1, "key"))
@@ -5988,14 +6249,17 @@ def traverse_obj(obj, *paths, **kwargs):
 
     Each of the provided `paths` is tested and the first producing a valid result will be returned.
     The next path will also be tested if the path branched but no results could be found.
-    Supported values for traversal are `Mapping`, `Sequence` and `re.Match`.
-    A value of None is treated as the absence of a value.
+    Supported values for traversal are `Mapping`, `Iterable` and `re.Match`.
+    Unhelpful values (`{}`, `None`) are treated as the absence of a value and discarded.
 
     The paths will be wrapped in `variadic`, so that `'key'` is conveniently the same as `('key', )`.
 
     The keys in the path can be one of:
         - `None`:           Return the current object.
-        - `str`/`int`:      Return `obj[key]`. For `re.Match, return `obj.group(key)`.
+        - `set`:            Requires the only item in the set to be a type or function,
+                            like `{type}`/`{func}`. If a `type`, returns only values
+                            of this type. If a function, returns `func(obj)`.
+        - `str`/`int`:      Return `obj[key]`. For `re.Match`, return `obj.group(key)`.
         - `slice`:          Branch out and return all values in `obj[key]`.
         - `Ellipsis`:       Branch out and return a list of all values.
         - `tuple`/`list`:   Branch out and return a list of all matching values.
@@ -6003,6 +6267,9 @@ def traverse_obj(obj, *paths, **kwargs):
         - `function`:       Branch out and return values filtered by the function.
                             Read as: `[value for key, value in obj if function(key, value)]`.
                             For `Sequence`s, `key` is the index of the value.
+                            For `Iterable`s, `key` is the enumeration count of the value.
+                            For `re.Match`es, `key` is the group number (0 = full match)
+                            as well as additionally any group names, if given.
         - `dict`            Transform the current object and return a matching dict.
                             Read as: `{key: traverse_obj(obj, path) for key, path in dct.items()}`.
 
@@ -6011,8 +6278,12 @@ def traverse_obj(obj, *paths, **kwargs):
     @params paths           Paths which to traverse by.
     Keyword arguments:
     @param default          Value to return if the paths do not match.
+                            If the last key in the path is a `dict`, it will apply to each value inside
+                            the dict instead, depth first. Try to avoid if using nested `dict` keys.
     @param expected_type    If a `type`, only accept final values of this type.
                             If any other callable, try to call the function on each result.
+                            If the last key in the path is a `dict`, it will apply to each value inside
+                            the dict instead, recursively. This does respect branching paths.
     @param get_all          If `False`, return the first matching result, otherwise all matching ones.
     @param casesense        If `False`, consider string dictionary keys as case insensitive.
 
@@ -6023,12 +6294,15 @@ def traverse_obj(obj, *paths, **kwargs):
     @param _traverse_string  Whether to traverse into objects as strings.
                             If `True`, any non-compatible object will first be
                             converted into a string and then traversed into.
+                            The return value of that path will be a string instead,
+                            not respecting any further branching.
 
 
     @returns                The result of the object traversal.
                             If successful, `get_all=True`, and the path branches at least once,
                             then a list of results is returned instead.
                             A list is always returned if the last path branches and no `default` is given.
+                            If a path ends on a `dict` that result will always be a `dict`.
     """
 
     # parameter defaults
@@ -6042,7 +6316,6 @@ def traverse_obj(obj, *paths, **kwargs):
     # instant compat
     str = compat_str
 
-    is_sequence = lambda x: isinstance(x, compat_collections_abc.Sequence) and not isinstance(x, (str, bytes))
     casefold = lambda k: compat_casefold(k) if isinstance(k, str) else k
 
     if isinstance(expected_type, type):
@@ -6050,126 +6323,179 @@ def traverse_obj(obj, *paths, **kwargs):
     else:
         type_test = lambda val: try_call(expected_type or IDENTITY, args=(val,))
 
+    def lookup_or_none(v, k, getter=None):
+        try:
+            return getter(v, k) if getter else v[k]
+        except IndexError:
+            return None
+
     def from_iterable(iterables):
         # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
         for it in iterables:
             for item in it:
                 yield item
 
-    def apply_key(key, obj):
-        if obj is None:
-            return
+    def apply_key(key, obj, is_last):
+        branching = False
+
+        if obj is None and _traverse_string:
+            if key is Ellipsis or callable(key) or isinstance(key, slice):
+                branching = True
+                result = ()
+            else:
+                result = None
 
         elif key is None:
-            yield obj
+            result = obj
+
+        elif isinstance(key, set):
+            assert len(key) == 1, 'Set should only be used to wrap a single item'
+            item = next(iter(key))
+            if isinstance(item, type):
+                result = obj if isinstance(obj, item) else None
+            else:
+                result = try_call(item, args=(obj,))
 
         elif isinstance(key, (list, tuple)):
-            for branch in key:
-                _, result = apply_path(obj, branch)
-                for item in result:
-                    yield item
+            branching = True
+            result = from_iterable(
+                apply_path(obj, branch, is_last)[0] for branch in key)
 
         elif key is Ellipsis:
-            result = []
+            branching = True
             if isinstance(obj, compat_collections_abc.Mapping):
                 result = obj.values()
-            elif is_sequence(obj):
+            elif is_iterable_like(obj):
                 result = obj
             elif isinstance(obj, compat_re_Match):
                 result = obj.groups()
             elif _traverse_string:
+                branching = False
                 result = str(obj)
-            for item in result:
-                yield item
+            else:
+                result = ()
 
         elif callable(key):
-            if is_sequence(obj):
-                iter_obj = enumerate(obj)
-            elif isinstance(obj, compat_collections_abc.Mapping):
+            branching = True
+            if isinstance(obj, compat_collections_abc.Mapping):
                 iter_obj = obj.items()
+            elif is_iterable_like(obj):
+                iter_obj = enumerate(obj)
             elif isinstance(obj, compat_re_Match):
-                iter_obj = enumerate(itertools.chain([obj.group()], obj.groups()))
+                iter_obj = itertools.chain(
+                    enumerate(itertools.chain((obj.group(),), obj.groups())),
+                    obj.groupdict().items())
             elif _traverse_string:
+                branching = False
                 iter_obj = enumerate(str(obj))
             else:
-                return
-            for item in (v for k, v in iter_obj if try_call(key, args=(k, v))):
-                yield item
+                iter_obj = ()
+
+            result = (v for k, v in iter_obj if try_call(key, args=(k, v)))
+            if not branching:  # string traversal
+                result = ''.join(result)
 
         elif isinstance(key, dict):
-            iter_obj = ((k, _traverse_obj(obj, v)) for k, v in key.items())
-            yield dict((k, v if v is not None else default) for k, v in iter_obj
-                       if v is not None or default is not NO_DEFAULT)
+            iter_obj = ((k, _traverse_obj(obj, v, False, is_last)) for k, v in key.items())
+            result = dict((k, v if v is not None else default) for k, v in iter_obj
+                          if v is not None or default is not NO_DEFAULT) or None
 
         elif isinstance(obj, compat_collections_abc.Mapping):
-            yield (obj.get(key) if casesense or (key in obj)
-                   else next((v for k, v in obj.items() if casefold(k) == key), None))
+            result = (try_call(obj.get, args=(key,))
+                      if casesense or try_call(obj.__contains__, args=(key,))
+                      else next((v for k, v in obj.items() if casefold(k) == key), None))
 
         elif isinstance(obj, compat_re_Match):
+            result = None
             if isinstance(key, int) or casesense:
-                try:
-                    yield obj.group(key)
-                    return
-                except IndexError:
-                    pass
-            if not isinstance(key, str):
-                return
+                # Py 2.6 doesn't have methods in the Match class/type
+                result = lookup_or_none(obj, key, getter=lambda _, k: obj.group(k))
 
-            yield next((v for k, v in obj.groupdict().items() if casefold(k) == key), None)
+            elif isinstance(key, str):
+                result = next((v for k, v in obj.groupdict().items()
+                              if casefold(k) == key), None)
 
         else:
-            if _is_user_input:
-                key = (int_or_none(key) if ':' not in key
-                       else slice(*map(int_or_none, key.split(':'))))
+            result = None
+            if isinstance(key, (int, slice)):
+                if is_iterable_like(obj, compat_collections_abc.Sequence):
+                    branching = isinstance(key, slice)
+                    result = lookup_or_none(obj, key)
+                elif _traverse_string:
+                    result = lookup_or_none(str(obj), key)
 
-            if not isinstance(key, (int, slice)):
-                return
+        return branching, result if branching else (result,)
 
-            if not is_sequence(obj):
-                if not _traverse_string:
-                    return
-                obj = str(obj)
+    def lazy_last(iterable):
+        iterator = iter(iterable)
+        prev = next(iterator, NO_DEFAULT)
+        if prev is NO_DEFAULT:
+            return
 
-            try:
-                yield obj[key]
-            except IndexError:
-                pass
+        for item in iterator:
+            yield False, prev
+            prev = item
 
-    def apply_path(start_obj, path):
+        yield True, prev
+
+    def apply_path(start_obj, path, test_type):
         objs = (start_obj,)
         has_branched = False
 
-        for key in variadic(path):
-            if _is_user_input and key == ':':
-                key = Ellipsis
+        key = None
+        for last, key in lazy_last(variadic(path, (str, bytes, dict, set))):
+            if _is_user_input and isinstance(key, str):
+                if key == ':':
+                    key = Ellipsis
+                elif ':' in key:
+                    key = slice(*map(int_or_none, key.split(':')))
+                elif int_or_none(key) is not None:
+                    key = int(key)
 
             if not casesense and isinstance(key, str):
                 key = compat_casefold(key)
 
-            if key is Ellipsis or isinstance(key, (list, tuple)) or callable(key):
-                has_branched = True
+            if __debug__ and callable(key):
+                # Verify function signature
+                _try_bind_args(key, None, None)
 
-            key_func = functools.partial(apply_key, key)
-            objs = from_iterable(map(key_func, objs))
+            new_objs = []
+            for obj in objs:
+                branching, results = apply_key(key, obj, last)
+                has_branched |= branching
+                new_objs.append(results)
 
-        return has_branched, objs
+            objs = from_iterable(new_objs)
 
-    def _traverse_obj(obj, path, use_list=True):
-        has_branched, results = apply_path(obj, path)
-        results = LazyList(x for x in map(type_test, results) if x is not None)
+        if test_type and not isinstance(key, (dict, list, tuple)):
+            objs = map(type_test, objs)
+
+        return objs, has_branched, isinstance(key, dict)
+
+    def _traverse_obj(obj, path, allow_empty, test_type):
+        results, has_branched, is_dict = apply_path(obj, path, test_type)
+        results = LazyList(x for x in results if x not in (None, {}))
 
         if get_all and has_branched:
-            return results.exhaust() if results or use_list else None
+            if results:
+                return results.exhaust()
+            if allow_empty:
+                return [] if default is NO_DEFAULT else default
+            return None
 
-        return results[0] if results else None
+        return results[0] if results else {} if allow_empty and is_dict else None
 
     for index, path in enumerate(paths, 1):
-        use_list = default is NO_DEFAULT and index == len(paths)
-        result = _traverse_obj(obj, path, use_list)
+        result = _traverse_obj(obj, path, index == len(paths), True)
         if result is not None:
             return result
 
     return None if default is NO_DEFAULT else default
+
+
+def T(x):
+    """ For use in yt-dl instead of {type} or set((type,)) """
+    return set((x,))
 
 
 def get_first(obj, keys, **kwargs):

@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import errno
-import io
 import hashlib
 import json
 import os.path
@@ -9,14 +8,17 @@ import re
 import types
 import ssl
 import sys
+import unittest
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import (
+    compat_open as open,
     compat_os_name,
     compat_str,
 )
 from youtube_dl.utils import (
+    IDENTITY,
     preferredencoding,
     write_string,
 )
@@ -27,10 +29,10 @@ def get_params(override=None):
                                    "parameters.json")
     LOCAL_PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          "local_parameters.json")
-    with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
+    with open(PARAMETERS_FILE, encoding='utf-8') as pf:
         parameters = json.load(pf)
     if os.path.exists(LOCAL_PARAMETERS_FILE):
-        with io.open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
+        with open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
             parameters.update(json.load(pf))
     if override:
         parameters.update(override)
@@ -72,7 +74,8 @@ class FakeYDL(YoutubeDL):
     def to_screen(self, s, skip_eol=None):
         print(s)
 
-    def trouble(self, s, tb=None):
+    def trouble(self, *args, **kwargs):
+        s = args[0] if len(args) > 0 else kwargs.get('message', 'Missing message')
         raise Exception(s)
 
     def download(self, x):
@@ -139,7 +142,7 @@ def expect_value(self, got, expected, field):
         self.assertTrue(
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
-    elif isinstance(expected, compat_str) and re.match(r'^lambda \w+:', expected):
+    elif isinstance(expected, compat_str) and re.match(r'lambda \w+:', expected):
         fn = eval(expected)
         suite = expected.split(':', 1)[1].strip()
         self.assertTrue(
@@ -297,3 +300,7 @@ def http_server_port(httpd):
     else:
         sock = httpd.socket
     return sock.getsockname()[1]
+
+
+def expectedFailureIf(cond):
+    return unittest.expectedFailure if cond else IDENTITY

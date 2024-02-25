@@ -159,6 +159,7 @@ from .businessinsider import BusinessInsiderIE
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE
 from .c56 import C56IE
+from .caffeine import CaffeineTVIE
 from .callin import CallinIE
 from .camdemy import (
     CamdemyIE,
@@ -226,6 +227,7 @@ from .ciscolive import (
     CiscoLiveSearchIE,
 )
 from .cjsw import CJSWIE
+from .clipchamp import ClipchampIE
 from .cliphunter import CliphunterIE
 from .clippit import ClippitIE
 from .cliprs import ClipRsIE
@@ -295,6 +297,10 @@ from .dbtv import DBTVIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
+from .dlf import (
+    DLFCorpusIE,
+    DLFIE,
+)
 from .dfb import DFBIE
 from .dhm import DHMIE
 from .digg import DiggIE
@@ -352,6 +358,7 @@ from .ellentube import (
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
+from .epidemicsound import EpidemicSoundIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
@@ -437,6 +444,7 @@ from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
 from .gazeta import GazetaIE
+from .gbnews import GBNewsIE
 from .gdcvault import GDCVaultIE
 from .gedidigital import GediDigitalIE
 from .generic import GenericIE
@@ -444,6 +452,13 @@ from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
 from .giga import GigaIE
 from .glide import GlideIE
+from .globalplayer import (
+    GlobalPlayerLiveIE,
+    GlobalPlayerLivePlaylistIE,
+    GlobalPlayerAudioIE,
+    GlobalPlayerAudioEpisodeIE,
+    GlobalPlayerVideoIE
+)
 from .globo import (
     GloboIE,
     GloboArticleIE,
@@ -975,6 +990,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .pr0gramm import (
+    Pr0grammIE,
+    Pr0grammStaticIE,
+)
 from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
@@ -1071,6 +1090,10 @@ from .rutube import (
 from .rutv import RUTVIE
 from .ruutu import RuutuIE
 from .ruv import RuvIE
+from .s4c import (
+    S4CIE,
+    S4CSeriesIE,
+)
 from .safari import (
     SafariIE,
     SafariApiIE,
@@ -1565,6 +1588,7 @@ from .weibo import (
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
+from .whyp import WhypIE
 from .wistia import (
     WistiaIE,
     WistiaPlaylistIE,
@@ -1678,7 +1702,3 @@ from .zingmp3 import (
 )
 from .zoom import ZoomIE
 from .zype import ZypeIE
-from .pr0gramm import (
-    Pr0grammIE,
-    Pr0grammStaticIE,
-)

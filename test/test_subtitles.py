@@ -295,6 +295,7 @@ class TestNRKSubtitles(BaseTestSubtitles):
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
+        self.DL.params['format'] = 'best/bestvideo'
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['nb-ttv']))
         self.assertEqual(md5(subtitles['nb-ttv']), '67e06ff02d0deaf975e68f6cb8f6a149')

@@ -1,8 +1,11 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
-import io
 import optparse
+import os.path
+import sys
+
+from utils import read_file, read_version, write_file
 
 
 def main():
@@ -13,17 +16,11 @@ def main():
 
     infile, outfile = args
 
-    with io.open(infile, encoding='utf-8') as inf:
-        issue_template_tmpl = inf.read()
+    issue_template_tmpl = read_file(infile)
 
-    # Get the version from youtube_dl/version.py without importing the package
-    exec(compile(open('youtube_dl/version.py').read(),
-                 'youtube_dl/version.py', 'exec'))
+    out = issue_template_tmpl % {'version': read_version()}
 
-    out = issue_template_tmpl % {'version': locals()['__version__']}
-
-    with io.open(outfile, 'w', encoding='utf-8') as outf:
-        outf.write(out)
+    write_file(outfile, out)
 
 if __name__ == '__main__':
     main()
