@@ -713,6 +713,7 @@ class VPROIE(NPOPlaylistBaseIE):
                 'title': 'sergio herman: fucking perfect',
             },
             'playlist_count': 2,
+            'skip': 'Video gone',
         },
         {
             # playlist with youtube embed
