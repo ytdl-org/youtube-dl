@@ -30,7 +30,8 @@ from ..utils import (
 class NPOBaseIE(InfoExtractor):
     def _get_token(self, video_id):
         return self._download_json(
-            'http://ida.omroep.nl/app.php/auth', video_id,
+            'https://npo.nl/start/api/domain/player-token?productId=%s' % video_id,
+            video_id,
             note='Downloading token')['token']
 
 
