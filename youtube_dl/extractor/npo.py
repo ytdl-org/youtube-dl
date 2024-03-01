@@ -65,30 +65,29 @@ class NPOIE(InfoExtractor):
             url = url[:-9]
         elif url.endswith('/afspelen/'):
             url = url[:-10]
-        if url.endswith('/'):
-            url = url[:-1]
+        url = url.rstrip('/')
         slug = url.split('/')[-1]
         page = self._download_webpage(url, slug, 'Finding productId using slug: %s' % slug)
         # TODO find out what proper HTML parsing utilities are available in youtube-dl
         next_data = page.split('<script id="__NEXT_DATA__" type="application/json">')[1].split('</script>')[0]
         next_data = json.loads(next_data)
-        product_id, description, thumbnail, title = None, None, None, None
+        product_id, title, description, thumbnail = None, None, None, None
         for query in next_data['props']['pageProps']['dehydratedState']['queries']:
             if isinstance(query['state']['data'], list):
                 for entry in query['state']['data']:
-                    print(entry)
-                    try:
-                        if entry['slug'] == slug:
-                            product_id = entry['productId']
-                            title = entry['title']
-                            synopsis = entry['synopsis']
-                            description = synopsis.get('long', synopsis.get('short', synopsis.get('brief', '')))
-                            thumbnail = entry['images'][0]['url']
-                            break
-                    except KeyError:
-                        continue
-                    except IndexError:
-                        continue
+                    if entry['slug'] == slug:
+                        product_id = entry.get('productId')
+                        title = entry.get('title')
+                        synopsis = entry.get('synopsis', {})
+                        description = (
+                                synopsis.get('long')
+                                or synopsis.get('short')
+                                or synopsis.get('brief')
+                        )
+                        thumbnails = entry.get('images')
+                        for thumbnail_entry in thumbnails:
+                            if 'url' in thumbnail_entry:
+                                thumbnail = thumbnail_entry.get('url')
         if not product_id:
             raise ExtractorError('No productId found for slug: %s' % slug)
 
@@ -97,19 +96,18 @@ class NPOIE(InfoExtractor):
         stream_link = self._download_json(
             'https://prod.npoplayer.nl/stream-link', video_id=slug,
             data=json.dumps({
-                "profileName": "dash",
-                "drmType": "widevine",
-                "referrerUrl": url,
+                'profileName': 'dash',
+                'drmType': 'widevine',
+                'referrerUrl': url,
             }).encode('utf8'),
             headers={
-                "Authorization": token,
-                "Content-Type": "application/json",
+                'Authorization': token,
+                'Content-Type': 'application/json',
             }
         )
 
-        stream_url = stream_link['stream']['streamURL']
-
         # TODO other formats than dash / mpd
+        stream_url = stream_link.get('stream', {}).get('streamURL')
         mpd = self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False)
 
         return {
