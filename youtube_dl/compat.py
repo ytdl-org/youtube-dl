@@ -2943,6 +2943,24 @@ else:
     compat_socket_create_connection = socket.create_connection
 
 
+try:
+    from contextlib import suppress as compat_contextlib_suppress
+except ImportError:
+    class compat_contextlib_suppress(object):
+        _exceptions = None
+
+        def __init__(self, *exceptions):
+            super(compat_contextlib_suppress, self).__init__()
+            # TODO: [Base]ExceptionGroup (3.12+)
+            self._exceptions = exceptions
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return exc_val is not None and isinstance(exc_val, self._exceptions or tuple())
+
+
 # Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
@@ -3263,6 +3281,7 @@ __all__ = [
     'compat_http_cookiejar_Cookie',
     'compat_http_cookies',
     'compat_http_cookies_SimpleCookie',
+    'compat_contextlib_suppress',
     'compat_ctypes_WINFUNCTYPE',
     'compat_etree_fromstring',
     'compat_filter',
