@@ -5,10 +5,13 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     extract_attributes,
+    ExtractorError,
+    get_element_by_id,
     int_or_none,
-    str_to_int,
     merge_dicts,
+    parse_count,
     T,
     traverse_obj,
     unified_strdate,
@@ -17,7 +20,13 @@ from ..utils import (
 
 
 class YouPornIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?youporn\.com/(?:watch|embed)/(?P<id>\d+)(?:/(?P<display_id>[^/?#&]+))?'
+    _VALID_URL = (
+        r'youporn:(?P<id>\d+)',
+        r'''(?x)
+            https?://(?:www\.)?youporn\.com/(?:watch|embed)/(?P<id>\d+)
+            (?:/(?:(?P<display_id>[^/?#&]+)/?)?)?(?:[#?]|$)
+    '''
+    )
     _EMBED_REGEX = [r'<iframe[^>]+\bsrc=["\'](?P<url>(?:https?:)?//(?:www\.)?youporn\.com/embed/\d+)']
     _TESTS = [{
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
@@ -38,7 +47,7 @@ class YouPornIE(InfoExtractor):
             'tags': list,
             'age_limit': 18,
         },
-        'skip': 'This video has been disabled',
+        'skip': 'This video has been deactivated',
     }, {
         # Unknown uploader
         'url': 'http://www.youporn.com/watch/561726/big-tits-awesome-brunette-on-amazing-webcam-show/?from=related3&al=2&from_id=561726&pos=4',
@@ -73,7 +82,7 @@ class YouPornIE(InfoExtractor):
     }, {
         'url': 'https://www.youporn.com/watch/16290308/tinderspecial-trailer1/',
         'info_dict': {
-            'id': '46949121',
+            'id': '16290308',
             'age_limit': 18,
             'categories': [],
             'description': None,  # SEO spam using title removed
@@ -100,15 +109,28 @@ class YouPornIE(InfoExtractor):
         return list(yield_urls())
 
     def _real_extract(self, url):
-        display_id = self._match_valid_url(url).group('id', 'display_id')
-        url = 'http://www.youporn.com/watch/%s' % (display_id[0],)
-        display_id = display_id[1] or display_id[0]
+        # A different video ID (data-video-id) is hidden in the page but
+        # never seems to be used
+        video_id, display_id = self._match_valid_url(url).group('id', 'display_id')
+        url = 'http://www.youporn.com/watch/%s' % (video_id,)
         webpage = self._download_webpage(
-            url, display_id, headers={'Cookie': 'age_verified=1'})
-        video_id = display_id[0]
+            url, video_id, headers={'Cookie': 'age_verified=1'})
+
+        watchable = self._search_regex(
+            r'''(<div\s[^>]*\bid\s*=\s*('|")?watch-container(?(2)\2|(?!-)\b)[^>]*>)''',
+            webpage, 'watchability', default=None)
+        if not watchable:
+            msg = re.split(r'\s{4}', clean_html(get_element_by_id(
+                'mainContent', webpage)) or '')[0]
+            raise ExtractorError(
+                ('%s says: %s' % (self.IE_NAME, msg))
+                if msg else 'Video unavailable: no reason found',
+                expected=True)
+        # internal ID ?
+        # video_id = extract_attributes(watchable).get('data-video-id')
 
         playervars = self._search_json(
-            r'\bplayervars\s*:', webpage, 'playervars', display_id)
+            r'\bplayervars\s*:', webpage, 'playervars', video_id)
 
         def get_fmt(x):
             v_url = url_or_none(x.get('videoUrl'))
@@ -123,7 +145,7 @@ class YouPornIE(InfoExtractor):
             if f not in defs_by_format:
                 return []
             return self._download_json(
-                defs_by_format[f]['videoUrl'], display_id, '{0}-formats'.format(f))
+                defs_by_format[f]['videoUrl'], video_id, '{0}-formats'.format(f))
 
         formats = []
         # Try to extract only the actual master m3u8 first, avoiding the duplicate single resolution "master" m3u8s
@@ -169,8 +191,10 @@ class YouPornIE(InfoExtractor):
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
-        duration = int_or_none(self._html_search_meta(
-            'video:duration', webpage, 'duration', fatal=False))
+        duration = traverse_obj(playervars, ('duration', T(int_or_none)))
+        if duration is None:
+            duration = int_or_none(self._html_search_meta(
+                'video:duration', webpage, 'duration', fatal=False))
 
         uploader = self._html_search_regex(
             r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
@@ -186,11 +210,11 @@ class YouPornIE(InfoExtractor):
 
         view_count = None
         views = self._search_regex(
-            r'(<div[^>]+\bclass=["\']js_videoInfoViews["\']>)', webpage,
-            'views', default=None)
+            r'(<div\s[^>]*\bdata-value\s*=[^>]+>)\s*<label>Views:</label>',
+            webpage, 'views', default=None)
         if views:
-            view_count = str_to_int(extract_attributes(views).get('data-value'))
-        comment_count = str_to_int(self._search_regex(
+            view_count = parse_count(extract_attributes(views).get('data-value'))
+        comment_count = parse_count(self._search_regex(
             r'>All [Cc]omments? \(([\d,.]+)\)',
             webpage, 'comment count', default=None))
 
@@ -211,7 +235,7 @@ class YouPornIE(InfoExtractor):
 
         result = merge_dicts(data, {
             'id': video_id,
-            'display_id': display_id if display_id != video_id else None,
+            'display_id': display_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
@@ -225,4 +249,8 @@ class YouPornIE(InfoExtractor):
             'age_limit': age_limit,
             'formats': formats,
         })
+        # Remove promotional non-description
+        if result.get('description', '').startswith(
+                'Watch %s online' % (result['title'],)):
+            del result['description']
         return result
