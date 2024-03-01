@@ -36,6 +36,7 @@ class NPOBaseIE(InfoExtractor):
 
 class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
+    # TODO find out if all hosts still work:
     IE_DESC = 'npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl'
     _VALID_URL = r'''(?x)
                     (?:
@@ -62,6 +63,10 @@ class NPOIE(NPOBaseIE):
             'description': 'Dagelijks tussen tien en elf: nieuws, sport en achtergronden.',
             'upload_date': '20140622',
         },
+        'skip': 'Video gone',
+    }, {
+        'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
+        # TODO other test attributes
     }, {
         'url': 'http://www.npo.nl/de-mega-mike-mega-thomas-show/27-02-2009/VARA_101191800',
         'md5': 'da50a5787dbfc1603c4ad80f31c5120b',
@@ -73,8 +78,9 @@ class NPOIE(NPOBaseIE):
             'upload_date': '20090227',
             'duration': 2400,
         },
+        'skip': 'Video gone',
     }, {
-        'url': 'http://www.npo.nl/tegenlicht/25-02-2013/VPWON_1169289',
+        'url': 'https://npo.nl/start/serie/vpro-tegenlicht/seizoen-11/zwart-geld-de-toekomst-komt-uit-afrika',
         'md5': 'f8065e4e5a7824068ed3c7e783178f2c',
         'info_dict': {
             'id': 'VPWON_1169289',
@@ -95,7 +101,8 @@ class NPOIE(NPOBaseIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Video gone',
     }, {
         # non asf in streams
         'url': 'http://www.npo.nl/hoe-gaat-europa-verder-na-parijs/10-01-2015/WO_NOS_762771',
@@ -106,7 +113,8 @@ class NPOIE(NPOBaseIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.ntr.nl/Aap-Poot-Pies/27/detail/Aap-poot-pies/VPWON_1233944#content',
         'info_dict': {
@@ -119,7 +127,8 @@ class NPOIE(NPOBaseIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698',
         'info_dict': {
@@ -132,7 +141,8 @@ class NPOIE(NPOBaseIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Video gone',
     }, {
         # audio
         'url': 'http://www.npo.nl/jouw-stad-rotterdam/29-01-2017/RBX_FUNX_6683215/RBX_FUNX_7601437',
@@ -148,15 +158,19 @@ class NPOIE(NPOBaseIE):
     }, {
         'url': 'http://www.zapp.nl/de-bzt-show/gemist/KN_1687547',
         'only_matching': True,
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.zapp.nl/de-bzt-show/filmpjes/POMS_KN_7315118',
         'only_matching': True,
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.zapp.nl/beste-vrienden-quiz/extra-video-s/WO_NTR_1067990',
         'only_matching': True,
+        'skip': 'Video gone',
     }, {
         'url': 'https://www.npo3.nl/3onderzoekt/16-09-2015/VPWON_1239870',
         'only_matching': True,
+        'skip': 'Video gone',
     }, {
         # live stream
         'url': 'npo:LI_NL1_4188102',
@@ -704,7 +718,6 @@ class VPROIE(NPOPlaylistBaseIE):
                 'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
                 'upload_date': '20130225',
             },
-            'skip': 'Video gone',
         },
         {
             'url': 'http://www.vpro.nl/programmas/2doc/2015/sergio-herman.html',
@@ -723,6 +736,7 @@ class VPROIE(NPOPlaylistBaseIE):
                 'title': 'education education',
             },
             'playlist_count': 2,
+            'skip': 'Video gone',
         },
         {
             'url': 'http://www.2doc.nl/documentaires/series/2doc/2015/oktober/de-tegenprestatie.html',
@@ -778,3 +792,73 @@ class AndereTijdenIE(NPOPlaylistBaseIE):
         },
         'playlist_count': 3,
     }]
+
+###############################################################
+#   Description of the new process of getting to the stream   #
+###############################################################
+
+# Valid URLs for new tests
+# https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/
+# https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/afspelen
+
+# Step 1: Normalize the URL
+# If the URL ends with /afspelen, strip that
+# We need the slug in the next stepto find the productId
+
+# Step 2: Find the productId
+# In the contents of the URL is a JSON blob:
+# <script id="__NEXT_DATA__" type="application/json">
+# There's a list of queries in the ['props']['pageProps']['dehydratedState']['queries'] key
+# In this list of queries, one is the current episode
+# This one can be found by looping over queries and selecting
+# the one where the key ['state']['data']['slug'] contains the last part of the URL
+# In the test case 'wie-is-de-mol-2'
+# We need the productId from the corresponding entry in ['state']['data']['productId']
+# This looks a bit GraphQL-like, so there might be an easier way to query the productId, if we know the slug
+
+# Step 3: Get the JWT
+# With this productId we can get a player-token
+# https://npo.nl/start/api/domain/player-token?productId=VARA_101372912
+# The response is a JSON dictionary, with one key ['token']
+# In this key is a JWT
+
+# Step 4: Get the stream-link json
+# The JWT needs to be put in the Authorization header in a POST request to
+# https://prod.npoplayer.nl/stream-link
+# with the following payload (for this test case)
+# {
+#   "profileName": "dash",
+#   "drmType": "widevine",
+#   "referrerUrl": "https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/afspelen"
+# }
+# Even though the request asks for Widevine DRM, it's not always available
+# At this point we don't know whether there's DRM yet
+
+# Step 5: Get the stream.mpd from the JSON response and find out if DRM is enabled
+# This returns a JSON response with a stream.mpd file in the ['stream']['streamURL'] key
+# If dash_unencrypted is in this URL it's a stream without DRM and we can download it
+
+# For all new content there most likely is DRM protection on the stream
+# In that case dash_cenc is in the stream.mpd URL
+
+
+##############################################################
+#   Differences when embedded on the broadcaster's website   #
+##############################################################
+
+# The same episode is also embedded on the broadcaster's website: https://bnnvara.nl/videos/27455
+# It's nice to support that too, and in the case of bnnvara.nl (and maybe more broadcasters)
+# it's even easier to get to the productId
+# By POSTing to the GraphQL endpoint at we can query using the id (last part of the URL)
+# https://api.bnnvara.nl/bff/graphql
+# {
+#   "operationName": "getMedia",
+#   "variables": {
+#     "id": "27455",
+#     "hasAdConsent": false,
+#     "atInternetId": 70
+#   },
+#   "query": "query getMedia($id: ID!, $mediaUrl: String, $hasAdConsent: Boolean!, $atInternetId: Int) {\n  player(\n    id: $id\n    mediaUrl: $mediaUrl\n    hasAdConsent: $hasAdConsent\n    atInternetId: $atInternetId\n  ) {\n    ... on PlayerSucces {\n      brand {\n        name\n        slug\n        broadcastsEnabled\n        __typename\n      }\n      title\n      programTitle\n      pomsProductId\n      broadcasters {\n        name\n        __typename\n      }\n      duration\n      classifications {\n        title\n        imageUrl\n        type\n        __typename\n      }\n      image {\n        title\n        url\n        __typename\n      }\n      cta {\n        title\n        url\n        __typename\n      }\n      genres {\n        name\n        __typename\n      }\n      subtitles {\n        url\n        language\n        __typename\n      }\n      sources {\n        name\n        url\n        ratio\n        __typename\n      }\n      type\n      token\n      __typename\n    }\n    ... on PlayerError {\n      error\n      __typename\n    }\n    __typename\n  }\n}"
+# }
+# The response is in the key ['data']['player']['pomsProductId']
+# From this point it's possible to continue at step 3 of the description above
