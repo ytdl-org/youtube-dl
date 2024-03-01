@@ -72,7 +72,7 @@ class NPOIE(InfoExtractor):
         next_data = page.split('<script id="__NEXT_DATA__" type="application/json">')[1].split('</script>')[0]
         # TODO The data in this script tag feels like GraphQL, so there might be an easier way
         #      to get the product id, maybe using a GraphQL endpoint
-        next_data = json.loads(next_data)
+        next_data = self._parse_json(next_data, slug)
         product_id, title, description, thumbnail = None, None, None, None
         for query in next_data['props']['pageProps']['dehydratedState']['queries']:
             if isinstance(query['state']['data'], list):
