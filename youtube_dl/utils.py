@@ -45,6 +45,7 @@ from .compat import (
     compat_casefold,
     compat_chr,
     compat_collections_abc,
+    compat_contextlib_suppress,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
     compat_datetime_timedelta_total_seconds,
@@ -1855,25 +1856,18 @@ def write_json_file(obj, fn):
     try:
         with tf:
             json.dump(obj, tf)
-        if sys.platform == 'win32':
-            # Need to remove existing file on Windows, else os.rename raises
-            # WindowsError or FileExistsError.
-            try:
+        with compat_contextlib_suppress(OSError):
+            if sys.platform == 'win32':
+                # Need to remove existing file on Windows, else os.rename raises
+                # WindowsError or FileExistsError.
                 os.unlink(fn)
-            except OSError:
-                pass
-        try:
             mask = os.umask(0)
             os.umask(mask)
             os.chmod(tf.name, 0o666 & ~mask)
-        except OSError:
-            pass
         os.rename(tf.name, fn)
     except Exception:
-        try:
+        with compat_contextlib_suppress(OSError):
             os.remove(tf.name)
-        except OSError:
-            pass
         raise
 
 
@@ -2033,14 +2027,13 @@ def extract_attributes(html_element):
     NB HTMLParser is stricter in Python 2.6 & 3.2 than in later versions,
     but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
     """
-    parser = HTMLAttributeParser()
-    try:
-        parser.feed(html_element)
-        parser.close()
-    # Older Python may throw HTMLParseError in case of malformed HTML
-    except compat_HTMLParseError:
-        pass
-    return parser.attrs
+    ret = None
+    # Older Python may throw HTMLParseError in case of malformed HTML (and on .close()!)
+    with compat_contextlib_suppress(compat_HTMLParseError):
+        with contextlib.closing(HTMLAttributeParser()) as parser:
+            parser.feed(html_element)
+            ret = parser.attrs
+    return ret or {}
 
 
 def clean_html(html):
@@ -2241,7 +2234,8 @@ def _htmlentity_transform(entity_with_semicolon):
             numstr = '0%s' % numstr
         else:
             base = 10
-        # See https://github.com/ytdl-org/youtube-dl/issues/7518
+        # See https://github.com/ytdl-org/youtube-dl/issues/7518\
+        # Also, weirdly, compat_contextlib_suppress fails here in 2.6
         try:
             return compat_chr(int(numstr, base))
         except ValueError:
@@ -2348,11 +2342,9 @@ def make_HTTPS_handler(params, **kwargs):
         # Some servers may (wrongly) reject requests if ALPN extension is not sent. See:
         # https://github.com/python/cpython/issues/85140
         # https://github.com/yt-dlp/yt-dlp/issues/3878
-        try:
+        with compat_contextlib_suppress(AttributeError, NotImplementedError):
+            # fails for Python < 2.7.10, not ssl.HAS_ALPN
             ctx.set_alpn_protocols(ALPN_PROTOCOLS)
-        except (AttributeError, NotImplementedError):
-            # Python < 2.7.10, not ssl.HAS_ALPN
-            pass
 
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
@@ -2362,12 +2354,10 @@ def make_HTTPS_handler(params, **kwargs):
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
 
-        try:
+        with compat_contextlib_suppress(TypeError):
+            # Fails with Python 2.7.8 (create_default_context present
+            # but HTTPSHandler has no context=)
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
-        except TypeError:
-            # Python 2.7.8
-            # (create_default_context present but HTTPSHandler has no context=)
-            pass
 
     if sys.version_info < (3, 2):
         return YoutubeDLHTTPSHandler(params, **kwargs)
@@ -3176,12 +3166,10 @@ def parse_iso8601(date_str, delimiter='T', timezone=None):
     if timezone is None:
         timezone, date_str = extract_timezone(date_str)
 
-    try:
+    with compat_contextlib_suppress(ValueError):
         date_format = '%Y-%m-%d{0}%H:%M:%S'.format(delimiter)
         dt = datetime.datetime.strptime(date_str, date_format) - timezone
         return calendar.timegm(dt.timetuple())
-    except ValueError:
-        pass
 
 
 def date_formats(day_first=True):
@@ -3201,17 +3189,13 @@ def unified_strdate(date_str, day_first=True):
     _, date_str = extract_timezone(date_str)
 
     for expression in date_formats(day_first):
-        try:
+        with compat_contextlib_suppress(ValueError):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
-        except ValueError:
-            pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
         if timetuple:
-            try:
+            with compat_contextlib_suppress(ValueError):
                 upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
-            except ValueError:
-                pass
     if upload_date is not None:
         return compat_str(upload_date)
 
@@ -3240,11 +3224,9 @@ def unified_timestamp(date_str, day_first=True):
         date_str = m.group(1)
 
     for expression in date_formats(day_first):
-        try:
+        with compat_contextlib_suppress(ValueError):
             dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
             return calendar.timegm(dt.timetuple())
-        except ValueError:
-            pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
         return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
