@@ -847,17 +847,7 @@ from .nowness import (
     NownessSeriesIE,
 )
 from .noz import NozIE
-from .npo import (
-    AndereTijdenIE,
-    NPOIE,
-    NPOLiveIE,
-    NPORadioIE,
-    NPORadioFragmentIE,
-    SchoolTVIE,
-    HetKlokhuisIE,
-    VPROIE,
-    WNLIE,
-)
+from .npo import NPOIE
 from .npr import NprIE
 from .nrk import (
     NRKIE,
