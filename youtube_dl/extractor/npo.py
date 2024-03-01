@@ -82,9 +82,9 @@ class NPOIE(InfoExtractor):
                         title = entry.get('title')
                         synopsis = entry.get('synopsis', {})
                         description = (
-                                synopsis.get('long')
-                                or synopsis.get('short')
-                                or synopsis.get('brief')
+                            synopsis.get('long')
+                            or synopsis.get('short')
+                            or synopsis.get('brief')
                         )
                         thumbnails = entry.get('images')
                         for thumbnail_entry in thumbnails:
@@ -95,26 +95,29 @@ class NPOIE(InfoExtractor):
 
         token = self._get_token(product_id)
 
-        stream_link = self._download_json(
-            'https://prod.npoplayer.nl/stream-link', video_id=slug,
-            data=json.dumps({
-                'profileName': 'dash',
-                'drmType': 'widevine',
-                'referrerUrl': url,
-            }).encode('utf8'),
-            headers={
-                'Authorization': token,
-                'Content-Type': 'application/json',
-            }
-        )
-
-        # TODO other formats than dash / mpd
-        stream_url = stream_link.get('stream', {}).get('streamURL')
-        mpd = self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False)
+        formats = []
+        for profile in (
+                'dash',
+                # 'hls',  # TODO test what needs to change for 'hls' support
+        ):
+            stream_link = self._download_json(
+                'https://prod.npoplayer.nl/stream-link', video_id=slug,
+                data=json.dumps({
+                    'profileName': profile,
+                    'drmType': 'widevine',
+                    'referrerUrl': url,
+                }).encode('utf8'),
+                headers={
+                    'Authorization': token,
+                    'Content-Type': 'application/json',
+                }
+            )
+            stream_url = stream_link.get('stream', {}).get('streamURL')
+            formats.extend(self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False))
 
         return {
             'id': slug,
-            'formats': mpd,
+            'formats': formats,
             'title': title or slug,
             'description': description,
             'thumbnail': thumbnail,
