@@ -11,6 +11,7 @@ from .common import FileDownloader
 from ..compat import (
     compat_setenv,
     compat_str,
+    compat_subprocess_Popen,
 )
 from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..utils import (
@@ -483,21 +484,25 @@ class FFmpegFD(ExternalFD):
 
         self._debug_cmd(args)
 
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE, env=env)
-        try:
-            retval = proc.wait()
-        except BaseException as e:
-            # subprocess.run would send the SIGKILL signal to ffmpeg and the
-            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
-            # produces a file that is playable (this is mostly useful for live
-            # streams). Note that Windows is not affected and produces playable
-            # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
-            if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
-                process_communicate_or_kill(proc, b'q')
-            else:
-                proc.kill()
-                proc.wait()
-            raise
+        # From [1], a PIPE opened in Popen() should be closed, unless
+        # .communicate() is called. Avoid leaking any PIPEs by using Popen
+        # as a context manager (newer Python 3.x and compat)
+        # Fixes "Resource Warning" in test/test_downloader_external.py
+        # [1] https://devpress.csdn.net/python/62fde12d7e66823466192e48.html
+        with compat_subprocess_Popen(args, stdin=subprocess.PIPE, env=env) as proc:
+            try:
+                retval = proc.wait()
+            except BaseException as e:
+                # subprocess.run would send the SIGKILL signal to ffmpeg and the
+                # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+                # produces a file that is playable (this is mostly useful for live
+                # streams). Note that Windows is not affected and produces playable
+                # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
+                if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
+                    process_communicate_or_kill(proc, b'q')
+                else:
+                    proc.kill()
+                raise
         return retval
 
 

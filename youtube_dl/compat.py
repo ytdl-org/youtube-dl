@@ -2438,9 +2438,9 @@ compat_html_parser_HTMLParser = compat_HTMLParser
 compat_html_parser_HTMLParseError = compat_HTMLParseError
 
 try:
-    from subprocess import DEVNULL
-    compat_subprocess_get_DEVNULL = lambda: DEVNULL
-except ImportError:
+    _DEVNULL = subprocess.DEVNULL
+    compat_subprocess_get_DEVNULL = lambda: _DEVNULL
+except AttributeError:
     compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
 
 try:
@@ -2958,6 +2958,33 @@ except ImportError:
             return exc_val is not None and isinstance(exc_val, self._exceptions or tuple())
 
 
+# subprocess.Popen context manager
+# avoids leaking handles if .communicate() is not called
+try:
+    _Popen = subprocess.Popen
+    # check for required context manager attributes
+    _Popen.__enter__ and _Popen.__exit__
+    compat_subprocess_Popen = _Popen
+except AttributeError:
+    # not a context manager - make one
+    from contextlib import contextmanager
+
+    @contextmanager
+    def compat_subprocess_Popen(*args, **kwargs):
+        popen = None
+        try:
+            popen = _Popen(*args, **kwargs)
+            yield popen
+        finally:
+            if popen:
+                for f in (popen.stdin, popen.stdout, popen.stderr):
+                    if f:
+                        # repeated .close() is OK, but just in case
+                        with compat_contextlib_suppress(EnvironmentError):
+                            f.close()
+                popen.wait()
+
+
 # Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
@@ -3314,6 +3341,7 @@ __all__ = [
     'compat_struct_pack',
     'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
+    'compat_subprocess_Popen',
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
