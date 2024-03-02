@@ -1558,6 +1558,11 @@ from .vvvvid import (
     VVVVIDIE,
     VVVVIDShowIE,
 )
+from .vxxx import (
+    InPornIE,
+    MrGayIE,
+    VXXXIE,
+)
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
 from .wakanim import WakanimIE
