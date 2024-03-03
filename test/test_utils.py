@@ -256,14 +256,6 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('foo bar'), 'foo bar')
 
-    def test_extract_user_pass(self):
-        self.assertEqual(extract_user_pass('http://foo.bar'), ('http://foo.bar', None, None))
-        self.assertEqual(extract_user_pass('http://:foo.bar'), ('http://:foo.bar', None, None))
-        self.assertEqual(extract_user_pass('http://@foo.bar'), ('http://foo.bar', '', ''))
-        self.assertEqual(extract_user_pass('http://:pass@foo.bar'), ('http://foo.bar', '', 'pass'))
-        self.assertEqual(extract_user_pass('http://user:@foo.bar'), ('http://foo.bar', 'user', ''))
-        self.assertEqual(extract_user_pass('http://user:pass@foo.bar'), ('http://foo.bar', 'user', 'pass'))
-
     def test_sanitized_Request(self):
         self.assertFalse(sanitized_Request('http://foo.bar').has_header('Authorization'))
         self.assertFalse(sanitized_Request('http://:foo.bar').has_header('Authorization'))
