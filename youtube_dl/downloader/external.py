@@ -13,7 +13,12 @@ from ..compat import (
     compat_str,
     compat_subprocess_Popen,
 )
-from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+
+try:
+    from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+except ImportError:
+    FFmpegPostProcessor = None
+
 from ..utils import (
     cli_option,
     cli_valueless_option,
@@ -362,13 +367,14 @@ class FFmpegFD(ExternalFD):
 
     @classmethod
     def available(cls):
-        return FFmpegPostProcessor().available
+        # actual availability can only be confirmed for an instance
+        return bool(FFmpegPostProcessor)
 
     def _call_downloader(self, tmpfilename, info_dict):
-        url = info_dict['url']
-        ffpp = FFmpegPostProcessor(downloader=self)
+        # `downloader` means the parent `YoutubeDL`
+        ffpp = FFmpegPostProcessor(downloader=self.ydl)
         if not ffpp.available:
-            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            self.report_error('ffmpeg required for download but no ffmpeg (nor avconv) executable could be found. Please install one.')
             return False
         ffpp.check_version()
 
@@ -397,6 +403,7 @@ class FFmpegFD(ExternalFD):
         # if end_time:
         #     args += ['-t', compat_str(end_time - start_time)]
 
+        url = info_dict['url']
         cookies = self.ydl.cookiejar.get_cookies_for_url(url)
         if cookies:
             args.extend(['-cookies', ''.join(
