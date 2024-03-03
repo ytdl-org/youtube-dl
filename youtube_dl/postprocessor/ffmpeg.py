@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import io
 import os
 import subprocess
 import time
@@ -9,6 +8,7 @@ import re
 
 from .common import AudioConversionError, PostProcessor
 
+from ..compat import compat_open as open
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -16,6 +16,7 @@ from ..utils import (
     is_outdated_version,
     PostProcessingError,
     prepend_extension,
+    process_communicate_or_kill,
     shell_quote,
     subtitles_filename,
     dfxp2srt,
@@ -180,7 +181,7 @@ class FFmpegPostProcessor(PostProcessor):
             handle = subprocess.Popen(
                 cmd, stderr=subprocess.PIPE,
                 stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            stdout_data, stderr_data = handle.communicate()
+            stdout_data, stderr_data = process_communicate_or_kill(handle)
             expected_ret = 0 if self.probe_available else 1
             if handle.wait() != expected_ret:
                 return None
@@ -228,7 +229,7 @@ class FFmpegPostProcessor(PostProcessor):
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
-        stdout, stderr = p.communicate()
+        stdout, stderr = process_communicate_or_kill(p)
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
             msgs = stderr.strip().split('\n')
@@ -492,7 +493,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         chapters = info.get('chapters', [])
         if chapters:
             metadata_filename = replace_extension(filename, 'meta')
-            with io.open(metadata_filename, 'wt', encoding='utf-8') as f:
+            with open(metadata_filename, 'w', encoding='utf-8') as f:
                 def ffmpeg_escape(text):
                     return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
 
@@ -635,7 +636,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 with open(dfxp_file, 'rb') as f:
                     srt_data = dfxp2srt(f.read())
 
-                with io.open(srt_file, 'wt', encoding='utf-8') as f:
+                with open(srt_file, 'w', encoding='utf-8') as f:
                     f.write(srt_data)
                 old_file = srt_file
 
@@ -651,7 +652,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
             self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
-            with io.open(new_file, 'rt', encoding='utf-8') as f:
+            with open(new_file, 'r', encoding='utf-8') as f:
                 subs[lang] = {
                     'ext': new_ext,
                     'data': f.read(),

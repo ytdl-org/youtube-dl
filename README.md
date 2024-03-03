@@ -33,7 +33,7 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
-    
+
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
@@ -563,7 +563,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `is_live` (boolean): Whether this video is a live stream or a fixed-length video
  - `start_time` (numeric): Time in seconds where the reproduction should start, as specified in the URL
  - `end_time` (numeric): Time in seconds where the reproduction should end, as specified in the URL
- - `format` (string): A human-readable description of the format 
+ - `format` (string): A human-readable description of the format
  - `format_id` (string): Format code specified by `--format`
  - `format_note` (string): Additional info about the format
  - `width` (numeric): Width of the video
@@ -632,7 +632,7 @@ To use percent literals in an output template use `%%`. To output to stdout use 
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
-In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
+In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title.
 
 #### Output template and Windows batch files
 
@@ -675,7 +675,7 @@ The general syntax for format selection is `--format FORMAT` or shorter `-f FORM
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
-The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific. 
+The simplest case is requesting a specific format, for example with `-f 22` you can download the format with format code equal to 22. You can get the list of available format codes for particular video using `--list-formats` or `-F`. Note that these format codes are extractor specific.
 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
@@ -760,7 +760,7 @@ Videos can be filtered by their upload date using the options `--date`, `--dateb
 
  - Absolute dates: Dates in the format `YYYYMMDD`.
  - Relative dates: Dates in the format `(now|today)[+-][0-9](day|week|month|year)(s)?`
- 
+
 Examples:
 
 ```bash
@@ -918,7 +918,7 @@ Either prepend `https://www.youtube.com/watch?v=` or separate the ID from the op
 
 Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
 
-In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid/) (for Chrome) or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) (for Firefox).
+In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) (for Chrome) or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) (for Firefox).
 
 Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, macOS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
 
@@ -1000,6 +1000,8 @@ To run the test, simply invoke your favorite test runner, or execute a test file
     python test/test_download.py
     nosetests
 
+For Python versions 3.6 and later, you can use [pynose](https://pypi.org/project/pynose/) to implement `nosetests`. The original [nose](https://pypi.org/project/nose/) has not been upgraded for 3.10 and later.
+
 See item 6 of [new extractor tutorial](#adding-support-for-a-new-site) for how to run extractor specific test cases.
 
 If you want to create a build of youtube-dl yourself, you'll need
@@ -1069,9 +1071,11 @@ After you have ensured this site is distributing its content legally, you can fo
             }
     ```
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
-6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note that tests with `only_matching` key in test's dict are not counted in.
-7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://flake8.pycqa.org/en/latest/index.html#quickstart):
+6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test (actually, test case) then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note:
+    * the test names use the extractor class name **without the trailing `IE`**
+    * tests with `only_matching` key in test's dict are not counted.
+8. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303). Add tests and code for as many as you want.
+9. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://flake8.pycqa.org/en/latest/index.html#quickstart):
 
         $ flake8 youtube_dl/extractor/yourextractor.py
 
@@ -1089,7 +1093,7 @@ In any case, thank you very much for your contributions!
 
 ## youtube-dl coding conventions
 
-This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
+This section introduces guidelines for writing idiomatic, robust and future-proof extractor code.
 
 Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hosters out of your control and this layout tends to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize dependency on the source's layout and even to make the code foresee potential future changes and be ready for that. This is important because it will allow the extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with a fix incorporated, all the previous versions become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say, some non rolling release distros may never receive an update at all.
 
@@ -1112,7 +1116,7 @@ Say you have some source dictionary `meta` that you've fetched as JSON with HTTP
 ```python
 meta = self._download_json(url, video_id)
 ```
-    
+
 Assume at this point `meta`'s layout is:
 
 ```python
@@ -1156,7 +1160,7 @@ description = self._search_regex(
 ```
 
 On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
- 
+
 ### Provide fallbacks
 
 When extracting metadata try to do so from multiple sources. For example if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
@@ -1204,7 +1208,7 @@ r'(id|ID)=(?P<id>\d+)'
 #### Make regular expressions relaxed and flexible
 
 When using regular expressions try to write them fuzzy, relaxed and flexible, skipping insignificant parts that are more likely to change, allowing both single and double quotes for quoted values and so on.
- 
+
 ##### Example
 
 Say you need to extract `title` from the following HTML code:
@@ -1228,7 +1232,7 @@ title = self._search_regex(
     webpage, 'title', group='title')
 ```
 
-Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute: 
+Note how you tolerate potential changes in the `style` attribute's value or switch from using double quotes to single for `class` attribute:
 
 The code definitely should not look like:
 
@@ -1329,26 +1333,113 @@ Wrap all extracted numeric data into safe functions from [`youtube_dl/utils.py`]
 
 Use `url_or_none` for safe URL processing.
 
-Use `try_get` for safe metadata extraction from parsed JSON.
+Use `traverse_obj` for safe metadata extraction from parsed JSON.
 
-Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction.
 
 Explore [`youtube_dl/utils.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 
 #### More examples
 
 ##### Safely extract optional description from parsed JSON
+
+When processing complex JSON, as often returned by site API requests or stashed in web pages for "hydration", you can use the `traverse_obj()` utility function to handle multiple fallback values and to ensure the expected type of metadata items. The function's docstring defines how the function works: also review usage in the codebase for more examples.
+
+In this example, a text `description`, or `None`, is pulled from the `.result.video[0].summary` member of the parsed JSON `response`, if available.
+
+```python
+description = traverse_obj(response, ('result', 'video', 0, 'summary', T(compat_str)))
+```
+`T(...)` is a shorthand for a set literal; if you hate people who still run Python 2.6, `T(type_or_transformation)` could be written as a set literal `{type_or_transformation}`.
+
+Some extractors use the older and less capable `try_get()` function in the same way.
+
 ```python
 description = try_get(response, lambda x: x['result']['video'][0]['summary'], compat_str)
 ```
 
 ##### Safely extract more optional metadata
+
+In this example, various optional metadata values are extracted from the `.result.video[0]` member of the parsed JSON `response`, which is expected to be a JS object, parsed into a `dict`, with no crash if that isn't so, or if any of the target values are missing or invalid.
+
 ```python
-video = try_get(response, lambda x: x['result']['video'][0], dict) or {}
+video = traverse_obj(response, ('result', 'video', 0, T(dict))) or {}
+# formerly:
+# video = try_get(response, lambda x: x['result']['video'][0], dict) or {}
 description = video.get('summary')
 duration = float_or_none(video.get('durationMs'), scale=1000)
 view_count = int_or_none(video.get('views'))
 ```
+
+#### Safely extract nested lists
+
+Suppose you've extracted JSON like this into a Python data structure named `media_json` using, say, the `_download_json()` or `_parse_json()` methods of `InfoExtractor`:
+```json
+{
+    "title": "Example video",
+    "comment": "try extracting this",
+    "media": [{
+        "type": "bad",
+        "size": 320,
+        "url": "https://some.cdn.site/bad.mp4"
+    }, {
+        "type": "streaming",
+        "url": "https://some.cdn.site/hls.m3u8"
+    }, {
+        "type": "super",
+        "size": 1280,
+        "url": "https://some.cdn.site/good.webm"
+    }],
+    "moreStuff": "more values",
+    ...
+}
+```
+
+Then extractor code like this can collect the various fields of the JSON:
+```python
+...
+from ..utils import (
+    determine_ext,
+    int_or_none,
+    T,
+    traverse_obj,
+    txt_or_none,
+    url_or_none,
+)
+...
+        ...
+        info_dict = {}
+        # extract title and description if valid and not empty
+        info_dict.update(traverse_obj(media_json, {
+            'title': ('title', T(txt_or_none)),
+            'description': ('comment', T(txt_or_none)),
+        }))
+
+        # extract any recognisable media formats
+        fmts = []
+        # traverse into "media" list, extract `dict`s with desired keys
+        for fmt in traverse_obj(media_json, ('media', Ellipsis, {
+                'format_id': ('type', T(txt_or_none)),
+                'url': ('url', T(url_or_none)),
+                'width': ('size', T(int_or_none)), })):
+            # bad `fmt` values were `None` and removed
+            if 'url' not in fmt:
+                continue
+            fmt_url = fmt['url']  # known to be valid URL
+            ext = determine_ext(fmt_url)
+            if ext == 'm3u8':
+                fmts.extend(self._extract_m3u8_formats(fmt_url, video_id, 'mp4', fatal=False))
+            else:
+                fmt['ext'] = ext
+                fmts.append(fmt)
+
+        # sort, raise if no formats
+        self._sort_formats(fmts)
+
+        info_dict['formats'] = fmts
+        ...
+```
+The extractor raises an exception rather than random crashes if the JSON structure changes so that no formats are found.
 
 # EMBEDDING YOUTUBE-DL
 
@@ -1406,7 +1497,11 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
 # BUGS
 
-Bugs and suggestions should be reported at: <https://github.com/ytdl-org/youtube-dl/issues>. Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](https://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
+Bugs and suggestions should be reported in the issue tracker: <https://github.com/ytdl-org/youtube-dl/issues> (<https://yt-dl.org/bug> is an alias for this). Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](https://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
+
+## Opening a bug report or suggestion
+
+Be sure to follow instructions provided **below** and **in the issue tracker**. Complete the appropriate issue template fully. Consider whether your problem is covered by an existing issue: if so, follow the discussion there. Avoid commenting on existing duplicate issues as such comments do not add to the discussion of the issue and are liable to be treated as spam.
 
 **Please include the full output of youtube-dl when run with `-v`**, i.e. **add** `-v` flag to **your command line**, copy the **whole** output and post it in the issue body wrapped in \`\`\` for better formatting. It should look similar to this:
 ```
@@ -1426,17 +1521,17 @@ $ youtube-dl -v <your command line>
 
 The output (including the first lines) contains important debugging information. Issues without the full output are often not reproducible and therefore do not get solved in short order, if ever.
 
-Please re-read your issue once again to avoid a couple of common mistakes (you can and should use this as a checklist):
+Finally please review your issue to avoid various common mistakes (you can and should use this as a checklist) listed below.
 
 ### Is the description of the issue itself sufficient?
 
-We often get issue reports that we cannot really decipher. While in most cases we eventually get the required information after asking back multiple times, this poses an unnecessary drain on our resources. Many contributors, including myself, are also not native speakers, so we may misread some parts.
+We often get issue reports that are hard to understand. To avoid subsequent clarifications, and to assist participants who are not native English speakers, please elaborate on what feature you are requesting, or what bug you want to be fixed.
 
-So please elaborate on what feature you are requesting, or what bug you want to be fixed. Make sure that it's obvious
+Make sure that it's obvious
 
 - What the problem is
 - How it could be fixed
-- How your proposed solution would look like
+- How your proposed solution would look
 
 If your report is shorter than two lines, it is almost certainly missing some of these, which makes it hard for us to respond to it. We're often too polite to close the issue outright, but the missing info makes misinterpretation likely. As a committer myself, I often get frustrated by these issues, since the only possible way for me to move forward on them is to ask for clarification over and over.
 
@@ -1446,13 +1541,13 @@ If your server has multiple IPs or you suspect censorship, adding `--call-home` 
 
 **Site support requests must contain an example URL**. An example URL is a URL you might want to download, like `https://www.youtube.com/watch?v=BaW_jenozKc`. There should be an obvious video present. Except under very special circumstances, the main page of a video service (e.g. `https://www.youtube.com/`) is *not* an example URL.
 
+###  Is the issue already documented?
+
+Make sure that someone has not already opened the issue you're trying to open. Search at the top of the window or browse the [GitHub Issues](https://github.com/ytdl-org/youtube-dl/search?type=Issues) of this repository. Initially, at least, use the search term `-label:duplicate` to focus on active issues. If there is an issue, feel free to write something along the lines of "This affects me as well, with version 2015.01.01. Here is some more information on the issue: ...". While some issues may be old, a new post into them often spurs rapid activity.
+
 ###  Are you using the latest version?
 
 Before reporting any issue, type `youtube-dl -U`. This should report that you're up-to-date. About 20% of the reports we receive are already fixed, but people are using outdated versions. This goes for feature requests as well.
-
-###  Is the issue already documented?
-
-Make sure that someone has not already opened the issue you're trying to open. Search at the top of the window or browse the [GitHub Issues](https://github.com/ytdl-org/youtube-dl/search?type=Issues) of this repository. If there is an issue, feel free to write something along the lines of "This affects me as well, with version 2015.01.01. Here is some more information on the issue: ...". While some issues may be old, a new post into them often spurs rapid activity.
 
 ###  Why are existing options not enough?
 
