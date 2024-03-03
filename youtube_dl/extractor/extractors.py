@@ -847,7 +847,7 @@ from .nowness import (
     NownessSeriesIE,
 )
 from .noz import NozIE
-from .npo import NPOIE
+from .npo import BNNVaraIE, NPOIE
 from .npr import NprIE
 from .nrk import (
     NRKIE,

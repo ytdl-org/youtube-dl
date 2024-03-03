@@ -13,7 +13,6 @@ class NPOIE(InfoExtractor):
     IE_DESC = 'npo.nl'
     _VALID_URL = r'''(?x)
                     (?:
-                        npo:|
                         https?://
                             (?:www\.)?
                             (?:
@@ -82,9 +81,9 @@ class NPOIE(InfoExtractor):
                         title = entry.get('title')
                         synopsis = entry.get('synopsis', {})
                         description = (
-                            synopsis.get('long')
-                            or synopsis.get('short')
-                            or synopsis.get('brief')
+                                synopsis.get('long')
+                                or synopsis.get('short')
+                                or synopsis.get('brief')
                         )
                         thumbnails = entry.get('images')
                         for thumbnail_entry in thumbnails:
@@ -93,8 +92,19 @@ class NPOIE(InfoExtractor):
         if not product_id:
             raise ExtractorError('No productId found for slug: %s' % slug)
 
-        token = self._get_token(product_id)
+        formats = self._download_by_product_id(product_id, slug, url)
 
+        return {
+            'id': slug,
+            'formats': formats,
+            'title': title or slug,
+            'description': description,
+            'thumbnail': thumbnail,
+            # TODO fill in other metadata that's available
+        }
+
+    def _download_by_product_id(self, product_id, slug, url=None):
+        token = self._get_token(product_id)
         formats = []
         for profile in (
                 'dash',
@@ -105,7 +115,7 @@ class NPOIE(InfoExtractor):
                 data=json.dumps({
                     'profileName': profile,
                     'drmType': 'widevine',
-                    'referrerUrl': url,
+                    'referrerUrl': url or '',
                 }).encode('utf8'),
                 headers={
                     'Authorization': token,
@@ -114,12 +124,40 @@ class NPOIE(InfoExtractor):
             )
             stream_url = stream_link.get('stream', {}).get('streamURL')
             formats.extend(self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False))
+        return formats
+
+
+class BNNVaraIE(NPOIE):
+    IE_NAME = 'bnnvara'
+    IE_DESC = 'bnnvara.nl'
+    _VALID_URL = r'https?://(?:www\.)?bnnvara\.nl/videos/[0-9]*'
+
+    def _real_extract(self, url):
+        url = url.rstrip('/')
+        video_id = url.split('/')[-1]
+
+        media = self._download_json('https://api.bnnvara.nl/bff/graphql',
+                                    video_id,
+                                    data=json.dumps(
+                                        {
+                                            'operationName': 'getMedia',
+                                            'variables': {
+                                                'id': video_id,
+                                                'hasAdConsent': False,
+                                                'atInternetId': 70
+                                            },
+                                            'query': 'query getMedia($id: ID!, $mediaUrl: String, $hasAdConsent: Boolean!, $atInternetId: Int) {\n  player(\n    id: $id\n    mediaUrl: $mediaUrl\n    hasAdConsent: $hasAdConsent\n    atInternetId: $atInternetId\n  ) {\n    ... on PlayerSucces {\n      brand {\n        name\n        slug\n        broadcastsEnabled\n        __typename\n      }\n      title\n      programTitle\n      pomsProductId\n      broadcasters {\n        name\n        __typename\n      }\n      duration\n      classifications {\n        title\n        imageUrl\n        type\n        __typename\n      }\n      image {\n        title\n        url\n        __typename\n      }\n      cta {\n        title\n        url\n        __typename\n      }\n      genres {\n        name\n        __typename\n      }\n      subtitles {\n        url\n        language\n        __typename\n      }\n      sources {\n        name\n        url\n        ratio\n        __typename\n      }\n      type\n      token\n      __typename\n    }\n    ... on PlayerError {\n      error\n      __typename\n    }\n    __typename\n  }\n}'
+                                        }).encode('utf8'),
+                                    headers={
+                                        'Content-Type': 'application/json',
+                                    })
+        product_id = media.get('data', {}).get('player', {}).get('pomsProductId')
+
+        formats = self._download_by_product_id(product_id, video_id)
 
         return {
-            'id': slug,
+            'id': product_id,
+            'title': media.get('data', {}).get('player', {}).get('title'),
             'formats': formats,
-            'title': title or slug,
-            'description': description,
-            'thumbnail': thumbnail,
-            # TODO fill in other metadata that's available
+            'thumbnail': media.get('data', {}).get('player', {}).get('image').get('url'),
         }
