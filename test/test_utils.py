@@ -81,6 +81,7 @@ from youtube_dl.utils import (
     sanitize_filename,
     sanitize_path,
     sanitize_url,
+    sanitized_Request,
     shell_quote,
     smuggle_url,
     str_or_none,
@@ -254,6 +255,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('foo bar'), 'foo bar')
+
+    def test_sanitized_Request(self):
+        self.assertFalse(sanitized_Request('http://foo.bar').has_header('Authorization'))
+        self.assertFalse(sanitized_Request('http://:foo.bar').has_header('Authorization'))
+        self.assertEqual(sanitized_Request('http://@foo.bar').get_header('Authorization'),
+                         'Basic Og==')
+        self.assertEqual(sanitized_Request('http://:pass@foo.bar').get_header('Authorization'),
+                         'Basic OnBhc3M=')
+        self.assertEqual(sanitized_Request('http://user:@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjo=')
+        self.assertEqual(sanitized_Request('http://user:pass@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjpwYXNz')
 
     def test_expand_path(self):
         def env(var):
