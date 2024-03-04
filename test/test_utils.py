@@ -525,11 +525,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(float_or_none(set()), None)
 
     def test_int_or_none(self):
+        self.assertEqual(int_or_none(42), 42)
         self.assertEqual(int_or_none('42'), 42)
         self.assertEqual(int_or_none(''), None)
         self.assertEqual(int_or_none(None), None)
         self.assertEqual(int_or_none([]), None)
         self.assertEqual(int_or_none(set()), None)
+        self.assertEqual(int_or_none('42', base=8), 34)
+        self.assertRaises(TypeError, int_or_none(42, base=8))
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
