@@ -204,9 +204,31 @@ class VPROIE(NPOIE):
         formats = []
         for result in results:
             formats.extend(self._download_by_product_id(result, video_id))
+            break  # TODO find a better solution, VPRO pages can have multiple videos embedded
 
         if not formats:
             raise ExtractorError('Could not find a POMS product id in the provided URL.')
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+
+class ZAPPIE(NPOIE):
+    IE_NAME = 'zapp'
+    IE_DESC = 'zapp.nl'
+    _VALID_URL = r'https?://(?:www\.)?zapp.nl/.*'
+
+    _TESTS = [{
+        'url': 'https://www.zapp.nl/programmas/zappsport/gemist/AT_300003973',
+    }]
+
+    def _real_extract(self, url):
+        video_id = url.rstrip('/').split('/')[-1]
+
+        formats = self._download_by_product_id(url, video_id)
 
         return {
             'id': video_id,
