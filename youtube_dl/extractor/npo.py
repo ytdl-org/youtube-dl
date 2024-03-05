@@ -80,11 +80,9 @@ class NPOIE(InfoExtractor):
                         product_id = entry.get('productId')
                         title = entry.get('title')
                         synopsis = entry.get('synopsis', {})
-                        description = (
-                                synopsis.get('long')
-                                or synopsis.get('short')
-                                or synopsis.get('brief')
-                        )
+                        description = (synopsis.get('long')
+                                       or synopsis.get('short')
+                                       or synopsis.get('brief'))
                         thumbnails = entry.get('images')
                         for thumbnail_entry in thumbnails:
                             if 'url' in thumbnail_entry:
