@@ -4,9 +4,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-)
+from ..utils import ExtractorError
 
 
 class NPOIE(InfoExtractor):
@@ -177,6 +175,32 @@ class ONIE(NPOIE):
         video_id = url.rstrip('/').split('/')[-1]
         page, _ = self._download_webpage_handle(url, video_id)
         results = re.findall("page: '(.+)'", page)
+        formats = []
+        for result in results:
+            formats.extend(self._download_by_product_id(result, video_id))
+
+        if not formats:
+            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+
+class VPROIE(NPOIE):
+    IE_NAME = 'vpro'
+    IE_DESC = 'vpro.nl'
+    _VALID_URL = r'https?://(?:www\.)?vpro.nl/.*'
+    _TESTS = [{
+        'url': 'https://www.vpro.nl/programmas/tegenlicht/kijk/afleveringen/2015-2016/offline-als-luxe.html',
+    }]
+
+    def _real_extract(self, url):
+        video_id = url.rstrip('/').split('/')[-1]
+        page, _ = self._download_webpage_handle(url, video_id)
+        results = re.findall('data-media-id="(.+_.+)"\s', page)
         formats = []
         for result in results:
             formats.extend(self._download_by_product_id(result, video_id))
