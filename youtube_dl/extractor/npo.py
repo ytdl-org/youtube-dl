@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import json
+import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -129,6 +130,9 @@ class BNNVaraIE(NPOIE):
     IE_NAME = 'bnnvara'
     IE_DESC = 'bnnvara.nl'
     _VALID_URL = r'https?://(?:www\.)?bnnvara\.nl/videos/[0-9]*'
+    _TESTS = [{
+        'url': 'https://www.bnnvara.nl/videos/27455',
+    }]
 
     def _real_extract(self, url):
         url = url.rstrip('/')
@@ -158,4 +162,30 @@ class BNNVaraIE(NPOIE):
             'title': media.get('data', {}).get('player', {}).get('title'),
             'formats': formats,
             'thumbnail': media.get('data', {}).get('player', {}).get('image').get('url'),
+        }
+
+
+class ONIE(NPOIE):
+    IE_NAME = 'on'
+    IE_DESC = 'ongehoordnederland.tv'
+    _VALID_URL = r'https?://(?:www\.)?ongehoordnederland.tv/.*'
+    _TESTS = [{
+        'url': 'https://ongehoordnederland.tv/2024/03/01/korte-clips/heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel/',
+    }]
+
+    def _real_extract(self, url):
+        video_id = url.rstrip('/').split('/')[-1]
+        page, _ = self._download_webpage_handle(url, video_id)
+        results = re.findall("page: '(.+)'", page)
+        formats = []
+        for result in results:
+            formats.extend(self._download_by_product_id(result, video_id))
+
+        if not formats:
+            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
         }
