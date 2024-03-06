@@ -26,18 +26,6 @@ class NPOIE(InfoExtractor):
         'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
         # TODO fill in other test attributes
     }, {
-        'url': 'http://www.npo.nl/de-mega-mike-mega-thomas-show/27-02-2009/VARA_101191800',
-        'md5': 'da50a5787dbfc1603c4ad80f31c5120b',
-        'info_dict': {
-            'id': 'VARA_101191800',
-            'ext': 'm4v',
-            'title': 'De Mega Mike & Mega Thomas show: The best of.',
-            'description': 'md5:3b74c97fc9d6901d5a665aac0e5400f4',
-            'upload_date': '20090227',
-            'duration': 2400,
-        },
-        'skip': 'Video gone',
-    }, {
         'url': 'https://npo.nl/start/serie/vpro-tegenlicht/seizoen-11/zwart-geld-de-toekomst-komt-uit-afrika',
         'md5': 'f8065e4e5a7824068ed3c7e783178f2c',
         'info_dict': {
@@ -66,27 +54,21 @@ class NPOIE(InfoExtractor):
             url = url[:-10]
         url = url.rstrip('/')
         slug = url.split('/')[-1]
-        page = self._download_webpage(url, slug, 'Finding productId using slug: %s' % slug)
-        # TODO find out what proper HTML parsing utilities are available in youtube-dl
-        next_data = page.split('<script id="__NEXT_DATA__" type="application/json">')[1].split('</script>')[0]
-        # TODO The data in this script tag feels like GraphQL, so there might be an easier way
-        #      to get the product id, maybe using a GraphQL endpoint
-        next_data = self._parse_json(next_data, slug)
-        product_id, title, description, thumbnail = None, None, None, None
-        for query in next_data['props']['pageProps']['dehydratedState']['queries']:
-            if isinstance(query['state']['data'], list):
-                for entry in query['state']['data']:
-                    if entry['slug'] == slug:
-                        product_id = entry.get('productId')
-                        title = entry.get('title')
-                        synopsis = entry.get('synopsis', {})
-                        description = (synopsis.get('long')
-                                       or synopsis.get('short')
-                                       or synopsis.get('brief'))
-                        thumbnails = entry.get('images')
-                        for thumbnail_entry in thumbnails:
-                            if 'url' in thumbnail_entry:
-                                thumbnail = thumbnail_entry.get('url')
+
+        program_metadata = self._download_json('https://npo.nl/start/api/domain/program-detail',
+                                               slug,
+                                               query={'slug': slug})
+        product_id = program_metadata.get('productId')
+        images = program_metadata.get('images')
+        thumbnail = None
+        for image in images:
+            thumbnail = image.get('url')
+            break
+        title = program_metadata.get('title')
+        descriptions = program_metadata.get('description', {})
+        description = descriptions.get('long') or descriptions.get('short') or descriptions.get('brief')
+        duration = program_metadata.get('durationInSeconds')
+
         if not product_id:
             raise ExtractorError('No productId found for slug: %s' % slug)
 
@@ -96,17 +78,18 @@ class NPOIE(InfoExtractor):
             'id': slug,
             'formats': formats,
             'title': title or slug,
-            'description': description,
+            'description': description or title or slug,
             'thumbnail': thumbnail,
-            # TODO fill in other metadata that's available
+            'duration': duration,
         }
 
     def _download_by_product_id(self, product_id, slug, url=None):
         token = self._get_token(product_id)
         formats = []
         for profile in (
-                'dash',
-                # 'hls',  # TODO test what needs to change for 'hls' support
+            'dash',
+            # 'hls' is available too, but implementing it doesn't add much
+            # As far as I know 'dash' is always available
         ):
             stream_link = self._download_json(
                 'https://prod.npoplayer.nl/stream-link', video_id=slug,
@@ -131,6 +114,7 @@ class BNNVaraIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?bnnvara\.nl/videos/[0-9]*'
     _TESTS = [{
         'url': 'https://www.bnnvara.nl/videos/27455',
+        # TODO fill in other test attributes
     }]
 
     def _real_extract(self, url):
@@ -170,6 +154,7 @@ class ONIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?ongehoordnederland.tv/.*'
     _TESTS = [{
         'url': 'https://ongehoordnederland.tv/2024/03/01/korte-clips/heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel/',
+        # TODO fill in other test attributes
     }]
 
     def _real_extract(self, url):
@@ -196,6 +181,7 @@ class VPROIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?vpro.nl/.*'
     _TESTS = [{
         'url': 'https://www.vpro.nl/programmas/tegenlicht/kijk/afleveringen/2015-2016/offline-als-luxe.html',
+        # TODO fill in other test attributes
     }]
 
     def _real_extract(self, url):
@@ -224,6 +210,7 @@ class ZAPPIE(NPOIE):
 
     _TESTS = [{
         'url': 'https://www.zapp.nl/programmas/zappsport/gemist/AT_300003973',
+        # TODO fill in other test attributes
     }]
 
     def _real_extract(self, url):
