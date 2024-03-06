@@ -166,7 +166,8 @@ class ONIE(NPOIE):
             formats.extend(self._download_by_product_id(result, video_id))
 
         if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+            raise ExtractorError('Could not find a POMS product id in the provided URL, '
+                                 'perhaps because all stream URLs are DRM protected.')
 
         return {
             'id': video_id,
@@ -187,14 +188,15 @@ class VPROIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
         page, _ = self._download_webpage_handle(url, video_id)
-        results = re.findall('data-media-id="(.+_.+)"\s', page)
+        results = re.findall(r'data-media-id="(.+_.+)"\s', page)
         formats = []
         for result in results:
             formats.extend(self._download_by_product_id(result, video_id))
             break  # TODO find a better solution, VPRO pages can have multiple videos embedded
 
         if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+            raise ExtractorError('Could not find a POMS product id in the provided URL, '
+                                 'perhaps because all stream URLs are DRM protected.')
 
         return {
             'id': video_id,
@@ -238,6 +240,8 @@ class SchoolTVIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
 
+        # TODO Find out how we could obtain this automatically
+        #      Otherwise this extractor might break each time SchoolTV deploys a new release
         build_id = 'b7eHUzAVO7wHXCopYxQhV'
 
         metadata_url = 'https://schooltv.nl/_next/data/' \
@@ -251,7 +255,8 @@ class SchoolTVIE(NPOIE):
         formats = self._download_by_product_id(metadata.get('poms_mid'), video_id)
 
         if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+            raise ExtractorError('Could not find a POMS product id in the provided URL, '
+                                 'perhaps because all stream URLs are DRM protected.')
 
         return {
             'id': video_id,
