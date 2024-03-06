@@ -11,16 +11,7 @@ from ..utils import ExtractorError
 class NPOIE(InfoExtractor):
     IE_NAME = 'npo'
     IE_DESC = 'npo.nl'
-    _VALID_URL = r'''(?x)
-                    (?:
-                        https?://
-                            (?:www\.)?
-                            (?:
-                                npo\.nl/(?:[^/]+/)*
-                            )
-                        )
-                        (?P<id>[^/?#]+)
-                '''
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/.*'
 
     _TESTS = [{
         'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
@@ -176,35 +167,6 @@ class ONIE(NPOIE):
         }
 
 
-class VPROIE(NPOIE):
-    IE_NAME = 'vpro'
-    IE_DESC = 'vpro.nl'
-    _VALID_URL = r'https?://(?:www\.)?vpro.nl/.*'
-    _TESTS = [{
-        'url': 'https://www.vpro.nl/programmas/tegenlicht/kijk/afleveringen/2015-2016/offline-als-luxe.html',
-        # TODO fill in other test attributes
-    }]
-
-    def _real_extract(self, url):
-        video_id = url.rstrip('/').split('/')[-1]
-        page, _ = self._download_webpage_handle(url, video_id)
-        results = re.findall(r'data-media-id="(.+_.+)"\s', page)
-        formats = []
-        for result in results:
-            formats.extend(self._download_by_product_id(result, video_id))
-            break  # TODO find a better solution, VPRO pages can have multiple videos embedded
-
-        if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL, '
-                                 'perhaps because all stream URLs are DRM protected.')
-
-        return {
-            'id': video_id,
-            'title': video_id,
-            'formats': formats,
-        }
-
-
 class ZAPPIE(NPOIE):
     IE_NAME = 'zapp'
     IE_DESC = 'zapp.nl'
@@ -264,3 +226,54 @@ class SchoolTVIE(NPOIE):
             'description': metadata.get('description') or metadata.get('short_description'),
             'formats': formats,
         }
+
+
+class HetKlokhuisIE(NPOIE):
+    ...
+
+    def _real_extract(self, url):
+        ...
+
+
+class VPROIE(NPOIE):
+    IE_NAME = 'vpro'
+    IE_DESC = 'vpro.nl'
+    _VALID_URL = r'https?://(?:www\.)?vpro.nl/.*'
+    _TESTS = [{
+        'url': 'https://www.vpro.nl/programmas/tegenlicht/kijk/afleveringen/2015-2016/offline-als-luxe.html',
+        # TODO fill in other test attributes
+    }]
+
+    def _real_extract(self, url):
+        video_id = url.rstrip('/').split('/')[-1]
+        page, _ = self._download_webpage_handle(url, video_id)
+        results = re.findall(r'data-media-id="(.+_.+)"\s', page)
+        formats = []
+        for result in results:
+            formats.extend(self._download_by_product_id(result, video_id))
+            break  # TODO find a better solution, VPRO pages can have multiple videos embedded
+
+        if not formats:
+            raise ExtractorError('Could not find a POMS product id in the provided URL, '
+                                 'perhaps because all stream URLs are DRM protected.')
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+
+class WNLIE(NPOIE):
+    ...
+
+    def _real_extract(self, url):
+        ...
+
+
+class AndereTijdenIE(NPOIE):
+    ...
+
+    def _real_extract(self, url):
+        ...
+
