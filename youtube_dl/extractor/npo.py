@@ -87,9 +87,9 @@ class NPOIE(InfoExtractor):
         token = self._get_token(product_id)
         formats = []
         for profile in (
-            'dash',
-            # 'hls' is available too, but implementing it doesn't add much
-            # As far as I know 'dash' is always available
+                'dash',
+                # 'hls' is available too, but implementing it doesn't add much
+                # As far as I know 'dash' is always available
         ):
             stream_link = self._download_json(
                 'https://prod.npoplayer.nl/stream-link', video_id=slug,
@@ -221,5 +221,41 @@ class ZAPPIE(NPOIE):
         return {
             'id': video_id,
             'title': video_id,
+            'formats': formats,
+        }
+
+
+class SchoolTVIE(NPOIE):
+    IE_NAME = 'schooltv'
+    IE_DESC = 'schooltv.nl'
+    _VALID_URL = r'https?://(?:www\.)?schooltv.nl/item/.*'
+
+    _TESTS = [{
+        'url': 'https://schooltv.nl/item/zapp-music-challenge-2015-zapp-music-challenge-2015',
+        # TODO fill in other test attributes
+    }]
+
+    def _real_extract(self, url):
+        video_id = url.rstrip('/').split('/')[-1]
+
+        build_id = 'b7eHUzAVO7wHXCopYxQhV'
+
+        metadata_url = 'https://schooltv.nl/_next/data/' \
+                       + build_id \
+                       + '/item/' \
+                       + video_id + '.json'
+
+        metadata = self._download_json(metadata_url,
+                                       video_id).get('pageProps', {}).get('data', {})
+
+        formats = self._download_by_product_id(metadata.get('poms_mid'), video_id)
+
+        if not formats:
+            raise ExtractorError('Could not find a POMS product id in the provided URL.')
+
+        return {
+            'id': video_id,
+            'title': metadata.get('title', '') + ' - ' + metadata.get('subtitle', ''),
+            'description': metadata.get('description') or metadata.get('short_description'),
             'formats': formats,
         }
