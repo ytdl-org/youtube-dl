@@ -228,11 +228,35 @@ class SchoolTVIE(NPOIE):
         }
 
 
-class HetKlokhuisIE(NPOIE):
-    ...
-
+class NTRSubsiteIE(NPOIE):
     def _real_extract(self, url):
-        ...
+        video_id = url.rstrip('/').split('/')[-1]
+
+        page, _ = self._download_webpage_handle(url)
+        results = re.findall(r'data-mid="(.+_.+)"', page)
+        formats = []
+        for result in results:
+            formats.extend(self._download_by_product_id(result, video_id))
+            break
+
+        if not formats:
+            raise ExtractorError('Could not find a POMS product id in the provided URL, '
+                                 'perhaps because all stream URLs are DRM protected.')
+
+        return {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+
+class HetKlokhuisIE(NTRSubsiteIE):
+    IE_NAME = 'het-klokhuis'
+    IE_DESC = 'hetklokhuis.nl'
+    _VALID_URL = r'https?://(?:www\.)?het-klokhuis\.nl/.*'
+    _TESTS = [{
+        'url': 'https://hetklokhuis.nl/dossier/142/zoek-het-uit/tv-uitzending/2987/aliens'
+    }]
 
 
 class VPROIE(NPOIE):
@@ -264,16 +288,11 @@ class VPROIE(NPOIE):
         }
 
 
-class WNLIE(NPOIE):
-    ...
-
-    def _real_extract(self, url):
-        ...
-
-
-class AndereTijdenIE(NPOIE):
-    ...
-
-    def _real_extract(self, url):
-        ...
-
+class AndereTijdenIE(NTRSubsiteIE):
+    IE_NAME = 'anderetijden'
+    IE_DESC = 'anderetijden.nl'
+    _VALID_URL = r'https?://(?:www\.)?anderetijden\.nl/.*'
+    _TESTS = [{
+        'url': 'https://anderetijden.nl/programma/1/Andere-Tijden/aflevering/676/Duitse-soldaten-over-de-Slag-bij-Arnhem'
+        # TODO fill in other test attributes
+    }]
