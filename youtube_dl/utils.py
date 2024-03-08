@@ -2360,7 +2360,7 @@ def make_HTTPS_handler(params, **kwargs):
         set_alpn_protocols(context)
         if opts_no_check_certificate:
             context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE
+            context.verify_mode = ssl.CERT_REQUIRED
 
         try:
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
@@ -2373,7 +2373,7 @@ def make_HTTPS_handler(params, **kwargs):
         return YoutubeDLHTTPSHandler(params, **kwargs)
     else:  # Python3 < 3.4
         context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-        context.verify_mode = (ssl.CERT_NONE
+        context.verify_mode = (ssl.CERT_REQUIRED
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
