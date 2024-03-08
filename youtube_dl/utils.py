@@ -2372,7 +2372,7 @@ def make_HTTPS_handler(params, **kwargs):
     if sys.version_info < (3, 2):
         return YoutubeDLHTTPSHandler(params, **kwargs)
     else:  # Python3 < 3.4
-        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
         context.verify_mode = (ssl.CERT_NONE
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
@@ -2593,7 +2593,7 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
                 if is_https:
                     self.sock = ssl.wrap_socket(
                         sock, self.key_file, self.cert_file,
-                        ssl_version=ssl.PROTOCOL_TLSv1)
+                        ssl_version=ssl.PROTOCOL_TLSv1_2)
                 else:
                     self.sock = sock
             hc.connect = functools.partial(_hc_connect, hc)
