@@ -157,7 +157,10 @@ class ONIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?ongehoordnederland.tv/.*'
     _TESTS = [{
         'url': 'https://ongehoordnederland.tv/2024/03/01/korte-clips/heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel/',
-        # TODO fill in other test attributes
+        'md5': 'a85ebd50fa86fe5cbce654655f7dbb12',
+        'info_dict': {
+
+        }
     }]
 
     def _real_extract(self, url):
