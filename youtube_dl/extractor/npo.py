@@ -208,7 +208,12 @@ class SchoolTVIE(NPOIE):
 
     _TESTS = [{
         'url': 'https://schooltv.nl/item/zapp-music-challenge-2015-zapp-music-challenge-2015',
-        # TODO fill in other test attributes
+        'md5': 'e9ef151c4886994e2bea23593348cb14',
+        'info_dict': {
+            'id': 'zapp-music-challenge-2015-zapp-music-challenge-2015',
+            'title': 'Zapp Music Challenge 2015 - Alain Clark & Yaell',
+            'description': "Een nummer schrijven met de super bekende soulzanger en producer Alain Clark? Dat is de uitdaging voor de dertienjarige Yaell uit Delft. En als het dan echt goed is, mag hij het ook nog eens live gaan spelen op de speelplaats bij Giel Beelen! Muziek is heel erg belangrijk in het leven van Yaell. 'Als er geen muziek zou zijn, dan zou ik heel veel niet kunnen.' Hij is dan ook altijd aan het schrijven, vaak over zijn eigen leven. Maar soms is het best lastig om die teksten te verzinnen. Vindt hij de inspiratie om een hit te maken met Alain?"
+        },
     }]
 
     def _real_extract(self, url):
@@ -244,7 +249,7 @@ class NTRSubsiteIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
 
-        page, _ = self._download_webpage_handle(url)
+        page, _ = self._download_webpage_handle(url, video_id)
         results = re.findall(r'data-mid="(.+_.+)"', page)
         formats = []
         for result in results:
@@ -263,11 +268,16 @@ class NTRSubsiteIE(NPOIE):
 
 
 class HetKlokhuisIE(NTRSubsiteIE):
-    IE_NAME = 'het-klokhuis'
+    IE_NAME = 'hetklokhuis'
     IE_DESC = 'hetklokhuis.nl'
-    _VALID_URL = r'https?://(?:www\.)?het-klokhuis\.nl/.*'
+    _VALID_URL = r'https?://(?:www\.)?hetklokhuis\.nl/.*'
     _TESTS = [{
-        'url': 'https://hetklokhuis.nl/dossier/142/zoek-het-uit/tv-uitzending/2987/aliens'
+        'url': 'https://hetklokhuis.nl/dossier/142/zoek-het-uit/tv-uitzending/2987/aliens',
+        'md5': '4664b54ed4e05183b1e4f2f4290d551e',
+        'info_dict': {
+            'id': 'aliens',
+            'title': 'aliens'
+        }
     }]
 
 
@@ -310,6 +320,10 @@ class AndereTijdenIE(NTRSubsiteIE):
     IE_DESC = 'anderetijden.nl'
     _VALID_URL = r'https?://(?:www\.)?anderetijden\.nl/.*'
     _TESTS = [{
-        'url': 'https://anderetijden.nl/programma/1/Andere-Tijden/aflevering/676/Duitse-soldaten-over-de-Slag-bij-Arnhem'
-        # TODO fill in other test attributes
+        'url': 'https://anderetijden.nl/programma/1/Andere-Tijden/aflevering/676/Duitse-soldaten-over-de-Slag-bij-Arnhem',
+        'md5': '3d607b16e00b459156b4ab6e163dccd7',
+        'info_dict': {
+            'id': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
+            'title': 'Duitse-soldaten-over-de-Slag-bij-Arnhem'
+        }
     }]
