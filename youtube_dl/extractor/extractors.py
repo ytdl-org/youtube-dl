@@ -855,7 +855,6 @@ from .npo import (
     SchoolTVIE,
     HetKlokhuisIE,
     VPROIE,
-    WNLIE,
 )
 from .npr import NprIE
 from .nrk import (

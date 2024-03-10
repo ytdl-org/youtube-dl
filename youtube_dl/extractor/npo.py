@@ -15,17 +15,24 @@ class NPOIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
-        # TODO fill in other test attributes
+        'md5': 'f9ce9c43cc8bc3b8138df1562b99c379',
+        'info_dict': {
+            'description': 'Wie is de mol? (2)',
+            'ext': 'm4v',
+            'duration': 2439,
+            'id': 'wie-is-de-mol-2',
+            'thumbnail': 'https://assets-start.npo.nl/resources/2023/07/01/e723c3cf-3e42-418a-9ba5-f6dbb64b516a.jpg',
+            'title': 'Wie is de mol? (2)'
+        }
     }, {
         'url': 'https://npo.nl/start/serie/vpro-tegenlicht/seizoen-11/zwart-geld-de-toekomst-komt-uit-afrika',
-        'md5': 'f8065e4e5a7824068ed3c7e783178f2c',
+        'md5': 'c84d054219c4888ed53b4ee3d01b2d93',
         'info_dict': {
-            'id': 'VPWON_1169289',
-            'ext': 'm4v',
-            'title': 'Tegenlicht: Zwart geld. De toekomst komt uit Afrika',
-            'description': 'md5:52cf4eefbc96fffcbdc06d024147abea',
-            'upload_date': '20130225',
-            'duration': 3000,
+            'id': 'zwart-geld-de-toekomst-komt-uit-afrika',
+            'title': 'Zwart geld: de toekomst komt uit Afrika',
+            'description': 'Zwart geld: de toekomst komt uit Afrika',
+            'thumbnail': 'https://assets-start.npo.nl/resources/2023/06/30/d9879593-1944-4249-990c-1561dac14d8e.jpg',
+            'duration': 3000
         },
     }]
 
@@ -105,7 +112,12 @@ class BNNVaraIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?bnnvara\.nl/videos/[0-9]*'
     _TESTS = [{
         'url': 'https://www.bnnvara.nl/videos/27455',
-        # TODO fill in other test attributes
+        'md5': '392dd367877739e49b9e0a9a550b178a',
+        'info_dict': {
+            'id': 'VARA_101369808',
+            'thumbnail': 'https://media.vara.nl/files/thumbnails/321291_custom_zembla__wie_is_de_mol_680x383.jpg',
+            'title': 'Zembla - Wie is de mol?'
+        }
     }]
 
     def _real_extract(self, url):
@@ -265,7 +277,12 @@ class VPROIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?vpro.nl/.*'
     _TESTS = [{
         'url': 'https://www.vpro.nl/programmas/tegenlicht/kijk/afleveringen/2015-2016/offline-als-luxe.html',
-        # TODO fill in other test attributes
+        'md5': 'cf302e066b5313cfaf8d5adf50d64f13',
+        'info_dict': {
+            'id': 'offline-als-luxe.html',
+            'title': 'offline-als-luxe.html',
+            'ext': 'm4v',
+        }
     }]
 
     def _real_extract(self, url):
