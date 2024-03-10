@@ -2421,23 +2421,20 @@ except ImportError:  # Python 2
 compat_urllib_request_urlretrieve = compat_urlretrieve
 
 try:
+    from HTMLParser import (
+        HTMLParser as compat_HTMLParser,
+        HTMLParseError as compat_HTMLParseError)
+except ImportError:  # Python 3
     from html.parser import HTMLParser as compat_HTMLParser
-except ImportError:  # Python 2
-    from HTMLParser import HTMLParser as compat_HTMLParser
-compat_html_parser_HTMLParser = compat_HTMLParser
-
-try:  # Python 2
-    from HTMLParser import HTMLParseError as compat_HTMLParseError
-except ImportError:  # Python <3.4
     try:
         from html.parser import HTMLParseError as compat_HTMLParseError
     except ImportError:  # Python >3.4
-
-        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # HTMLParseError was deprecated in Python 3.3 and removed in
         # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
         # and uniform cross-version exception handling
         class compat_HTMLParseError(Exception):
             pass
+compat_html_parser_HTMLParser = compat_HTMLParser
 compat_html_parser_HTMLParseError = compat_HTMLParseError
 
 try:
