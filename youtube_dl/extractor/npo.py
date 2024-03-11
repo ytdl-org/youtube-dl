@@ -18,8 +18,8 @@ class NPOIE(InfoExtractor):
         'md5': 'f9ce9c43cc8bc3b8138df1562b99c379',
         'info_dict': {
             'description': 'Wie is de mol? (2)',
-            'ext': 'm4v',
             'duration': 2439,
+            'ext': 'm4v',
             'id': 'wie-is-de-mol-2',
             'thumbnail': 'https://assets-start.npo.nl/resources/2023/07/01/e723c3cf-3e42-418a-9ba5-f6dbb64b516a.jpg',
             'title': 'Wie is de mol? (2)'
@@ -30,6 +30,7 @@ class NPOIE(InfoExtractor):
         'info_dict': {
             'id': 'zwart-geld-de-toekomst-komt-uit-afrika',
             'title': 'Zwart geld: de toekomst komt uit Afrika',
+            'ext': 'mp4',
             'description': 'Zwart geld: de toekomst komt uit Afrika',
             'thumbnail': 'https://assets-start.npo.nl/resources/2023/06/30/d9879593-1944-4249-990c-1561dac14d8e.jpg',
             'duration': 3000
@@ -70,7 +71,7 @@ class NPOIE(InfoExtractor):
         if not product_id:
             raise ExtractorError('No productId found for slug: %s' % slug)
 
-        formats = self._download_by_product_id(product_id, slug, url)
+        formats = self._extract_formats_by_product_id(product_id, slug, url)
 
         return {
             'id': slug,
@@ -81,7 +82,7 @@ class NPOIE(InfoExtractor):
             'duration': duration,
         }
 
-    def _download_by_product_id(self, product_id, slug, url=None):
+    def _extract_formats_by_product_id(self, product_id, slug, url=None):
         token = self._get_token(product_id)
         formats = []
         for profile in (
@@ -93,7 +94,6 @@ class NPOIE(InfoExtractor):
                 'https://prod.npoplayer.nl/stream-link', video_id=slug,
                 data=json.dumps({
                     'profileName': profile,
-                    'drmType': 'widevine',
                     'referrerUrl': url or '',
                 }).encode('utf8'),
                 headers={
@@ -117,7 +117,8 @@ class BNNVaraIE(NPOIE):
         'info_dict': {
             'id': 'VARA_101369808',
             'thumbnail': 'https://media.vara.nl/files/thumbnails/321291_custom_zembla__wie_is_de_mol_680x383.jpg',
-            'title': 'Zembla - Wie is de mol?'
+            'title': 'Zembla - Wie is de mol?',
+            'ext': 'mp4',
         }
     }]
 
@@ -142,7 +143,7 @@ class BNNVaraIE(NPOIE):
                                     })
         product_id = media.get('data', {}).get('player', {}).get('pomsProductId')
 
-        formats = self._download_by_product_id(product_id, video_id)
+        formats = self._extract_formats_by_product_id(product_id, video_id)
 
         return {
             'id': product_id,
@@ -170,7 +171,7 @@ class ONIE(NPOIE):
         results = re.findall("page: '(.+)'", page)
         formats = []
         for result in results:
-            formats.extend(self._download_by_product_id(result, video_id))
+            formats.extend(self._extract_formats_by_product_id(result, video_id))
 
         if not formats:
             raise ExtractorError('Could not find a POMS product id in the provided URL, '
@@ -200,7 +201,7 @@ class ZAPPIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
 
-        formats = self._download_by_product_id(video_id, video_id, url=url)
+        formats = self._extract_formats_by_product_id(video_id, video_id, url=url)
 
         return {
             'id': video_id,
@@ -239,7 +240,7 @@ class SchoolTVIE(NPOIE):
         metadata = self._download_json(metadata_url,
                                        video_id).get('pageProps', {}).get('data', {})
 
-        formats = self._download_by_product_id(metadata.get('poms_mid'), video_id)
+        formats = self._extract_formats_by_product_id(metadata.get('poms_mid'), video_id)
 
         if not formats:
             raise ExtractorError('Could not find a POMS product id in the provided URL, '
@@ -261,7 +262,7 @@ class NTRSubsiteIE(NPOIE):
         results = re.findall(r'data-mid="(.+_.+)"', page)
         formats = []
         for result in results:
-            formats.extend(self._download_by_product_id(result, video_id))
+            formats.extend(self._extract_formats_by_product_id(result, video_id))
             break
 
         if not formats:
@@ -309,7 +310,7 @@ class VPROIE(NPOIE):
         results = re.findall(r'data-media-id="(.+_.+)"\s', page)
         formats = []
         for result in results:
-            formats.extend(self._download_by_product_id(result, video_id))
+            formats.extend(self._extract_formats_by_product_id(result, video_id))
             break  # TODO find a better solution, VPRO pages can have multiple videos embedded
 
         if not formats:
