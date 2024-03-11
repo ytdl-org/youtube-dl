@@ -99,7 +99,8 @@ class NPOIE(InfoExtractor):
                 headers={
                     'Authorization': token,
                     'Content-Type': 'application/json',
-                }
+                },
+                fatal=False,
             )
             stream_url = stream_link.get('stream', {}).get('streamURL')
             formats.extend(self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False))
@@ -188,14 +189,18 @@ class ZAPPIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?zapp.nl/.*'
 
     _TESTS = [{
-        'url': 'https://www.zapp.nl/programmas/zappsport/gemist/AT_300003973',
-        # TODO fill in other test attributes
+        'url': 'https://www.zapp.nl/programmas/zappsport/gemist/POMS_AT_811523',
+        'md5': '9eb2d8b6f88b72b6b986ea2c26a81588',
+        'info_dict': {
+            'id': 'POMS_AT_811523',
+            'title': 'POMS_AT_811523',
+        },
     }]
 
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
 
-        formats = self._download_by_product_id(url, video_id)
+        formats = self._download_by_product_id(video_id, video_id, url=url)
 
         return {
             'id': video_id,
@@ -279,8 +284,8 @@ class HetKlokhuisIE(NTRSubsiteIE):
         'md5': '4664b54ed4e05183b1e4f2f4290d551e',
         'info_dict': {
             'id': 'aliens',
-            'title': 'aliens'
-        }
+            'title': 'aliens',
+        },
     }]
 
 
@@ -295,7 +300,7 @@ class VPROIE(NPOIE):
             'id': 'offline-als-luxe.html',
             'title': 'offline-als-luxe.html',
             'ext': 'm4v',
-        }
+        },
     }]
 
     def _real_extract(self, url):
@@ -327,6 +332,6 @@ class AndereTijdenIE(NTRSubsiteIE):
         'md5': '3d607b16e00b459156b4ab6e163dccd7',
         'info_dict': {
             'id': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
-            'title': 'Duitse-soldaten-over-de-Slag-bij-Arnhem'
-        }
+            'title': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
+        },
     }]
