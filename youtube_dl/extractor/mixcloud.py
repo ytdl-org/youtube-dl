@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -10,7 +11,7 @@ from ..compat import (
     compat_ord,
     compat_str,
     compat_urllib_parse_unquote,
-    compat_zip
+    compat_zip as zip,
 )
 from ..utils import (
     int_or_none,
@@ -24,7 +25,7 @@ class MixcloudBaseIE(InfoExtractor):
     def _call_api(self, object_type, object_fields, display_id, username, slug=None):
         lookup_key = object_type + 'Lookup'
         return self._download_json(
-            'https://www.mixcloud.com/graphql', display_id, query={
+            'https://app.mixcloud.com/graphql', display_id, query={
                 'query': '''{
   %s(lookup: {username: "%s"%s}) {
     %s
@@ -44,7 +45,7 @@ class MixcloudIE(MixcloudBaseIE):
             'ext': 'm4a',
             'title': 'Cryptkeeper',
             'description': 'After quite a long silence from myself, finally another Drum\'n\'Bass mix with my favourite current dance floor bangers.',
-            'uploader': 'Daniel Holbach',
+            'uploader': 'dholbach',  # was: 'Daniel Holbach',
             'uploader_id': 'dholbach',
             'thumbnail': r're:https?://.*\.jpg',
             'view_count': int,
@@ -57,13 +58,30 @@ class MixcloudIE(MixcloudBaseIE):
             'id': 'gillespeterson_caribou-7-inch-vinyl-mix-chat',
             'ext': 'mp3',
             'title': 'Caribou 7 inch Vinyl Mix & Chat',
-            'description': 'md5:2b8aec6adce69f9d41724647c65875e8',
+            'description': r're:Last week Dan Snaith aka Caribou swung by the Brownswood.{136}',
             'uploader': 'Gilles Peterson Worldwide',
             'uploader_id': 'gillespeterson',
             'thumbnail': 're:https?://.*',
             'view_count': int,
             'timestamp': 1422987057,
             'upload_date': '20150203',
+        },
+        'params': {
+            'skip_download': '404 not found',
+        },
+    }, {
+        'url': 'https://www.mixcloud.com/gillespeterson/carnival-m%C3%BAsica-popular-brasileira-mix/',
+        'info_dict': {
+            'id': 'gillespeterson_carnival-música-popular-brasileira-mix',
+            'ext': 'm4a',
+            'title': 'Carnival Música Popular Brasileira Mix',
+            'description': r're:Gilles was recently in Brazil to play at Boiler Room.{208}',
+            'timestamp': 1454347174,
+            'upload_date': '20160201',
+            'uploader': 'Gilles Peterson Worldwide',
+            'uploader_id': 'gillespeterson',
+            'thumbnail': 're:https?://.*',
+            'view_count': int,
         },
     }, {
         'url': 'https://beta.mixcloud.com/RedLightRadio/nosedrip-15-red-light-radio-01-18-2016/',
@@ -76,10 +94,10 @@ class MixcloudIE(MixcloudBaseIE):
         """Encrypt/Decrypt XOR cipher. Both ways are possible because it's XOR."""
         return ''.join([
             compat_chr(compat_ord(ch) ^ compat_ord(k))
-            for ch, k in compat_zip(ciphertext, itertools.cycle(key))])
+            for ch, k in zip(ciphertext, itertools.cycle(key))])
 
     def _real_extract(self, url):
-        username, slug = re.match(self._VALID_URL, url).groups()
+        username, slug = self._match_valid_url(url).groups()
         username, slug = compat_urllib_parse_unquote(username), compat_urllib_parse_unquote(slug)
         track_id = '%s_%s' % (username, slug)
 
