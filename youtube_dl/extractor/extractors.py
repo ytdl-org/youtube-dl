@@ -98,6 +98,10 @@ from .azmedien import AZMedienIE
 from .baidu import BaiduVideoIE
 from .bandaichannel import BandaiChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
+from .bandlab import (
+    BandlabIE, 
+    BandlabAlbumOrPlaylistIE
+)
 from .bbc import (
     BBCCoUkIE,
     BBCCoUkArticleIE,
