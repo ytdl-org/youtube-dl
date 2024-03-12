@@ -345,6 +345,7 @@ class YoutubeDL(object):
         'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
         'average_rating', 'comment_count', 'age_limit',
         'start_time', 'end_time',
+        'longside', 'shortside',
         'chapter_number', 'season_number', 'episode_number',
         'track_number', 'disc_number', 'release_year',
         'playlist_index',
@@ -1207,7 +1208,7 @@ class YoutubeDL(object):
             '!=': operator.ne,
         }
         operator_rex = re.compile(r'''(?x)\s*
-            (?P<key>width|height|tbr|abr|vbr|asr|filesize|filesize_approx|fps)
+            (?P<key>width|height|shortside|longside|tbr|abr|vbr|asr|filesize|filesize_approx|fps)
             \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
             (?P<value>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)
             $
@@ -1495,6 +1496,8 @@ class YoutubeDL(object):
                                                 formats_info[1].get('format_id')),
                         'width': formats_info[0].get('width'),
                         'height': formats_info[0].get('height'),
+                        'longside': formats_info[0].get('longside'),
+                        'shortside': formats_info[0].get('shortside'),
                         'resolution': formats_info[0].get('resolution'),
                         'fps': formats_info[0].get('fps'),
                         'vcodec': formats_info[0].get('vcodec'),
@@ -1623,6 +1626,17 @@ class YoutubeDL(object):
 
         sanitize_string_field(info_dict, 'id')
         sanitize_numeric_fields(info_dict)
+
+        def add_calculated_video_proprties(fmt):
+            if type(fmt) is not dict: return
+            dims = [fmt.get(side) for side in ('width', 'height',)]
+            dims = [n for n in dims if n is not None]
+            if len(dims):
+                fmt['shortside'] = min(iter(dims))
+                fmt['longside'] = max(iter(dims))
+
+        for fmt in [info_dict] + (info_dict.get('formats') or []):
+            add_calculated_video_proprties(fmt)
 
         if 'playlist' not in info_dict:
             # It isn't part of a playlist
