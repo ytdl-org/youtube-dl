@@ -19,7 +19,7 @@ from youtube_dl import compat_str
 year = compat_str(datetime.datetime.now().year)
 for fn in glob.glob('*.html*'):
     content = read_file(fn)
-    newc = re.sub(r'(?P<copyright>Copyright © 2011-)(?P<year>[0-9]{4})', 'Copyright © 2011-' + year, content)
+    newc = re.sub(r'(?P<copyright>Copyright © 2011-)(?P<year>\d{4})', 'Copyright © 2011-' + year, content)
     if content != newc:
         tmpFn = fn + '.part'
         write_file(tmpFn, newc)
