@@ -25,6 +25,7 @@ from ..compat import (
     compat_getpass,
     compat_integer_types,
     compat_http_client,
+    compat_kwargs,
     compat_map as map,
     compat_open as open,
     compat_os_name,
@@ -1101,6 +1102,60 @@ class InfoExtractor(object):
         else:
             self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
             return None
+
+    def _search_json(self, start_pattern, string, name, video_id, **kwargs):
+        """Searches string for the JSON object specified by start_pattern"""
+
+        # self, start_pattern, string, name, video_id, *, end_pattern='',
+        # contains_pattern=r'{(?s:.+)}', fatal=True, default=NO_DEFAULT
+        # NB: end_pattern is only used to reduce the size of the initial match
+        end_pattern = kwargs.pop('end_pattern', '')
+        # (?:[\s\S]) simulates (?(s):.) (eg)
+        contains_pattern = kwargs.pop('contains_pattern', r'{[\s\S]+}')
+        fatal = kwargs.pop('fatal', True)
+        default = kwargs.pop('default', NO_DEFAULT)
+
+        if default is NO_DEFAULT:
+            default, has_default = {}, False
+        else:
+            fatal, has_default = False, True
+
+        json_string = self._search_regex(
+            r'(?:{0})\s*(?P<json>{1})\s*(?:{2})'.format(
+                start_pattern, contains_pattern, end_pattern),
+            string, name, group='json', fatal=fatal, default=None if has_default else NO_DEFAULT)
+        if not json_string:
+            return default
+
+        # yt-dlp has a special JSON parser that allows trailing text.
+        # Until that arrives here, the diagnostic from the exception
+        # raised by json.loads() is used to extract the wanted text.
+        # Either way, it's a problem if a transform_source() can't
+        # handle the trailing text.
+
+        # force an exception
+        kwargs['fatal'] = True
+
+        # self._downloader._format_err(name, self._downloader.Styles.EMPHASIS)
+        for _ in range(2):
+            try:
+                # return self._parse_json(json_string, video_id, ignore_extra=True, **kwargs)
+                transform_source = kwargs.pop('transform_source', None)
+                if transform_source:
+                    json_string = transform_source(json_string)
+                return self._parse_json(json_string, video_id, **compat_kwargs(kwargs))
+            except ExtractorError as e:
+                end = int_or_none(self._search_regex(r'\(char\s+(\d+)', error_to_compat_str(e), 'end', default=None))
+                if end is not None:
+                    json_string = json_string[:end]
+                    continue
+                msg = 'Unable to extract {0} - Failed to parse JSON'.format(name)
+                if fatal:
+                    raise ExtractorError(msg, cause=e.cause, video_id=video_id)
+                elif not has_default:
+                    self.report_warning(
+                        '{0}: {1}'.format(msg, error_to_compat_str(e)), video_id=video_id)
+            return default
 
     def _html_search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
         """
@@ -2966,25 +3021,22 @@ class InfoExtractor(object):
         return formats
 
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
-        mobj = re.search(
-            r'''(?s)jwplayer\s*\(\s*(?P<q>'|")(?!(?P=q)).+(?P=q)\s*\)(?!</script>).*?\.\s*setup\s*\(\s*(?P<options>(?:\([^)]*\)|[^)])+)\s*\)''',
-            webpage)
-        if mobj:
-            try:
-                jwplayer_data = self._parse_json(mobj.group('options'),
-                                                 video_id=video_id,
-                                                 transform_source=transform_source)
-            except ExtractorError:
-                pass
-            else:
-                if isinstance(jwplayer_data, dict):
-                    return jwplayer_data
+        return self._search_json(
+            r'''(?<!-)\bjwplayer\s*\(\s*(?P<q>'|")(?!(?P=q)).+(?P=q)\s*\)(?:(?!</script>).)*?\.\s*(?:setup\s*\(|(?P<load>load)\s*\(\s*\[)''',
+            webpage, 'JWPlayer data', video_id,
+            # must be a {...} or sequence, ending
+            contains_pattern=r'\{[\s\S]*}(?(load)(?:\s*,\s*\{[\s\S]*})*)', end_pattern=r'(?(load)\]|\))',
+            transform_source=transform_source, default=None)
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
-        jwplayer_data = self._find_jwplayer_data(
-            webpage, video_id, transform_source=js_to_json)
-        return self._parse_jwplayer_data(
-            jwplayer_data, video_id, *args, **kwargs)
+
+        # allow passing `transform_source` through to _find_jwplayer_data()
+        transform_source = kwargs.pop('transform_source', None)
+        kwfind = compat_kwargs({'transform_source': transform_source}) if transform_source else {}
+
+        jwplayer_data = self._find_jwplayer_data(webpage, video_id, **kwfind)
+
+        return self._parse_jwplayer_data(jwplayer_data, video_id, *args, **kwargs)
 
     def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True,
                              m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
@@ -3018,22 +3070,14 @@ class InfoExtractor(object):
                 mpd_id=mpd_id, rtmp_params=rtmp_params, base_url=base_url)
 
             subtitles = {}
-            tracks = video_data.get('tracks')
-            if tracks and isinstance(tracks, list):
-                for track in tracks:
-                    if not isinstance(track, dict):
-                        continue
-                    track_kind = track.get('kind')
-                    if not track_kind or not isinstance(track_kind, compat_str):
-                        continue
-                    if track_kind.lower() not in ('captions', 'subtitles'):
-                        continue
-                    track_url = urljoin(base_url, track.get('file'))
-                    if not track_url:
-                        continue
-                    subtitles.setdefault(track.get('label') or 'en', []).append({
-                        'url': self._proto_relative_url(track_url)
-                    })
+            for track in traverse_obj(video_data, (
+                    'tracks', lambda _, t: t.get('kind').lower() in ('captions', 'subtitles'))):
+                track_url = urljoin(base_url, track.get('file'))
+                if not track_url:
+                    continue
+                subtitles.setdefault(track.get('label') or 'en', []).append({
+                    'url': self._proto_relative_url(track_url)
+                })
 
             entry = {
                 'id': this_video_id,

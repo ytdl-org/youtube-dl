@@ -2182,8 +2182,28 @@ def sanitize_url(url):
     return url
 
 
+def extract_basic_auth(url):
+    parts = compat_urllib_parse.urlsplit(url)
+    if parts.username is None:
+        return url, None
+    url = compat_urllib_parse.urlunsplit(parts._replace(netloc=(
+        parts.hostname if parts.port is None
+        else '%s:%d' % (parts.hostname, parts.port))))
+    auth_payload = base64.b64encode(
+        ('%s:%s' % (parts.username, parts.password or '')).encode('utf-8'))
+    return url, 'Basic {0}'.format(auth_payload.decode('ascii'))
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(escape_url(sanitize_url(url)), *args, **kwargs)
+    url, auth_header = extract_basic_auth(escape_url(sanitize_url(url)))
+    if auth_header is not None:
+        headers = args[1] if len(args) > 1 else kwargs.get('headers')
+        headers = headers or {}
+        headers['Authorization'] = auth_header
+        if len(args) <= 1 and kwargs.get('headers') is None:
+            kwargs['headers'] = headers
+            kwargs = compat_kwargs(kwargs)
+    return compat_urllib_request.Request(url, *args, **kwargs)
 
 
 def expand_path(s):
@@ -3832,14 +3852,15 @@ class PUTRequest(compat_urllib_request.Request):
         return 'PUT'
 
 
-def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
+def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1, base=None):
     if get_attr:
         if v is not None:
             v = getattr(v, get_attr, None)
     if v in (None, ''):
         return default
     try:
-        return int(v) * invscale // scale
+        # like int, raise if base is specified and v is not a string
+        return (int(v) if base is None else int(v, base=base)) * invscale // scale
     except (ValueError, TypeError, OverflowError):
         return default
 
