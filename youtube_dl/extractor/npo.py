@@ -11,7 +11,7 @@ from ..utils import ExtractorError
 class NPOIE(InfoExtractor):
     IE_NAME = 'npo'
     IE_DESC = 'npo.nl'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/.*'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/start/serie/'
 
     _TESTS = [{
         'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
