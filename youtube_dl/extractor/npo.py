@@ -55,8 +55,7 @@ class NPOIE(InfoExtractor):
         slug = url.split('/')[-1]
 
         program_metadata = self._download_json('https://npo.nl/start/api/domain/program-detail',
-                                               slug,
-                                               query={'slug': slug})
+                                               slug, query={'slug': slug})
         product_id = program_metadata.get('productId')
         images = program_metadata.get('images')
         thumbnail = None
