@@ -307,7 +307,7 @@ class VPROIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
         page, _ = self._download_webpage_handle(url, video_id)
-        results = re.findall(r'data-media-id="(.+_.+)"\s', page)
+        results = re.findall(r'data-media-id="([a-zA-Z0-9_]+)"\s', page)
         formats = []
         for result in results:
             formats.extend(self._extract_formats_by_product_id(result, video_id))
