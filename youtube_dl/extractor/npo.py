@@ -44,14 +44,8 @@ class NPOIE(InfoExtractor):
             note='Downloading token')['token']
 
     def _real_extract(self, url):
-        # You might want to use removesuffix here,
-        # but removesuffix is introduced in Python 3.9
-        # and youtube-dl supports Python 3.2+
-        if url.endswith('/afspelen'):
-            url = url[:-9]
-        elif url.endswith('/afspelen/'):
-            url = url[:-10]
-        url = url.rstrip('/')
+            # Remove /afspelen and/or any trailing `/`s
+            url = re.sub(r'/(?:afspelen)?/*$', '', url)
         slug = url.split('/')[-1]
 
         program_metadata = self._download_json('https://npo.nl/start/api/domain/program-detail',
