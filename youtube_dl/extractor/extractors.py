@@ -969,6 +969,7 @@ from .pluralsight import (
     PluralsightIE,
     PluralsightCourseIE,
 )
+from .plutotv import PlutoTVIE
 from .podomatic import PodomaticIE
 from .pokemon import PokemonIE
 from .polskieradio import (
