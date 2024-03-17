@@ -1117,6 +1117,7 @@ from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
 from .servus import ServusIE
 from .sevenplus import SevenPlusIE
+from .sexlikereal import SexLikeRealIE
 from .sexu import SexuIE
 from .seznamzpravy import (
     SeznamZpravyIE,
