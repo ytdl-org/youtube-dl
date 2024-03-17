@@ -48,7 +48,7 @@ class ACastIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:embed|www)\.)?acast\.com/|
+                            (?:(?:embed|www|shows)\.)?acast\.com/|
                             play\.acast\.com/s/
                         )
                         (?P<channel>[^/]+)/(?P<id>[^/#?]+)
@@ -77,6 +77,9 @@ class ACastIE(ACastBaseIE):
     }, {
         'url': 'https://play.acast.com/s/sparpodcast/2a92b283-1a75-4ad8-8396-499c641de0d9',
         'only_matching': True,
+    }, {
+        'url': 'https://shows.acast.com/611233d8767fdf0012f22cb6/episodes/611233e4988b6a001394b5cf',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -93,7 +96,7 @@ class ACastChannelIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?acast\.com/|
+                            (?:www|shows\.)?acast\.com/|
                             play\.acast\.com/s/
                         )
                         (?P<id>[^/#?]+)
@@ -108,6 +111,9 @@ class ACastChannelIE(ACastBaseIE):
         'playlist_mincount': 200,
     }, {
         'url': 'http://play.acast.com/s/ft-banking-weekly',
+        'only_matching': True,
+    }, {
+        'url': 'https://shows.acast.com/611233d8767fdf0012f22cb6',
         'only_matching': True,
     }]
 
