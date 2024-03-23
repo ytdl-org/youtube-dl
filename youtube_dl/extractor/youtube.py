@@ -1647,10 +1647,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         except JSInterpreter.Exception as e:
             self.report_warning(
                 '%s (%s %s)' % (
-                    self.__ie_msg(
-                        'Unable to decode n-parameter: download likely to be throttled'),
+                    'Unable to decode n-parameter: download likely to be throttled',
                     error_to_compat_str(e),
-                    traceback.format_exc()))
+                    traceback.format_exc()),
+                video_id=video_id)
             return
 
         self.write_debug('Decrypted nsig {0} => {1}'.format(n, ret))
