@@ -848,14 +848,13 @@ from .nowness import (
 from .noz import NozIE
 from .npo import (
     AndereTijdenIE,
+    BNNVaraIE,
     NPOIE,
-    NPOLiveIE,
-    NPORadioIE,
-    NPORadioFragmentIE,
+    ONIE,
     SchoolTVIE,
     HetKlokhuisIE,
     VPROIE,
-    WNLIE,
+    ZAPPIE,
 )
 from .npr import NprIE
 from .nrk import (
