@@ -1187,6 +1187,7 @@ from .southpark import (
 from .spankbang import (
     SpankBangIE,
     SpankBangPlaylistIE,
+    SpankBangListIE,
 )
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE
