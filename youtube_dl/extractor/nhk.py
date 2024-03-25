@@ -21,68 +21,6 @@ class NhkBaseIE(InfoExtractor):
                 m_id, lang, '/all' if is_video else ''),
             m_id, query={'apikey': 'EJfK8jdS57GqlupFgAfAAwr573q01y6k'})['data']['episodes'] or []
 
-    def _extract_episode_info(self, url, episode=None):
-        fetch_episode = episode is None
-        lang, m_type, episode_id = re.match(NhkVodIE._VALID_URL, url).groups()
-        if len(episode_id) == 7:
-            episode_id = episode_id[:4] + '-' + episode_id[4:]
-
-        is_video = m_type == 'video'
-        if fetch_episode:
-            episode = self._call_api(
-                episode_id, lang, is_video, True, episode_id[:4] == '9999')[0]
-        title = episode.get('sub_title_clean') or episode['sub_title']
-
-        def get_clean_field(key):
-            return episode.get(key + '_clean') or episode.get(key)
-
-        series = get_clean_field('title')
-
-        thumbnails = []
-        for s, w, h in [('', 640, 360), ('_l', 1280, 720)]:
-            img_path = episode.get('image' + s)
-            if not img_path:
-                continue
-            thumbnails.append({
-                'id': '%dp' % h,
-                'height': h,
-                'width': w,
-                'url': 'https://www3.nhk.or.jp' + img_path,
-            })
-
-        info = {
-            'id': episode_id + '-' + lang,
-            'title': '%s - %s' % (series, title) if series and title else title,
-            'description': get_clean_field('description'),
-            'thumbnails': thumbnails,
-            'series': series,
-            'episode': title,
-        }
-        if is_video:
-            vod_id = episode['vod_id']
-            info.update({
-                '_type': 'url_transparent',
-                'ie_key': 'Piksel',
-                'url': 'https://player.piksel.com/v/refid/nhkworld/prefid/' + vod_id,
-                'id': vod_id,
-            })
-        else:
-            if fetch_episode:
-                audio_path = episode['audio']['audio']
-                info['formats'] = self._extract_m3u8_formats(
-                    'https://nhkworld-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
-                    episode_id, 'm4a', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False)
-                for f in info['formats']:
-                    f['language'] = lang
-            else:
-                info.update({
-                    '_type': 'url_transparent',
-                    'ie_key': NhkVodIE.ie_key(),
-                    'url': url,
-                })
-        return info
-
 
 class NhkVodIE(NhkBaseIE):
     # the 7-character IDs can have alphabetic chars too: assume [a-z] rather than just [a-f], eg
@@ -90,8 +28,21 @@ class NhkVodIE(NhkBaseIE):
     # Content available only for a limited period of time. Visit
     # https://www3.nhk.or.jp/nhkworld/en/ondemand/ for working samples.
     _TESTS = [{
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/2061601/',
+        'info_dict': {
+            'id': 'yd8322ch',
+            'ext': 'mp4',
+            'description': 'NHK WORLD-JAPAN presents a sumo highlights program for fans around the globe. Today the'
+                           ' show features all top-division bouts from May 14, Day 1 of the Grand Sumo Tournament in'
+                           ' Tokyo.',
+            'title': 'GRAND SUMO Highlights - [Recap] May Tournament Day 1 (Opening Day)',
+            'upload_date': '20230514',
+            'timestamp': 1684083791,
+        },
+    }, {
         # video clip
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999011/',
+        'only_matching': True,
         'md5': '7a90abcfe610ec22a6bfe15bd46b30ca',
         'info_dict': {
             'id': 'a95j5iza',
@@ -141,14 +92,84 @@ class NhkVodIE(NhkBaseIE):
         }
     }]
 
+    def _extract_episode_info(self, url, episode=None):
+        fetch_episode = episode is None
+        lang, m_type, episode_id = re.match(NhkVodIE._VALID_URL, url).groups()
+        if len(episode_id) == 7:
+            episode_id = episode_id[:4] + '-' + episode_id[4:]
+
+        is_video = m_type == 'video'
+        if fetch_episode:
+            episode = self._call_api(
+                episode_id, lang, is_video, True, episode_id[:4] == '9999')[0]
+        title = episode.get('sub_title_clean') or episode['sub_title']
+
+        def get_clean_field(key):
+            return episode.get(key + '_clean') or episode.get(key)
+
+        series = get_clean_field('title')
+
+        thumbnails = []
+        for s, w, h in [('', 640, 360), ('_l', 1280, 720)]:
+            img_path = episode.get('image' + s)
+            if not img_path:
+                continue
+            thumbnails.append({
+                'id': '%dp' % h,
+                'height': h,
+                'width': w,
+                'url': 'https://www3.nhk.or.jp' + img_path,
+            })
+
+        info = {
+            'id': episode_id + '-' + lang,
+            'title': '%s - %s' % (series, title) if series and title else title,
+            'description': get_clean_field('description'),
+            'thumbnails': thumbnails,
+            'series': series,
+            'episode': title,
+        }
+        if is_video:
+            vod_id = episode['vod_id']
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': 'Piksel',
+                'url': 'https://movie-s.nhk.or.jp/v/refid/nhkworld/prefid/' + vod_id,
+                'id': vod_id,
+            })
+        else:
+            if fetch_episode:
+                audio_path = episode['audio']['audio']
+                info['formats'] = self._extract_m3u8_formats(
+                    'https://nhkworld-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
+                    episode_id, 'm4a', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False)
+                for f in info['formats']:
+                    f['language'] = lang
+            else:
+                info.update({
+                    '_type': 'url_transparent',
+                    'ie_key': NhkVodIE.ie_key(),
+                    'url': url,
+                })
+        return info
+
     def _real_extract(self, url):
         return self._extract_episode_info(url)
 
 
-class NhkVodProgramIE(NhkBaseIE):
-    _VALID_URL = r'%s/program%s(?P<id>[0-9a-z]+)(?:.+?\btype=(?P<episode_type>clip|(?:radio|tv)Episode))?' % (NhkBaseIE._BASE_URL_REGEX, NhkBaseIE._TYPE_REGEX)
+class NhkVodProgramIE(NhkVodIE):
+    _VALID_URL = r'%s/program%s(?P<id>[0-9a-z]+)(?:.+?\btype=(?P<episode_type>clip|(?:radio|tv)Episode))?' % (
+        NhkBaseIE._BASE_URL_REGEX, NhkBaseIE._TYPE_REGEX)
     _TESTS = [{
         # video program episodes
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/program/video/sumo',
+        'info_dict': {
+            'id': 'sumo',
+            'title': 'GRAND SUMO Highlights',
+        },
+        'playlist_mincount': 1,
+    }, {
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/program/video/japanrailway',
         'info_dict': {
             'id': 'japanrailway',
