@@ -4,35 +4,79 @@ from __future__ import unicode_literals
 import itertools
 import re
 
-from .common import InfoExtractor
-from ..compat import compat_str
+from math import isinf
+
+from .common import InfoExtractor, SearchInfoExtractor
+from ..compat import (
+    compat_kwargs,
+    compat_urlparse,
+)
 from ..utils import (
+    classpropinit,
     clean_html,
     determine_ext,
-    dict_get,
     extract_attributes,
     ExtractorError,
     float_or_none,
     int_or_none,
+    join_nonempty,
+    merge_dicts,
     parse_duration,
-    str_or_none,
-    try_get,
+    parse_qs,
+    remove_start,
+    T,
+    traverse_obj,
+    txt_or_none,
     unified_strdate,
     url_or_none,
     urljoin,
 )
 
 
-class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:.+?\.)?%s/
-                        (?:
-                            movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
-                        )
-                    ''' % _DOMAINS
+class XHamsterBaseIE(InfoExtractor):
+    # base domains that don't redirect to xhamster.com (not xhday\d\.com, eg)
+    _DOMAINS = '(?:%s)' % '|'.join((
+        r'xhamster\d*\.(?:com|desi)',
+        r'xhamster\.one',
+        r'xhms\.pro',
+        r'xh(?:open|access|victory|big|channel)\.com',
+        r'(?:full|mega)xh\.com',
+        r'xh(?:vid|official|planet)\d*\.com',
+        # requires Tor
+        r'xhamster[a-z2-7]+\.onion',
+    ))
+
+    def _download_webpage_handle(self, url, video_id, *args, **kwargs):
+        # note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None)
+        # default UA to 'Mozilla' (only) to avoid interstitial page
+        headers = (args[5] if len(args) > 5 else kwargs.get('headers'))
+        if 'User-Agent' not in (headers or {}):
+            if len(args) > 5:
+                args = list(args)
+                headers = headers or {}
+                args[5] = headers
+            elif not isinstance(headers, dict):
+                headers = {}
+            headers['User-Agent'] = 'Mozilla'
+            if len(args) <= 5:
+                if not kwargs.get('headers'):
+                    kwargs['headers'] = headers
+                kwargs = compat_kwargs(kwargs)
+        return super(XHamsterBaseIE, self)._download_webpage_handle(
+            url, video_id, *args, **kwargs)
+
+
+class XHamsterIE(XHamsterBaseIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+            r'''(?x)
+                https?://
+                    (?:.+?\.)?%s/
+                    (?:
+                        movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
+                        videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
+                    )
+            ''' % cls._DOMAINS)
     _TESTS = [{
         'url': 'https://xhamster.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
         'md5': '34e1ab926db5dc2750fed9e1f34304bb',
@@ -121,17 +165,112 @@ class XHamsterIE(InfoExtractor):
         'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
         'only_matching': True,
     }, {
-        'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
-        'only_matching': True,
-    }, {
+        # 'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
         'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
         'only_matching': True,
     }]
 
+    def _get_height(self, s):
+        return int_or_none(self._search_regex(
+            r'^(\d+)[pP]', s, 'height', default=None))
+
+    def _extract_initials(self, initials, video_id, display_id, url, referrer, age_limit):
+        video = initials['videoModel']
+        title = video['title']
+        formats = []
+        format_urls = set()
+        format_sizes = {}
+        http_headers = {'Referer': referrer}
+        for quality, size in traverse_obj(video, (
+                'sources', 'download', T(dict.items), Ellipsis,
+                T(lambda kv: (kv[0], float_or_none(kv[1]['size']))),
+                T(lambda kv: (kv[1] is not None) and kv))):
+            format_sizes[quality] = size
+        # Download link takes some time to be generated,
+        # skipping for now
+        for format_id, formats_dict in traverse_obj(video, (
+                'sources', T(dict.items),
+                lambda _, kv: kv[0] != 'download' and isinstance(kv[1], dict))):
+            for quality, format_url in traverse_obj(formats_dict, (
+                    T(dict.items), Ellipsis,
+                    T(lambda kv: (kv[0], url_or_none(kv[1]))))):
+                if format_url in format_urls:
+                    continue
+                format_urls.add(format_url)
+                formats.append({
+                    'format_id': '%s-%s' % (format_id, quality),
+                    'url': format_url,
+                    'ext': determine_ext(format_url, 'mp4'),
+                    'height': self._get_height(quality),
+                    'filesize': format_sizes.get(quality),
+                    'http_headers': http_headers,
+                })
+        xplayer_sources = traverse_obj(
+            initials, ('xplayerSettings', 'sources', T(dict)))
+        for hls_url in traverse_obj(
+                xplayer_sources,
+                ('hls', ('url', 'fallback'), T(lambda u: urljoin(url, u)))):
+            if hls_url in format_urls:
+                continue
+            format_urls.add(hls_url)
+            formats.extend(self._extract_m3u8_formats(
+                hls_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
+        for format_id, formats_list in traverse_obj(
+                xplayer_sources, ('standard', T(dict.items), Ellipsis)):
+            for standard_format in traverse_obj(formats_list, Ellipsis):
+                for standard_url in traverse_obj(
+                        standard_format,
+                        (('url', 'fallback'), T(lambda u: urljoin(url, u)))):
+                    format_urls.add(standard_url)
+                    ext = determine_ext(standard_url, 'mp4')
+                    if ext == 'm3u8':
+                        formats.extend(self._extract_m3u8_formats(
+                            standard_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                            m3u8_id='hls', fatal=False))
+                    else:
+                        quality = traverse_obj(standard_format, (('quality', 'label'), T(txt_or_none)), get_all=False) or ''
+                        formats.append({
+                            'format_id': '%s-%s' % (format_id, quality),
+                            'url': standard_url,
+                            'ext': ext,
+                            'height': self._get_height(quality),
+                            'filesize': format_sizes.get(quality),
+                            'http_headers': {
+                                'Referer': standard_url,
+                            },
+                        })
+        self._sort_formats(
+            formats, field_preference=('height', 'width', 'tbr', 'format_id'))
+
+        categories = traverse_obj(video, ('categories', Ellipsis, 'name', T(txt_or_none))) or None
+        uploader_url = traverse_obj(video, ('author', 'pageURL', T(url_or_none)))
+
+        return merge_dicts({
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'uploader_url': uploader_url,
+            'uploader_id': uploader_url.split('/')[-1] if uploader_url else None,
+            'age_limit': age_limit if age_limit is not None else 18,
+            'categories': categories,
+            'formats': formats,
+        }, traverse_obj(video, {
+            'description': ('description', T(txt_or_none)),
+            'timestamp': ('created', T(int_or_none)),
+            'uploader': ('author', 'name', T(txt_or_none)),
+            'thumbnail': ('thumbURL', T(url_or_none)),
+            'duration': ('duration', T(int_or_none)),
+            'view_count': ('views', T(int_or_none)),
+            'like_count': ('rating', 'likes', T(int_or_none)),
+            'dislike_count': ('rating', 'dislikes', T(int_or_none)),
+            'comment_count': ('comments', T(int_or_none)),
+        }))
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id') or mobj.group('id_2')
-        display_id = mobj.group('display_id') or mobj.group('display_id_2')
+        mobj = self._match_valid_url(url)
+        video_id = traverse_obj(mobj, 'id', 'id_2')
+        display_id = traverse_obj(mobj, 'display_id', 'display_id_2')
 
         desktop_url = re.sub(r'^(https?://(?:.+?\.)?)m\.', r'\1', url)
         webpage, urlh = self._download_webpage_handle(desktop_url, video_id)
@@ -144,139 +283,19 @@ class XHamsterIE(InfoExtractor):
 
         age_limit = self._rta_search(webpage)
 
-        def get_height(s):
-            return int_or_none(self._search_regex(
-                r'^(\d+)[pP]', s, 'height', default=None))
-
         initials = self._parse_json(
             self._search_regex(
                 (r'window\.initials\s*=\s*({.+?})\s*;\s*</script>',
                  r'window\.initials\s*=\s*({.+?})\s*;'), webpage, 'initials',
                 default='{}'),
             video_id, fatal=False)
+
         if initials:
-            video = initials['videoModel']
-            title = video['title']
-            formats = []
-            format_urls = set()
-            format_sizes = {}
-            sources = try_get(video, lambda x: x['sources'], dict) or {}
-            for format_id, formats_dict in sources.items():
-                if not isinstance(formats_dict, dict):
-                    continue
-                download_sources = try_get(sources, lambda x: x['download'], dict) or {}
-                for quality, format_dict in download_sources.items():
-                    if not isinstance(format_dict, dict):
-                        continue
-                    format_sizes[quality] = float_or_none(format_dict.get('size'))
-                for quality, format_item in formats_dict.items():
-                    if format_id == 'download':
-                        # Download link takes some time to be generated,
-                        # skipping for now
-                        continue
-                    format_url = format_item
-                    format_url = url_or_none(format_url)
-                    if not format_url or format_url in format_urls:
-                        continue
-                    format_urls.add(format_url)
-                    formats.append({
-                        'format_id': '%s-%s' % (format_id, quality),
-                        'url': format_url,
-                        'ext': determine_ext(format_url, 'mp4'),
-                        'height': get_height(quality),
-                        'filesize': format_sizes.get(quality),
-                        'http_headers': {
-                            'Referer': urlh.geturl(),
-                        },
-                    })
-            xplayer_sources = try_get(
-                initials, lambda x: x['xplayerSettings']['sources'], dict)
-            if xplayer_sources:
-                hls_sources = xplayer_sources.get('hls')
-                if isinstance(hls_sources, dict):
-                    for hls_format_key in ('url', 'fallback'):
-                        hls_url = hls_sources.get(hls_format_key)
-                        if not hls_url:
-                            continue
-                        hls_url = urljoin(url, hls_url)
-                        if not hls_url or hls_url in format_urls:
-                            continue
-                        format_urls.add(hls_url)
-                        formats.extend(self._extract_m3u8_formats(
-                            hls_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                            m3u8_id='hls', fatal=False))
-                standard_sources = xplayer_sources.get('standard')
-                if isinstance(standard_sources, dict):
-                    for format_id, formats_list in standard_sources.items():
-                        if not isinstance(formats_list, list):
-                            continue
-                        for standard_format in formats_list:
-                            if not isinstance(standard_format, dict):
-                                continue
-                            for standard_format_key in ('url', 'fallback'):
-                                standard_url = standard_format.get(standard_format_key)
-                                if not standard_url:
-                                    continue
-                                standard_url = urljoin(url, standard_url)
-                                if not standard_url or standard_url in format_urls:
-                                    continue
-                                format_urls.add(standard_url)
-                                ext = determine_ext(standard_url, 'mp4')
-                                if ext == 'm3u8':
-                                    formats.extend(self._extract_m3u8_formats(
-                                        standard_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                                        m3u8_id='hls', fatal=False))
-                                    continue
-                                quality = (str_or_none(standard_format.get('quality'))
-                                           or str_or_none(standard_format.get('label'))
-                                           or '')
-                                formats.append({
-                                    'format_id': '%s-%s' % (format_id, quality),
-                                    'url': standard_url,
-                                    'ext': ext,
-                                    'height': get_height(quality),
-                                    'filesize': format_sizes.get(quality),
-                                    'http_headers': {
-                                        'Referer': standard_url,
-                                    },
-                                })
-            self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
+            return self._extract_initials(initials, video_id, display_id, url, urlh.geturl, age_limit)
 
-            categories_list = video.get('categories')
-            if isinstance(categories_list, list):
-                categories = []
-                for c in categories_list:
-                    if not isinstance(c, dict):
-                        continue
-                    c_name = c.get('name')
-                    if isinstance(c_name, compat_str):
-                        categories.append(c_name)
-            else:
-                categories = None
+        return self._old_real_extract(webpage, video_id, display_id, age_limit)
 
-            uploader_url = url_or_none(try_get(video, lambda x: x['author']['pageURL']))
-            return {
-                'id': video_id,
-                'display_id': display_id,
-                'title': title,
-                'description': video.get('description'),
-                'timestamp': int_or_none(video.get('created')),
-                'uploader': try_get(
-                    video, lambda x: x['author']['name'], compat_str),
-                'uploader_url': uploader_url,
-                'uploader_id': uploader_url.split('/')[-1] if uploader_url else None,
-                'thumbnail': video.get('thumbURL'),
-                'duration': int_or_none(video.get('duration')),
-                'view_count': int_or_none(video.get('views')),
-                'like_count': int_or_none(try_get(
-                    video, lambda x: x['rating']['likes'], int)),
-                'dislike_count': int_or_none(try_get(
-                    video, lambda x: x['rating']['dislikes'], int)),
-                'comment_count': int_or_none(video.get('views')),
-                'age_limit': age_limit if age_limit is not None else 18,
-                'categories': categories,
-                'formats': formats,
-            }
+    def _old_real_extract(self, webpage, video_id, display_id, age_limit):
 
         # Old layout fallback
 
@@ -294,17 +313,17 @@ class XHamsterIE(InfoExtractor):
                 r'sources\s*:\s*({.+?})\s*,?\s*\n', webpage, 'sources',
                 default='{}'),
             video_id, fatal=False)
-        for format_id, format_url in sources.items():
-            format_url = url_or_none(format_url)
-            if not format_url:
-                continue
+        for format_id, format_url in traverse_obj(sources, (
+                T(dict.items), Ellipsis,
+                T(lambda kv: (kv[0], url_or_none(kv[1]))),
+                T(lambda kv: kv[1] and kv))):
             if format_url in format_urls:
                 continue
             format_urls.add(format_url)
             formats.append({
                 'format_id': format_id,
                 'url': format_url,
-                'height': get_height(format_id),
+                'height': self._get_height(format_id),
             })
 
         video_url = self._search_regex(
@@ -319,66 +338,55 @@ class XHamsterIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        # Only a few videos have an description
-        mobj = re.search(r'<span>Description: </span>([^<]+)', webpage)
-        description = mobj.group(1) if mobj else None
-
-        upload_date = unified_strdate(self._search_regex(
-            r'hint=["\'](\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}',
-            webpage, 'upload date', fatal=False))
-
         uploader = self._html_search_regex(
             r'<span[^>]+itemprop=["\']author[^>]+><a[^>]+><span[^>]+>([^<]+)',
             webpage, 'uploader', default='anonymous')
 
-        thumbnail = self._search_regex(
-            [r'''["']thumbUrl["']\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
-             r'''<video[^>]+"poster"=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''],
-            webpage, 'thumbnail', fatal=False, group='thumbnail')
-
-        duration = parse_duration(self._search_regex(
-            [r'<[^<]+\bitemprop=["\']duration["\'][^<]+\bcontent=["\'](.+?)["\']',
-             r'Runtime:\s*</span>\s*([\d:]+)'], webpage,
-            'duration', fatal=False))
-
-        view_count = int_or_none(self._search_regex(
-            r'content=["\']User(?:View|Play)s:(\d+)',
-            webpage, 'view count', fatal=False))
-
-        mobj = re.search(r'hint=[\'"](?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes', webpage)
-        (like_count, dislike_count) = (mobj.group('likecount'), mobj.group('dislikecount')) if mobj else (None, None)
-
-        mobj = re.search(r'</label>Comments \((?P<commentcount>\d+)\)</div>', webpage)
-        comment_count = mobj.group('commentcount') if mobj else 0
-
-        categories_html = self._search_regex(
-            r'(?s)<table.+?(<span>Categories:.+?)</table>', webpage,
-            'categories', default=None)
         categories = [clean_html(category) for category in re.findall(
-            r'<a[^>]+>(.+?)</a>', categories_html)] if categories_html else None
+            r'<a[^>]+>(.+?)</a>', self._search_regex(
+                r'(?s)<table.+?(<span>Categories:.+?)</table>', webpage,
+                'categories', default=''))]
 
-        return {
+        return merge_dicts({
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': description,
-            'upload_date': upload_date,
+            # Only a few videos have a description
+            'description': traverse_obj(
+                re.search(r'<span>Description:\s*</span>([^<]+)', webpage), 1),
+            'upload_date': unified_strdate(self._search_regex(
+                r'hint=["\'](\d{4}-\d{2}-\d{2}) \d{2}:\d{2}:\d{2} [A-Z]{3,4}',
+                webpage, 'upload date', fatal=False)),
             'uploader': uploader,
-            'uploader_id': uploader.lower() if uploader else None,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'view_count': view_count,
-            'like_count': int_or_none(like_count),
-            'dislike_count': int_or_none(dislike_count),
-            'comment_count': int_or_none(comment_count),
+            'uploader_id': (uploader or '').lower() or None,
+            'thumbnail': url_or_none(self._search_regex(
+                (r'''["']thumbUrl["']\s*:\s*(?P<q>["'])(?P<thumbnail>.+?)(?P=q)''',
+                 r'''<video[^>]+"poster"=(?P<q>["'])(?P<thumbnail>.+?)(?P=q)[^>]*>'''),
+                webpage, 'thumbnail', fatal=False, group='thumbnail')),
+            'duration': parse_duration(self._search_regex(
+                (r'<[^<]+\bitemprop=["\']duration["\'][^<]+\bcontent=["\'](.+?)["\']',
+                 r'Runtime:\s*</span>\s*([\d:]+)'), webpage,
+                'duration', fatal=False)),
+            'view_count': int_or_none(self._search_regex(
+                r'content=["\']User(?:View|Play)s:\s*(\d+)',
+                webpage, 'view count', fatal=False)),
+            'comment_count': traverse_obj(
+                re.search(r'</label>Comments \((?P<commentcount>\d+)\)</div>', webpage),
+                ('commentcount', T(int_or_none))),
             'age_limit': age_limit,
-            'categories': categories,
+            'categories': categories or None,
             'formats': formats,
-        }
+        }, traverse_obj(
+            re.search(r'hint=[\'"](?P<likecount>\d+) Likes / (?P<dislikecount>\d+) Dislikes', webpage), {
+                'like_count': ('likecount', T(int_or_none)),
+                'dislike_count': ('dislikecount', T(int_or_none)),
+            }))
 
 
-class XHamsterEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % XHamsterIE._DOMAINS
+class XHamsterEmbedIE(XHamsterBaseIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % cls._DOMAINS)
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
         'info_dict': {
@@ -388,6 +396,7 @@ class XHamsterEmbedIE(InfoExtractor):
             'timestamp': 1406581861,
             'upload_date': '20140728',
             'uploader': 'ManyakisArt',
+            'uploader_id': 'manyakisart',
             'duration': 5,
             'age_limit': 18,
         }
@@ -412,58 +421,386 @@ class XHamsterEmbedIE(InfoExtractor):
             vars = self._parse_json(
                 self._search_regex(r'vars\s*:\s*({.+?})\s*,\s*\n', webpage, 'vars'),
                 video_id)
-            video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
+            video_url = traverse_obj(vars, 'downloadLink', 'homepageLink', 'commentsLink', 'shareUrl', expected_type=url_or_none)
 
         return self.url_result(video_url, 'XHamster')
 
 
-class XHamsterUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)' % XHamsterIE._DOMAINS
+class XHamsterPlaylistIE(XHamsterBaseIE):
+    _NEXT_PAGE_RE = r'(<a\b[^>]+\bdata-page\s*=\s*["\']next[^>]+>)'
+    _VALID_URL_TPL = r'''(?x)
+        https?://(?:.+?\.)?%s
+                /%s/(?P<id>[^/?#]+)
+                (?:(?P<sub>(?:/%s)+))?
+                (?:/(?P<pnum>\d+))?(?:[/?#]|$)
+    '''
+
+    def _page_url(self, user_id, subs, page_num, url):
+        n_url = self._PAGE_URL_TPL % (
+            join_nonempty(user_id, *subs, delim='/'), page_num)
+        n_url = compat_urlparse.urlsplit(n_url)
+        url = compat_urlparse.urlsplit(url)
+        return compat_urlparse.urlunsplit(n_url[:3] + url[3:])
+
+    def _extract_entries(self, page, user_id):
+        for video_tag_match in re.finditer(
+                r'<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>',
+                page):
+            video_url = traverse_obj(video_tag_match, (
+                0, T(extract_attributes), 'href', T(url_or_none)))
+            if not video_url or not XHamsterIE.suitable(video_url):
+                continue
+            video_id = XHamsterIE._match_id(video_url)
+            yield self.url_result(
+                video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
+
+    def _next_page_url(self, page, user_id, page_num):
+        return traverse_obj(
+            self._search_regex(self._NEXT_PAGE_RE, page, 'next page', default=None),
+            (T(extract_attributes), 'href', T(url_or_none)))
+
+    def _entries(self, user_id, subs, page_num=None, page=None, url=None):
+        page_1 = 1 if page_num is None else page_num
+        next_page_url = self._page_url(user_id, subs, page_1, url)
+        for pagenum in itertools.count(page_1):
+            if not page:
+                page = self._download_webpage(
+                    next_page_url, user_id, 'Downloading page' + ((' %d' % pagenum) if pagenum > 1 else ''),
+                    fatal=False)
+            if not page:
+                break
+
+            for from_ in self._extract_entries(page, user_id):
+                yield from_
+
+            if page_num is not None:
+                break
+            next_page_url = self._next_page_url(page, user_id, page_num)
+            if not next_page_url:
+                break
+            page = None
+
+    @staticmethod
+    def _get_title(user_id, subs, page_num, url):
+        subs = subs[:]
+        if url:
+            subs.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        subs.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*subs, delim=','))
+
+    def _real_extract(self, url):
+        mobj = self._match_valid_url(url).groupdict()
+        user_id = mobj['id']
+        page_num = int_or_none(mobj.get('pnum'))
+        subs = remove_start(mobj.get('sub') or '', '/').split('/')
+        return self.playlist_result(
+            self._entries(user_id, subs, page_num, url=url), user_id,
+            self._get_title(user_id, subs, page_num, url=url))
+
+
+class XHamsterUserIE(XHamsterPlaylistIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)(?P<sub>/favorites)?(?:/videos/(?P<pnum>\d+))?' % cls._DOMAINS)
+    _PAGE_URL_TPL = 'https://xhamster.com/users/%s/videos/%s'
     _TESTS = [{
         # Paginated user profile
         'url': 'https://xhamster.com/users/netvideogirls/videos',
         'info_dict': {
             'id': 'netvideogirls',
+            'title': 'netvideogirls (all)',
         },
         'playlist_mincount': 267,
+    }, {
+        # Page from paginated user profile
+        'url': 'https://xhamster.com/users/netvideogirls/videos/2',
+        'info_dict': {
+            'id': 'netvideogirls',
+            'title': 'netvideogirls (p2)',
+        },
+        'playlist_count': 30,
     }, {
         # Non-paginated user profile
         'url': 'https://xhamster.com/users/firatkaan/videos',
         'info_dict': {
             'id': 'firatkaan',
+            'title': 'firatkaan (all)',
         },
         'playlist_mincount': 1,
     }, {
-        'url': 'https://xhday.com/users/mobhunter',
-        'only_matching': True,
+        # User with `favorites`
+        'url': 'https://xhamster.com/users/cubafidel/videos/',
+        'info_dict': {
+            'id': 'cubafidel',
+            'title': 'cubafidel (all)',
+        },
+        'playlist_maxcount': 300,
     }, {
+        # Faves of user with `favorites`
+        'url': 'https://xhamster.com/users/cubafidel/favorites/videos/',
+        'info_dict': {
+            'id': 'cubafidel',
+            'title': 'cubafidel (favorites,all)',
+        },
+        'playlist_mincount': 400,
+    }, {
+        # below URL doesn't match but is redirected via generic
+        # 'url': 'https://xhday.com/users/mobhunter',
         'url': 'https://xhvid.com/users/pelushe21',
         'only_matching': True,
     }]
 
-    def _entries(self, user_id):
-        next_page_url = 'https://xhamster.com/users/%s/videos/1' % user_id
-        for pagenum in itertools.count(1):
-            page = self._download_webpage(
-                next_page_url, user_id, 'Downloading page %s' % pagenum)
-            for video_tag in re.findall(
-                    r'(<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>)',
-                    page):
-                video = extract_attributes(video_tag)
-                video_url = url_or_none(video.get('href'))
-                if not video_url or not XHamsterIE.suitable(video_url):
-                    continue
-                video_id = XHamsterIE._match_id(video_url)
-                yield self.url_result(
-                    video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
-            mobj = re.search(r'<a[^>]+data-page=["\']next[^>]+>', page)
-            if not mobj:
-                break
-            next_page = extract_attributes(mobj.group(0))
-            next_page_url = url_or_none(next_page.get('href'))
-            if not next_page_url:
-                break
+
+class XHamsterCreatorIE(XHamsterPlaylistIE):
+    # `pornstars`, `celebrities` and `creators` share the same namespace
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?:gay|shemale)/)?(?:creators|pornstars|celebrities)',
+            r'(?:hd|4k|newest|full-length|exclusive|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
+    _PAGE_URL_TPL = 'https://xhamster.com/creators/%s/%s'
+    _TESTS = [{
+        # Paginated creator profile
+        'url': 'https://xhamster.com/creators/mini-elfie',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (all)',
+        },
+        'playlist_mincount': 70,
+    }, {
+        # Paginated pornstar profile
+        'url': 'https://xhamster.com/pornstars/mariska-x',
+        'info_dict': {
+            'id': 'mariska-x',
+            'title': 'mariska-x (all)',
+        },
+        'playlist_mincount': 163,
+    }, {
+        # creator profile filtered by path
+        'url': 'https://xhamster.com/creators/mini-elfie/4k',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (4k,all)',
+        },
+        'playlist_mincount': 5,
+        'playlist_maxcount': 30,
+    }, {
+        # creator profile filtered by query
+        'url': 'https://xhamster.com/creators/mini-elfie/?category=pov',
+        'info_dict': {
+            'id': 'mini-elfie',
+            'title': 'mini-elfie (category=pov,all)',
+        },
+        'playlist_mincount': 8,
+        'playlist_maxcount': 30,
+    }]
+
+
+class XHamsterChannelBaseIE(XHamsterPlaylistIE):
+    _NEXT_PAGE_RE = r'(<a\b[^>]+\bclass\s*=\s*("|\')(?:[\w-]+\s+)*?prev-next-list-link--next(?:\s+[\w-]+)*\2[^>]+>)'
+
+
+class XHamsterChannelIE(XHamsterChannelBaseIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?:gay|shemale)/)?channels',
+            r'(?:hd|4k|newest|full-length|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
+    _PAGE_URL_TPL = 'https://xhamster.com/channels/%s/%s'
+    _TESTS = [{
+        # Paginated channel
+        'url': 'https://xhamster.com/channels/freeuse-fantasy',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (all)',
+        },
+        'playlist_mincount': 90,
+    }, {
+        # Non-paginated channel (for now?)
+        'url': 'https://xhamster.com/channels/oopsie',
+        'info_dict': {
+            'id': 'oopsie',
+            'title': 'oopsie (all)',
+        },
+        'playlist_mincount': 30,
+        'playlist_maxcount': 48,
+    }, {
+        # Channel filtered by path
+        'url': 'https://xhamster.com/channels/freeuse-fantasy/best/year-2022',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (best,year-2022,all)',
+        },
+        'playlist_count': 30,
+    }, {
+        # Channel filtered by query
+        'url': 'https://xhamster.com/channels/freeuse-fantasy?min-duration=40',
+        'info_dict': {
+            'id': 'freeuse-fantasy',
+            'title': 'freeuse-fantasy (min-duration=40,all)',
+        },
+        'playlist_maxcount': 10,
+    }]
+
+
+class XHamsterCategoryIE(XHamsterChannelBaseIE):
+    # `tags` and `categories` share the same namespace
+    _VALID_URL = classpropinit(
+        lambda cls:
+        cls._VALID_URL_TPL % (
+            cls._DOMAINS,
+            '(?:(?P<queer>gay|shemale)/)?(?:categories|tags|(?=hd))',
+            r'(?:hd|4k|producer|creator|best(?:/(?:weekly|monthly|year-\d{4}))?)',
+        ))
+    _PAGE_URL_TPL = 'https://xhamster.com/categories/%s/%s'
+    _TESTS = [{
+        # Paginated category/tag
+        'url': 'https://xhamster.com/tags/hawaiian',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (all)',
+        },
+        'playlist_mincount': 250,
+    }, {
+        # Single page category/tag
+        'url': 'https://xhamster.com/categories/aruban',
+        'info_dict': {
+            'id': 'aruban',
+            'title': 'aruban (all)',
+        },
+        'playlist_mincount': 5,
+        'playlist_maxcount': 30,
+    }, {
+        # category/tag filtered by path
+        'url': 'https://xhamster.com/categories/hawaiian/4k',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (4k,all)',
+        },
+        'playlist_mincount': 1,
+        'playlist_maxcount': 20,
+    }, {
+        # category/tag filtered by query
+        'url': 'https://xhamster.com/tags/hawaiian?fps=60',
+        'info_dict': {
+            'id': 'hawaiian',
+            'title': 'hawaiian (fps=60,all)',
+        },
+        'playlist_mincount': 1,
+        'playlist_maxcount': 20,
+    }]
+
+    def _page_url(self, user_id, subs, page_num, url):
+        queer = self._match_valid_url(url).group('queer')
+        n_url = self._PAGE_URL_TPL % (
+            join_nonempty(queer, user_id, *subs, delim='/'), page_num)
+        return compat_urlparse.urljoin(n_url, url)
+
+    def _get_title(self, user_id, subs, page_num, url):
+        queer = self._match_valid_url(url).group('queer')
+        if queer:
+            subs = [queer] + subs
+        subs.extend((compat_urlparse.urlsplit(url).query or '').split('&'))
+        subs.append('all' if page_num is None else ('p%d' % page_num))
+        return '%s (%s)' % (user_id, join_nonempty(*subs, delim=','))
+
+
+class XHamsterSearchIE(XHamsterPlaylistIE):
+    _VALID_URL = classpropinit(
+        lambda cls:
+        r'''(?x)
+            https?://(?:.+?\.)?%s
+                    /search/(?P<id>[^/?#]+)
+        ''' % cls._DOMAINS)
+    _TESTS = [{
+        # Single page result
+        'url': 'https://xhamster.com/search/latvia',
+        'info_dict': {
+            'id': 'latvia',
+            'title': 'latvia (all)',
+        },
+        'playlist_mincount': 10,
+        'playlist_maxcount': 30,
+    }, {
+        # Paginated result
+        'url': 'https://xhamster.com/search/latvia+estonia+moldova+lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (all)',
+        },
+        'playlist_mincount': 63,
+    }, {
+        # Single page of paginated result
+        'url': 'https://xhamster.com/search/latvia+estonia+moldova+lithuania?page=2',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (p2)',
+        },
+        'playlist_count': 47,
+    }]
+
+    @staticmethod
+    def _page_url(user_id, subs, page_num, url):
+        return url
+
+    def _get_title(self, user_id, subs, page_num, url=None):
+        return super(XHamsterSearchIE, self)._get_title(
+            user_id.replace('+', ' '), [], page_num, url)
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
-        return self.playlist_result(self._entries(user_id), user_id)
+        page_num = traverse_obj(url, (
+            T(parse_qs), 'page', -1, T(int_or_none)))
+        return self.playlist_result(
+            self._entries(user_id, None, page_num, url=url), user_id,
+            self._get_title(user_id, None, page_num))
+
+
+class XHamsterSearchKeyIE(SearchInfoExtractor, XHamsterSearchIE):
+    _SEARCH_KEY = 'xhsearch'
+    _MAX_RESULTS = float('inf')
+    _TESTS = [{
+        # Single page result
+        'url': 'xhsearchall:latvia',
+        'info_dict': {
+            'id': 'latvia',
+            'title': 'latvia (all)',
+        },
+        'playlist_mincount': 10,
+        'playlist_maxcount': 30,
+    }, {
+        # Paginated result
+        'url': 'xhsearchall:latvia estonia moldova lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (all)',
+        },
+        'playlist_mincount': 63,
+    }, {
+        # Subset of paginated result
+        'url': 'xhsearch50:latvia estonia moldova lithuania',
+        'info_dict': {
+            'id': 'latvia+estonia+moldova+lithuania',
+            'title': 'latvia estonia moldova lithuania (first 50)',
+        },
+        'playlist_count': 50,
+    }]
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+
+        result = XHamsterSearchIE._real_extract(
+            self, 'https://xhamster.com/search/' + query.replace(' ', '+'))
+
+        if not isinf(n):
+            # with the secret knowledge that `result['entries'] is a
+            # generator, it can be sliced efficiently
+            result['entries'] = itertools.islice(result['entries'], n)
+            if result.get('title') is not None:
+                result['title'] = result['title'].replace('(all)', '(first %d)' % n)
+
+        return result
