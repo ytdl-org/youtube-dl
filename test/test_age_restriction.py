@@ -47,7 +47,7 @@ class TestAgeRestriction(unittest.TestCase):
     def test_youporn(self):
         self._assert_restricted(
             'https://www.youporn.com/watch/16715086/sex-ed-in-detention-18-asmr/',
-            '16715086.mp4', 2, old_age=25)
+            '48260111.mp4', 2, old_age=25)
 
 
 if __name__ == '__main__':
