@@ -107,6 +107,7 @@ class ACastChannelIE(ACastBaseIE):
             'id': '4efc5294-5385-4847-98bd-519799ce5786',
             'title': 'Today in Focus',
             'description': 'md5:c09ce28c91002ce4ffce71d6504abaae',
+            'skip': 'Error 404'
         },
         'playlist_mincount': 200,
     }, {
@@ -115,6 +116,13 @@ class ACastChannelIE(ACastBaseIE):
     }, {
         'url': 'https://shows.acast.com/611233d8767fdf0012f22cb6',
         'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/getthebeltpod',
+        'info_dict': {
+            'id': '4caac858-3cda-44e6-b684-50d88b909c18',
+            'title': 'Get The Belt'
+        },
+        'playlist_mincount': 138,
     }]
 
     @classmethod
