@@ -48,9 +48,9 @@ class ACastIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:embed|www|shows)\.)?acast\.com/|
-                            play\.acast\.com/s/
-                        )
+                            (?:(?:(?P<embed>embed)|www|shows)\.)?acast\.com|
+                            play\.acast\.com/s
+                        )/(?(embed)(?:$/)?)
                         (?P<channel>[^/]+)/(?P<id>[^/#?]+)
                     '''
     _TESTS = [{
@@ -96,7 +96,7 @@ class ACastChannelIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www|shows\.)?acast\.com/|
+                            (?:(?:www|shows)\.)?acast\.com/|
                             play\.acast\.com/s/
                         )
                         (?P<id>[^/#?]+)
