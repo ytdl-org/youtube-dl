@@ -1812,10 +1812,10 @@ class InfoExtractor(object):
         }
 
     def _report_ignoring_subs(self, name):
-        self.report_warning(bug_reports_message(
+        self.report_warning(
             'Ignoring subtitle tracks found in the {0} manifest; '
-            'if any subtitle tracks are missing,'.format(name)
-        ), only_once=True)
+            'if any subtitle tracks are missing, {1}'.format(name, bug_reports_message()),
+            only_once=True)
 
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
