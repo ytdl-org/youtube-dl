@@ -2371,7 +2371,7 @@ def make_HTTPS_handler(params, **kwargs):
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
-def bug_reports_message():
+def bug_reports_message(before=';'):
     if ytdl_is_updateable():
         update_cmd = 'type  youtube-dl -U  to update'
     else:
