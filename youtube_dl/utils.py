@@ -2378,7 +2378,7 @@ def bug_reports_message(before=';'):
         update_cmd = 'see  https://github.com/ytdl-org/youtube-dl/#user-content-installation  on how to update'
 
     msg = (
-        ' please report this issue on https://github.com/ytdl-org/youtube-dl/issues ,'
+        'please report this issue on https://github.com/ytdl-org/youtube-dl/issues ,'
         ' using the appropriate issue template.'
         ' Make sure you are using the latest version; %s.'
         ' Be sure to call youtube-dl with the --verbose option and include the complete output.'
