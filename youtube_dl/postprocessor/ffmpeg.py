@@ -74,8 +74,11 @@ class FFmpegPostProcessor(PostProcessor):
         return FFmpegPostProcessor(downloader)._versions
 
     def _determine_executables(self):
-        programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
+        # ordered to match prefer_ffmpeg!
+        convs = ['ffmpeg', 'avconv']
+        probes = ['ffprobe', 'avprobe']
         prefer_ffmpeg = True
+        programs = convs + probes
 
         def get_ffmpeg_version(path):
             ver = get_exe_version(path, args=['-version'])
@@ -127,10 +130,13 @@ class FFmpegPostProcessor(PostProcessor):
                 (p, get_ffmpeg_version(self._paths[p])) for p in programs)
             if x[1] is not None)
 
-        for p in ('ffmpeg', 'avconv')[::-1 if prefer_ffmpeg is False else 1]:
-            if self._versions.get(p):
-                self.basename = self.probe_basename = p
-                break
+        basenames = [None, None]
+        for i, progs in enumerate((convs, probes)):
+            for p in progs[::-1 if prefer_ffmpeg is False else 1]:
+                if self._versions.get(p):
+                    basenames[i] = p
+                    break
+        self.basename, self.probe_basename = basenames
 
     @property
     def available(self):
