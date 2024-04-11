@@ -35,6 +35,7 @@ from youtube_dl.utils import (
     ExtractorError,
     error_to_compat_str,
     format_bytes,
+    traverse_obj,
     UnavailableVideoError,
 )
 from youtube_dl.extractor import get_info_extractor
@@ -122,7 +123,10 @@ def generator(test_case, tname):
         params['outtmpl'] = tname + '_' + params['outtmpl']
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
-            params.setdefault('playlistend', test_case.get('playlist_mincount'))
+            # only process enough items for specified tests
+            pl_counts = traverse_obj(test_case, (None, ('playlist_count', 'playlist_mincount', 'playlist_maxcount')))
+            if pl_counts:
+                params.setdefault('playlistend', max(pl_counts) + 1)
             params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params, auto_init=False)

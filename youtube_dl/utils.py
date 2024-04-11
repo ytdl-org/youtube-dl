@@ -6523,3 +6523,63 @@ def join_nonempty(*values, **kwargs):
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
     return delim.join(map(compat_str, filter(None, values)))
+
+
+# from yt-dlp
+class classproperty(object):
+    """property access for class methods with optional caching"""
+    def __new__(cls, *args, **kwargs):
+        if 'func' in kwargs:
+            func = kwargs.pop('func')
+        elif len(args) > 0:
+            func = args[0]
+            args = args[1:]
+        else:
+            func = None
+        if not func:
+            return functools.partial(cls, *args, **kwargs)
+        return super(classproperty, cls).__new__(cls)
+
+    def __init__(self, func, **kwargs):
+        # kw-only arg
+        cache = kwargs.get('cache', False)
+        functools.update_wrapper(self, func)
+        self.func = func
+        self._cache = {} if cache else None
+
+    def __get__(self, n, cls):
+        if self._cache is None:
+            return self.func(cls)
+        elif cls not in self._cache:
+            self._cache[cls] = self.func(cls)
+        return self._cache[cls]
+
+
+class classpropinit(classproperty):
+    """ A Python fubar: parent class vars are not in scope when the
+        `class suite` is evaluated, so disallowing `childvar = fn(parentvar)`.
+        Instead, the parent class has to be mentioned redundantly and
+        unmaintainably, since the current class isn't yet bound.
+        This decorator evaluates a class method and assigns its result
+        in place of the method.
+
+        class child(parent):
+            # before
+            childvar = fn(parent.parentvar)
+            # now
+            @classpropinit
+            def childvar(cls):
+                return fn(cls.parentvar)
+            # or
+            childvar = classpropinit(lambda cls: fn(cls.parentvar))
+    """
+
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.name = func.__name__
+        self.func = func
+
+    def __get__(self, _, cls):
+        val = self.func(cls)
+        setattr(cls, self.name, val)
+        return val
