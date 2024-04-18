@@ -23,6 +23,7 @@ import time
 import tokenize
 import traceback
 import random
+import logging 
 
 try:
     from ssl import OPENSSL_VERSION
@@ -2678,3 +2679,70 @@ class YoutubeDL(object):
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_warning('Unable to download thumbnail "%s": %s' %
                                         (t['url'], error_to_compat_str(err)))
+#Adding a new postprocessor:
+
+from .postprocessor import PostProcessor
+
+class MyPostProcessor(PostProcessor):
+    """My custom postprocessor class"""
+
+    def run(self, info):
+        """Run the postprocessor"""
+        # Implement your custom logic here
+        pass
+
+# Register the new postprocessor
+YoutubeDL().add_post_processor(MyPostProcessor)
+
+#Adding a new progress hook:
+
+def my_progress_hook(d):
+    """My custom progress hook"""
+    # Implement your custom logic here
+    pass
+
+# Register the new progress hook
+ydl_obj = YoutubeDL()
+ydl_obj.add_progress_hook(my_progress_hook)
+
+#Adding a new info extractor:
+
+from .extractor import InfoExtractor
+
+class MyExtractor(InfoExtractor):
+    """My custom info extractor class"""
+
+    IE_NAME = 'myextractor'
+    _VALID_URL = r'https?://(www\.)?mysite\.com/video/(?P<id>[^/]+)'
+
+    def _real_extract(self, url):
+        """Extract video information"""
+        # Implement your custom logic here
+        pass
+
+# Register the new info extractor
+YoutubeDL().add_info_extractor(MyExtractor)
+
+Changing the output filename template:
+python
+ydl_obj = YoutubeDL(outtmpl='%(title)s.%(ext)s')
+
+Changing the download directory:
+python
+ydl_obj = YoutubeDL(outtmpl='%(title)s.%(ext)s', download_dir='/path/to/download/directory')
+
+Adding a custom logger:
+python
+
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+handler.setLevel(logging.INFO)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+ydl_obj = YoutubeDL(logger=logger) 
+
+
