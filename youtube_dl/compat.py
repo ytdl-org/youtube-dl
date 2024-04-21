@@ -2719,8 +2719,14 @@ if sys.version_info < (2, 7):
         if isinstance(xpath, compat_str):
             xpath = xpath.encode('ascii')
         return xpath
+
+    def compat_etree_iterfind(element, match):
+        for from_ in element.findall(match):
+            yield from_
+
 else:
     compat_xpath = lambda xpath: xpath
+    compat_etree_iterfind = lambda element, match: element.iterfind(match)
 
 
 compat_os_name = os._name if os.name == 'java' else os.name
@@ -2955,7 +2961,7 @@ except ImportError:
             return self
 
         def __exit__(self, exc_type, exc_val, exc_tb):
-            return exc_val is not None and isinstance(exc_val, self._exceptions or tuple())
+            return exc_type is not None and issubclass(exc_type, self._exceptions or tuple())
 
 
 # subprocess.Popen context manager
@@ -3308,6 +3314,7 @@ __all__ = [
     'compat_contextlib_suppress',
     'compat_ctypes_WINFUNCTYPE',
     'compat_etree_fromstring',
+    'compat_etree_iterfind',
     'compat_filter',
     'compat_get_terminal_size',
     'compat_getenv',
