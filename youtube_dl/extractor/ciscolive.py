@@ -116,11 +116,11 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
     _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/(?:global/|on-demand/)?on-demand-library(?:\.html|/)'
     _TESTS = [{
-        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.event=1636046385176005FbBU&search.technology=scpsTechnology_dataCenter&search.technicallevel=scpsSkillLevel_aintroductory#/',
+        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.technology=1614262524988009b6j9&search.technicallevel=scpsSkillLevel_bintermediate#/',
         'info_dict': {
             'title': 'Search query',
         },
-        'playlist_count': 3,  # example returns 4 results, only 3 have video
+        'playlist_count': 6,
     }, {
         'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.technology=scpsTechnology_automation&search.technicallevel=scpsSkillLevel_cadvanced#/',
     }, {
@@ -137,35 +137,25 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
         return int_or_none(try_get(rf_item, lambda x: x['videos'][0]['url'])) is not None
 
     def _entries(self, query, url):
-        query['size'] = 50
-        query['from'] = 0
-        for page_num in itertools.count(1):
-            results = self._call_api(
-                'search', None, query, url,
-                'Downloading search JSON page %d' % page_num)
-            if int(results['totalSearchItems']) == 0:
-                raise ExtractorError(
-                    'Search api returned no items (if matches are expected rfApiProfileId may be invalid)',
-                    expected=True)
-            sl = try_get(results, lambda x: x['sectionList'][0], dict)
-            if sl:
-                results = sl
-            items = results.get('items')
-            if not items or not isinstance(items, list):
-                break
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
-                if not self._check_bc_id_exists(item):
-                    continue
-                yield self._parse_rf_item(item)
-            size = int_or_none(results.get('size'))
-            if size is not None:
-                query['size'] = size
-            total = int_or_none(results.get('total'))
-            if total is not None and query['from'] + query['size'] > total:
-                break
-            query['from'] += query['size']
+        results = self._call_api(
+            'search', None, query, url,
+            'Downloading search JSON')
+        if int(results['totalSearchItems']) == 0:
+            raise ExtractorError(
+                'Search api returned no items (if matches are expected rfApiProfileId may be invalid)',
+                expected=True)
+        sl = try_get(results, lambda x: x['sectionList'], list)
+        if sl is not None:
+            for s in sl:
+                items = s.get('items')
+                if not items or not isinstance(items, list):
+                    break
+                for item in items:
+                    if not isinstance(item, dict):
+                        continue
+                    if not self._check_bc_id_exists(item):
+                        continue
+                    yield self._parse_rf_item(item)
 
     def _real_extract(self, url):
         query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
