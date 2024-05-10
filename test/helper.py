@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import errno
-import io
 import hashlib
 import json
 import os.path
@@ -9,14 +8,17 @@ import re
 import types
 import ssl
 import sys
+import unittest
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import (
+    compat_open as open,
     compat_os_name,
     compat_str,
 )
 from youtube_dl.utils import (
+    IDENTITY,
     preferredencoding,
     write_string,
 )
@@ -27,10 +29,10 @@ def get_params(override=None):
                                    "parameters.json")
     LOCAL_PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          "local_parameters.json")
-    with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
+    with open(PARAMETERS_FILE, encoding='utf-8') as pf:
         parameters = json.load(pf)
     if os.path.exists(LOCAL_PARAMETERS_FILE):
-        with io.open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
+        with open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
             parameters.update(json.load(pf))
     if override:
         parameters.update(override)
@@ -72,7 +74,8 @@ class FakeYDL(YoutubeDL):
     def to_screen(self, s, skip_eol=None):
         print(s)
 
-    def trouble(self, s, tb=None):
+    def trouble(self, *args, **kwargs):
+        s = args[0] if len(args) > 0 else kwargs.get('message', 'Missing message')
         raise Exception(s)
 
     def download(self, x):
@@ -87,6 +90,17 @@ class FakeYDL(YoutubeDL):
                 return
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
+
+
+class FakeLogger(object):
+    def debug(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        pass
 
 
 def gettestcases(include_onlymatching=False):
@@ -128,6 +142,12 @@ def expect_value(self, got, expected, field):
         self.assertTrue(
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
+    elif isinstance(expected, compat_str) and re.match(r'lambda \w+:', expected):
+        fn = eval(expected)
+        suite = expected.split(':', 1)[1].strip()
+        self.assertTrue(
+            fn(got),
+            'Expected field %s to meet condition %s, but value %r failed ' % (field, suite, got))
     elif isinstance(expected, type):
         self.assertTrue(
             isinstance(got, expected),
@@ -137,7 +157,7 @@ def expect_value(self, got, expected, field):
     elif isinstance(expected, list) and isinstance(got, list):
         self.assertEqual(
             len(expected), len(got),
-            'Expect a list of length %d, but got a list of length %d for field %s' % (
+            'Expected a list of length %d, but got a list of length %d for field %s' % (
                 len(expected), len(got), field))
         for index, (item_got, item_expected) in enumerate(zip(got, expected)):
             type_got = type(item_got)
@@ -280,3 +300,7 @@ def http_server_port(httpd):
     else:
         sock = httpd.socket
     return sock.getsockname()[1]
+
+
+def expectedFailureIf(cond):
+    return unittest.expectedFailure if cond else IDENTITY

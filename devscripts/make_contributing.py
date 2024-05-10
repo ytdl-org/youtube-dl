@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
-import io
 import optparse
 import re
+
+from utils import read_file, write_file
 
 
 def main():
@@ -14,8 +15,7 @@ def main():
 
     infile, outfile = args
 
-    with io.open(infile, encoding='utf-8') as inf:
-        readme = inf.read()
+    readme = read_file(infile)
 
     bug_text = re.search(
         r'(?s)#\s*BUGS\s*[^\n]*\s*(.*?)#\s*COPYRIGHT', readme).group(1)
@@ -25,8 +25,7 @@ def main():
 
     out = bug_text + dev_text
 
-    with io.open(outfile, 'w', encoding='utf-8') as outf:
-        outf.write(out)
+    write_file(outfile, out)
 
 
 if __name__ == '__main__':

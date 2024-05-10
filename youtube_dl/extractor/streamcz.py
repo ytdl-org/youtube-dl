@@ -62,7 +62,7 @@ class StreamCZIE(InfoExtractor):
                 if not stream.get('url'):
                     continue
                 yield merge_dicts({
-                    'format_id': '{}-{}'.format(format_id, ext),
+                    'format_id': '-'.join((format_id, ext)),
                     'ext': ext,
                     'source_preference': pref,
                     'url': urljoin(spl_url, stream['url']),

@@ -2,19 +2,21 @@ from __future__ import unicode_literals
 
 # Allow direct execution
 import os
+import re
 import sys
 import unittest
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import io
-import re
+dirn = os.path.dirname
 
-rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+rootDir = dirn(dirn(os.path.abspath(__file__)))
+
+sys.path.insert(0, rootDir)
 
 IGNORED_FILES = [
     'setup.py',  # http://bugs.python.org/issue13943
     'conf.py',
     'buildserver.py',
+    'get-pip.py',
 ]
 
 IGNORED_DIRS = [
@@ -23,6 +25,7 @@ IGNORED_DIRS = [
 ]
 
 from test.helper import assertRegexpMatches
+from youtube_dl.compat import compat_open as open
 
 
 class TestUnicodeLiterals(unittest.TestCase):
@@ -40,7 +43,7 @@ class TestUnicodeLiterals(unittest.TestCase):
                     continue
 
                 fn = os.path.join(dirpath, basename)
-                with io.open(fn, encoding='utf-8') as inf:
+                with open(fn, encoding='utf-8') as inf:
                     code = inf.read()
 
                 if "'" not in code and '"' not in code:
