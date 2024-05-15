@@ -325,27 +325,28 @@ class BiliBiliBangumiIE(InfoExtractor):
             season_info.get('bangumi_title'), season_info.get('evaluate'))
 
 
-class BilibiliAudioBaseIE(InfoExtractor):
-    def _call_api(self, path, sid, query=None):
-        if not query:
-            query = {'sid': sid}
-        return self._download_json(
-            'https://www.bilibili.com/audio/music-service-c/web/' + path,
-            sid, query=query)['data']
 
+        season_info = self._download_json(
+            'http://bangumi.bilibili.com/jsonp/seasoninfo/%s.ver' % bangumi_id,
+            bangumi_id, transform_source=strip_jsonp, headers={
+                'Referer': 'https://www.bilibili.com/'
+            })['result']
 
-class BilibiliAudioIE(BilibiliAudioBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?bilibili\.com/audio/au(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://www.bilibili.com/audio/au1003142',
-        'md5': 'fec4987014ec94ef9e666d4d158ad03b',
-        'info_dict': {
-            'id': '1003142',
-            'ext': 'm4a',
-            'title': '【tsukimi】YELLOW / 神山羊',
-            'artist': 'tsukimi',
-            'comment_count': int,
-            'description': 'YELLOW的mp3版！',
+        entries = [{
+            '_type': 'url_transparent',
+            'url': smuggle_url(episode['webplay_url'], {'no_bangumi_tip': 1}),
+            'ie_key': BiliBiliIE.ie_key(),
+            'timestamp': parse_iso8601(episode.get('update_time'), delimiter=' '),
+            'episode': episode.get('index_title'),
+            'episode_number': int_or_none(episode.get('index')),
+        } for episode in season_info['episodes']]
+
+        entries = sorted(entries, key=lambda entry: entry.get('episode_number'))
+
+        return self.playlist_result(
+            entries, bangumi_id,
+            season_info.get('bangumi_title'), season_info.get('evaluate'))
+
             'duration': 183,
             'subtitles': {
                 'origin': [{
