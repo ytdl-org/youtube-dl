@@ -2970,7 +2970,7 @@ except (AssertionError, UnicodeEncodeError):
 
 
 def compat_ord(c):
-    if type(c) is int:
+    if isinstance(c, int):
         return c
     else:
         return ord(c)
