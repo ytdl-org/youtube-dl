@@ -20,6 +20,7 @@ from youtube_dl.compat import (
 from youtube_dl.utils import (
     IDENTITY,
     preferredencoding,
+    variadic,
     write_string,
 )
 
@@ -66,7 +67,7 @@ def report_warning(message):
 class FakeYDL(YoutubeDL):
     def __init__(self, override=None):
         # Different instances of the downloader can't share the same dictionary
-        # some test set the "sublang" parameter, which would break the md5 checks.
+        # some tests set the "sublang" parameter, which would break the md5 checks.
         params = get_params(override=override)
         super(FakeYDL, self).__init__(params, auto_init=False)
         self.result = []
@@ -83,13 +84,7 @@ class FakeYDL(YoutubeDL):
 
     def expect_warning(self, regex):
         # Silence an expected warning matching a regex
-        old_report_warning = self.report_warning
-
-        def report_warning(self, message):
-            if re.match(regex, message):
-                return
-            old_report_warning(message)
-        self.report_warning = types.MethodType(report_warning, self)
+        expect_warnings(self, regex)
 
 
 class FakeLogger(object):
@@ -285,12 +280,14 @@ def assertEqual(self, got, expected, msg=None):
 
 def expect_warnings(ydl, warnings_re):
     real_warning = ydl.report_warning
+    # to facilitate matching, don't prettify messages
+    ydl.params['no_color'] = True
 
-    def _report_warning(w):
-        if not any(re.search(w_re, w) for w_re in warnings_re):
-            real_warning(w)
+    def _report_warning(self, w, *args, **kwargs):
+        if not any(re.search(w_re, w) for w_re in variadic(warnings_re)):
+            real_warning(w, *args, **kwargs)
 
-    ydl.report_warning = _report_warning
+    ydl.report_warning = types.MethodType(_report_warning, ydl)
 
 
 def http_server_port(httpd):
