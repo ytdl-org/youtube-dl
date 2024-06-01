@@ -1039,8 +1039,8 @@ class YoutubeDL(object):
         elif result_type in ('playlist', 'multi_video'):
             # Protect from infinite recursion due to recursively nested playlists
             # (see https://github.com/ytdl-org/youtube-dl/issues/27833)
-            webpage_url = ie_result['webpage_url']
-            if webpage_url in self._playlist_urls:
+            webpage_url = ie_result.get('webpage_url')  # not all pl/mv have this
+            if webpage_url and webpage_url in self._playlist_urls:
                 self.to_screen(
                     '[download] Skipping already downloaded playlist: %s'
                     % ie_result.get('title') or ie_result.get('id'))
@@ -1048,6 +1048,10 @@ class YoutubeDL(object):
 
             self._playlist_level += 1
             self._playlist_urls.add(webpage_url)
+            new_result = dict((k, v) for k, v in extra_info.items() if k not in ie_result)
+            if new_result:
+                new_result.update(ie_result)
+                ie_result = new_result
             try:
                 return self.__process_playlist(ie_result, download)
             finally:
