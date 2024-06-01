@@ -724,7 +724,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-w', '--no-overwrites',
         action='store_true', dest='nooverwrites', default=False,
-        help='Do not overwrite files')
+        help='Do not overwrite files. (For the opposite, see --no-continue.)')
     filesystem.add_option(
         '-c', '--continue',
         action='store_true', dest='continue_dl', default=True,
@@ -732,7 +732,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--no-continue',
         action='store_false', dest='continue_dl',
-        help='Do not resume partially downloaded files (restart from beginning)')
+        help='Do not resume partially downloaded files: Instead, restart from the beginning and ruthlessly overwrite existing files.')
     filesystem.add_option(
         '--no-part',
         action='store_true', dest='nopart', default=False,
