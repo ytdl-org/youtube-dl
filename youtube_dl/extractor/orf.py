@@ -1,184 +1,30 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
+import functools
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     clean_html,
     determine_ext,
     float_or_none,
-    HEADRequest,
     int_or_none,
+    merge_dicts,
     orderedSet,
+    parse_age_limit,
+    parse_iso8601,
     remove_end,
     str_or_none,
     strip_jsonp,
-    unescapeHTML,
+    txt_or_none,
     unified_strdate,
     url_or_none,
 )
+from ..traversal import T, traverse_obj
 
-
-class ORFTVthekIE(InfoExtractor):
-    IE_NAME = 'orf:tvthek'
-    IE_DESC = 'ORF TVthek'
-    _VALID_URL = r'https?://tvthek\.orf\.at/(?:[^/]+/)+(?P<id>\d+)'
-
-    _TESTS = [{
-        'url': 'http://tvthek.orf.at/program/Aufgetischt/2745173/Aufgetischt-Mit-der-Steirischen-Tafelrunde/8891389',
-        'playlist': [{
-            'md5': '2942210346ed779588f428a92db88712',
-            'info_dict': {
-                'id': '8896777',
-                'ext': 'mp4',
-                'title': 'Aufgetischt: Mit der Steirischen Tafelrunde',
-                'description': 'md5:c1272f0245537812d4e36419c207b67d',
-                'duration': 2668,
-                'upload_date': '20141208',
-            },
-        }],
-        'skip': 'Blocked outside of Austria / Germany',
-    }, {
-        'url': 'http://tvthek.orf.at/topic/Im-Wandel-der-Zeit/8002126/Best-of-Ingrid-Thurnher/7982256',
-        'info_dict': {
-            'id': '7982259',
-            'ext': 'mp4',
-            'title': 'Best of Ingrid Thurnher',
-            'upload_date': '20140527',
-            'description': 'Viele Jahre war Ingrid Thurnher das "Gesicht" der ZIB 2. Vor ihrem Wechsel zur ZIB 2 im Jahr 1995 moderierte sie unter anderem "Land und Leute", "Österreich-Bild" und "Niederösterreich heute".',
-        },
-        'params': {
-            'skip_download': True,  # rtsp downloads
-        },
-        'skip': 'Blocked outside of Austria / Germany',
-    }, {
-        'url': 'http://tvthek.orf.at/topic/Fluechtlingskrise/10463081/Heimat-Fremde-Heimat/13879132/Senioren-betreuen-Migrantenkinder/13879141',
-        'only_matching': True,
-    }, {
-        'url': 'http://tvthek.orf.at/profile/Universum/35429',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-        webpage = self._download_webpage(url, playlist_id)
-
-        data_jsb = self._parse_json(
-            self._search_regex(
-                r'<div[^>]+class=(["\']).*?VideoPlaylist.*?\1[^>]+data-jsb=(["\'])(?P<json>.+?)\2',
-                webpage, 'playlist', group='json'),
-            playlist_id, transform_source=unescapeHTML)['playlist']['videos']
-
-        entries = []
-        for sd in data_jsb:
-            video_id, title = sd.get('id'), sd.get('title')
-            if not video_id or not title:
-                continue
-            video_id = compat_str(video_id)
-            formats = []
-            for fd in sd['sources']:
-                src = url_or_none(fd.get('src'))
-                if not src:
-                    continue
-                format_id_list = []
-                for key in ('delivery', 'quality', 'quality_string'):
-                    value = fd.get(key)
-                    if value:
-                        format_id_list.append(value)
-                format_id = '-'.join(format_id_list)
-                ext = determine_ext(src)
-                if ext == 'm3u8':
-                    m3u8_formats = self._extract_m3u8_formats(
-                        src, video_id, 'mp4', m3u8_id=format_id, fatal=False)
-                    if any('/geoprotection' in f['url'] for f in m3u8_formats):
-                        self.raise_geo_restricted()
-                    formats.extend(m3u8_formats)
-                elif ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        src, video_id, f4m_id=format_id, fatal=False))
-                elif ext == 'mpd':
-                    formats.extend(self._extract_mpd_formats(
-                        src, video_id, mpd_id=format_id, fatal=False))
-                else:
-                    formats.append({
-                        'format_id': format_id,
-                        'url': src,
-                        'protocol': fd.get('protocol'),
-                    })
-
-            # Check for geoblocking.
-            # There is a property is_geoprotection, but that's always false
-            geo_str = sd.get('geoprotection_string')
-            if geo_str:
-                try:
-                    http_url = next(
-                        f['url']
-                        for f in formats
-                        if re.match(r'^https?://.*\.mp4$', f['url']))
-                except StopIteration:
-                    pass
-                else:
-                    req = HEADRequest(http_url)
-                    self._request_webpage(
-                        req, video_id,
-                        note='Testing for geoblocking',
-                        errnote=((
-                            'This video seems to be blocked outside of %s. '
-                            'You may want to try the streaming-* formats.')
-                            % geo_str),
-                        fatal=False)
-
-            self._check_formats(formats, video_id)
-            self._sort_formats(formats)
-
-            subtitles = {}
-            for sub in sd.get('subtitles', []):
-                sub_src = sub.get('src')
-                if not sub_src:
-                    continue
-                subtitles.setdefault(sub.get('lang', 'de-AT'), []).append({
-                    'url': sub_src,
-                })
-
-            upload_date = unified_strdate(sd.get('created_date'))
-
-            thumbnails = []
-            preview = sd.get('preview_image_url')
-            if preview:
-                thumbnails.append({
-                    'id': 'preview',
-                    'url': preview,
-                    'preference': 0,
-                })
-            image = sd.get('image_full_url')
-            if not image and len(data_jsb) == 1:
-                image = self._og_search_thumbnail(webpage)
-            if image:
-                thumbnails.append({
-                    'id': 'full',
-                    'url': image,
-                    'preference': 1,
-                })
-
-            entries.append({
-                '_type': 'video',
-                'id': video_id,
-                'title': title,
-                'formats': formats,
-                'subtitles': subtitles,
-                'description': sd.get('description'),
-                'duration': int_or_none(sd.get('duration_in_seconds')),
-                'upload_date': upload_date,
-                'thumbnails': thumbnails,
-            })
-
-        return {
-            '_type': 'playlist',
-            'entries': entries,
-            'id': playlist_id,
-        }
+k_float_or_none = functools.partial(float_or_none, scale=1000)
 
 
 class ORFRadioIE(InfoExtractor):
@@ -401,6 +247,7 @@ class ORFOE1IE(ORFRadioIE):
 class ORFIPTVIE(InfoExtractor):
     IE_NAME = 'orf:iptv'
     IE_DESC = 'iptv.ORF.at'
+    _WORKING = False  # URLs redirect to orf.at/
     _VALID_URL = r'https?://iptv\.orf\.at/(?:#/)?stories/(?P<id>\d+)'
 
     _TEST = {
@@ -590,3 +437,266 @@ class ORFFM4StoryIE(InfoExtractor):
             })
 
         return self.playlist_result(entries)
+
+
+class ORFONBase(InfoExtractor):
+    _ENC_PFX = '3dSlfek03nsLKdj4Jsd'
+    _API_PATH = 'episode'
+
+    def _call_api(self, video_id, **kwargs):
+        encrypted_id = base64.b64encode('{0}{1}'.format(
+            self._ENC_PFX, video_id).encode('utf-8')).decode('ascii')
+        return self._download_json(
+            'https://api-tvthek.orf.at/api/v4.3/public/{0}/encrypted/{1}'.format(
+                self._API_PATH, encrypted_id),
+            video_id, **kwargs)
+
+    @classmethod
+    def _parse_metadata(cls, api_json):
+        return traverse_obj(api_json, {
+            'id': ('id', T(int), T(txt_or_none)),
+            'age_limit': ('age_classification', T(parse_age_limit)),
+            'duration': ((('exact_duration', T(k_float_or_none)),
+                          ('duration_second', T(float_or_none))),),
+            'title': (('title', 'headline'), T(txt_or_none)),
+            'description': (('description', 'teaser_text'), T(txt_or_none)),
+            # 'media_type': ('video_type', T(txt_or_none)),
+            'thumbnail': ('_embedded', 'image', 'public_urls', 'highlight_teaser', 'url', T(url_or_none)),
+            'timestamp': (('date', 'episode_date'), T(parse_iso8601)),
+            'release_timestamp': ('release_date', T(parse_iso8601)),
+            # 'modified_timestamp': ('updated_at', T(parse_iso8601)),
+        }, get_all=False)
+
+    def _extract_video(self, video_id, segment_id):
+        # Not a segmented episode: return single video
+        # Segmented episode without valid segment id: return entire playlist
+        # Segmented episode with valid segment id and yes-playlist: return entire playlist
+        # Segmented episode with valid segment id and no-playlist: return single video corresponding to segment id
+        # If a multi_video playlist would be returned, but an unsegmented source exists, that source is chosen instead.
+
+        api_json = self._call_api(video_id)
+
+        if traverse_obj(api_json, 'is_drm_protected'):
+            self.report_drm(video_id)
+
+        # updates formats, subtitles
+        def extract_sources(src_json, video_id):
+            for manifest_type in traverse_obj(src_json, ('sources', T(dict.keys), Ellipsis)):
+                for manifest_url in traverse_obj(src_json, ('sources', manifest_type, Ellipsis, 'src', T(url_or_none))):
+                    if manifest_type == 'hls':
+                        fmts, subs = self._extract_m3u8_formats(
+                            manifest_url, video_id, fatal=False, m3u8_id='hls',
+                            ext='mp4', entry_protocol='m3u8_native'), {}
+                        for f in fmts:
+                            if '_vo.' in f['url']:
+                                f['acodec'] = 'none'
+                    elif manifest_type == 'dash':
+                        fmts, subs = self._extract_mpd_formats_and_subtitles(
+                            manifest_url, video_id, fatal=False, mpd_id='dash')
+                    else:
+                        continue
+                    formats.extend(fmts)
+                    self._merge_subtitles(subs, target=subtitles)
+
+        formats, subtitles = [], {}
+        if segment_id is None:
+            extract_sources(api_json, video_id)
+        if not formats:
+            segments = traverse_obj(api_json, (
+                '_embedded', 'segments', lambda _, v: v['id']))
+            if len(segments) > 1 and segment_id is not None:
+                if not self._yes_playlist(video_id, segment_id, playlist_label='collection', video_label='segment'):
+                    segments = [next(s for s in segments if txt_or_none(s['id']) == segment_id)]
+
+            entries = []
+            for seg in segments:
+                formats, subtitles = [], {}
+                extract_sources(seg, segment_id)
+                self._sort_formats(formats)
+                entries.append(merge_dicts({
+                    'formats': formats,
+                    'subtitles': subtitles,
+                }, self._parse_metadata(seg), rev=True))
+            result = merge_dicts(
+                {'_type': 'multi_video' if len(entries) > 1 else 'playlist'},
+                self._parse_metadata(api_json),
+                self.playlist_result(entries, video_id))
+            # not yet processed in core for playlist/multi
+            self._downloader._fill_common_fields(result)
+            return result
+        else:
+            self._sort_formats(formats)
+
+        for sub_url in traverse_obj(api_json, (
+                '_embedded', 'subtitle',
+                ('xml_url', 'sami_url', 'stl_url', 'ttml_url', 'srt_url', 'vtt_url'),
+                T(url_or_none))):
+            self._merge_subtitles({'de': [{'url': sub_url}]}, target=subtitles)
+
+        return merge_dicts({
+            'id': video_id,
+            'formats': formats,
+            'subtitles': subtitles,
+            # '_old_archive_ids': [self._downloader._make_archive_id({'ie_key': 'ORFTVthek', 'id': video_id})],
+        }, self._parse_metadata(api_json), rev=True)
+
+    def _real_extract(self, url):
+        video_id, segment_id = self._match_valid_url(url).group('id', 'segment')
+        webpage = self._download_webpage(url, video_id)
+
+        # ORF doesn't like 410 or 404
+        if self._search_regex(r'<div\b[^>]*>\s*(Nicht mehr verfügbar)\s*</div>', webpage, 'Availability', default=False):
+            raise ExtractorError('Content is no longer available', expected=True, video_id=video_id)
+
+        return merge_dicts({
+            'id': video_id,
+            'title': self._html_search_meta(['og:title', 'twitter:title'], webpage, default=None),
+            'description': self._html_search_meta(
+                ['description', 'og:description', 'twitter:description'], webpage, default=None),
+        }, self._search_json_ld(webpage, video_id, default={}),
+            self._extract_video(video_id, segment_id),
+            rev=True)
+
+
+class ORFONIE(ORFONBase):
+    IE_NAME = 'orf:on'
+    _VALID_URL = r'https?://on\.orf\.at/video/(?P<id>\d+)(?:/(?P<segment>\d+))?'
+    _TESTS = [{
+        'url': 'https://on.orf.at/video/14210000/school-of-champions-48',
+        'info_dict': {
+            'id': '14210000',
+            'ext': 'mp4',
+            'duration': 2651.08,
+            'thumbnail': 'https://api-tvthek.orf.at/assets/segments/0167/98/thumb_16697671_segments_highlight_teaser.jpeg',
+            'title': 'School of Champions (4/8)',
+            'description': r're:(?s)Luca hat sein ganzes Leben in den Bergen Südtirols verbracht und ist bei seiner Mutter aufgewachsen, .{1029} Leo$',
+            # 'media_type': 'episode',
+            'timestamp': 1706558922,
+            'upload_date': '20240129',
+            'release_timestamp': 1706472362,
+            'release_date': '20240128',
+            # 'modified_timestamp': 1712756663,
+            # 'modified_date': '20240410',
+            # '_old_archive_ids': ['orftvthek 14210000'],
+        },
+        'params': {
+            'format': 'bestvideo',
+        },
+    }, {
+        'url': 'https://on.orf.at/video/3220355',
+        'md5': '925a93b2b9a37da5c9b979d7cf71aa2e',
+        'info_dict': {
+            'id': '3220355',
+            'ext': 'mp4',
+            'duration': 445.04,
+            'thumbnail': 'https://api-tvthek.orf.at/assets/segments/0002/60/thumb_159573_segments_highlight_teaser.png',
+            'title': '50 Jahre Burgenland: Der Festumzug',
+            'description': r're:(?s)Aus allen Landesteilen zogen festlich geschmückte Wagen und Musikkapellen .{270} Jenakowitsch$',
+            # 'media_type': 'episode',
+            'timestamp': 52916400,
+            'upload_date': '19710905',
+            'release_timestamp': 52916400,
+            'release_date': '19710905',
+            # 'modified_timestamp': 1498536049,
+            # 'modified_date': '20170627',
+            # '_old_archive_ids': ['orftvthek 3220355'],
+        },
+    }, {
+        # Video with multiple segments selecting the second segment
+        'url': 'https://on.orf.at/video/14226549/15639808/jugendbande-einbrueche-aus-langeweile',
+        'md5': 'fc151bba8c05ea77ab5693617e4a33d3',
+        'info_dict': {
+            'id': '15639808',
+            'ext': 'mp4',
+            'duration': 97.707,
+            'thumbnail': 'https://api-tvthek.orf.at/assets/segments/0175/43/thumb_17442704_segments_highlight_teaser.jpg',
+            'title': 'Jugendbande: Einbrüche aus Langeweile',
+            'description': r're:Jugendbande: Einbrüche aus Langeweile \| Neuer Kinder- und .{259} Wanda$',
+            # 'media_type': 'segment',
+            'timestamp': 1715792400,
+            'upload_date': '20240515',
+            # 'modified_timestamp': 1715794394,
+            # 'modified_date': '20240515',
+            # '_old_archive_ids': ['orftvthek 15639808'],
+        },
+        'params': {
+            'noplaylist': True,
+            'format': 'bestvideo',
+        },
+    }, {
+        # Video with multiple segments and no combined version
+        'url': 'https://on.orf.at/video/14227864/formel-1-grosser-preis-von-monaco-2024',
+        'info_dict': {
+            '_type': 'multi_video',
+            'id': '14227864',
+            'duration': 18410.52,
+            'thumbnail': 'https://api-tvthek.orf.at/assets/segments/0176/04/thumb_17503881_segments_highlight_teaser.jpg',
+            'title': 'Formel 1: Großer Preis von Monaco 2024',
+            'description': 'md5:aeeb010710ccf70ce28ccb4482243d4f',
+            # 'media_type': 'episode',
+            'timestamp': 1716721200,
+            'upload_date': '20240526',
+            'release_timestamp': 1716721802,
+            'release_date': '20240526',
+            # 'modified_timestamp': 1716884702,
+            # 'modified_date': '20240528',
+        },
+        'playlist_count': 42,
+        'skip': 'Gone: Nicht mehr verfügbar',
+    }, {
+        # Video with multiple segments, but with combined version
+        'url': 'https://on.orf.at/video/14228172',
+        'info_dict': {
+            'id': '14228172',
+            'ext': 'mp4',
+            'duration': 3294.878,
+            'thumbnail': 'https://api-tvthek.orf.at/assets/segments/0176/29/thumb_17528242_segments_highlight_teaser.jpg',
+            'title': 'Willkommen Österreich mit Stermann & Grissemann',
+            'description': r're:Zum Saisonfinale freuen sich die urlaubsreifen Gastgeber Stermann und .{1863} Geschichten\.$',
+            # 'media_type': 'episode',
+            'timestamp': 1716926584,
+            'upload_date': '20240528',
+            'release_timestamp': 1716919202,
+            'release_date': '20240528',
+            # 'modified_timestamp': 1716968045,
+            # 'modified_date': '20240529',
+            # '_old_archive_ids': ['orftvthek 14228172'],
+        },
+        'params': {
+            'format': 'bestvideo',
+        },
+        'skip': 'Gone: Nicht mehr verfügbar',
+    }]
+
+
+class ORFONLiveIE(ORFONBase):
+    _ENC_PFX = '8876324jshjd7293ktd'
+    _API_PATH = 'livestream'
+    _VALID_URL = r'https?://on\.orf\.at/livestream/(?P<id>\d+)(?:/(?P<segment>\d+))?'
+    _TESTS = [{
+        'url': 'https://on.orf.at/livestream/14320204/pressekonferenz-neos-zu-aktuellen-entwicklungen',
+        'info_dict': {
+            'id': '14320204',
+            'ext': 'mp4',
+            'title': 'Pressekonferenz: Neos zu aktuellen Entwicklungen',
+            'description': r're:(?s)Neos-Chefin Beate Meinl-Reisinger informi.{598}ng\."',
+            'timestamp': 1716886335,
+            'upload_date': '20240528',
+            # 'modified_timestamp': 1712756663,
+            # 'modified_date': '20240410',
+            # '_old_archive_ids': ['orftvthek 14210000'],
+        },
+        'params': {
+            'format': 'bestvideo',
+        },
+    }]
+
+    @classmethod
+    def _parse_metadata(cls, api_json):
+        return merge_dicts(
+            super(ORFONLiveIE, cls)._parse_metadata(api_json),
+            traverse_obj(api_json, {
+                'timestamp': ('updated_at', T(parse_iso8601)),
+                'release_timestamp': ('start', T(parse_iso8601)),
+                'is_live': True,
+            }))
