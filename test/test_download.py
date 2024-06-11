@@ -9,8 +9,6 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
-    assertGreaterEqual,
-    assertLessEqual,
     expect_warnings,
     get_params,
     gettestcases,
@@ -36,11 +34,19 @@ from youtube_dl.utils import (
     ExtractorError,
     error_to_compat_str,
     format_bytes,
+    IDENTITY,
+    preferredencoding,
     UnavailableVideoError,
 )
 from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
+
+# Some unittest APIs require actual str
+if not isinstance('TEST', str):
+    _encode_str = lambda s: s.encode(preferredencoding())
+else:
+    _encode_str = IDENTITY
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
@@ -102,7 +108,7 @@ def generator(test_case, tname):
 
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
-            self.skipTest(reason)
+            self.skipTest(_encode_str(reason))
 
         if not ie.working():
             print_skipping('IE marked as not _WORKING')
@@ -187,16 +193,14 @@ def generator(test_case, tname):
                 expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 
             if 'playlist_mincount' in test_case:
-                assertGreaterEqual(
-                    self,
+                self.assertGreaterEqual(
                     len(res_dict['entries']),
                     test_case['playlist_mincount'],
                     'Expected at least %d in playlist %s, but got only %d' % (
                         test_case['playlist_mincount'], test_case['url'],
                         len(res_dict['entries'])))
             if 'playlist_maxcount' in test_case:
-                assertLessEqual(
-                    self,
+                self.assertLessEqual(
                     len(res_dict['entries']),
                     test_case['playlist_maxcount'],
                     'Expected at most %d in playlist %s, but got %d' % (
@@ -243,8 +247,8 @@ def generator(test_case, tname):
                         if params.get('test'):
                             expected_minsize = max(expected_minsize, 10000)
                         got_fsize = os.path.getsize(tc_filename)
-                        assertGreaterEqual(
-                            self, got_fsize, expected_minsize,
+                        self.assertGreaterEqual(
+                            got_fsize, expected_minsize,
                             'Expected %s to be at least %s, but it\'s only %s ' %
                             (tc_filename, format_bytes(expected_minsize),
                                 format_bytes(got_fsize)))
