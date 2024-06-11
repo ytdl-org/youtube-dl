@@ -435,7 +435,9 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        show-progress: false
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
