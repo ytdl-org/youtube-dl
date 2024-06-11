@@ -436,6 +436,7 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
+    - name: Checkout
       uses: actions/checkout@master
       with:
         show-progress: false
