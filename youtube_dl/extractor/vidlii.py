@@ -38,7 +38,8 @@ class VidLiiIE(InfoExtractor):
             'categories': ['News & Politics'],
             'tags': ['Vidlii', 'Jan', 'Videogames'],
         }
-    }, {  # HD
+    }, {
+        # HD
         'url': 'https://www.vidlii.com/watch?v=2Ng8Abj2Fkl',
         'md5': '450e7da379c884788c3a4fa02a3ce1a4',
         'info_dict': {
