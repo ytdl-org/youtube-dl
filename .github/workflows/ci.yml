@@ -122,7 +122,9 @@ jobs:
           run-tests-ext: sh
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@master
+      with:
+        show-progress: false
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
