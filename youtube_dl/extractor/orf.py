@@ -135,7 +135,7 @@ class ORFRadioIE(ORFRadioBase):
                 'duration': 14413.0,
             }
         }],
-        # 'skip': 'Shows from ORF Sound are only available for 30 days.'
+        'skip': 'Shows from ORF Sound are only available for 30 days.'
     }, {
         'url': 'https://oe1.orf.at/player/20240531/758136',
         'md5': '2397717aaf3ae9c22a4f090ee3b8d374',
@@ -149,7 +149,7 @@ class ORFRadioIE(ORFRadioBase):
             'uploader': 'oe1',
             'duration': 1500,
         },
-        # 'skip': 'Shows from ORF Sound are only available for 30 days.'
+        'skip': 'Shows from ORF Sound are only available for 30 days.'
     }]
 
     def _real_extract(self, url):
@@ -199,8 +199,9 @@ class ORFRadioCollectionIE(ORFRadioBase):
                 'uploader': 'fm4',
             },
         }],
-        # 'skip': 'Shows from ORF Sound are only available for 30 days.'
+        'skip': 'Shows from ORF Sound are only available for 30 days.'
     }, {
+        # persistent playlist (FM4 Highlights)
         'url': 'https://sound.orf.at/collection/4/',
         'info_dict': {
             'id': '4',
@@ -285,7 +286,7 @@ class ORFPodcastIE(ORFRadioBase):
             'duration': 101,
             'series': 'Der Kräutertipp von Christine Lackner',
         },
-        # 'skip': 'ORF podcasts are only available for a limited time'
+        'skip': 'ORF podcasts are only available for a limited time'
     }]
 
     _ID_NAMES = ('slug', 'guid')
@@ -642,6 +643,7 @@ class ORFONIE(ORFONBase):
         'params': {
             'format': 'bestvideo',
         },
+        'skip': 'Available until 2024-08-12',
     }, {
         'url': 'https://on.orf.at/video/3220355',
         'md5': '925a93b2b9a37da5c9b979d7cf71aa2e',
@@ -683,6 +685,7 @@ class ORFONIE(ORFONBase):
             'noplaylist': True,
             'format': 'bestvideo',
         },
+        'skip': 'Available until 2024-06-14',
     }, {
         # Video with multiple segments and no combined version
         'url': 'https://on.orf.at/video/14227864/formel-1-grosser-preis-von-monaco-2024',
