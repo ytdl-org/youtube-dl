@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 
 from ..utils import (
-    ExtractorError,
     float_or_none,
     get_element_by_id,
     int_or_none,
