@@ -51,7 +51,7 @@ class SBSIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         player_params = self._download_json(
-            'http://www.sbs.com.au/api/video_pdkvars/id/%s?form=json' % video_id, video_id)
+            'https://www.sbs.com.au/api/video_pdkvars/id/%s?form=json' % video_id, video_id)
 
         error = player_params.get('error')
         if error:
