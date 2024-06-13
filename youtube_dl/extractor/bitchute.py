@@ -140,3 +140,72 @@ class BitChuteChannelIE(InfoExtractor):
         channel_id = self._match_id(url)
         return self.playlist_result(
             self._entries(channel_id), playlist_id=channel_id)
+
+
+class BitChutePlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?bitchute\.com/playlist/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'https://www.bitchute.com/playlist/g4WTfWTdYEQa/',
+        'playlist_mincount': 1,
+        'info_dict': {
+            'id': 'g4WTfWTdYEQa',
+            'title': 'Podcasts',
+            'description': 'Podcast Playlist',
+        },
+    }
+
+    _TOKEN = 'zyG6tQcGPE5swyAEFLqKUwMuMMuF6IO2DZ6ZDQjGfsL0e4dcTLwqkTTul05Jdve7'
+
+    def _entries(self, playlist_id):
+        playlist_url = 'https://www.bitchute.com/playlist/%s/' % playlist_id
+        offset = 0
+        for page_num in itertools.count(1):
+            data = self._download_json(
+                '%sextend/' % playlist_url, playlist_id,
+                'Downloading playlist %d' % page_num,
+                data=urlencode_postdata({
+                    'csrfmiddlewaretoken': self._TOKEN,
+                    'name': '',
+                    'offset': offset,
+                }), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Referer': playlist_url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cookie': 'csrftoken=%s' % self._TOKEN,
+                })
+            if data.get('success') is False:
+                break
+            html = data.get('html')
+            if not html:
+                break
+            video_ids = re.findall(
+                r'class=["\']image-container[^>]+>\s*<a\b[^>]+\bhref=["\']/video/([^"\'/]+)',
+                html)
+            if not video_ids:
+                break
+            offset += len(video_ids)
+            for video_id in video_ids:
+                yield self.url_result(
+                    'https://www.bitchute.com/video/%s' % video_id,
+                    ie=BitChuteIE.ie_key(), video_id=video_id)
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'https://www.bitchute.com/playlist/%s' % playlist_id, playlist_id, headers={
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
+            })
+
+        playlist_title = self._html_search_regex(
+            (r'<[^>]+\bid=["\']playlist-title[^>]+>([^<]+)', r'<title>([^<]+)'),
+            webpage, 'title', default=None) or self._html_search_meta(
+            'description', webpage, 'title',
+            default=None) or self._og_search_description(webpage)
+
+        playlist_description = self._html_search_regex(
+            r'(?s)<div class=["\']description.*?[^>]+>(.*?)</p>',
+            webpage, 'description', fatal=False)
+
+        return self.playlist_result(
+            self._entries(playlist_id), playlist_id=playlist_id, playlist_title=playlist_title, playlist_description=playlist_description)
