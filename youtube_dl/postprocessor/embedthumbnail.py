@@ -62,6 +62,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 thumbnail_filename = thumbnail_webp_filename
                 thumbnail_ext = 'webp'
 
+        converted_thumbnail = False
         # Convert unsupported thumbnail formats to JPEG (see #25687, #25717)
         if thumbnail_ext not in ['jpg', 'png']:
             # NB: % is supposed to be escaped with %% but this does not work
@@ -71,11 +72,16 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             escaped_thumbnail_jpg_filename = replace_extension(escaped_thumbnail_filename, 'jpg')
             self._downloader.to_screen('[ffmpeg] Converting thumbnail "%s" to JPEG' % escaped_thumbnail_filename)
             self.run_ffmpeg(escaped_thumbnail_filename, escaped_thumbnail_jpg_filename, ['-bsf:v', 'mjpeg2jpeg'])
-            os.remove(encodeFilename(escaped_thumbnail_filename))
+            if self._already_have_thumbnail:
+                # Rename back to original filename and keep
+                os.rename(encodeFilename(escaped_thumbnail_filename), encodeFilename(thumbnail_filename))
+            else:
+                os.remove(encodeFilename(escaped_thumbnail_filename))
             thumbnail_jpg_filename = replace_extension(thumbnail_filename, 'jpg')
             # Rename back to unescaped for further processing
             os.rename(encodeFilename(escaped_thumbnail_jpg_filename), encodeFilename(thumbnail_jpg_filename))
             thumbnail_filename = thumbnail_jpg_filename
+            converted_thumbnail = True
 
         if info['ext'] == 'mp3':
             options = [
@@ -86,7 +92,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
 
-            if not self._already_have_thumbnail:
+            if not self._already_have_thumbnail or converted_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
@@ -118,7 +124,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 msg = stderr.decode('utf-8', 'replace').strip()
                 raise EmbedThumbnailPPError(msg)
 
-            if not self._already_have_thumbnail:
+            if not self._already_have_thumbnail or converted_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
             # for formats that don't support thumbnails (like 3gp) AtomicParsley
             # won't create to the temporary file
