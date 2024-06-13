@@ -385,7 +385,10 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         sub_filenames = []
         webm_vtt_warn = False
 
-        for lang, sub_info in subtitles.items():
+        for lang in (self._downloader.params.get('subtitleslangs') or subtitles):
+            sub_info = subtitles.get(lang)
+            if not sub_info:
+                continue
             sub_ext = sub_info['ext']
             if ext != 'webm' or ext == 'webm' and sub_ext == 'vtt':
                 sub_langs.append(lang)
