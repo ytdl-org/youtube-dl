@@ -388,8 +388,13 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         for lang, sub_info in subtitles.items():
             sub_ext = sub_info['ext']
             if ext != 'webm' or ext == 'webm' and sub_ext == 'vtt':
+                sub_filename = subtitles_filename(filename, lang, sub_ext, ext)
+                if not os.path.exists(encodeFilename(sub_filename)):
+                    self._downloader.report_warning(
+                        '[ffmpeg] Skip embedding subtitles because the file "%s" is missing.' % sub_filename)
+                    continue
                 sub_langs.append(lang)
-                sub_filenames.append(subtitles_filename(filename, lang, sub_ext, ext))
+                sub_filenames.append(sub_filename)
             else:
                 if not webm_vtt_warn and ext == 'webm' and sub_ext != 'vtt':
                     webm_vtt_warn = True
@@ -614,6 +619,10 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
                 continue
             old_file = subtitles_filename(filename, lang, ext, info.get('ext'))
+            if not os.path.exists(encodeFilename(old_file)):
+                self._downloader.report_warning(
+                    '[ffmpeg] Skip converting subtitles because the file "%s" is missing.' % old_file)
+                continue
             sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext, info.get('ext'))
 
