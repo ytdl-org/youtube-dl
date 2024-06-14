@@ -637,10 +637,23 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     IE_NAME = 'crunchyroll:playlist'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login|media-\d+))(?P<id>[\w\-]+))/?(?:\?|$)'
+    _VALID_URL = r"""(?x)^
+        https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/  # protocol, prefix, domain
+        (?:(?:en-gb|es|es-es|pt-br|pt-pt|fr|de|ar|it|ru)/)?         # optional language component
+        (?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login|media-\d+))  # exclude special pages
+        (?P<id>[\w\-]+))/?(?:\?|$)
+    """
 
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
+        'info_dict': {
+            'id': 'a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
+            'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
+        },
+        'playlist_count': 13,
+    }, {
+        # non-US language
+        'url': 'https://www.crunchyroll.com/en-gb/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
         'info_dict': {
             'id': 'a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
             'title': 'A Bridge to the Starry Skies - Hoshizora e Kakaru Hashi'
