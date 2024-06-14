@@ -11,6 +11,8 @@ from ..compat import (
     compat_etree_fromstring,
     compat_HTTPError,
     compat_parse_qs,
+    compat_str,
+    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
@@ -468,7 +470,7 @@ class BrightcoveNewIE(AdobePassIE):
 
         return entries
 
-    def _parse_brightcove_metadata(self, json_data, video_id, headers={}):
+    def _parse_brightcove_metadata(self, json_data, video_id, headers={}, options={}):
         title = json_data['name'].strip()
 
         num_drm_sources = 0
@@ -477,7 +479,7 @@ class BrightcoveNewIE(AdobePassIE):
         for source in sources:
             container = source.get('container')
             ext = mimetype2ext(source.get('type'))
-            src = source.get('src')
+            src = self._preprocess_metadata_url(source.get('src'), options)
             # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
             if container == 'WVM' or source.get('key_systems'):
                 num_drm_sources += 1
@@ -586,6 +588,17 @@ class BrightcoveNewIE(AdobePassIE):
             'is_live': is_live,
         }
 
+    def _preprocess_metadata_url(self, url, options={}):
+        url = compat_urllib_parse_urlparse(url)._asdict()
+        query = dict(compat_parse_qs(url['query']))
+
+        if options.get('akamai_token') is not None:
+            query['hdnts'] = options.get('akamai_token')
+
+        url['query'] = compat_urllib_parse_urlencode(query)
+
+        return compat_urlparse.urlunparse(tuple(url.values()))
+
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         self._initialize_geo_bypass({
@@ -670,12 +683,16 @@ class BrightcoveNewIE(AdobePassIE):
                     'tveToken': tve_token,
                 })
 
+        options = {
+            'akamai_token': smuggled_data.get('akamai_token')
+        }
+
         if content_type == 'playlist':
             return self.playlist_result(
-                [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
+                [self._parse_brightcove_metadata(vid, vid.get('id'), headers=headers, options=options)
                  for vid in json_data.get('videos', []) if vid.get('id')],
                 json_data.get('id'), json_data.get('name'),
                 json_data.get('description'))
 
         return self._parse_brightcove_metadata(
-            json_data, video_id, headers=headers)
+            json_data, video_id, headers=headers, options=options)
