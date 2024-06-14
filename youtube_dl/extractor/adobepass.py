@@ -65,6 +65,11 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'Cablevision': {
+        'name': 'Cablevision',
+        'username_field': 'IDToken1',
+        'password_field': 'IDToken2',
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1372,6 +1377,22 @@ class AdobePassIE(InfoExtractor):
                     'Content-Type': 'application/x-www-form-urlencoded',
                 })
 
+        def post_form_cablevision(form_page_res, note, data={}):
+            form_page, urlh = form_page_res
+            post_url = self._html_search_regex(
+                r'<form   name[^>]+action=(["\'])(?P<url>.+?)\1', form_page,
+                'post url', group='url')
+
+            if not re.match(r'https?://', post_url):
+                post_url = compat_urlparse.urljoin(urlh.geturl(), post_url)
+            form_data = self._hidden_inputs(form_page)
+            form_data.update(data)
+            return self._download_webpage_handle(
+                post_url, video_id, note, data=urlencode_postdata(form_data),
+                headers={
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                })
+
         def raise_mvpd_required():
             raise ExtractorError(
                 'This video is only available for users of participating TV providers. '
@@ -1496,6 +1517,57 @@ class AdobePassIE(InfoExtractor):
                         }), headers={
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
+                elif mso_id == 'Cablevision':
+                    # This will be for Cablevision login
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = extract_redirect_url(
+                        provider_redirect_page, url=urlh.geturl())
+                    if provider_refresh_redirect_url:
+                        provider_redirect_page_res = \
+                            self._download_webpage_handle(
+                                provider_refresh_redirect_url, video_id,
+                                'Downloading Provider Redirect Page '
+                                '(meta refresh)')
+                    provider_login_page_res = post_form(
+                        provider_redirect_page_res,
+                        self._DOWNLOADING_LOGIN_PAGE)
+                    html_code = provider_login_page_res[0].split('\n')
+                    for line in html_code:
+                        if 'name="goto" value="' in line:
+                            goto = line.strip().replace(
+                                '<input type="hidden" name="goto" value="',
+                                '').replace('">', '')
+
+                        if 'SunQueryParamsString' in line:
+                            sunquery = line.strip().replace(
+                                '<input type="hidden" '
+                                'name="SunQueryParamsString" value="',
+                                '').replace('">', '')
+                    mvpd_confirm_page_res = post_form_cablevision(
+                        provider_login_page_res, 'Logging in', {
+                            mso_info.get('username_field',
+                                         'username'): username,
+                            mso_info.get('password_field',
+                                         'password'): password,
+                            'goto': goto,
+                            'SunQueryParamsString': sunquery,
+                            'encoded': 'true',
+                            'gx_charset': 'UTF-8',
+                            'IDButton': '',
+                        })
+                    # All-caps confuses the form parser, lowercase certain
+                    # strings to get around that. We don't lowercase all of it
+                    # because the auth token we need might be case-sensitive.
+                    complete_login_res = (
+                        mvpd_confirm_page_res[0].replace('INPUT', 'input')
+                                                .replace('TYPE', 'type')
+                                                .replace('NAME', 'name')
+                                                .replace('VALUE', 'value')
+                                                .replace('ACTION', 'action')
+                                                .replace('HIDDEN', 'hidden')
+                                                .replace('FORM', 'form'),
+                        ) + mvpd_confirm_page_res[1:]
+                    post_form(complete_login_res, 'Confirming Login')
                 else:
                     # Some providers (e.g. DIRECTV NOW) have another meta refresh
                     # based redirect that should be followed.
