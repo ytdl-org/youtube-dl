@@ -46,10 +46,8 @@ class TEDIE(InfoExtractor):
                             'consciousness, but that half the time our brains are '
                             'actively fooling us.'),
             'uploader': 'Dan Dennett',
-            'width': 853,
             'duration': 1308,
             'view_count': int,
-            'comment_count': int,
             'tags': list,
         },
         'params': {
@@ -77,7 +75,7 @@ class TEDIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Be passionate. Be courageous. Be your best.',
             'uploader': 'Gabby Giffords and Mark Kelly',
-            'description': 'md5:5174aed4d0f16021b704120360f72b92',
+            'description': 'md5:37c09e06ce87ddfdb65bf0112ea3551c',
             'duration': 1128,
         },
         'params': {
@@ -117,7 +115,6 @@ class TEDIE(InfoExtractor):
             'description': 'md5:5d1d78650e2f8dfcbb8ebee2951ac29a',
             'uploader': 'Tom Thum',
             'view_count': int,
-            'comment_count': int,
             'tags': list,
         },
         'params': {
@@ -308,30 +305,31 @@ class TEDIE(InfoExtractor):
             'uploader': player_talk.get('speaker') or talk_info.get('speaker'),
             'thumbnail': player_talk.get('thumb') or talk_info.get('thumb'),
             'description': self._og_search_description(webpage),
-            'subtitles': self._get_subtitles(video_id, talk_info),
+            'subtitles': self._get_subtitles(player_talk),
             'formats': formats,
             'duration': float_or_none(talk_info.get('duration')),
             'view_count': int_or_none(data.get('viewed_count')),
-            'comment_count': int_or_none(
-                try_get(data, lambda x: x['comments']['count'])),
             'tags': try_get(talk_info, lambda x: x['tags'], list),
         }
 
-    def _get_subtitles(self, video_id, talk_info):
+    def _get_subtitles(self, player_talk):
+        language_list = try_get(player_talk, lambda x: x['languages'], list)
+        if not language_list:
+            return {}
+        metadata = try_get(player_talk, lambda x: x['resources']['hls']['metadata'], compat_str) or ''
+        proj_master_id = self._search_regex(r'project_masters/([^/]+)/', metadata, 'project master id', fatal=False)
+        if not proj_master_id:
+            return {}
+
         sub_lang_list = {}
-        for language in try_get(
-                talk_info,
-                (lambda x: x['downloads']['languages'],
-                 lambda x: x['languages']), list):
+        for language in language_list:
             lang_code = language.get('languageCode') or language.get('ianaCode')
             if not lang_code:
                 continue
             sub_lang_list[lang_code] = [
                 {
-                    'url': 'http://www.ted.com/talks/subtitles/id/%s/lang/%s/format/%s' % (video_id, lang_code, ext),
-                    'ext': ext,
+                    'url': 'https://hls.ted.com/project_masters/%s/subtitles/%s/full.vtt' % (proj_master_id, lang_code),
                 }
-                for ext in ['ted', 'srt']
             ]
         return sub_lang_list
 
