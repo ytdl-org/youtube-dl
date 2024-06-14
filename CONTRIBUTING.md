@@ -158,7 +158,7 @@ After you have ensured this site is distributing its content legally, you can fo
         $ flake8 youtube_dl/extractor/yourextractor.py
 
 9. Make sure your code works under all [Python](https://www.python.org/) versions claimed supported by youtube-dl, namely 2.6, 2.7, and 3.2+.
-10. When the tests pass, [add](https://git-scm.com/docs/git-add) the new files and [commit](https://git-scm.com/docs/git-commit) them and [push](https://git-scm.com/docs/git-push) the result, like this:
+10. When the tests pass, [add](https://git-scm.com/docs/git-add) the new files and [commit](https://git-scm.com/docs/git-commit) them and [push](https://git-scm.com/docs/git-push) the result, as shown below. If your commit message doesn't pertain to a particular extractor, add the name of the affected entity between square brackets (for example, `[README.md]`).
 
         $ git add youtube_dl/extractor/extractors.py
         $ git add youtube_dl/extractor/yourextractor.py
