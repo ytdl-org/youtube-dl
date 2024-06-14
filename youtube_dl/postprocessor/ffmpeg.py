@@ -13,6 +13,7 @@ from ..utils import (
     encodeArgument,
     encodeFilename,
     get_exe_version,
+    hyphenate_date,
     is_outdated_version,
     PostProcessingError,
     prepend_extension,
@@ -443,19 +444,43 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                         metadata[meta_f] = info[info_f]
                     break
 
+        comment = []
+
+        def add_comment(meta_key, info_list=None):
+            if not info_list:
+                info_list = meta_key
+            if not isinstance(info_list, (list, tuple)):
+                info_list = (info_list,)
+            if meta_key:
+                if not meta_key[0].isupper():
+                    meta_key = meta_key.capitalize()
+                meta_key += ': '
+            for info_f in info_list:
+                if info.get(info_f):
+                    comment.append(meta_key + info[info_f])
+                    break
+
         # See [1-4] for some info on media metadata/metadata supported
         # by ffmpeg.
         # 1. https://kdenlive.org/en/project/adding-meta-data-to-mp4-video/
         # 2. https://wiki.multimedia.cx/index.php/FFmpeg_Metadata
         # 3. https://kodi.wiki/view/Video_file_tagging
         # 4. http://atomicparsley.sourceforge.net/mpeg-4files.html
+        #
+        # And other refs. about metadata tags.
+        #    https://www.matroska.org/technical/tagging.html
+        #    https://mediaarea.net/en/MediaInfo/Support/Tags
 
         add('title', ('track', 'title'))
-        add('date', 'upload_date')
-        add(('description', 'comment'), 'description')
-        add('purl', 'webpage_url')
+        if info.get('upload_date'):
+            metadata['date'] = hyphenate_date(info['upload_date'])
+        add('description')
+        add('url', 'webpage_url')
         add('track', 'track_number')
-        add('artist', ('artist', 'creator', 'uploader', 'uploader_id'))
+        add('artist', ('artist', 'creator'))
+        if not metadata.get('artist'):  # keep older versions' behavior
+            add('artist', ('uploader', 'uploader_id'))
+        add('publisher', ('uploader', 'uploader_id'))
         add('genre')
         add('album')
         add('album_artist')
@@ -464,6 +489,30 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         add('season_number')
         add('episode_id', ('episode', 'episode_id'))
         add('episode_sort', 'episode_number')
+        add('license')
+
+        # add any metadata extracted by --metadata-from-title
+        # possibly 'copyright', 'author', 'composer', 'conductor' or 'comment'
+        for user_meta in info.get('user_meta', []):
+            if user_meta != 'comment':
+                add(user_meta)
+            else:
+                add_comment('', 'comment')
+
+        # add metadata together into comment which may not be added dedicatedly
+        # for some file formats
+        if info['ext'] in ('mp4', 'm4a', 'mov', 'avi', 'wav'):
+            if info['ext'] in ('mov', 'avi', 'wav'):
+                add_comment('', 'description')
+                add_comment('composer')  # may be by --metadata-from-title
+            add_comment('author')  # may be by --metadata-from-title
+            add_comment('conductor')  # may be by --metadata-from-title
+            add_comment('publisher', ('uploader', 'uploader_id'))
+            add_comment('URL', 'webpage_url')
+            add_comment('license')
+
+        if comment:
+            metadata['comment'] = '\n'.join(comment)
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')

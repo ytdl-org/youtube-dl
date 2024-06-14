@@ -46,5 +46,9 @@ class MetadataFromTitlePP(PostProcessor):
             self._downloader.to_screen(
                 '[fromtitle] parsed %s: %s'
                 % (attribute, value if value is not None else 'NA'))
+            if info.get('user_meta'):
+                info['user_meta'].append(attribute)
+            else:
+                info['user_meta'] = [attribute]
 
         return [], info
