@@ -218,7 +218,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                     self._TFA_URL.format(tl), tfa_req,
                     'Submitting TFA code', 'Unable to submit TFA code')
 
-                if tfa_results is False:
+                if not tfa_results:
                     return False
 
                 tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
