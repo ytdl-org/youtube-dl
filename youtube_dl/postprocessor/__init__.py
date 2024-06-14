@@ -16,11 +16,12 @@ from .ffmpeg import (
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
 from .metadatafromtitle import MetadataFromTitlePP
-
+from .common import PostProcessor
 
 def get_postprocessor(key):
+    if isinstance(key, PostProcessor):
+        return key
     return globals()[key + 'PP']
-
 
 __all__ = [
     'EmbedThumbnailPP',
