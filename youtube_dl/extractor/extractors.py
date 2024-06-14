@@ -166,6 +166,7 @@ from .camdemy import (
     CamdemyFolderIE
 )
 from .cammodels import CamModelsIE
+from .camsoda import CamsodaIE
 from .camtube import CamTubeIE
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
