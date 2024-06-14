@@ -1243,6 +1243,10 @@ from .tagesschau import (
     TagesschauIE,
 )
 from .tass import TassIE
+from .tasvideos import (
+    TASVideosIE,
+    TASVideosPlaylistIE,
+)    
 from .tbs import TBSIE
 from .tdslifeway import TDSLifewayIE
 from .teachable import (
