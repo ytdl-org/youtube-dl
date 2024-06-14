@@ -432,7 +432,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
-        help='Download all the available subtitles of the video')
+        help='Write subtitle files of all available languages for the video (format follows --sub-format)')
     subtitles.add_option(
         '--list-subs',
         action='store_true', dest='listsubtitles', default=False,
