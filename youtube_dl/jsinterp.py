@@ -14,6 +14,7 @@ from .utils import (
     remove_quotes,
     unified_timestamp,
     variadic,
+    write_string,
 )
 from .compat import (
     compat_basestring,
@@ -220,6 +221,42 @@ class LocalNameSpace(ChainMap):
         return 'LocalNameSpace%s' % (self.maps, )
 
 
+class Debugger(object):
+    ENABLED = False
+
+    @staticmethod
+    def write(*args, **kwargs):
+        level = kwargs.get('level', 100)
+
+        def truncate_string(s, left, right=0):
+            if s is None or len(s) <= left + right:
+                return s
+            return '...'.join((s[:left - 3], s[-right:] if right else ''))
+
+        write_string('[debug] JS: {0}{1}\n'.format(
+            '  ' * (100 - level),
+            ' '.join(truncate_string(compat_str(x), 50, 50) for x in args)))
+
+    @classmethod
+    def wrap_interpreter(cls, f):
+        def interpret_statement(self, stmt, local_vars, allow_recursion, *args, **kwargs):
+            if cls.ENABLED and stmt.strip():
+                cls.write(stmt, level=allow_recursion)
+            try:
+                ret, should_ret = f(self, stmt, local_vars, allow_recursion, *args, **kwargs)
+            except Exception as e:
+                if cls.ENABLED:
+                    if isinstance(e, ExtractorError):
+                        e = e.orig_msg
+                    cls.write('=> Raises:', e, '<-|', stmt, level=allow_recursion)
+                raise
+            if cls.ENABLED and stmt.strip():
+                if should_ret or not repr(ret) == stmt:
+                    cls.write(['->', '=>'][should_ret], repr(ret), '<-|', stmt, level=allow_recursion)
+            return ret, should_ret
+        return interpret_statement
+
+
 class JSInterpreter(object):
     __named_object_counter = 0
 
@@ -416,7 +453,7 @@ class JSInterpreter(object):
         except Exception as e:
             if allow_undefined:
                 return JS_Undefined
-            raise self.Exception('Cannot get index {idx:.100}'.format(**locals()), expr=repr(obj), cause=e)
+            raise self.Exception('Cannot get index {idx!r:.100}'.format(**locals()), expr=repr(obj), cause=e)
 
     def _dump(self, obj, namespace):
         try:
@@ -438,6 +475,7 @@ class JSInterpreter(object):
     _FINALLY_RE = re.compile(r'finally\s*\{')
     _SWITCH_RE = re.compile(r'switch\s*\(')
 
+    @Debugger.wrap_interpreter
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
             raise self.Exception('Recursion limit reached')
@@ -797,6 +835,8 @@ class JSInterpreter(object):
 
             def eval_method():
                 if (variable, member) == ('console', 'debug'):
+                    if Debugger.ENABLED:
+                        Debugger.write(self.interpret_expression('[{}]'.format(arg_str), local_vars, allow_recursion))
                     return
                 types = {
                     'String': compat_str,
