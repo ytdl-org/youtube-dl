@@ -2406,7 +2406,7 @@ class ExtractorError(YoutubeDLError):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
-
+        self.orig_msg = msg
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
         if video_id is not None:
