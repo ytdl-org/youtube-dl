@@ -3033,7 +3033,6 @@ class InfoExtractor(object):
             transform_source=transform_source, default=None)
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
-
         # allow passing `transform_source` through to _find_jwplayer_data()
         transform_source = kwargs.pop('transform_source', None)
         kwfind = compat_kwargs({'transform_source': transform_source}) if transform_source else {}

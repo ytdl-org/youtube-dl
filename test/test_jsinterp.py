@@ -577,9 +577,11 @@ class TestJSInterpreter(unittest.TestCase):
     def test_unary_operators(self):
         jsi = JSInterpreter('function f(){return 2  -  - - 2;}')
         self.assertEqual(jsi.call_function('f'), 0)
-        # fails
-        # jsi = JSInterpreter('function f(){return 2 + - + - - 2;}')
-        # self.assertEqual(jsi.call_function('f'), 0)
+        jsi = JSInterpreter('function f(){return 2 + - + - - 2;}')
+        self.assertEqual(jsi.call_function('f'), 0)
+        # https://github.com/ytdl-org/youtube-dl/issues/32815
+        jsi = JSInterpreter('function f(){return 0  - 7 * - 6;}')
+        self.assertEqual(jsi.call_function('f'), 42)
 
     """ # fails so far
     def test_packed(self):
