@@ -798,18 +798,28 @@ class JSInterpreter(object):
             right_expr = separated.pop()
             # handle operators that are both unary and binary, minimal BODMAS
             if op in ('+', '-'):
+                # simplify/adjust consecutive instances of these operators
                 undone = 0
                 while len(separated) > 1 and not separated[-1].strip():
                     undone += 1
                     separated.pop()
                 if op == '-' and undone % 2 != 0:
                     right_expr = op + right_expr
+                elif op == '+':
+                    while len(separated) > 1 and separated[-1].strip() in self.OP_CHARS:
+                        right_expr = separated.pop() + right_expr
+                # hanging op at end of left => unary + (strip) or - (push right)
                 left_val = separated[-1]
                 for dm_op in ('*', '%', '/', '**'):
                     bodmas = tuple(self._separate(left_val, dm_op, skip_delims=skip_delim))
                     if len(bodmas) > 1 and not bodmas[-1].strip():
                         expr = op.join(separated) + op + right_expr
-                        right_expr = None
+                        if len(separated) > 1:
+                            separated.pop()
+                            right_expr = op.join((left_val, right_expr))
+                        else:
+                            separated = [op.join((left_val, right_expr))]
+                            right_expr = None
                         break
                 if right_expr is None:
                     continue
