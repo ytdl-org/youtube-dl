@@ -8,7 +8,7 @@ from ..compat import compat_str
 from ..utils import (
     int_or_none,
     str_or_none,
-    try_get,
+    traverse_obj,
 )
 
 
@@ -109,7 +109,7 @@ class PalcoMP3ArtistIE(PalcoMP3BaseIE):
     }
     name'''
 
-    @ classmethod
+    @classmethod
     def suitable(cls, url):
         return False if re.match(PalcoMP3IE._VALID_URL, url) else super(PalcoMP3ArtistIE, cls).suitable(url)
 
@@ -118,7 +118,8 @@ class PalcoMP3ArtistIE(PalcoMP3BaseIE):
         artist = self._call_api(artist_slug, self._ARTIST_FIELDS_TMPL)['artist']
 
         def entries():
-            for music in (try_get(artist, lambda x: x['musics']['nodes'], list) or []):
+            for music in traverse_obj(artist, (
+                    'musics', 'nodes', lambda _, m: m['musicID'])):
                 yield self._parse_music(music)
 
         return self.playlist_result(
@@ -137,7 +138,7 @@ class PalcoMP3VideoIE(PalcoMP3BaseIE):
             'title': 'Maiara e Maraisa - Você Faz Falta Aqui - DVD Ao Vivo Em Campo Grande',
             'description': 'md5:7043342c09a224598e93546e98e49282',
             'upload_date': '20161107',
-            'uploader_id': 'maiaramaraisaoficial',
+            'uploader_id': '@maiaramaraisaoficial',
             'uploader': 'Maiara e Maraisa',
         }
     }]
