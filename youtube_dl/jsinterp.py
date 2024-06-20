@@ -54,15 +54,16 @@ def wraps_op(op):
 
 # NB In principle NaN cannot be checked by membership.
 # Here all NaN values are actually this one, so _NaN is _NaN,
-# although _NaN != _NaN.
+# although _NaN != _NaN. Ditto Infinity.
 
 _NaN = float('nan')
+_Infinity = float('inf')
 
 
 def _js_bit_op(op):
 
     def zeroise(x):
-        return 0 if x in (None, JS_Undefined, _NaN) else x
+        return 0 if x in (None, JS_Undefined, _NaN, _Infinity) else x
 
     @wraps_op(op)
     def wrapped(a, b):
@@ -85,7 +86,7 @@ def _js_arith_op(op):
 def _js_div(a, b):
     if JS_Undefined in (a, b) or not (a or b):
         return _NaN
-    return operator.truediv(a or 0, b) if b else float('inf')
+    return operator.truediv(a or 0, b) if b else _Infinity
 
 
 def _js_mod(a, b):
@@ -344,8 +345,7 @@ class JSInterpreter(object):
     def __op_chars(cls):
         op_chars = set(';,[')
         for op in cls._all_operators():
-            for c in op[0]:
-                op_chars.add(c)
+            op_chars.update(op[0])
         return op_chars
 
     def _named_object(self, namespace, obj):
@@ -363,9 +363,8 @@ class JSInterpreter(object):
         # collections.Counter() is ~10% slower in both 2.7 and 3.9
         counters = dict((k, 0) for k in _MATCHING_PARENS.values())
         start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
-        in_quote, escaping, skipping = None, False, 0
-        after_op, in_regex_char_group = True, False
-
+        in_quote, escaping, after_op, in_regex_char_group = None, False, True, False
+        skipping = 0
         for idx, char in enumerate(expr):
             paren_delta = 0
             if not in_quote:
@@ -419,10 +418,12 @@ class JSInterpreter(object):
         return separated[0][1:].strip(), separated[1].strip()
 
     @staticmethod
-    def _all_operators():
-        return itertools.chain(
-            # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-            _SC_OPERATORS, _LOG_OPERATORS, _COMP_OPERATORS, _OPERATORS)
+    def _all_operators(_cached=[]):
+        if not _cached:
+            _cached.extend(itertools.chain(
+                # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
+                _SC_OPERATORS, _LOG_OPERATORS, _COMP_OPERATORS, _OPERATORS))
+        return _cached
 
     def _operator(self, op, left_val, right_expr, expr, local_vars, allow_recursion):
         if op in ('||', '&&'):
@@ -549,7 +550,6 @@ class JSInterpreter(object):
                 expr = self._dump(inner, local_vars) + outer
 
         if expr.startswith('('):
-
             m = re.match(r'\((?P<d>[a-z])%(?P<e>[a-z])\.length\+(?P=e)\.length\)%(?P=e)\.length', expr)
             if m:
                 # short-cut eval of frequently used `(d%e.length+e.length)%e.length`, worth ~6% on `pytest -k test_nsig`
@@ -731,7 +731,7 @@ class JSInterpreter(object):
                 (?P<op>{_OPERATOR_RE})?
                 =(?!=)(?P<expr>.*)$
             )|(?P<return>
-                (?!if|return|true|false|null|undefined)(?P<name>{_NAME_RE})$
+                (?!if|return|true|false|null|undefined|NaN|Infinity)(?P<name>{_NAME_RE})$
             )|(?P<indexing>
                 (?P<in>{_NAME_RE})\[(?P<idx>.+)\]$
             )|(?P<attribute>
@@ -765,11 +765,12 @@ class JSInterpreter(object):
             raise JS_Break()
         elif expr == 'continue':
             raise JS_Continue()
-
         elif expr == 'undefined':
             return JS_Undefined, should_return
         elif expr == 'NaN':
             return _NaN, should_return
+        elif expr == 'Infinity':
+            return _Infinity, should_return
 
         elif md.get('return'):
             return local_vars[m.group('name')], should_return
