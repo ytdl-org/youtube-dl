@@ -568,6 +568,7 @@ from .khanacademy import (
     KhanAcademyIE,
     KhanAcademyUnitIE,
 )
+from .kick import KickIE
 from .kickstarter import KickStarterIE
 from .kinja import KinjaEmbedIE
 from .kinopoisk import KinoPoiskIE
