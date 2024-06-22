@@ -12,30 +12,30 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
+    clean_html,
     determine_ext,
     ExtractorError,
     float_or_none,
     qualities,
-    remove_end,
-    remove_start,
     std_headers,
 )
 
 _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(chr, x))
 
 
-class RTVEALaCartaIE(InfoExtractor):
-    IE_NAME = 'rtve.es:alacarta'
-    IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+class RTVEPlayIE(InfoExtractor):
+    IE_NAME = 'rtve.es:play'
+    IE_DESC = 'RTVE Play'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(?P<kind>(?:playz?|(?:m/)?alacarta)/(?:audios|videos)|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
-        'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
+        'md5': '2c70aacf8a415d1b4e7fcc0525951162',
         'info_dict': {
             'id': '2491869',
             'ext': 'mp4',
-            'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'title': 'Final de la Swiss Cup masculina: España-Suecia',
+            'description': 'Swiss Cup masculina, Final: España-Suecia.',
             'duration': 5024.566,
             'series': 'Balonmano',
         },
@@ -47,6 +47,7 @@ class RTVEALaCartaIE(InfoExtractor):
             'id': '1694255',
             'ext': 'mp4',
             'title': 're:^24H LIVE [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': '24H LIVE',
             'is_live': True,
         },
         'params': {
@@ -54,11 +55,12 @@ class RTVEALaCartaIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.rtve.es/alacarta/videos/servir-y-proteger/servir-proteger-capitulo-104/4236788/',
-        'md5': 'd850f3c8731ea53952ebab489cf81cbf',
+        'md5': '30b8827cba25f39d1af5a7c482cc8ac5',
         'info_dict': {
             'id': '4236788',
             'ext': 'mp4',
-            'title': 'Servir y proteger - Capítulo 104',
+            'title': 'Capítulo 104',
+            'description': 'md5:caae29ae04291875e611dd667fe84641',
             'duration': 3222.0,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
@@ -68,6 +70,17 @@ class RTVEALaCartaIE(InfoExtractor):
     }, {
         'url': 'http://www.rtve.es/filmoteca/no-do/not-1-introduccion-primer-noticiario-espanol/1465256/',
         'only_matching': True,
+    }, {
+        'url': 'http://www.rtve.es/alacarta/audios/a-hombros-de-gigantes/palabra-ingeniero-codigos-informaticos-27-04-21/5889192/',
+        'md5': 'ae06d27bff945c4e87a50f89f6ce48ce',
+        'info_dict': {
+            'id': '5889192',
+            'ext': 'mp3',
+            'title': 'Códigos informáticos',
+            'description': 'md5:72b0d7c1ca20fd327bdfff7ac0171afb',
+            'thumbnail': r're:https?://.+/1598856591583.jpg',
+            'duration': 349.440,
+        },
     }]
 
     def _real_initialize(self):
@@ -86,8 +99,12 @@ class RTVEALaCartaIE(InfoExtractor):
                 break
             data = encrypted_data.read(length)
             if chunk_type == b'tEXt':
-                alphabet_data, text = data.split(b'\0')
-                quality, url_data = text.split(b'%%')
+                alphabet_data, text = data.replace(b'\0', b'').split(b'#')
+                components = text.split(b'%%')
+                if len(components) < 2:
+                    components.insert(0, b'')
+                quality, url_data = components
+
                 alphabet = []
                 e = 0
                 d = 0
@@ -120,7 +137,7 @@ class RTVEALaCartaIE(InfoExtractor):
 
     def _extract_png_formats(self, video_id):
         png = self._download_webpage(
-            'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id),
+            'http://ztnr.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id),
             video_id, 'Downloading url information', query={'q': 'v2'})
         q = qualities(['Media', 'Alta', 'HQ', 'HD_READY', 'HD_FULL'])
         formats = []
@@ -143,11 +160,16 @@ class RTVEALaCartaIE(InfoExtractor):
         return formats
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        groups = re.match(self._VALID_URL, url).groupdict()
+        is_audio = groups.get('kind') == 'play/audios'
+        return self._real_extract_from_id(groups['id'], is_audio)
+
+    def _real_extract_from_id(self, video_id, is_audio=False):
+        kind = 'audios' if is_audio else 'videos'
         info = self._download_json(
-            'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
+            'http://www.rtve.es/api/%s/%s.json' % (kind, video_id),
             video_id)['page']['items'][0]
-        if info['state'] == 'DESPU':
+        if (info.get('pubState') or {}).get('code') == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
         title = info['title'].strip()
         formats = self._extract_png_formats(video_id)
@@ -157,17 +179,19 @@ class RTVEALaCartaIE(InfoExtractor):
         if sbt_file:
             subtitles = self.extract_subtitles(video_id, sbt_file)
 
-        is_live = info.get('live') is True
+        is_live = info.get('consumption') == 'live'
 
         return {
             'id': video_id,
             'title': self._live_title(title) if is_live else title,
             'formats': formats,
-            'thumbnail': info.get('image'),
+            'url': info.get('htmlUrl'),
+            'description': clean_html(info.get('description')),
+            'thumbnail': info.get('thumbnail'),
             'subtitles': subtitles,
             'duration': float_or_none(info.get('duration'), 1000),
             'is_live': is_live,
-            'series': info.get('programTitle'),
+            'series': (info.get('programInfo') or {}).get('title'),
         }
 
     def _get_subtitles(self, video_id, sub_file):
@@ -179,36 +203,60 @@ class RTVEALaCartaIE(InfoExtractor):
             for s in subs)
 
 
-class RTVEInfantilIE(RTVEALaCartaIE):
+class RTVEInfantilIE(RTVEPlayIE):
     IE_NAME = 'rtve.es:infantil'
     IE_DESC = 'RTVE infantil'
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/[^/]+/video/[^/]+/(?P<id>[0-9]+)/'
 
     _TESTS = [{
-        'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
-        'md5': '5747454717aedf9f9fdf212d1bcfc48d',
+        'url': 'https://www.rtve.es/infantil/serie/dino-ranch/video/pequeno-gran-ayudante/6693248/',
+        'md5': '06d3f57eec593ad93fe9dcf079fbd940',
         'info_dict': {
-            'id': '3040283',
+            'id': '6693248',
             'ext': 'mp4',
-            'title': 'Maneras de vivir',
-            'thumbnail': r're:https?://.+/1426182947956\.JPG',
-            'duration': 357.958,
+            'title': 'Un pequeño gran ayudante',
+            'description': 'md5:144ca351e31f9ee99a637ab9fc2787d5',
+            'thumbnail': r're:https?://.+/1663318364501\.jpg',
+            'duration': 691.44,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
     }]
 
 
-class RTVELiveIE(RTVEALaCartaIE):
+class RTVELiveIE(RTVEPlayIE):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/play/videos/directo/(?P<id>.+)'
 
     _TESTS = [{
-        'url': 'http://www.rtve.es/directo/la-1/',
+        'url': 'https://www.rtve.es/play/videos/directo/la-1/',
         'info_dict': {
-            'id': 'la-1',
+            'id': '1688877',
             'ext': 'mp4',
             'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'La 1',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
+    }, {
+        'url': 'https://www.rtve.es/play/videos/directo/canales-lineales/la-1/',
+        'info_dict': {
+            'id': '1688877',
+            'ext': 'mp4',
+            'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'La 1',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
+    }, {
+        'url': 'https://www.rtve.es/play/videos/directo/canales-lineales/capilla-ardiente-isabel-westminster/10886/',
+        'info_dict': {
+            'id': '1938028',
+            'ext': 'mp4',
+            'title': 're:^Mas24 - 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Mas24 - 1',
         },
         'params': {
             'skip_download': 'live stream',
@@ -216,53 +264,77 @@ class RTVELiveIE(RTVEALaCartaIE):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, video_id)
-        title = remove_end(self._og_search_title(webpage), ' en directo en RTVE.es')
-        title = remove_start(title, 'Estoy viendo ')
-
-        vidplayer_id = self._search_regex(
-            (r'playerId=player([0-9]+)',
-             r'class=["\'].*?\blive_mod\b.*?["\'][^>]+data-assetid=["\'](\d+)',
-             r'data-id=["\'](\d+)'),
+        webpage = self._download_webpage(url, self._match_id(url))
+        asset_id = self._search_regex(
+            r'class=["\'].*?\bvideoPlayer\b.*?["\'][^>]+data-setup=[^>]+?(?:"|&quot;)idAsset(?:"|&quot;)\s*:\s*(?:"|&quot;)(\d+)(?:"|&quot;)',
             webpage, 'internal video ID')
-
-        return {
-            'id': video_id,
-            'title': self._live_title(title),
-            'formats': self._extract_png_formats(vidplayer_id),
-            'is_live': True,
-        }
+        return self._real_extract_from_id(asset_id)
 
 
 class RTVETelevisionIE(InfoExtractor):
     IE_NAME = 'rtve.es:television'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
+    # https://www.rtve.es/SECTION/YYYYMMDD/CONTENT_SLUG/CONTENT_ID.shtml
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/[^/]+/\d{8}/[^/]+/(?P<id>\d+)\.shtml'
 
-    _TEST = {
-        'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',
+    _TESTS = [{
+        'url': 'https://www.rtve.es/television/20220916/destacados-festival-san-sebastian-rtve-play/2395620.shtml',
         'info_dict': {
-            'id': '3069778',
+            'id': '6668919',
             'ext': 'mp4',
-            'title': 'Documentos TV - La revolución del móvil',
-            'duration': 3496.948,
+            'title': 'Las películas del Festival de San Sebastián en RTVE Play',
+            'description': 'El\xa0Festival de San Sebastián vuelve a llenarse de artistas. Y en su honor,\xa0RTVE Play\xa0destacará cada viernes una\xa0película galardonada\xa0con la\xa0Concha de Oro\xa0en su catálogo.',
+            'duration': 20.048,
         },
         'params': {
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://www.rtve.es/noticias/20220917/penelope-cruz-san-sebastian-premio-nacional/2402565.shtml',
+        'info_dict': {
+            'id': '6694087',
+            'ext': 'mp4',
+            'title': 'Penélope Cruz recoge el Premio Nacional de Cinematografía: "No dejen nunca de proteger nuestro cine"',
+            'description': 'md5:eda9e6baa78dbbbcc7708c0cc8150a91',
+            'duration': 388.2,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.rtve.es/deportes/20220917/motogp-bagnaia-pole-marquez-decimotercero-motorland-aragon/2402566.shtml',
+        'info_dict': {
+            'id': '6694142',
+            'ext': 'mp4',
+            'title': "Bagnaia logra su quinta 'pole' del año y Márquez partirá decimotercero",
+            'description': 'md5:07e2ccb983a046cb42f896cce225f0a7',
+            'duration': 153.44,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.rtve.es/playz/20220807/covaleda-fest-final/2394809.shtml',
+        'info_dict': {
+            'id': '6665408',
+            'ext': 'mp4',
+            'title': 'Covaleda Fest (Soria) - Día 3 con Marc Seguí y Paranoid 1966',
+            'description': 'Festivales Playz viaja a Covaleda, Soria, para contarte todo lo que sucede en el Covaleda Fest. Entrevistas, challenges a los artistas, juegos... Khan, Adriana Jiménez y María García no dejarán pasar ni una. ¡No te lo pierdas!',
+            'duration': 12009.92,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
 
         alacarta_url = self._search_regex(
-            r'data-location="alacarta_videos"[^<]+url&quot;:&quot;(http://www\.rtve\.es/alacarta.+?)&',
+            r'data-location="alacarta_videos"[^<]+url&quot;:&quot;(https?://www\.rtve\.es/play.+?)&',
             webpage, 'alacarta url', default=None)
         if alacarta_url is None:
             raise ExtractorError(
                 'The webpage doesn\'t contain any video', expected=True)
 
-        return self.url_result(alacarta_url, ie=RTVEALaCartaIE.ie_key())
+        return self.url_result(alacarta_url, ie=RTVEPlayIE.ie_key())
