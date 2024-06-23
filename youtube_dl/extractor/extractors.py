@@ -494,6 +494,11 @@ from .hotstar import (
 )
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
+from .hqporner import (
+    HQPornerIE,
+    HQPornerListIE,
+    HQPornerSearchIE,
+)
 from .hrfernsehen import HRFernsehenIE
 from .hrti import (
     HRTiIE,
