@@ -37,7 +37,6 @@ class KanKidsIE(InfoExtractor):
         series_id = m.group('id')
         category = m.group('category')
         playlist_season = m.group('season')
-        print(m.groupdict())
         
         webpage = self._download_webpage(url, series_id)
 
@@ -57,7 +56,6 @@ class KanKidsIE(InfoExtractor):
             r'(?P<id>[0-9]+)/"' +           # Episode
             r'.+title="(?P<title>.+)"'      # Title
             , webpage))
-            # , 'Episode list')
 
         entries = []
         content_dir = r'https://www.' + DOMAIN + content_dir
