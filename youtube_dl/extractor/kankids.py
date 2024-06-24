@@ -10,28 +10,34 @@ DOMAIN = r'kankids.org.il'
 class KanKidsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?' +\
         DOMAIN.replace('.', '\.') + CONTENT_DIR +\
-        r'(?P<category>[a-z]+)-main/p-(?P<id>[0-9]+)/(?P<season>\w+)?/?$'
-    _TEST = {
-        'url': 'https://www.kankids.org.il/content/kids/hinuchit-main/p-12050/',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
-        'info_dict': {
-            'id': '42',
-            'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-        }
-    }
+        r'(?P<category>[a-z]+)-main/(?P<id>[\w\-0-9]+)/(?P<season>\w+)?/?$'
+    _TESTS = [
+        {
+            'url': 'https://www.kankids.org.il/content/kids/ktantanim-main/p-11732/',
+            'info_dict': {
+                '_type': 'playlist',
+                'id': 'p-11732',
+                'title': 'בית ספר לקוסמים',
+                },
+            'playlist_count': 60,
+        },
+        {
+            'url': 'https://www.kankids.org.il/content/kids/hinuchit-main/cramel_main/s1/',
+            'info_dict': {
+                '_type': 'playlist',
+                'id': 'cramel_main',
+                'title': 'כראמל - עונה 1',
+                },
+            'playlist_count': 21,
+        },
+        ]
 
     def _real_extract(self, url):
         m = super()._match_valid_url(url)
         series_id = m.group('id')
         category = m.group('category')
         playlist_season = m.group('season')
+        print(m.groupdict())
         
         webpage = self._download_webpage(url, series_id)
 
@@ -46,7 +52,7 @@ class KanKidsIE(InfoExtractor):
         content_dir = CONTENT_DIR + category + r'-main/'
         playlist = set(re.findall(
             r'href="' + content_dir +       # Content dir
-            r'p-' + series_id + r'/' +      # Series
+            series_id + r'/' +              # Series
             season + r'/' +                 # Season
             r'(?P<id>[0-9]+)/"' +           # Episode
             r'.+title="(?P<title>.+)"'      # Title
