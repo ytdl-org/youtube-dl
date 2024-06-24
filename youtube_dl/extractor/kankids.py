@@ -35,7 +35,12 @@ class KanKidsIE(InfoExtractor):
         
         webpage = self._download_webpage(url, series_id)
 
-        series_title = self._html_search_regex(r'<title>(?P<title>.+) \|', webpage, 'title')
+        title_pattern = r'<title>(?P<title>.+) \|'
+        series_title = re.search(title_pattern, webpage)
+        if not series_title:
+            series_title = re.search(title_pattern[:-1] + r'-', webpage)
+        if series_title:
+            series_title = series_title.group('title')
 
         season = playlist_season if playlist_season else r'(?P<season>\w+)'
         content_dir = CONTENT_DIR + category + r'-main/'
@@ -47,7 +52,6 @@ class KanKidsIE(InfoExtractor):
             r'.+title="(?P<title>.+)"'      # Title
             , webpage))
             # , 'Episode list')
-        print('playlist:', playlist)
 
         entries = []
         content_dir = r'https://www.' + DOMAIN + content_dir
