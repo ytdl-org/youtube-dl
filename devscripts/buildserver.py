@@ -144,7 +144,7 @@ def win_service_handler(stop_event, *args):
         TODO
     except Exception as e:
         tb = traceback.format_exc()
-        msg = str(e) + '\n' + tb
+        msg = f"{e}\n{tb}"
         win_service_report_event(service_name, msg, is_error=True)
         raise
 
@@ -174,7 +174,7 @@ def win_service_main(service_name, real_main, argc, argv_raw):
         TODO
     except Exception as e:
         tb = traceback.format_exc()
-        msg = str(e) + '\n' + tb
+        msg = f'{e}\n{tb}'
         win_service_report_event(service_name, msg, is_error=True)
         raise
 
@@ -195,7 +195,7 @@ def win_service_start(service_name, real_main):
             raise OSError('ctypes start failed: %s' % ctypes.FormatError())
     except Exception as e:
         tb = traceback.format_exc()
-        msg = str(e) + '\n' + tb
+        msg = f'{e}\n{tb}'
         win_service_report_event(service_name, msg, is_error=True)
         raise
 
