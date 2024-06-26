@@ -1,29 +1,29 @@
 [![Build Status](https://github.com/ytdl-org/youtube-dl/workflows/CI/badge.svg)](https://github.com/ytdl-org/youtube-dl/actions?query=workflow%3ACI)
 
 
-youtube-dl - download videos from youtube.com or other video platforms
+youtube-dl - download videos from youtube.com or other video platforms.
 
-- [INSTALLATION](#installation)
-- [DESCRIPTION](#description)
-- [OPTIONS](#options)
-- [CONFIGURATION](#configuration)
-- [OUTPUT TEMPLATE](#output-template)
-- [FORMAT SELECTION](#format-selection)
-- [VIDEO SELECTION](#video-selection)
+- [Installation](#installation)
+- [Description](#description)
+- [Options](#options)
+- [Configuration](#configuration)
+- [Output template](#output-template)
+- [Format selection](#format-selection)
+- [Video selection](#video-selection)
 - [FAQ](#faq)
-- [DEVELOPER INSTRUCTIONS](#developer-instructions)
-- [EMBEDDING YOUTUBE-DL](#embedding-youtube-dl)
-- [BUGS](#bugs)
-- [COPYRIGHT](#copyright)
+- [Developer instructions](#developer-instructions)
+- [Embedding youtube-dl](#embedding-youtube-dl)
+- [Bugs](#bugs)
+- [Copyright](#copyright)
 
 # INSTALLATION
 
-To install it right away for all UNIX users (Linux, macOS, etc.), type:
+To install it right away for all Unix users (Linux, macOS, etc.), type:
 
     sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
-If you do not have curl, you can alternatively use a recent wget:
+If you do not have curl, you can alternatively use wget:
 
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
@@ -44,10 +44,10 @@ Or with [MacPorts](https://www.macports.org/):
 
     sudo port install youtube-dl
 
-Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
+Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the Git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
-**youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
+**youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix computer, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
 
     youtube-dl [OPTIONS] URL [URL...]
 
@@ -97,7 +97,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          only)
     --no-color                           Do not emit color codes in output
 
-## Network Options:
+## Network options
     --proxy URL                          Use the specified HTTP/HTTPS/SOCKS
                                          proxy. To enable SOCKS proxy, specify a
                                          proper scheme. For example
@@ -110,7 +110,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -4, --force-ipv4                     Make all connections via IPv4
     -6, --force-ipv6                     Make all connections via IPv6
 
-## Geo Restriction:
+## Geo restriction
     --geo-verification-proxy URL         Use this proxy to verify the IP address
                                          for some geo-restricted sites. The
                                          default proxy specified by --proxy (or
@@ -127,7 +127,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          with explicitly provided IP block in
                                          CIDR notation
 
-## Video Selection:
+## Video selection
     --playlist-start NUMBER              Playlist video to start at (default is
                                          1)
     --playlist-end NUMBER                Playlist video to end at (default is
@@ -193,7 +193,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --include-ads                        Download advertisements as well
                                          (experimental)
 
-## Download Options:
+## Download options
     -r, --limit-rate RATE                Maximum download rate in bytes per
                                          second (e.g. 50K or 4.2M)
     -R, --retries RETRIES                Number of retries (default is 10), or
@@ -239,7 +239,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --external-downloader-args ARGS      Give these arguments to the external
                                          downloader
 
-## Filesystem Options:
+## Filesystem options
     -a, --batch-file FILE                File containing URLs to download ('-'
                                          for stdin), one URL per line. Lines
                                          starting with '#', ';' or ']' are
@@ -287,14 +287,14 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-cache-dir                       Disable filesystem caching
     --rm-cache-dir                       Delete all filesystem cache files
 
-## Thumbnail Options:
+## Thumbnail options
     --write-thumbnail                    Write thumbnail image to disk
     --write-all-thumbnails               Write all thumbnail image formats to
                                          disk
     --list-thumbnails                    Simulate and list all available
                                          thumbnail formats
 
-## Verbosity / Simulation Options:
+## Verbosity / simulation options
     -q, --quiet                          Activate quiet mode
     --no-warnings                        Ignore warnings
     -s, --simulate                       Do not download the video and do not
@@ -336,7 +336,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-call-home                       Do NOT contact the youtube-dl server
                                          for debugging
 
-## Workarounds:
+## Workarounds
     --encoding ENCODING                  Force the specified encoding
                                          (experimental)
     --no-check-certificate               Suppress HTTPS certificate validation
@@ -365,7 +365,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          Must only be used along with --min-
                                          sleep-interval.
 
-## Video Format Options:
+## Video format options
     -f, --format FORMAT                  Video format code, see the "FORMAT
                                          SELECTION" for all the info
     --all-formats                        Download all available video formats
@@ -381,7 +381,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          webm, flv. Ignored if no merge is
                                          required
 
-## Subtitle Options:
+## Subtitle options
     --write-sub                          Write subtitle file
     --write-auto-sub                     Write automatically generated subtitle
                                          file (YouTube only)
@@ -396,7 +396,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          (optional) separated by commas, use
                                          --list-subs for available language tags
 
-## Authentication Options:
+## Authentication options
     -u, --username USERNAME              Login with this account ID
     -p, --password PASSWORD              Account password. If this option is
                                          left out, youtube-dl will ask
@@ -405,7 +405,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -n, --netrc                          Use .netrc authentication data
     --video-password PASSWORD            Video password (vimeo, youku)
 
-## Adobe Pass Options:
+## Adobe Pass options
     --ap-mso MSO                         Adobe Pass multiple-system operator (TV
                                          provider) identifier, use --ap-list-mso
                                          for a list of available MSOs
@@ -416,7 +416,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --ap-list-mso                        List all supported multiple-system
                                          operators
 
-## Post-processing Options:
+## Post-processing options
     -x, --extract-audio                  Convert video files to audio-only files
                                          (requires ffmpeg/avconv and
                                          ffprobe/avprobe)
@@ -480,7 +480,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 # CONFIGURATION
 
-You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux and macOS, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. Note that by default configuration file may not exist so you may need to create it yourself.
+You can configure youtube-dl by placing any supported command-line option to a configuration file. On Linux and macOS, the system-wide configuration file is located at `/etc/youtube-dl.conf` and the user-wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user-wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. Note that by default configuration file may not exist so you may need to create it yourself.
 
 For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your home directory:
 ```
@@ -499,7 +499,7 @@ For example, with the following configuration file youtube-dl will always extrac
 -o ~/Movies/%(title)s.%(ext)s
 ```
 
-Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.
+Note that options in configuration file are just the same options aka switches used in regular command-line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.
 
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
 
@@ -507,7 +507,7 @@ You can also use `--config-location` if you want to use custom configuration fil
 
 ### Authentication with `.netrc` file
 
-You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](https://stackoverflow.com/tags/.netrc/info) on a per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by only you:
+You may also want to configure automatic credentials storage for extractors that support authentication (by providing login and password with `--username` and `--password`) in order not to pass credentials as command-line arguments on every youtube-dl execution and prevent tracking plain text passwords in the shell command history. You can achieve this using a [`.netrc` file](https://stackoverflow.com/tags/.netrc/info) on a per extractor basis. For that you will need to create a `.netrc` file in your `$HOME` and restrict permissions to read/write by only you:
 ```
 touch $HOME/.netrc
 chmod a-rwx,u+rw $HOME/.netrc
@@ -534,7 +534,7 @@ The `-o` option allows users to indicate a template for the output file names.
 
 **tl;dr:** [navigate me to examples](#output-template-examples).
 
-The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "https://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by formatting operations. Allowed names along with sequence type are:
+The basic usage is not to set any template arguments when downloading a single file, like in `youtube-dl -o funny_video.flv "https://some/video"`. However, it may contain special sequences that will be replaced when downloading each video. The special sequences may be formatted according to [Python string formatting operations](https://docs.python.org/2/library/stdtypes.html#string-formatting). For example, `%(NAME)s` or `%(NAME)05d`. To clarify, that is a percent symbol followed by a name in parentheses, followed by formatting operations. Allowed names along with sequence type are:
 
  - `id` (string): Video identifier
  - `title` (string): Video title
@@ -640,7 +640,7 @@ If you are using an output template inside a Windows batch file then you must es
 
 #### Output template examples
 
-Note that on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single quotes.
 
 ```bash
 $ youtube-dl --get-filename -o '%(title)s.%(ext)s' BaW_jenozKc
@@ -733,7 +733,7 @@ If you want to preserve the old format selection behavior (prior to youtube-dl 2
 
 #### Format selection examples
 
-Note that on Windows you may need to use double quotes instead of single.
+Note that on Windows you may need to use double quotes instead of single quotes.
 
 ```bash
 # Download best mp4 format available or any other best if no mp4 available
