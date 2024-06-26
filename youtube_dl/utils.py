@@ -2402,7 +2402,7 @@ class YoutubeDLError(Exception):
 class ExtractorError(YoutubeDLError):
     """Error during info extraction."""
 
-    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
+    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None, ie=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
@@ -2421,6 +2421,7 @@ class ExtractorError(YoutubeDLError):
         self.exc_info = sys.exc_info()  # preserve original exception
         self.cause = cause
         self.video_id = video_id
+        self.ie = ie
 
     def format_traceback(self):
         if self.traceback is None:
@@ -6561,3 +6562,24 @@ def join_nonempty(*values, **kwargs):
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
     return delim.join(map(compat_str, filter(None, values)))
+
+
+class classproperty(object):
+    """property access for class methods with optional caching"""
+    def __new__(cls, *args, **kwargs):
+        func = args[0] if len(args) > 0 else kwargs.get('func')
+        if not func:
+            return functools.partial(cls, *args, **kwargs)
+        return super(classproperty, cls).__new__(cls)
+
+    def __init__(self, func, cache=False):
+        functools.update_wrapper(self, func)
+        self.func = func
+        self._cache = {} if cache else None
+
+    def __get__(self, _, cls):
+        if self._cache is None:
+            return self.func(cls)
+        elif cls not in self._cache:
+            self._cache[cls] = self.func(cls)
+        return self._cache[cls]

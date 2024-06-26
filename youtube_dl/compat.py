@@ -2448,12 +2448,12 @@ try:
 except ImportError:
     import BaseHTTPServer as compat_http_server
 
+# urllib.parse
 try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
     from urllib.parse import urlencode as compat_urllib_parse_urlencode
-    from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
     _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
                 else re.compile(r'([\x00-\x7f]+)'))
@@ -2543,60 +2543,80 @@ except ImportError:  # Python 2
 
         return compat_urllib_parse._urlencode(encode_elem(query), doseq=doseq)
 
-    # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
-    # Python 2's version is apparently totally broken
-    def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
-                   encoding='utf-8', errors='replace'):
-        qs, _coerce_result = qs, compat_str
-        pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
-        r = []
-        for name_value in pairs:
-            if not name_value and not strict_parsing:
-                continue
-            nv = name_value.split('=', 1)
-            if len(nv) != 2:
-                if strict_parsing:
-                    raise ValueError('bad query field: %r' % (name_value,))
-                # Handle case of a control-name with no equal sign
-                if keep_blank_values:
-                    nv.append('')
-                else:
-                    continue
-            if len(nv[1]) or keep_blank_values:
-                name = nv[0].replace('+', ' ')
-                name = compat_urllib_parse_unquote(
-                    name, encoding=encoding, errors=errors)
-                name = _coerce_result(name)
-                value = nv[1].replace('+', ' ')
-                value = compat_urllib_parse_unquote(
-                    value, encoding=encoding, errors=errors)
-                value = _coerce_result(value)
-                r.append((name, value))
-        return r
-
-    def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
-                        encoding='utf-8', errors='replace'):
-        parsed_result = {}
-        pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
-                           encoding=encoding, errors=errors)
-        for name, value in pairs:
-            if name in parsed_result:
-                parsed_result[name].append(value)
-            else:
-                parsed_result[name] = [value]
-        return parsed_result
-
     setattr(compat_urllib_parse, '_urlencode',
             getattr(compat_urllib_parse, 'urlencode'))
     for name, fix in (
             ('unquote_to_bytes', compat_urllib_parse_unquote_to_bytes),
             ('parse_unquote', compat_urllib_parse_unquote),
             ('unquote_plus', compat_urllib_parse_unquote_plus),
-            ('urlencode', compat_urllib_parse_urlencode),
-            ('parse_qs', compat_parse_qs)):
+            ('urlencode', compat_urllib_parse_urlencode)):
         setattr(compat_urllib_parse, name, fix)
+finally:
+    try:
+        # arguments changed in 3.8 and 3.10
+        from urllib.parse import parse_qs as _parse_qs
+        _parse_qs('a=b', separator='&')
+        compat_parse_qs = _parse_qs
+    except (ImportError, TypeError):  # Python 2, < 3.10
 
-compat_urllib_parse_parse_qs = compat_parse_qs
+        # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
+        # Python 2's version is apparently totally broken
+        # Also use this implementation for Py < 3.10
+        # * support only default separator '&', not r'[&;]', like 3.10+
+        # * support max_num_fields, like 3.8+
+        def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
+                       encoding='utf-8', errors='replace',
+                       max_num_fields=None, separator='&'):
+            if not isinstance(separator, (compat_str, str)):
+                raise ValueError('Separator must be of type string or bytes')
+            # DoS protection, if anyone cares
+            if qs and max_num_fields is not None and qs.count(separator) >= max_num_fields:
+                raise ValueError('Too many fields')
+            _coerce_result = compat_str
+            r = []
+            for name_value in qs.split(separator):
+                if not name_value and not strict_parsing:
+                    continue
+                nv = name_value.split('=', 1)
+                if len(nv) != 2:
+                    if strict_parsing:
+                        raise ValueError('bad query field: %r' % (name_value,))
+                    # Handle case of a control-name with no equal sign
+                    if keep_blank_values:
+                        nv.append('')
+                    else:
+                        continue
+                if len(nv[1]) or keep_blank_values:
+                    name = nv[0].replace('+', ' ')
+                    name = compat_urllib_parse_unquote(
+                        name, encoding=encoding, errors=errors)
+                    name = _coerce_result(name)
+                    value = nv[1].replace('+', ' ')
+                    value = compat_urllib_parse_unquote(
+                        value, encoding=encoding, errors=errors)
+                    value = _coerce_result(value)
+                    r.append((name, value))
+            return r
+
+        def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
+                            encoding='utf-8', errors='replace',
+                            max_num_fields=None, separator='&'):
+            parsed_result = {}
+            pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
+                               encoding, errors, max_num_fields, separator)
+            for name, value in pairs:
+                if name in parsed_result:
+                    parsed_result[name].append(value)
+                else:
+                    parsed_result[name] = [value]
+            return parsed_result
+
+        for name, fix in (
+                ('parse_qs', compat_parse_qs),
+                ('parse_qsl', _parse_qsl)):
+            setattr(compat_urllib_parse, name, fix)
+
+    compat_urllib_parse_parse_qs = compat_parse_qs
 
 try:
     from urllib.request import DataHandler as compat_urllib_request_DataHandler
