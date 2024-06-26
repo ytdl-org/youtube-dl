@@ -193,6 +193,22 @@ class TwitterIE(TwitterBaseIE):
     _VALID_URL = TwitterBaseIE._BASE_REGEX + r'(?:(?:i/web|[^/]+)/status|statuses)/(?P<id>\d+)'
 
     _TESTS = [{
+        'url': 'https://twitter.com/TulsiGabbard/status/1555878318469091330',
+        'md5': '8c45b02c4f324e0b9054ceb888091283',
+        'info_dict': {
+            'id': '1555878318469091330',
+            'ext': 'mp4',
+            'title': 'Tulsi Gabbard 🌺 - Puberty-blocking ...',
+            'description': 'Puberty-blocking procedures promoted by the Biden/Harris Admin are child abuse. The FDA has recently confirmed these hormones/drugs have extremely dangerous side effects, like brain swelling and vision loss. https://t.co/pcc70Uyt76',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'uploader': 'Tulsi Gabbard 🌺',
+            'uploader_id': 'TulsiGabbard',
+            'duration': 44.466,
+            'timestamp': 1659785272,
+            'upload_date': '20220806',
+            'age_limit': 0,
+        },
+    }, {
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
         'info_dict': {
             'id': '643211948184596480',
@@ -213,7 +229,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '657991469417025536',
             'ext': 'mp4',
-            'title': 'Gifs - tu vai cai tu vai cai tu nao eh capaz disso tu vai cai',
+            'title': 'Gifs - "tu vai cai tu vai cai tu nao eh capaz disso[...]',
             'description': 'Gifs on Twitter: "tu vai cai tu vai cai tu nao eh capaz disso tu vai cai https://t.co/tM46VHFlO5"',
             'thumbnail': r're:^https?://.*\.png',
             'uploader': 'Gifs',
@@ -226,10 +242,10 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
-            'title': 'Star Wars - A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens.',
+            'title': 'Star Wars | Andor Premieres Sept 21 on Disney+ - A new beginning is coming December ...',
             'description': 'A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens. https://t.co/OkSqT2fjWJ',
             'uploader_id': 'starwars',
-            'uploader': 'Star Wars',
+            'uploader': 'Star Wars | Andor Premieres Sept 21 on Disney+',
             'timestamp': 1447395772,
             'upload_date': '20151113',
         },
@@ -238,7 +254,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '705235433198714880',
             'ext': 'mp4',
-            'title': "Brent Yarina - Khalil Iverson's missed highlight dunk. And made highlight dunk. In one highlight.",
+            'title': 'Brent Yarina - Khalil Iverson\'s missed highlight dunk. And made highlight dunk[...]',
             'description': "Khalil Iverson's missed highlight dunk. And made highlight dunk. In one highlight. https://t.co/OrxcJ28Bns",
             'uploader_id': 'BTNBrentYarina',
             'uploader': 'Brent Yarina',
@@ -255,11 +271,11 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'simon vertugo - BEAT PROD: @suhmeduh #Damndaniel',
+            'title': 'jaydin donte geer - BEAT PROD: @suhmeduh #Damndaniel',
             'description': 'BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'simon vertugo',
-            'uploader_id': 'simonvertugo',
+            'uploader': 'jaydin donte geer',
+            'uploader_id': 'jaydingeer',
             'duration': 30.0,
             'timestamp': 1455777459,
             'upload_date': '20160218',
@@ -282,7 +298,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
-            'title': 'Captain America - @King0fNerd Are you sure you made the right choice? Find out in theaters.',
+            'title': 'Captain America - @King0fNerd ...',
             'description': '@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI',
             'uploader_id': 'CaptainAmerica',
             'uploader': 'Captain America',
@@ -322,7 +338,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '910031516746514432',
             'ext': 'mp4',
-            'title': 'Préfet de Guadeloupe - [Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre.',
+            'title': 'Préfet de Guadeloupe - [Direct] #Maria Le centre se trouve...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': '[Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre. https://t.co/mwx01Rs4lo',
             'uploader': 'Préfet de Guadeloupe',
@@ -340,7 +356,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1001551623938805763',
             'ext': 'mp4',
-            'title': 're:.*?Shep is on a roll today.*?',
+            'title': 'Lis Power - Holy shit, Shep is on a roll today....',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:37b9f2ff31720cef23b2bd42ee8a0f09',
             'uploader': 'Lis Power',
@@ -357,7 +373,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1087791357756956680',
             'ext': 'mp4',
-            'title': 'Twitter - A new is coming.  Some of you got an opt-in to try it now. Check out the emoji button, quick keyboard shortcuts, upgraded trends, advanced search, and more. Let us know your thoughts!',
+            'title': 'Twitter - A new is coming.  Some of you got a...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:6dfd341a3310fb97d80d2bf7145df976',
             'uploader': 'Twitter',
@@ -383,7 +399,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1349794411333394432',
             'ext': 'mp4',
-            'title': 'md5:d1c4941658e4caaa6cb579260d85dcba',
+            'title': 'Brooklyn Nets - WATCH: Sean Marks\' full media sessi...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:71ead15ec44cee55071547d6447c6a3e',
             'uploader': 'Brooklyn Nets',
@@ -440,14 +456,24 @@ class TwitterIE(TwitterBaseIE):
                 'tweet_mode': 'extended',
             })
 
-        title = description = status['full_text'].replace('\n', ' ')
-        # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
-        title = re.sub(r'\s+(https?://[^ ]+)', '', title)
+        # Get metadata
+        description = status['full_text'].replace('\n', ' ')
         user = status.get('user') or {}
         uploader = user.get('name')
+        uploader_id = user.get('screen_name')
+        timestamp = unified_timestamp(status.get('created_at'))
+
+        # Keep the file name short so it doesn't exceed filesystem limits
+        title = re.sub(r'\s+(https?://[^ ]+)', '', description)
+        if len(title) > 40:
+            trim = 35
+            # allow up to 10 more characters to find whitespace
+            m = re.search(r'\s+', title)
+            if m and m.start() > 10:
+                trim = m.start() + 1
+            title = title[:trim] + '...'
         if uploader:
             title = '%s - %s' % (uploader, title)
-        uploader_id = user.get('screen_name')
 
         tags = []
         for hashtag in (try_get(status, lambda x: x['entities']['hashtags'], list) or []):
@@ -461,7 +487,7 @@ class TwitterIE(TwitterBaseIE):
             'title': title,
             'description': description,
             'uploader': uploader,
-            'timestamp': unified_timestamp(status.get('created_at')),
+            'timestamp': timestamp,
             'uploader_id': uploader_id,
             'uploader_url': 'https://twitter.com/' + uploader_id if uploader_id else None,
             'like_count': int_or_none(status.get('favorite_count')),
