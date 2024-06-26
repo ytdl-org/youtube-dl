@@ -248,6 +248,10 @@ from .cnn import (
     CNNArticleIE,
 )
 from .coub import CoubIE
+from .cozytv import (
+    CozyTVReplayIE,
+    CozyTVStreamIE,
+)
 from .comedycentral import (
     ComedyCentralIE,
     ComedyCentralTVIE,
