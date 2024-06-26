@@ -167,6 +167,10 @@ from .camdemy import (
 )
 from .cammodels import CamModelsIE
 from .camtube import CamTubeIE
+from .camwhoresbay import (
+    CamWhoresBayVideoIE,
+    CamWhoresBayModelIE,
+)
 from .camwithher import CamWithHerIE
 from .canalplus import CanalplusIE
 from .canalc2 import Canalc2IE
