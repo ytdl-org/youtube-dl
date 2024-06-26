@@ -184,6 +184,11 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
     general.add_option(
+        '--concat-playlist',
+        action='store_true', dest='concat_playlist', default=False,
+        help='Concatenate all videos in a playlist into a single video file. Useful for services which split up full '
+             'episodes into multiple segments.')
+    general.add_option(
         '--mark-watched',
         action='store_true', dest='mark_watched', default=False,
         help='Mark videos watched (YouTube only)')
