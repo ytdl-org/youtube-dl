@@ -817,6 +817,7 @@ from .nick import (
     NickDeIE,
     NickNightIE,
     NickRuIE,
+    NickIlIE,
 )
 from .niconico import (
     NiconicoIE,
