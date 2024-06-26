@@ -469,6 +469,10 @@ class FFmpegFD(ExternalFD):
             elif isinstance(conn, compat_str):
                 args += ['-rtmp_conn', conn]
 
+        ss = self.params.get('_clip_args', '').split(',')
+        if len(ss) == 2:
+            args += ['-ss', ss[0], '-to', ss[1]]
+
         args += ['-i', url, '-c', 'copy']
 
         if self.params.get('test', False):
