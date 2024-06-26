@@ -213,6 +213,7 @@ from .cctv import CCTVIE
 from .cda import CDAIE
 from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
+from .channelnewsasia import ChannelNewsAsiaIE
 from .charlierose import CharlieRoseIE
 from .chaturbate import ChaturbateIE
 from .chilloutzone import ChilloutzoneIE
