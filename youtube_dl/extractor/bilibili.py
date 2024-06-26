@@ -38,7 +38,21 @@ class BiliBiliIE(InfoExtractor):
                     '''
 
     _TESTS = [{
-        'url': 'http://www.bilibili.tv/video/av1074402/',
+        'url': 'https://www.bilibili.com/video/BV1N7411A7WU/',
+        'info_dict': {
+            'id': '1N7411A7WU',
+            'ext': 'flv',
+            'title': '[经验分享]观看B站视频时如何开启CC字幕？(B站小白必看)',
+            'description': 'md5:b5b03414a659c29c7f5bce58c725b8ee',
+            'duration': 119.267,
+            'timestamp': 1582321654,
+            'upload_date': '20200221',
+            'uploader': 'Lynda教程和字幕',
+            'uploader_id': '389168097',
+            'subtitles': {'zh-CN': [{'url': 'http:\\u002F\\u002Fi0.hdslb.com\\u002Fbfs\\u002Fsubtitle\\u002F3c648ce057eea5b4e619c5dd9f0f23fbcad728f5.json', 'data': 'md5:ece63ef7a3a45fe2f7183f95f96d3181', 'ext': 'srt'}]}
+        },
+    }, {
+        'url': 'http://www.bilibili.com/video/av1074402/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
             'id': '1074402',
@@ -112,6 +126,12 @@ class BiliBiliIE(InfoExtractor):
     _APP_KEY = 'iVGUTjsxvpLeuDCf'
     _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 
+    def convert_timestamp_format(self, cc_timestamp):
+        ss, mm = "{:.3f}".format(float(cc_timestamp)).split(".")
+        m, s = divmod(int(ss), 60)
+        h, m = divmod(m, 60)
+        return "%02d:%02d:%02d,%s" % (h, m, s, mm)
+
     def _report_error(self, result):
         if 'message' in result:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, result['message']), expected=True)
@@ -154,6 +174,21 @@ class BiliBiliIE(InfoExtractor):
             if 'result' not in js:
                 self._report_error(js)
             cid = js['result']['cid']
+
+        subtitles = {}
+        for sub in re.findall(r'"lan":\s*"([^"]+)"[^}]+"subtitle_url":\s*"([^"]+)"', webpage, re.DOTALL):
+            subtitles[sub[0]] = [{'url': sub[1]}]
+            j = self._download_json(sub[1].replace("\\u002F", "/"), video_id, note='Downloading raw subtitle: %s' % (sub[0]))
+            srt = []
+            for idx, line in enumerate(j["body"]):
+                from_timestamp = self.convert_timestamp_format(line["from"])
+                to_timestamp = self.convert_timestamp_format(line["to"])
+                srt_tmp = (
+                    """%d\n%s --> %s\n%s\n""" % (idx, from_timestamp, to_timestamp, line["content"])
+                )
+                srt.append(srt_tmp)
+            subtitles[sub[0]][0]["data"] = "\n".join(srt)
+            subtitles[sub[0]][0]["ext"] = "srt"
 
         headers = {
             'Accept': 'application/json',
@@ -204,6 +239,7 @@ class BiliBiliIE(InfoExtractor):
                     'id': '%s_part%s' % (video_id, idx),
                     'duration': float_or_none(durl.get('length'), 1000),
                     'formats': formats,
+                    'subtitles': subtitles
                 })
             break
 
