@@ -120,7 +120,7 @@ def parseOpts(overrideArguments=None):
     kw = {
         'version': __version__,
         'formatter': fmt,
-        'usage': '%prog [OPTIONS] URL [URL...]',
+        'usage': '%prog [OPTIONS] URLS',
         'conflict_handler': 'resolve',
     }
 
