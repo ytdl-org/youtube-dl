@@ -61,6 +61,7 @@ else:
     files_spec = [
         ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
         ('etc/fish/completions', ['youtube-dl.fish']),
+        ('share/zsh/site-functions', ['_youtube-dl'])
         ('share/doc/youtube_dl', ['README.txt']),
         ('share/man/man1', ['youtube-dl.1'])
     ]
