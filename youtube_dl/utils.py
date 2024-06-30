@@ -1717,39 +1717,6 @@ TIMEZONE_NAMES = {
     'PST': -8, 'PDT': -7   # Pacific
 }
 
-
-class Namespace(object):
-    """Immutable namespace"""
-
-    def __init__(self, **kw_attr):
-        self.__dict__.update(kw_attr)
-
-    def __iter__(self):
-        return iter(self.__dict__.values())
-
-    @property
-    def items_(self):
-        return self.__dict__.items()
-
-
-MEDIA_EXTENSIONS = Namespace(
-    common_video=('avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'),
-    video=('3g2', '3gp', 'f4v', 'mk3d', 'divx', 'mpg', 'ogv', 'm4v', 'wmv'),
-    common_audio=('aiff', 'alac', 'flac', 'm4a', 'mka', 'mp3', 'ogg', 'opus', 'wav'),
-    audio=('aac', 'ape', 'asf', 'f4a', 'f4b', 'm4b', 'm4p', 'm4r', 'oga', 'ogx', 'spx', 'vorbis', 'wma', 'weba'),
-    thumbnails=('jpg', 'png', 'webp'),
-    # storyboards=('mhtml', ),
-    subtitles=('srt', 'vtt', 'ass', 'lrc', 'ttml'),
-    manifests=('f4f', 'f4m', 'm3u8', 'smil', 'mpd'),
-)
-MEDIA_EXTENSIONS.video = MEDIA_EXTENSIONS.common_video + MEDIA_EXTENSIONS.video
-MEDIA_EXTENSIONS.audio = MEDIA_EXTENSIONS.common_audio + MEDIA_EXTENSIONS.audio
-
-KNOWN_EXTENSIONS = (
-    MEDIA_EXTENSIONS.video + MEDIA_EXTENSIONS.audio
-    + MEDIA_EXTENSIONS.manifests
-)
-
 # needed for sanitizing filenames in restricted mode
 ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ',
                         itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOO', ['OE'], 'UUUUUY', ['TH', 'ss'],
@@ -3977,19 +3944,22 @@ def parse_duration(s):
     return duration
 
 
-def prepend_extension(filename, ext, expected_real_ext=None):
+def _change_extension(prepend, filename, ext, expected_real_ext=None):
     name, real_ext = os.path.splitext(filename)
-    return (
-        '{0}.{1}{2}'.format(name, ext, real_ext)
-        if not expected_real_ext or real_ext[1:] == expected_real_ext
-        else '{0}.{1}'.format(filename, ext))
+    sanitize_extension = _UnsafeExtensionError.sanitize_extension
+
+    if not expected_real_ext or real_ext.partition('.')[0::2] == ('', expected_real_ext):
+        filename = name
+        if prepend and real_ext:
+            sanitize_extension(ext, prepend=prepend)
+            return ''.join((filename, '.', ext, real_ext))
+
+    # Mitigate path traversal and file impersonation attacks
+    return '.'.join((filename, sanitize_extension(ext)))
 
 
-def replace_extension(filename, ext, expected_real_ext=None):
-    name, real_ext = os.path.splitext(filename)
-    return '{0}.{1}'.format(
-        name if not expected_real_ext or real_ext[1:] == expected_real_ext else filename,
-        ext)
+prepend_extension = functools.partial(_change_extension, True)
+replace_extension = functools.partial(_change_extension, False)
 
 
 def check_executable(exe, args=[]):
@@ -6579,3 +6549,136 @@ def join_nonempty(*values, **kwargs):
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
     return delim.join(map(compat_str, filter(None, values)))
+
+
+class Namespace(object):
+    """Immutable namespace"""
+
+    def __init__(self, **kw_attr):
+        self.__dict__.update(kw_attr)
+
+    def __iter__(self):
+        return iter(self.__dict__.values())
+
+    @property
+    def items_(self):
+        return self.__dict__.items()
+
+
+MEDIA_EXTENSIONS = Namespace(
+    common_video=('avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'),
+    video=('3g2', '3gp', 'f4v', 'mk3d', 'divx', 'mpg', 'ogv', 'm4v', 'wmv'),
+    common_audio=('aiff', 'alac', 'flac', 'm4a', 'mka', 'mp3', 'ogg', 'opus', 'wav'),
+    audio=('aac', 'ape', 'asf', 'f4a', 'f4b', 'm4b', 'm4p', 'm4r', 'oga', 'ogx', 'spx', 'vorbis', 'wma', 'weba'),
+    thumbnails=('jpg', 'png', 'webp'),
+    # storyboards=('mhtml', ),
+    subtitles=('srt', 'vtt', 'ass', 'lrc', 'ttml'),
+    manifests=('f4f', 'f4m', 'm3u8', 'smil', 'mpd'),
+)
+MEDIA_EXTENSIONS.video = MEDIA_EXTENSIONS.common_video + MEDIA_EXTENSIONS.video
+MEDIA_EXTENSIONS.audio = MEDIA_EXTENSIONS.common_audio + MEDIA_EXTENSIONS.audio
+
+KNOWN_EXTENSIONS = (
+    MEDIA_EXTENSIONS.video + MEDIA_EXTENSIONS.audio
+    + MEDIA_EXTENSIONS.manifests
+)
+
+
+class _UnsafeExtensionError(Exception):
+    """
+    Mitigation exception for unwanted file overwrite/path traversal
+    This should be caught in YoutubeDL.py with a warning
+
+    Ref: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-79w7-vh3h-8g4j
+    """
+    _ALLOWED_EXTENSIONS = frozenset(itertools.chain(
+        (   # internal
+            'description',
+            'json',
+            'meta',
+            'orig',
+            'part',
+            'temp',
+            'uncut',
+            'unknown_video',
+            'ytdl',
+        ),
+        # video
+        MEDIA_EXTENSIONS.video, (
+            'avif',
+            'ismv',
+            'm2ts',
+            'm4s',
+            'mng',
+            'mpeg',
+            'qt',
+            'swf',
+            'ts',
+            'vp9',
+            'wvm',
+        ),
+        # audio
+        MEDIA_EXTENSIONS.audio, (
+            'isma',
+            'mid',
+            'mpga',
+            'ra',
+        ),
+        # image
+        MEDIA_EXTENSIONS.thumbnails, (
+            'bmp',
+            'gif',
+            'ico',
+            'heic',
+            'jng',
+            'jpeg',
+            'jxl',
+            'svg',
+            'tif',
+            'wbmp',
+        ),
+        # subtitle
+        MEDIA_EXTENSIONS.subtitles, (
+            'dfxp',
+            'fs',
+            'ismt',
+            'sami',
+            'scc',
+            'ssa',
+            'tt',
+        ),
+        # others
+        MEDIA_EXTENSIONS.manifests,
+        (
+            # not used in yt-dl
+            # *MEDIA_EXTENSIONS.storyboards,
+            # 'desktop',
+            # 'ism',
+            # 'm3u',
+            # 'sbv',
+            # 'swp',
+            # 'url',
+            # 'webloc',
+            # 'xml',
+        )))
+
+    def __init__(self, extension):
+        super(_UnsafeExtensionError, self).__init__('unsafe file extension: {0!r}'.format(extension))
+        self.extension = extension
+
+    @classmethod
+    def sanitize_extension(cls, extension, **kwargs):
+        # ... /, *, prepend=False
+        prepend = kwargs.get('prepend', False)
+
+        if '/' in extension or '\\' in extension:
+            raise cls(extension)
+
+        if not prepend:
+            last = extension.rpartition('.')[-1]
+            if last == 'bin':
+                extension = last = 'unknown_video'
+            if last.lower() not in cls._ALLOWED_EXTENSIONS:
+                raise cls(extension)
+
+        return extension
