@@ -14,9 +14,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import io
 import itertools
 import json
+import types
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
     base_url,
@@ -270,6 +272,27 @@ class TestUtil(unittest.TestCase):
             expand_path('~/%s' % env('YOUTUBE_DL_EXPATH_PATH')),
             '%s/expanded' % compat_getenv('HOME'))
 
+    _uncommon_extensions = [
+        ('exe', 'abc.exe.ext'),
+        ('de', 'abc.de.ext'),
+        ('../.mp4', None),
+        ('..\\.mp4', None),
+    ]
+
+    def assertUnsafeExtension(self, ext=None):
+        assert_raises = self.assertRaises(_UnsafeExtensionError)
+        assert_raises.ext = ext
+        orig_exit = assert_raises.__exit__
+
+        def my_exit(self_, exc_type, exc_val, exc_tb):
+            did_raise = orig_exit(exc_type, exc_val, exc_tb)
+            if did_raise and assert_raises.ext is not None:
+                self.assertEqual(assert_raises.ext, assert_raises.exception.extension, 'Unsafe extension  not as unexpected')
+            return did_raise
+
+        assert_raises.__exit__ = types.MethodType(my_exit, assert_raises)
+        return assert_raises
+
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
         self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
@@ -278,6 +301,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
 
+        # Test uncommon extensions
+        self.assertEqual(prepend_extension('abc.ext', 'bin'), 'abc.bin.ext')
+        for ext, result in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc', ext)
+            if result:
+                self.assertEqual(prepend_extension('abc.ext', ext, 'ext'), result)
+            else:
+                with self.assertUnsafeExtension(ext):
+                    prepend_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc.unexpected_ext', ext, 'ext')
+
     def test_replace_extension(self):
         self.assertEqual(replace_extension('abc.ext', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('abc.ext', 'temp', 'ext'), 'abc.temp')
@@ -285,6 +321,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+        # Test uncommon extensions
+        self.assertEqual(replace_extension('abc.ext', 'bin'), 'abc.unknown_video')
+        for ext, _ in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc', ext)
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.unexpected_ext', ext, 'ext')
 
     def test_subtitles_filename(self):
         self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt'), 'abc.en.vtt')

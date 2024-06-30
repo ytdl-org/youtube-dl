@@ -7,6 +7,7 @@ import collections
 import copy
 import datetime
 import errno
+import functools
 import io
 import itertools
 import json
@@ -53,6 +54,7 @@ from .compat import (
     compat_urllib_request_DataHandler,
 )
 from .utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
     bug_reports_message,
@@ -127,6 +129,20 @@ from .version import __version__
 
 if compat_os_name == 'nt':
     import ctypes
+
+
+def _catch_unsafe_file_extension(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except _UnsafeExtensionError as error:
+            self.report_error(
+                '{0} found; to avoid damaging your system, this value is disallowed.'
+                ' If you believe this is an error{1}').format(
+                    error.message, bug_reports_message(','))
+
+    return wrapper
 
 
 class YoutubeDL(object):
@@ -1925,6 +1941,7 @@ class YoutubeDL(object):
         if self.params.get('forcejson', False):
             self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
+    @_catch_unsafe_file_extension
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
