@@ -1717,20 +1717,38 @@ TIMEZONE_NAMES = {
     'PST': -8, 'PDT': -7   # Pacific
 }
 
+
+class Namespace(object):
+    """Immutable namespace"""
+
+    def __init__(self, **kw_attr):
+        self.__dict__.update(kw_attr)
+
+    def __iter__(self):
+        return iter(self.__dict__.values())
+
+    @property
+    def items_(self):
+        return self.__dict__.items()
+
+
+MEDIA_EXTENSIONS = Namespace(
+    common_video=('avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'),
+    video=('3g2', '3gp', 'f4v', 'mk3d', 'divx', 'mpg', 'ogv', 'm4v', 'wmv'),
+    common_audio=('aiff', 'alac', 'flac', 'm4a', 'mka', 'mp3', 'ogg', 'opus', 'wav'),
+    audio=('aac', 'ape', 'asf', 'f4a', 'f4b', 'm4b', 'm4p', 'm4r', 'oga', 'ogx', 'spx', 'vorbis', 'wma', 'weba'),
+    thumbnails=('jpg', 'png', 'webp'),
+    # storyboards=('mhtml', ),
+    subtitles=('srt', 'vtt', 'ass', 'lrc', 'ttml'),
+    manifests=('f4f', 'f4m', 'm3u8', 'smil', 'mpd'),
+)
+MEDIA_EXTENSIONS.video = MEDIA_EXTENSIONS.common_video + MEDIA_EXTENSIONS.video
+MEDIA_EXTENSIONS.audio = MEDIA_EXTENSIONS.common_audio + MEDIA_EXTENSIONS.audio
+
 KNOWN_EXTENSIONS = (
-    'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
-    'flv', 'f4v', 'f4a', 'f4b',
-    'webm', 'ogg', 'ogv', 'oga', 'ogx', 'spx', 'opus',
-    'mkv', 'mka', 'mk3d',
-    'avi', 'divx',
-    'mov',
-    'asf', 'wmv', 'wma',
-    '3gp', '3g2',
-    'mp3',
-    'flac',
-    'ape',
-    'wav',
-    'f4f', 'f4m', 'm3u8', 'smil')
+    MEDIA_EXTENSIONS.video + MEDIA_EXTENSIONS.audio
+    + MEDIA_EXTENSIONS.manifests
+)
 
 # needed for sanitizing filenames in restricted mode
 ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ',
