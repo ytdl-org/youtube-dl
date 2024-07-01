@@ -15,14 +15,14 @@ from ..utils import (
 
 class ZoomIE(InfoExtractor):
     IE_NAME = 'zoom'
-    _VALID_URL = r'(?P<base_url>https?://(?:[^.]+\.)?zoom.us/)rec(?:ording)?/(?:play|share)/(?P<id>[A-Za-z0-9_.-]+)'
+    _VALID_URL = r'(?P<base_url>https?://(?:[^.]+\.)?zoom.us/)rec(?:ording)?/(?:play)/(?P<id>[A-Za-z0-9_.-]+)'
     _TEST = {
-        'url': 'https://economist.zoom.us/rec/play/dUk_CNBETmZ5VA2BwEl-jjakPpJ3M1pcfVYAPRsoIbEByGsLjUZtaa4yCATQuOL3der8BlTwxQePl_j0.EImBkXzTIaPvdZO5',
-        'md5': 'ab445e8c911fddc4f9adc842c2c5d434',
+        'url': 'https://us06web.zoom.us/rec/play/W1ctyErikzJ2CxtwlsTW3xNbiMHze6ZkU1adqeshzivi58DHEJ-7HX2Z8-nqK80a8d4CWHAhrSpsl9mG.OaL6JvfC1gAa1EvZ?canPlayFromShare=true&from=share_recording_detail&continueMode=true&componentName=rec-play&originRequestUrl=https%3A%2F%2Fus06web.zoom.us%2Frec%2Fshare%2F60THDorqjAyUm_IXKS88Z4KgfYRAER3wIG20jgrLqaSFBWJW14qBVBRkfHylpFrk.KXJxuNLN0sRBXyvf',
+        'md5': '934d7d10e04df5252dcb157ef615a983',
         'info_dict': {
-            'id': 'dUk_CNBETmZ5VA2BwEl-jjakPpJ3M1pcfVYAPRsoIbEByGsLjUZtaa4yCATQuOL3der8BlTwxQePl_j0.EImBkXzTIaPvdZO5',
+            'id': 'W1ctyErikzJ2CxtwlsTW3xNbiMHze6ZkU1adqeshzivi58DHEJ-7HX2Z8-nqK80a8d4CWHAhrSpsl9mG.OaL6JvfC1gAa1EvZ',
             'ext': 'mp4',
-            'title': 'China\'s "two sessions" and the new five-year plan',
+            'title': 'Chipathon Bi-Weekly Meeting- Shared screen with speaker view',
         }
     }
 
@@ -54,15 +54,22 @@ class ZoomIE(InfoExtractor):
         data = self._parse_json(self._search_regex(
             r'(?s)window\.__data__\s*=\s*({.+?});',
             webpage, 'data'), play_id, js_to_json)
-
+        try:
+            video_page = self._parse_json(self._download_webpage(
+                base_url + "nws/recording/1.0/play/info/" + data["fileId"], play_id),
+                play_id, js_to_json)
+        except Exception:
+            video_page = self._parse_json(self._download_webpage(
+                base_url + "nws/recording/1.0/play/share-info/" + data["fileId"], play_id),
+                play_id, js_to_json)
         return {
             'id': play_id,
-            'title': data['topic'],
-            'url': data['viewMp4Url'],
-            'width': int_or_none(data.get('viewResolvtionsWidth')),
-            'height': int_or_none(data.get('viewResolvtionsHeight')),
+            'title': video_page["result"]["meet"]["topic"],
+            'url': video_page["result"]['viewMp4Url'],
+            'width': int_or_none(video_page["result"]["viewResolvtions"][0]),
+            'height': int_or_none(video_page["result"]["viewResolvtions"][1]),
             'http_headers': {
                 'Referer': base_url,
             },
-            'filesize_approx': parse_filesize(data.get('fileSize')),
+            'filesize_approx': parse_filesize(video_page["result"]["recording"]["fileSizeInMB"]),
         }
