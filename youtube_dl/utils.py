@@ -6587,7 +6587,6 @@ KNOWN_EXTENSIONS = (
 class _UnsafeExtensionError(Exception):
     """
     Mitigation exception for unwanted file overwrite/path traversal
-    This should be caught in YoutubeDL.py with a warning
 
     Ref: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-79w7-vh3h-8g4j
     """
@@ -6666,6 +6665,9 @@ class _UnsafeExtensionError(Exception):
         super(_UnsafeExtensionError, self).__init__('unsafe file extension: {0!r}'.format(extension))
         self.extension = extension
 
+    # support --no-check-extensions
+    lenient = False
+
     @classmethod
     def sanitize_extension(cls, extension, **kwargs):
         # ... /, *, prepend=False
@@ -6678,7 +6680,7 @@ class _UnsafeExtensionError(Exception):
             last = extension.rpartition('.')[-1]
             if last == 'bin':
                 extension = last = 'unknown_video'
-            if last.lower() not in cls._ALLOWED_EXTENSIONS:
+            if not (cls.lenient or last.lower() in cls._ALLOWED_EXTENSIONS):
                 raise cls(extension)
 
         return extension
