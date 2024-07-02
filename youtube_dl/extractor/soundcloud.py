@@ -233,8 +233,8 @@ class SoundcloudIE(InfoExtractor):
                 'id': '583011102',
                 'ext': 'mp3',
                 'title': 'Mezzo Valzer',
-                'description': 'md5:4138d582f81866a530317bae316e8b61',
-                'uploader': 'Micronie',
+                'description': 'md5:8de664f12895716c8ac6f1da6348eb8e',
+                'uploader': 'Giovanni Sarani',
                 'uploader_id': '3352531',
                 'timestamp': 1551394171,
                 'upload_date': '20190228',
@@ -293,6 +293,11 @@ class SoundcloudIE(InfoExtractor):
         if non_fatal:
             del kwargs['fatal']
         query = kwargs.get('query', {}).copy()
+        oauth_token = self._get_cookies(self._BASE_URL).get('oauth_token')
+        if oauth_token:
+            if not kwargs.get('headers'):
+                kwargs['headers'] = {}
+            kwargs['headers']['authorization'] = 'OAuth ' + oauth_token.value
         for _ in range(2):
             query['client_id'] = self._CLIENT_ID
             kwargs['query'] = query
@@ -319,6 +324,7 @@ class SoundcloudIE(InfoExtractor):
         track_id = compat_str(info['id'])
         title = info['title']
 
+        duration = info.get('duration')
         format_urls = set()
         formats = []
         query = {'client_id': self._CLIENT_ID}
@@ -335,12 +341,14 @@ class SoundcloudIE(InfoExtractor):
                 if urlh:
                     format_url = urlh.geturl()
                     format_urls.add(format_url)
+                    filesize = int_or_none(urlh.headers.get('Content-Length'))
                     formats.append({
                         'format_id': 'download',
                         'ext': urlhandle_detect_ext(urlh) or 'mp3',
-                        'filesize': int_or_none(urlh.headers.get('Content-Length')),
+                        'filesize': filesize,
                         'url': format_url,
                         'preference': 10,
+                        'abr': (filesize and duration) and (filesize / duration * 8),
                     })
 
         def invalid_url(url):
