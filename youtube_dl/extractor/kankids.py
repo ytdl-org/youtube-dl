@@ -10,7 +10,7 @@ DOMAIN = r'kankids.org.il'
 
 class KanKidsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?' +\
-        DOMAIN.replace('.', '\.') + CONTENT_DIR +\
+        DOMAIN.replace('.', '\\.') + CONTENT_DIR +\
         r'(?P<category>[a-z]+)-main/(?P<id>[\w\-0-9]+)/(?P<season>\w+)?/?$'
     _TESTS = [
         {
@@ -51,11 +51,11 @@ class KanKidsIE(InfoExtractor):
         season = playlist_season if playlist_season else r'(?P<season>\w+)'
         content_dir = CONTENT_DIR + category + r'-main/'
         playlist = set(re.findall(
-            r'href="' + content_dir +       # Content dir
-            series_id + r'/' +              # Series
-            season + r'/' +                 # Season
-            r'(?P<id>[0-9]+)/"' +           # Episode
-            r'.+title="(?P<title>.+)"',     # Title
+            r'href="' + content_dir         # Content dir
+            + series_id + r'/'              # Series
+            + season + r'/'                 # Season
+            + r'(?P<id>[0-9]+)/"'           # Episode
+            + r'.+title="(?P<title>.+)"',   # Title
             webpage))
 
         entries = []
@@ -74,4 +74,3 @@ class KanKidsIE(InfoExtractor):
             'title': series_title,
             'entries': entries,
         }
-
