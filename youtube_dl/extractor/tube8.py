@@ -2,85 +2,95 @@ from __future__ import unicode_literals
 
 import re
 
+from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    str_to_int,
+    traverse_obj,
+    T,
+    url_or_none,
+    parse_iso8601,
 )
-from .keezmovies import KeezMoviesIE
 
 
-class Tube8IE(KeezMoviesIE):
-    _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/)+(?P<display_id>[^/]+)/(?P<id>\d+)'
+class Tube8IE(InfoExtractor):
+    _VALID_URL = r'https?:\/\/(?:www\.)?tube8\.com\/+[^\/]+\/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
-        'md5': '65e20c48e6abff62ed0c3965fff13a39',
+        'url': 'https://www.tube8.com/porn-video/189530841/',
+        'md5': '532408f59e89a32027d873af6289c85a',
         'info_dict': {
-            'id': '229795',
-            'display_id': 'kasia-music-video',
+            'id': '189530841',
             'ext': 'mp4',
-            'description': 'hot teen Kasia grinding',
-            'uploader': 'unknown',
-            'title': 'Kasia music video',
-            'age_limit': 18,
-            'duration': 230,
-            'categories': ['Teen'],
-            'tags': ['dancing'],
-        },
-    }, {
-        'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
-        'only_matching': True,
+            'title': 'Found dildo. She let it cum in her tight ass to keep the secret',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'MaryKrylova',
+            'timestamp': 1718961736,
+            'upload_date': '20240621',
+        }
     }]
 
-    @staticmethod
-    def _extract_urls(webpage):
-        return re.findall(
-            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)+\d+)',
-            webpage)
-
     def _real_extract(self, url):
-        webpage, info = self._extract_info(url)
+        video_id = self._match_valid_url(url).group('id')
+        webpage = self._download_webpage(url, video_id)
 
-        if not info['title']:
-            info['title'] = self._html_search_regex(
-                r'videoTitle\s*=\s*"([^"]+)', webpage, 'title')
+        playervars = self._search_json(
+            r'\bplayervars\s*:', webpage, 'playervars', video_id)
 
-        description = self._html_search_regex(
-            r'(?s)Description:</dt>\s*<dd>(.+?)</dd>', webpage, 'description', fatal=False)
-        uploader = self._html_search_regex(
-            r'<span class="username">\s*(.+?)\s*<',
-            webpage, 'uploader', fatal=False)
+        extra_info = self._search_json(
+            r'application/ld\+json[\"\']?>\s?', webpage, 'extra_info', video_id)
 
-        like_count = int_or_none(self._search_regex(
-            r'rupVar\s*=\s*"(\d+)"', webpage, 'like count', fatal=False))
-        dislike_count = int_or_none(self._search_regex(
-            r'rdownVar\s*=\s*"(\d+)"', webpage, 'dislike count', fatal=False))
-        view_count = str_to_int(self._search_regex(
-            r'Views:\s*</dt>\s*<dd>([\d,\.]+)',
-            webpage, 'view count', fatal=False))
-        comment_count = str_to_int(self._search_regex(
-            r'<span id="allCommentsCount">(\d+)</span>',
-            webpage, 'comment count', fatal=False))
+        uploader = traverse_obj(extra_info, (
+            '@graph', lambda _, v: v.get('author'), 'author'))[0]
 
-        category = self._search_regex(
-            r'Category:\s*</dt>\s*<dd>\s*<a[^>]+href=[^>]+>([^<]+)',
-            webpage, 'category', fatal=False)
-        categories = [category] if category else None
+        thumbnail = traverse_obj(extra_info, (
+            '@graph', lambda _, v: v.get('thumbnail'), 'thumbnail'))[0]
 
-        tags_str = self._search_regex(
-            r'(?s)Tags:\s*</dt>\s*<dd>(.+?)</(?!a)',
-            webpage, 'tags', fatal=False)
-        tags = [t for t in re.findall(
-            r'<a[^>]+href=[^>]+>([^<]+)', tags_str)] if tags_str else None
+        timestamp = parse_iso8601(traverse_obj(extra_info, (
+            '@graph', lambda _, v: v.get('datePublished'), 'datePublished'))[0])
 
-        info.update({
-            'description': description,
+        # Borrowed from youporn extractor
+        def get_fmt(x):
+            v_url = url_or_none(x.get('videoUrl'))
+            if v_url:
+                x['videoUrl'] = v_url
+                return (x['format'], x)
+
+        defs_by_format = dict(traverse_obj(playervars, (
+            'mediaDefinitions', lambda _, v: v.get('format'), T(get_fmt))))
+
+        title = traverse_obj(playervars, 'video_title')
+        if not thumbnail:
+            thumbnail = traverse_obj(playervars, 'image_url')
+
+        # Borrowed from youporn extractor
+        def get_format_data(f):
+            if f not in defs_by_format:
+                return []
+            return self._download_json(
+                defs_by_format[f]['videoUrl'], video_id, '{0}-formats'.format(f))
+
+        formats = []
+        for mp4_url in traverse_obj(
+                get_format_data('mp4'),
+                (lambda _, v: not isinstance(v['defaultQuality'], bool), 'videoUrl'),
+                (Ellipsis, 'videoUrl')):
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', mp4_url)
+            if mobj:
+                height = int(mobj.group('height'))
+                tbr = int(mobj.group('bitrate'))
+                formats.append({
+                    'format_id': '%dp-%dk' % (height, tbr),
+                    'url': mp4_url,
+                    'ext': 'mp4',
+                    'tbr': tbr,
+                    'height': height,
+                })
+
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'formats': formats,
             'uploader': uploader,
-            'view_count': view_count,
-            'like_count': like_count,
-            'dislike_count': dislike_count,
-            'comment_count': comment_count,
-            'categories': categories,
-            'tags': tags,
-        })
-
-        return info
+            'timestamp': timestamp,
+        }
