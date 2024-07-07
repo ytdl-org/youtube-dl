@@ -139,8 +139,8 @@ def _catch_unsafe_file_extension(func):
         except _UnsafeExtensionError as error:
             self.report_error(
                 '{0} found; to avoid damaging your system, this value is disallowed.'
-                ' If you believe this is an error{1}').format(
-                    error.message, bug_reports_message(','))
+                ' If you believe this is an error{1}'.format(
+                    error_to_compat_str(error), bug_reports_message(',')))
 
     return wrapper
 
@@ -2114,18 +2114,26 @@ class YoutubeDL(object):
                         # TODO: Check acodec/vcodec
                         return False
 
-                    filename_real_ext = os.path.splitext(filename)[1][1:]
-                    filename_wo_ext = (
-                        os.path.splitext(filename)[0]
-                        if filename_real_ext == info_dict['ext']
-                        else filename)
+                    exts = [info_dict['ext']]
                     requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
                         self.report_warning(
                             'Requested formats are incompatible for merge and will be merged into mkv.')
+                    exts.append(info_dict['ext'])
+
                     # Ensure filename always has a correct extension for successful merge
-                    filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
+                    def correct_ext(filename, ext=exts[1]):
+                        if filename == '-':
+                            return filename
+                        f_name, f_real_ext = os.path.splitext(filename)
+                        f_real_ext = f_real_ext[1:]
+                        filename_wo_ext = f_name if f_real_ext in exts else filename
+                        if ext is None:
+                            ext = f_real_ext or None
+                        return join_nonempty(filename_wo_ext, ext, delim='.')
+
+                    filename = correct_ext(filename)
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
@@ -2135,8 +2143,9 @@ class YoutubeDL(object):
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = prepend_extension(
-                                self.prepare_filename(new_info),
-                                'f%s' % f['format_id'], new_info['ext'])
+                                correct_ext(
+                                    self.prepare_filename(new_info), new_info['ext']),
+                                'f%s' % (f['format_id'],), new_info['ext'])
                             if not ensure_dir_exists(fname):
                                 return
                             downloaded.append(fname)
