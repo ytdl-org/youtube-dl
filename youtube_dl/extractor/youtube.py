@@ -1658,8 +1658,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = self._search_regex(
-            r'\.get\("n"\)\)&&\(b=(?P<nfunc>[a-zA-Z_$][\w$]*)(?:\[(?P<idx>\d+)\])?\([\w$]+\)',
+            r'\.get\(b\)\)&&\(c=(?P<nfunc>[a-zA-Z_$][\w$]*)(?:\[(?P<idx>\d+)\])?\([\w$]+\)',
             jscode, 'Initial JS player n function name', group=('nfunc', 'idx'))
+
         if not idx:
             return func_name
 
@@ -1679,12 +1680,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         func_name = self._extract_n_function_name(jscode)
 
-        # For redundancy
         func_code = self._search_regex(
-            r'''(?xs)%s\s*=\s*function\s*\((?P<var>[\w$]+)\)\s*
-                     # NB: The end of the regex is intentionally kept strict
-                     {(?P<code>.+?}\s*return\ [\w$]+.join\(""\))};''' % func_name,
+            r'''(?xs)%s\s*=\s*function\s*\((?P<var>[\w$]+)\)\s*{(?P<code>.+?}\s*return\ Array\.prototype\.join\.call\([\w$]+,\s*""\))};''' % func_name,
             jscode, 'nsig function', group=('var', 'code'), default=None)
+
+        var_name = ''
+        match_var = re.search(r'var (\w+)=String\.prototype\.split\.call', func_code[1])
+        if match_var:
+            var_name = match_var.group(1)
+
+        temp_func_code = func_code[1].replace('String.prototype.split.call(a,"")', func_code[0] + '.split(\'\')')
+        temp_func_code = temp_func_code.replace('Array.prototype.join.call(' + var_name + ',"")', var_name + '.join(\'\')')
+        func_code = (func_code[0], temp_func_code)
+
         if func_code:
             func_code = ([func_code[0]], func_code[1])
         else:
