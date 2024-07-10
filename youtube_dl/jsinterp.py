@@ -804,16 +804,19 @@ class JSInterpreter(object):
             if op in ('+', '-'):
                 # simplify/adjust consecutive instances of these operators
                 undone = 0
-                while len(separated) > 1 and not separated[-1].strip():
+                separated = [s.strip() for s in separated]
+                while len(separated) > 1 and not separated[-1]:
                     undone += 1
                     separated.pop()
                 if op == '-' and undone % 2 != 0:
                     right_expr = op + right_expr
                 elif op == '+':
-                    while len(separated) > 1 and separated[-1].strip() in self.OP_CHARS:
+                    while len(separated) > 1 and set(separated[-1]) <= self.OP_CHARS:
+                        right_expr = separated.pop() + right_expr
+                    if separated[-1][-1:] in self.OP_CHARS:
                         right_expr = separated.pop() + right_expr
                 # hanging op at end of left => unary + (strip) or - (push right)
-                left_val = separated[-1]
+                left_val = separated[-1] if separated else ''
                 for dm_op in ('*', '%', '/', '**'):
                     bodmas = tuple(self._separate(left_val, dm_op, skip_delims=skip_delim))
                     if len(bodmas) > 1 and not bodmas[-1].strip():
