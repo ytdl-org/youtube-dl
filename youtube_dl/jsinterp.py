@@ -850,7 +850,7 @@ class JSInterpreter(object):
                     memb = member
                     raise self.Exception('{memb} {msg}'.format(**locals()), expr=expr)
 
-            def eval_method():
+            def eval_method(variable, member):
                 if (variable, member) == ('console', 'debug'):
                     if Debugger.ENABLED:
                         Debugger.write(self.interpret_expression('[{}]'.format(arg_str), local_vars, allow_recursion))
@@ -858,6 +858,7 @@ class JSInterpreter(object):
                 types = {
                     'String': compat_str,
                     'Math': float,
+                    'Array': list,
                 }
                 obj = local_vars.get(variable)
                 if obj in (JS_Undefined, None):
@@ -882,6 +883,23 @@ class JSInterpreter(object):
                 argvals = [
                     self.interpret_expression(v, local_vars, allow_recursion)
                     for v in self._separate(arg_str)]
+
+                # Fixup prototype call
+                if isinstance(obj, type):
+                    new_member, rest = member.partition('.')[0::2]
+                    if new_member == 'prototype':
+                        new_member, func_prototype = rest.partition('.')[0::2]
+                        assertion(argvals, 'takes one or more arguments')
+                        assertion(isinstance(argvals[0], obj), 'must bind to type {0}'.format(obj))
+                        if func_prototype == 'call':
+                            obj = argvals.pop(0)
+                        elif func_prototype == 'apply':
+                            assertion(len(argvals) == 2, 'takes two arguments')
+                            obj, argvals = argvals
+                            assertion(isinstance(argvals, list), 'second argument must be a list')
+                        else:
+                            raise self.Exception('Unsupported Function method ' + func_prototype, expr)
+                        member = new_member
 
                 if obj is compat_str:
                     if member == 'fromCharCode':
@@ -976,11 +994,11 @@ class JSInterpreter(object):
 
             if remaining:
                 ret, should_abort = self.interpret_statement(
-                    self._named_object(local_vars, eval_method()) + remaining,
+                    self._named_object(local_vars, eval_method(variable, member)) + remaining,
                     local_vars, allow_recursion)
                 return ret, should_return or should_abort
             else:
-                return eval_method(), should_return
+                return eval_method(variable, member), should_return
 
         elif md.get('function'):
             fname = m.group('fname')
