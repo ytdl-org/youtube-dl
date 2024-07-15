@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -34,24 +35,30 @@ class Tube8IE(InfoExtractor):
         }
     }]
 
+    _EMBED_REGEX =  r'<iframe [^>]*\bsrc=["\'](?P<url>(?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)*\d+)'
+    
+    @classmethod
+    def _extract_urls(cls, webpage):
+        return [m.group('url') for m in re.finditer(cls._EMBED_REGEX, webpage)]
+
     def _real_extract(self, url):
-        video_id = self._match_valid_url(url).group('id')
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        age_verify_msg = self._search_regex(
+            r'(your elected officials in \w+(?:\s+\w+){,2} are requiring us to verify your age before allowing you access to our website)',
+            webpage, 'age verification message', default=None)
+        if age_verify_msg:
+            self.raise_geo_restricted('%s said: "%s"' % (self.IE_NAME, age_verify_msg))
 
         playervars = self._search_json(
             r'\bplayervars\s*:', webpage, 'playervars', video_id)
 
-        extra_info = self._search_json(
-            r'application/ld\+json[\"\']?>\s?', webpage, 'extra_info', video_id)
-
-        uploader = traverse_obj(extra_info, (
-            '@graph', lambda _, v: v.get('author'), 'author'))[0]
-
-        thumbnail = traverse_obj(extra_info, (
-            '@graph', lambda _, v: v.get('thumbnail'), 'thumbnail'))[0]
-
-        timestamp = parse_iso8601(traverse_obj(extra_info, (
-            '@graph', lambda _, v: v.get('datePublished'), 'datePublished'))[0])
+        info = self._search_json_ld(webpage, video_id, expected_type='VideoObject', default={})
+        for k in ('url', 'description'):
+            info.pop(k, None)
+            
+        info['uploader'] = clean_html(get_element_by_class('submitByLink', webpage))
 
         # Borrowed from youporn extractor
         def get_fmt(x):
@@ -63,9 +70,9 @@ class Tube8IE(InfoExtractor):
         defs_by_format = dict(traverse_obj(playervars, (
             'mediaDefinitions', lambda _, v: v.get('format'), T(get_fmt))))
 
-        title = traverse_obj(playervars, 'video_title')
-        if not thumbnail:
-            thumbnail = traverse_obj(playervars, 'image_url')
+        info['title'] = strip_or_none(playervars.get('video_title')) or info.get('title') or playervars['video_title']
+        if 'thumbnail' not in info.keys():
+            info['thumbnail'] = traverse_obj(playervars, ('image_url', T(url_or_none)))
 
         # Borrowed from youporn extractor
         def get_format_data(f):
@@ -78,29 +85,26 @@ class Tube8IE(InfoExtractor):
         for mp4_url in traverse_obj(
                 get_format_data('mp4'),
                 (lambda _, v: not isinstance(v['defaultQuality'], bool), 'videoUrl'),
-                (Ellipsis, 'videoUrl')):
-            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', mp4_url)
-            if mobj:
-                height = int(mobj.group('height'))
-                tbr = int(mobj.group('bitrate'))
-                formats.append({
-                    'format_id': '%dp-%dk' % (height, tbr),
-                    'url': mp4_url,
-                    'ext': 'mp4',
-                    'tbr': tbr,
-                    'height': height,
-                })
+                (Ellipsis, 'videoUrl'),
+                expected_type=url_or_none):
+            height, tbr = map(int_or_none, self._search_regex(r'(?i)(?P<height>\d{3,4})p_(?P<bitrate>\d+)k_\d+', mp4_url, 'media details', group=('height', 'bitrate'), fatal=False))
+            fmt_id = '%dp' % height if height else 'mp4'
+            formats.append({
+                'format_id': fmt_id,
+                'url': mp4_url,
+                'ext': 'mp4',
+                'height': height,
+                'tbr': tbr,
+            })
 
         self._sort_formats(formats)
 
-        return {
+        info.update({
             'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
             'formats': formats,
-            'uploader': uploader,
-            'timestamp': timestamp,
-        }
+            'age_limit': 18,
+        })
+        return info
 
 
 # Currently only user channels
