@@ -7,14 +7,15 @@ from time import sleep
 
 from .common import InfoExtractor
 from ..utils import (
-    traverse_obj,
-    T,
-    url_or_none,
-    parse_iso8601,
+    clean_html,
     get_element_by_class,
     get_element_by_id,
     int_or_none,
     parse_qs,
+    strip_or_none,
+    T,
+    traverse_obj,    
+    url_or_none,
     urljoin,
 )
 
@@ -30,8 +31,7 @@ class Tube8IE(InfoExtractor):
             'title': 'Found dildo. She let it cum in her tight ass to keep the secret',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'MaryKrylova',
-            'timestamp': 1718961736,
-            'upload_date': '20240621',
+            'age_limit': 18,
         }
     }]
 
@@ -71,7 +71,7 @@ class Tube8IE(InfoExtractor):
             'mediaDefinitions', lambda _, v: v.get('format'), T(get_fmt))))
 
         info['title'] = strip_or_none(playervars.get('video_title')) or info.get('title') or playervars['video_title']
-        if 'thumbnail' not in info.keys():
+        if not info.get('thumbnail'):
             info['thumbnail'] = traverse_obj(playervars, ('image_url', T(url_or_none)))
 
         # Borrowed from youporn extractor
