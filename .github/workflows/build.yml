@@ -79,9 +79,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.4
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
+          # required for Windows XP support
           python-version: "3.4"
           architecture: x86
 
