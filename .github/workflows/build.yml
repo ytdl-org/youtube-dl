@@ -73,7 +73,7 @@ jobs:
     runs-on: windows-2022
     env:
       PYCRYPTO: pycrypto-2.6.1-cp34-none-win32
-      # Temporary workaround for Python 3.4/5 failures - May 2024
+      # Workaround for Python 3.4/5 PyPi certificate verification failures - May 2024
       PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
 
     steps:
