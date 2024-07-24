@@ -1647,7 +1647,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         except JSInterpreter.Exception as e:
             self.report_warning(
                 '%s (%s %s)' % (
-                    'Unable to decode n-parameter: download likely to be throttled',
+                    'Unable to decode n-parameter: expect download to be blocked or throttled',
                     error_to_compat_str(e),
                     traceback.format_exc()),
                 video_id=video_id)
@@ -1670,7 +1670,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return func_name
 
         return self._parse_json(self._search_regex(
-            r'var {0}\s*=\s*(\[.+?\])\s*[,;]'.format(re.escape(func_name)), jscode,
+            r'var\s+{0}\s*=\s*(\[.+?\])\s*[,;]'.format(re.escape(func_name)), jscode,
             'Initial JS player n function list ({0}.{1})'.format(func_name, idx)),
             func_name, transform_source=js_to_json)[int(idx)]
 
