@@ -1659,11 +1659,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_n_function_name(self, jscode):
         func_name, idx = self._search_regex(
             # new: (b=String.fromCharCode(110),c=a.get(b))&&c=nfunc[idx](c)
+            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=nfunc[idx](c)s
             # old: .get("n"))&&(b=nfunc[idx](b)
             # older: .get("n"))&&(b=nfunc(b)
             r'''(?x)
-                (?:\(\s*(?P<b>[a-z])\s*=\s*String\s*\.\s*fromCharCode\s*\(\s*110\s*\)\s*,(?P<c>[a-z])\s*=\s*[a-z]\s*)?
-                \.\s*get\s*\(\s*(?(b)(?P=b)|"n")(?:\s*\)){2}\s*&&\s*\(\s*(?(c)(?P=c)|b)\s*=\s*
+                (?:\(\s*(?P<b>[a-z])\s*=\s*(?:
+                    String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
+                    "n+"\[\s*\+?s*[\w$.]+\s*]
+                )\s*,(?P<c>[a-z])\s*=\s*[a-z]\s*)?
+                \.\s*get\s*\(\s*(?(b)(?P=b)|"n{1,2}")(?:\s*\)){2}\s*&&\s*\(\s*(?(c)(?P=c)|b)\s*=\s*
                 (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'))
         if not idx:
