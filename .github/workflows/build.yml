@@ -21,7 +21,7 @@ on:
         required: true
         type: string
       unix:
-        description: youtube-dl, youtube-dl.tar.gz
+        description: youtube-dl, youtube-dl-py3, youtube-dl.tar.gz
         default: true
         type: boolean
       windows32:
@@ -65,6 +65,7 @@ jobs:
           name: build-bin-${{ github.job }}
           path: |
             youtube-dl
+            youtube-dl-py3
             youtube-dl.tar.gz
           compression-level: 0
 
