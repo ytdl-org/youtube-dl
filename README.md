@@ -1091,6 +1091,105 @@ After you have ensured this site is distributing its content legally, you can fo
 
 In any case, thank you very much for your contributions!
 
+### Adding support for playlists and channels
+
+Before youtube-dl can download entire playlists and channels, it has to be able to download a single video. So make sure you successfully followed the [new extractor tutorial](#adding-support-for-a-new-site).
+
+
+Downloading multiple videos is fundamentally similar to downloading a single video. All the magic still happens in `_real_extract` but this time it will return a slightly different dictionary. We will use a helper method `_entries`, but it's not mandatory.
+
+1. Start with this simple template and add it to `youtube_dl/extractor/yourextractor.py`:
+
+    ```python
+    # coding: utf-8
+    from __future__ import unicode_literals
+
+    from .common import InfoExtractor
+    import re
+
+
+    class YourExtractorIE(InfoExtractor):
+        "Single-video-page extractor"
+        pass
+
+
+    class YourPlaylistExtractorIE(InfoExtractor):
+        _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/playlist/(?P<id>[0-9]+)'
+        _TEST = {
+            'url': 'https://yourextractor.com/playlist/',
+            # The tests should find at least this many videos in the playlist
+            'playlist_mincount': 1,
+            'info_dict': {
+                'id': '42',
+                'title': 'Playlist title goes here',
+                # TODO more properties, either as:
+                # * A value
+                # * MD5 checksum; start the string with md5:
+                # * A regular expression; start the string with re:
+                # * Any Python type (for example int or float)
+            }
+        }
+
+        def _entries(self, url):
+            # We will use `self.url_result()` to fill this list with entries
+            # like this:
+            # {
+            #     '_type': 'url',
+            #     'url': 'video url', # Url to a video page, not a video file
+            #     'ie_key': ie, # Our single-video-page extractor, see below
+            #     'id': 'video id',
+            #     'title': 'video title'
+            # }
+            entries = []
+
+            while url is not None:
+                page_id = self._match_id(url)
+                webpage = self._download_webpage(url, page_id)
+
+                # Get the urls of every single-video-page
+                page_urls = re.findall(
+                    r'<a[^>] class="video" href="(?P<url>https?://(?:www\.)?yourextractor\.com/watch/[0-9]+)">',
+                    webpage)
+
+                for u in page_urls:
+                    # Here we pass our single-video-page extractor
+                    entries.append(
+                        self.url_result(u, YourExtractorIE.ie_key()))
+
+                # Gets the url of the next page or `None`
+                url = self._search_regex(
+                        r'<li class="next-page"><a href="(?P<url>https?://(?:www\.)?yourextractor\.com/playlist/[0-9]+/page/[0-9]+)">',
+                        webpage, 'next page url', default=None)
+
+            return entries
+
+        def _real_extract(self, url):
+            playlist_id = self._match_id(url)
+            webpage = self._download_webpage(url, playlist_id)
+
+            entries = self._entries(url)
+            playlist_title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
+            playlist_description = self._og_search_description(webpage)
+
+            # Here we can see how playlists are different.
+            # `self.playlist_result()` will return a dictionary that looks
+            # like this:
+            # {
+            #     '_type': 'playlist',
+            #     'id': 'playlist id',
+            #     'title': 'playlist title',
+            #     'description': 'playlist description',
+            #     'entries': [...] # A list of entries, see `self._entries()`
+            # }
+            return self.playlist_result(entries, playlist_id,
+                    playlist_title, playlist_description)
+    ```
+
+2. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
+
+3. Run `python test/test_download.py TestDownload.test_YourPlaylistExtractor`, same as for the single video extractor.
+
+
 ## youtube-dl coding conventions
 
 This section introduces guidelines for writing idiomatic, robust and future-proof extractor code.
