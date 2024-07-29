@@ -26,7 +26,7 @@ class La1ereExrtractorBaseIE(InfoExtractor):
         playlist_url = auth_request['url']
         return video_id, playlist_url
 
-    
+
 class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
     _VALID_URL = r'https://la1ere.francetvinfo.fr/(?P<region>[^/]+)/programme-video/diffusion/(?P<page>[^\.]+).html'
     _TEST = {
@@ -44,7 +44,7 @@ class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
         title = self._html_search_regex(r'<h1 .*title.*>(.+?)</h1>', webpage, 'title')
 
         video_id, playlist_url = self._extract_given_title(webpage, title)
-        
+
         # get the mpd playlist
         formats = self._extract_m3u8_formats(playlist_url, video_id)
 
@@ -53,7 +53,8 @@ class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
             'title': title,
             'formats': formats,
         }
-    
+
+
 class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
     _VALID_URL = r'https://la1ere.francetvinfo.fr/(?P<region>[^/]+)/programme-video/(?P<show>[^/]+)/diffusion/(?P<page>[^\.]+).html'
     _TEST = {
@@ -64,7 +65,7 @@ class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
             'title': '13H en Guadeloupe - Émission du lundi 29 janvier 2024',
         }
     }
-    
+
     def _real_extract(self, url):
         webpage = self._download_webpage(url, 'la1ere')
 
@@ -73,7 +74,7 @@ class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
         title = f'{series_name} - {episode_name}'
 
         video_id, playlist_url = self._extract_given_title(webpage, title)
-        
+
         # get the m3u8 playlist
         formats = self._extract_m3u8_formats(playlist_url, video_id)
 
@@ -82,4 +83,3 @@ class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
             'title': title,
             'formats': formats,
         }
-
