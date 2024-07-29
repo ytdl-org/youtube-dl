@@ -30,6 +30,7 @@ class La1ereExrtractorBaseIE(InfoExtractor):
 class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
     _VALID_URL = r'https://la1ere.francetvinfo.fr/(?P<region>[^/]+)/programme-video/diffusion/(?P<page>[^\.]+).html'
     _TEST = {
+        'skip': 'Only available in FR',
         'url': 'https://la1ere.francetvinfo.fr/martinique/programme-video/diffusion/4774522-origine-kongo.html',
         'info_dict': {
             'ext': 'mp4',
@@ -56,6 +57,7 @@ class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
 class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
     _VALID_URL = r'https://la1ere.francetvinfo.fr/(?P<region>[^/]+)/programme-video/(?P<show>[^/]+)/diffusion/(?P<page>[^\.]+).html'
     _TEST = {
+        'skip': 'Only available in FR',
         'url': 'https://la1ere.francetvinfo.fr/guadeloupe/programme-video/la1ere_guadeloupe_le-13h-en-guadeloupe/diffusion/5643549-emission-du-lundi-29-janvier-2024.html',
         'info_dict': {
             'ext': 'mp4',
