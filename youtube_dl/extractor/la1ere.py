@@ -47,6 +47,7 @@ class La1ereExtractorPageIE(La1ereExrtractorBaseIE):
 
         # get the mpd playlist
         formats = self._extract_m3u8_formats(playlist_url, video_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -77,9 +78,13 @@ class La1ereExtractorShowPageIE(La1ereExrtractorBaseIE):
 
         # get the m3u8 playlist
         formats = self._extract_m3u8_formats(playlist_url, video_id)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
         }
+
+
+
