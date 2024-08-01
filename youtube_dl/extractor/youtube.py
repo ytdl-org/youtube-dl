@@ -1678,8 +1678,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                           )
                     )\s*=\s*                   
                 (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
-            ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'))
+            ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
+            default=(None, None))
+        # thx bashonly: yt-dlp/yt-dlp/pull/10611
+        if not func_name:
+            self.report_warning('Falling back to generic n function search')
+            return self._search_regex(
+                r'''(?xs)
+                    (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
+                    (?P<name>(?!\d)[a-zA-Z\d_$]+)\s*=\s*function\((?!\d)[a-zA-Z\d_$]+\)
+                    \s*\{(?:(?!};).)+?["']enhanced_except_
+                ''', jscode, 'Initial JS player n function name', group='name')
         if not idx:
+            self.report_warning('Falling back to generic n function search')
             return func_name
 
         return self._parse_json(self._search_regex(
