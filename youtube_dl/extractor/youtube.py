@@ -1676,7 +1676,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                               \.\s*get\s*\(\s*(?(b)(?P=b)|"n{1,2}")(?:\s*\)){2}\s*
                               &&\s*\(\s*(?(c)(?P=c)|(?P=b))
                           )
-                    )\s*=\s*                   
+                    )\s*=\s*
                 (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
             default=(None, None))
