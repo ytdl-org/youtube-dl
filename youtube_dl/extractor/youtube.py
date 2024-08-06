@@ -1661,23 +1661,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # new: (b=String.fromCharCode(110),c=a.get(b))&&c=nfunc[idx](c)
             # or:  (b="nn"[+a.D],c=a.get(b))&&(c=nfunc[idx](c)
             # or:  (PL(a),b=a.j.n||null)&&(b=nfunc[idx](b)
-            # old: .get("n"))&&(b=nfunc[idx](b)
-            # older: .get("n"))&&(b=nfunc(b)
+            # or:  (b="nn"[+a.D],vL(a),c=a.j[b]||null)&&(c=narray[idx](c),a.set(b,c),narray.length||nfunc("")
+            # old: (b=a.get("n"))&&(b=nfunc[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
+            # older: (b=a.get("n"))&&(b=nfunc(b)
             r'''(?x)
-                (?:\((?:[\w$()\s]+,)*?\s*(?P<b>[a-z])\s*=\s*(?:
-                    String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
-                    "n+"\[\s*\+?s*[\w$.]+\s*]|
-                    (?P<b1>(?:[\w$]+\s*\.\s*)+n\b(?:(?!&&).)+\))
-                )\s*
-                    (?(b1)
-                          &&\s*\(\s*(?P=b)|
-                          (?:
-                              ,(?P<c>[a-z])\s*=\s*[a-z]\s*)?
-                              \.\s*get\s*\(\s*(?(b)(?P=b)|"n{1,2}")(?:\s*\)){2}\s*
-                              &&\s*\(\s*(?(c)(?P=c)|(?P=b))
-                          )
-                    )\s*=\s*
-                (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
+                \((?:[\w$()\s]+,)*?\s*      # (
+                (?P<b>[a-z])\s*=\s*         # b=
+                (?:
+                    (?:                     # expect ,c=a.get(b) (etc)
+                        String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
+                        "n+"\[\s*\+?s*[\w$.]+\s*]
+                    )\s*(?:,[\w$()\s]+(?=,))*|
+                       (?P<old>[\w$]+)      # a (old[er])
+                   )\s*
+                   (?(old)
+                                            # b.get("n")
+                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
+                       (?:\.\s*n|\[\s*"n"\s*]|\.\s*get\s*\(\s*"n"\s*\))
+                       |                    # ,c=a.get(b)
+                       ,\s*(?P<c>[a-z])\s*=\s*[a-z]\s*
+                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
+                       (?:\[\s*(?P=b)\s*]|\.\s*get\s*\(\s*(?P=b)\s*\))
+                   )
+                                            # interstitial junk
+                   \s*(?:\|\|\s*null\s*)?(?:\)\s*)?&&\s*(?:\(\s*)?
+               (?(c)(?P=c)|(?P=b))\s*=\s*   # [c|b]=
+                                            # nfunc|nfunc[idx]
+                   (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
             default=(None, None))
         # thx bashonly: yt-dlp/yt-dlp/pull/10611
@@ -1690,7 +1700,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     \s*\{(?:(?!};).)+?["']enhanced_except_
                 ''', jscode, 'Initial JS player n function name', group='name')
         if not idx:
-            self.report_warning('Falling back to generic n function search')
             return func_name
 
         return self._parse_json(self._search_regex(
