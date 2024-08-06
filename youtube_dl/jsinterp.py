@@ -925,9 +925,16 @@ class JSInterpreter(object):
                     obj.reverse()
                     return obj
                 elif member == 'slice':
-                    assertion(isinstance(obj, list), 'must be applied on a list')
-                    assertion(len(argvals) == 1, 'takes exactly one argument')
-                    return obj[argvals[0]:]
+                    assertion(isinstance(obj, (list, compat_str)), 'must be applied on a list or string')
+                    # From [1]:
+                    # .slice() - like [:]
+                    # .slice(n) - like [n:] (not [slice(n)]
+                    # .slice(m, n) - like [m:n] or [slice(m, n)]
+                    # [1] https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/slice
+                    assertion(len(argvals) <= 2, 'takes between 0 and 2 arguments')
+                    if len(argvals) < 2:
+                        argvals += (None,)
+                    return obj[slice(*argvals)]
                 elif member == 'splice':
                     assertion(isinstance(obj, list), 'must be applied on a list')
                     assertion(argvals, 'takes one or more arguments')
