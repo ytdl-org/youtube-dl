@@ -1326,6 +1326,7 @@ from .trovo import (
     TrovoVodIE,
 )
 from .trunews import TruNewsIE
+from .truth import TruthIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
