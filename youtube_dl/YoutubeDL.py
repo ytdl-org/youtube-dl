@@ -2397,60 +2397,38 @@ class YoutubeDL(object):
         return res
 
     def _format_note(self, fdict):
-        res = ''
-        if fdict.get('ext') in ['f4f', 'f4m']:
-            res += '(unsupported) '
+        note_parts = []
+        if fdict.get('ext') in ('f4f', 'f4m'):
+            note_parts.append('(unsupported)')
         if fdict.get('language'):
-            if res:
-                res += ' '
-            res += '[%s] ' % fdict['language']
-        if fdict.get('format_note') is not None:
-            res += fdict['format_note'] + ' '
+            note_parts.append(f'[{fdict["language"]}]')
+        if fdict.get('format_note'):
+            note_parts.append(fdict['format_note'])
         if fdict.get('tbr') is not None:
-            res += '%4dk ' % fdict['tbr']
+            note_parts.append('%4dk' % fdict['tbr'])
         if fdict.get('container') is not None:
-            if res:
-                res += ', '
-            res += '%s container' % fdict['container']
-        if (fdict.get('vcodec') is not None
-                and fdict.get('vcodec') != 'none'):
-            if res:
-                res += ', '
-            res += fdict['vcodec']
-            if fdict.get('vbr') is not None:
-                res += '@'
-        elif fdict.get('vbr') is not None and fdict.get('abr') is not None:
-            res += 'video@'
+            note_parts.append('%s container' % fdict['container'])
+        if fdict.get('vcodec') not in (None, 'none'):
+            note_parts.append(fdict['vcodec'] + ('@' if fdict.get('vbr') else ''))
+        elif fdict.get('vbr') is not None:
+            note_parts.append('video@')
         if fdict.get('vbr') is not None:
-            res += '%4dk' % fdict['vbr']
+            note_parts.append('%4dk' % fdict['vbr'])
         if fdict.get('fps') is not None:
-            if res:
-                res += ', '
-            res += '%sfps' % fdict['fps']
+            note_parts.append('%sfps' % fdict['fps'])
         if fdict.get('acodec') is not None:
-            if res:
-                res += ', '
-            if fdict['acodec'] == 'none':
-                res += 'video only'
-            else:
-                res += '%-5s' % fdict['acodec']
+            note_parts.append('video only' if fdict['acodec'] == 'none' else '%-5s' % fdict['acodec'])
         elif fdict.get('abr') is not None:
-            if res:
-                res += ', '
-            res += 'audio'
+            note_parts.append('audio')
         if fdict.get('abr') is not None:
-            res += '@%3dk' % fdict['abr']
+            note_parts.append('@%3dk' % fdict['abr'])
         if fdict.get('asr') is not None:
-            res += ' (%5dHz)' % fdict['asr']
+            note_parts.append('(%5dHz)' % fdict['asr'])
         if fdict.get('filesize') is not None:
-            if res:
-                res += ', '
-            res += format_bytes(fdict['filesize'])
+            note_parts.append(format_bytes(fdict['filesize']))
         elif fdict.get('filesize_approx') is not None:
-            if res:
-                res += ', '
-            res += '~' + format_bytes(fdict['filesize_approx'])
-        return res
+            note_parts.append('~' + format_bytes(fdict['filesize_approx']))
+        return ' '.join(note_parts)
 
     def list_formats(self, info_dict):
         formats = info_dict.get('formats', [info_dict])
