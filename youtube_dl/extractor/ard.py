@@ -359,7 +359,9 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?:[^/]+/)?(?:player|live|video)/(?:[^/]+/)*(?P<id>Y3JpZDovL[a-zA-Z0-9]+)'
+
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(((?:[^/]+/)?(?:player|live|video|serie|sendung)/(?:[^/]+/)*(?P<id>Y3JpZDovL[a-zA-Z0-9]+))|(((?P<sender>[a-zA-Z0-9\-]+)([/]))?(?P<name>[a-zA-Z0-9\-]+)))'
+
     _TESTS = [{
         'url': 'https://www.ardmediathek.de/mdr/video/die-robuste-roswita/Y3JpZDovL21kci5kZS9iZWl0cmFnL2Ntcy84MWMxN2MzZC0wMjkxLTRmMzUtODk4ZS0wYzhlOWQxODE2NGI/',
         'md5': 'a1dc75a39c61601b980648f7c9f9f71d',
@@ -395,73 +397,189 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWQ2NDJjYWEzLTMwZWYtNGI4NS1iMTI2LTU1N2UxYTcxOGIzOQ/tatort-duo-koeln-leipzig-ihr-kinderlein-kommet',
         'only_matching': True,
+    }, {
+        'url': 'https://ardmediathek.de/sendung/saartalk/saartalk-gesellschaftsgift-haltung-gegen-hass/sr-fernsehen/Y3JpZDovL3NyLW9ubGluZS5kZS9TVF84MTY4MA/',
+        'only_matching': True,
+    }, {
+        'url': 'https://ardmediathek.de/serie/saartalk/saartalk-gesellschaftsgift-haltung-gegen-hass/sr-fernsehen/Y3JpZDovL3NyLW9ubGluZS5kZS9TVF84MTY4MA/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/br/dahoam-is-dahoam',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        video_name = self._match_id(url, group_name='name')
+        sender = self._match_id(url, group_name='sender')
+
+        if '/serie/' in url or '/sendung/' in url:
+            return self._real_extract_serie(video_id)
+        elif 'none' != video_name.lower():
+            return self._real_extract_named_serie(video_name, sender if 'none' != sender.lower() else "ard")
+        else:
+            return self._real_extract_video(video_id)
+
+    def _real_extract_video(self, video_id):
 
         player_page = self._download_json(
-            'https://api.ardmediathek.de/public-gateway',
-            video_id, data=json.dumps({
-                'query': '''{
-  playerPage(client: "ard", clipId: "%s") {
-    blockedByFsk
-    broadcastedOn
-    maturityContentRating
-    mediaCollection {
-      _duration
-      _geoblocked
-      _isLive
-      _mediaArray {
-        _mediaStreamArray {
-          _quality
-          _server
-          _stream
-        }
-      }
-      _previewImage
-      _subtitleUrl
-      _type
-    }
-    show {
-      title
-    }
-    synopsis
-    title
-    tracking {
-      atiCustomVars {
-        contentId
-      }
-    }
-  }
-}''' % video_id,
-            }).encode(), headers={
-                'Content-Type': 'application/json'
-            })['data']['playerPage']
+                f'https://api.ardmediathek.de/page-gateway/pages/ard/item/{video_id}',
+                video_id
+        )
+
         title = player_page['title']
-        content_id = str_or_none(try_get(
-            player_page, lambda x: x['tracking']['atiCustomVars']['contentId']))
-        media_collection = player_page.get('mediaCollection') or {}
+        content_id = str_or_none(
+                try_get(
+                        player_page, lambda x: x['tracking']['atiCustomVars']['contentId']
+                )
+        )
+        media_collection = player_page['widgets'][0].get('mediaCollection') or {}
         if not media_collection and content_id:
             media_collection = self._download_json(
-                'https://www.ardmediathek.de/play/media/' + content_id,
-                content_id, fatal=False) or {}
+                    'https://www.ardmediathek.de/play/media/' + content_id,
+                    content_id, fatal=False
+            ) or {}
+
         info = self._parse_media_info(
-            media_collection, content_id or video_id,
-            player_page.get('blockedByFsk'))
+            media_collection['embedded'], content_id or video_id,
+            player_page['widgets'][0].get('blockedByFsk')
+        )
+
         age_limit = None
-        description = player_page.get('synopsis')
-        maturity_content_rating = player_page.get('maturityContentRating')
+        description = player_page['widgets'][0].get('synopsis')
+        maturity_content_rating = player_page['widgets'][0].get('maturityContentRating')
         if maturity_content_rating:
             age_limit = int_or_none(maturity_content_rating.lstrip('FSK'))
         if not age_limit and description:
-            age_limit = int_or_none(self._search_regex(
-                r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
-        info.update({
-            'age_limit': age_limit,
-            'title': title,
-            'description': description,
-            'timestamp': unified_timestamp(player_page.get('broadcastedOn')),
-            'series': try_get(player_page, lambda x: x['show']['title']),
-        })
+            age_limit = int_or_none(
+                self._search_regex(
+                    r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None
+                )
+            )
+
+        session_episode_match = re.search(r"\(S(\d+)/E(\d+)\)", title)
+        episode_match = re.search(r"\((\d+)\)", title)
+        episode_name_match = re.search(r"(Folge\s\d+)", title)
+
+        if session_episode_match:
+            season_number = session_episode_match.group(1)
+            episode_number = session_episode_match.group(2)
+
+            alt_title = re.sub(r"\(S\d+/E\d+\)", "", title)
+            alt_title = re.sub(r"(Folge \d+(\:|\s\-))", "", alt_title)
+            alt_title = alt_title.replace("|", "").replace("  ", " ").replace(" .", "").strip()
+
+            info.update(
+                {
+                    'season_number': int(season_number),
+                    'episode_number': int(episode_number),
+                    'alt_title':  alt_title
+                }
+            )
+        elif episode_name_match:
+            episode_number = episode_name_match.group(1).replace("Folge ", "")
+
+            alt_title = re.sub(r"(Folge\s\d+)", "", title)
+            alt_title = alt_title.replace("|", "").replace("  ", " ").replace(" .", "").strip()
+
+            info.update(
+                {
+                    'season_number': int(0),
+                    'episode_number': int(episode_number),
+                    'alt_title':  alt_title
+                    }
+            )
+
+        elif episode_match:
+            episode_number = episode_match.group(1)
+            info.update(
+                {
+                    'season_number': int(0),
+                    'episode_number': int(episode_number),
+                    'alt_title':re.sub(r"\(\d+\)", "", title).replace("  ", "").strip()
+                }
+            )
+        else:
+            info.update(
+                {
+                    'alt_title': title
+                }
+            )
+
+        info.update(
+            {
+                'age_limit': age_limit,
+                'title': title,
+                'description': description,
+                'timestamp': unified_timestamp(player_page['widgets'][0].get('broadcastedOn')),
+                'series': try_get(player_page['widgets'][0], lambda x: x['show']['title']),
+                'channel': player_page['widgets'][0]['publicationService']['name'],
+                'channel_id': player_page['widgets'][0]['publicationService']['id'],
+                'channel_url': f"https://www.ardmediathek.de/{player_page['widgets'][0]['publicationService']['id']}",
+            }
+        )
         return info
+
+    def _real_extract_serie(self, video_id):
+        entries = []
+
+        page_number = 0
+        page_size = 100
+
+        while True:
+
+            widgets = self._download_json(
+                    f'https://api.ardmediathek.de/page-gateway/widgets/ard/asset/{video_id}',
+                    video_id,
+                    query={'pageSize':str(page_size), 'pageNumber':page_number}
+            )
+
+            for teaser in widgets['teasers']:
+                if 'EPISODE' == teaser['coreAssetType']:
+                    item = self._real_extract_video(teaser['id'])
+                    item['webpage_url'] = f"https://www.ardmediathek.de/video/{teaser['id']}"
+
+                    entries.append(item)
+
+            total = widgets['pagination']['totalElements']
+            if (page_number + 1) * page_size > total:
+                break
+            page_number += 1
+
+        return self.playlist_result(entries)
+
+    def _real_extract_named_serie(self, video_id, sender):
+
+        entries = []
+        page_size = 100
+
+        widgets = self._download_json(
+                f'https://api.ardmediathek.de/page-gateway/pages/{sender}/editorial/{video_id}',
+                video_id,
+                query={'pageSize': str(10), 'pageNumber': 0}
+        )['widgets']
+
+        for widget in widgets:
+            widget_id = widget['id']
+            page_number = 0
+
+            while True:
+                page_data = self._download_json(
+                        f'https://api.ardmediathek.de/page-gateway/widgets/{sender}/editorials/{widget_id}',
+                        video_id,
+                        query={'pageSize': page_size, 'pageNumber': page_number}
+                )
+
+                for teaser in page_data['teasers']:
+                    if 'EPISODE' == teaser.get('coreAssetType', None) and teaser['type'] not in ['poster'] and ':' not in teaser['id']:
+
+                        item = self._real_extract_video(teaser['id'])
+                        item['webpage_url'] = f"https://www.ardmediathek.de/video/{teaser['id']}"
+                        entries.append(item)
+
+                total = page_data['pagination']['totalElements']
+                if (page_number + 1) * page_size > total:
+                    break
+                page_number += 1
+
+        return self.playlist_result(entries)
