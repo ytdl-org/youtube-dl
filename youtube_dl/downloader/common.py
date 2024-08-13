@@ -239,6 +239,9 @@ class FileDownloader(object):
         self.to_screen('[download] Destination: ' + filename)
 
     def _report_progress_status(self, msg, is_last_line=False):
+        self.to_console_title('youtube-dl ' + msg)
+        if self.params.get('noprogress'):
+            return
         fullmsg = '[download] ' + msg
         if self.params.get('progress_with_newline', False):
             self.to_screen(fullmsg)
@@ -253,7 +256,6 @@ class FileDownloader(object):
             else:
                 clear_line = ('\r\x1b[K' if sys.stderr.isatty() else '\r')
             self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
-        self.to_console_title('youtube-dl ' + msg)
 
     def report_progress(self, s):
         if s['status'] == 'finished':
@@ -270,7 +272,7 @@ class FileDownloader(object):
                 self._report_progress_status(
                     msg_template % s, is_last_line=True)
 
-        if self.params.get('noprogress'):
+        if self.params.get('noprogress') and not self.params.get('consoletitle'):
             return
 
         if s['status'] != 'downloading':
