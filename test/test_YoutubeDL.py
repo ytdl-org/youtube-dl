@@ -136,6 +136,11 @@ class TestFormatSelection(unittest.TestCase):
         ]
         info_dict = _make_result(formats)
 
+        ydl = YDL({'format': ''}) # no criteria => anything goes
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], '35')
+
         ydl = YDL({'format': '20/47'})
         ydl.process_ie_result(info_dict.copy())
         downloaded = ydl.downloaded_info_dicts[0]
