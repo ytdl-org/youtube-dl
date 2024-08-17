@@ -5,9 +5,9 @@ import hashlib
 import json
 import os.path
 import re
-import types
 import ssl
 import sys
+import types
 import unittest
 
 import youtube_dl.extractor
@@ -181,18 +181,18 @@ def expect_value(self, got, expected, field):
             op, _, expected_num = expected.partition(':')
             expected_num = int(expected_num)
             if op == 'mincount':
-                assert_func = assertGreaterEqual
+                assert_func = self.assertGreaterEqual
                 msg_tmpl = 'Expected %d items in field %s, but only got %d'
             elif op == 'maxcount':
-                assert_func = assertLessEqual
+                assert_func = self.assertLessEqual
                 msg_tmpl = 'Expected maximum %d items in field %s, but got %d'
             elif op == 'count':
-                assert_func = assertEqual
+                assert_func = self.assertEqual
                 msg_tmpl = 'Expected exactly %d items in field %s, but got %d'
             else:
                 assert False
             assert_func(
-                self, len(got), expected_num,
+                len(got), expected_num,
                 msg_tmpl % (expected_num, field, len(got)))
             return
         self.assertEqual(
@@ -260,27 +260,6 @@ def assertRegexpMatches(self, text, regexp, msg=None):
             else:
                 msg = note + ', ' + msg
             self.assertTrue(m, msg)
-
-
-def assertGreaterEqual(self, got, expected, msg=None):
-    if not (got >= expected):
-        if msg is None:
-            msg = '%r not greater than or equal to %r' % (got, expected)
-        self.assertTrue(got >= expected, msg)
-
-
-def assertLessEqual(self, got, expected, msg=None):
-    if not (got <= expected):
-        if msg is None:
-            msg = '%r not less than or equal to %r' % (got, expected)
-        self.assertTrue(got <= expected, msg)
-
-
-def assertEqual(self, got, expected, msg=None):
-    if not (got == expected):
-        if msg is None:
-            msg = '%r not equal to %r' % (got, expected)
-        self.assertTrue(got == expected, msg)
 
 
 def expect_warnings(ydl, warnings_re):

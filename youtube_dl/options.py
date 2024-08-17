@@ -534,6 +534,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_check_certificate', default=False,
         help='Suppress HTTPS certificate validation')
     workarounds.add_option(
+        '--no-check-extensions',
+        action='store_true', dest='no_check_extensions', default=False,
+        help='Suppress file extension validation')
+    workarounds.add_option(
         '--prefer-insecure',
         '--prefer-unsecure', action='store_true', dest='prefer_insecure',
         help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')

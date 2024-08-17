@@ -106,6 +106,25 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
     }, {
         'url': 'http://music.yandex.com/album/540508/track/4878838',
         'only_matching': True,
+    }, {
+        'url': 'https://music.yandex.ru/album/16302456/track/85430762',
+        'md5': '11b8d50ab03b57738deeaadf661a0a48',
+        'info_dict': {
+            'id': '85430762',
+            'ext': 'mp3',
+            'abr': 128,
+            'title': 'Haddadi Von Engst, Phonic Youth, Super Flu - Til The End (Super Flu Remix)',
+            'filesize': int,
+            'duration': 431.14,
+            'track': 'Til The End (Super Flu Remix)',
+            'album': 'Til The End',
+            'album_artist': 'Haddadi Von Engst, Phonic Youth',
+            'artist': 'Haddadi Von Engst, Phonic Youth, Super Flu',
+            'release_year': 2021,
+            'genre': 'house',
+            'disc_number': 1,
+            'track_number': 2,
+        }
     }]
 
     def _real_extract(self, url):
@@ -116,10 +135,14 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'track', tld, url, track_id, 'Downloading track JSON',
             {'track': '%s:%s' % (track_id, album_id)})['track']
         track_title = track['title']
+        track_version = track.get('version')
+        if track_version:
+            track_title = '%s (%s)' % (track_title, track_version)
 
         download_data = self._download_json(
             'https://music.yandex.ru/api/v2.1/handlers/track/%s:%s/web-album_track-track-track-main/download/m' % (track_id, album_id),
             track_id, 'Downloading track location url JSON',
+            query={'hq': 1},
             headers={'X-Retpath-Y': url})
 
         fd_data = self._download_json(
