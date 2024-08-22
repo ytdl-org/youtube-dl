@@ -73,8 +73,18 @@ class WeiboIE(InfoExtractor):
             webpage = self._download_webpage(
                 url, video_id, note='Revisiting webpage')
 
-        title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title')
+        def search_title(webpage):
+            # This may fail if page title contains a line breaks
+            # See #25401
+            title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title', default=None)
+
+            if title is None:
+                # Fallback if first pattern fail
+                title = self._search_regex(r'(?:\$CONFIG\[\'title_value\'\]=\'(.+?)\';)', webpage, 'title')
+
+            return title
+
+        title = search_title(webpage)
 
         video_formats = compat_parse_qs(self._search_regex(
             r'video-sources=\\\"(.+?)\"', webpage, 'video_sources'))
