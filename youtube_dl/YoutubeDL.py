@@ -545,6 +545,9 @@ class YoutubeDL(object):
 
     def to_stdout(self, message, skip_eol=False, check_quiet=False):
         """Print message to stdout if not in quiet mode."""
+        if message.startswith('[debug]'):
+            # dirty fix, direct debug messages to stderr
+            return self.to_stderr(message, debug=True, check_quiet=check_quiet)
         if self.params.get('logger'):
             self.params['logger'].debug(message)
         elif not check_quiet or not self.params.get('quiet', False):
@@ -554,12 +557,17 @@ class YoutubeDL(object):
 
             self._write_string(output, self._screen_file)
 
-    def to_stderr(self, message):
+    def to_stderr(self, message, debug=False, check_quiet=False):
         """Print message to stderr."""
         assert isinstance(message, compat_str)
         if self.params.get('logger'):
-            self.params['logger'].error(message)
+            if debug:
+                self.params['logger'].debug(message)
+            else:
+                self.params['logger'].error(message)
         else:
+            if debug and check_quiet and self.params.get('quiet', False):
+                return
             message = self._bidi_workaround(message)
             output = message + '\n'
             self._write_string(output, self._err_file)
