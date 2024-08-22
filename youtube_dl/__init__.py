@@ -12,6 +12,7 @@ import sys
 
 
 from .options import (
+    _hide_login_info,
     parseOpts,
 )
 from .compat import (
@@ -455,7 +456,7 @@ def _real_main(argv=None):
             if opts.update_self or opts.rm_cachedir:
                 sys.exit()
 
-            ydl.warn_if_short_id(sys.argv[1:] if argv is None else argv)
+            ydl.warn_if_short_id(_hide_login_info(sys.argv[1:] if argv is None else argv), parser)
             parser.error(
                 'You must provide at least one URL.\n'
                 'Type youtube-dl --help to see a list of all options.')

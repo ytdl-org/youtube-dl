@@ -472,11 +472,11 @@ class YoutubeDL(object):
 
         register_socks_protocols()
 
-    def warn_if_short_id(self, argv):
+    def warn_if_short_id(self, argv, parser):
         # short YouTube ID starting with dash?
         idxs = [
             i for i, a in enumerate(argv)
-            if re.match(r'^-[0-9A-Za-z_-]{10}$', a)]
+            if re.match(r'^-[0-9A-Za-z_-]{10}$', a) and not parser.has_option(a)]
         if idxs:
             correct_argv = (
                 ['youtube-dl']
