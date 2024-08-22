@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     parse_iso8601,
     try_get,
@@ -33,6 +34,9 @@ class RumbleEmbedIE(InfoExtractor):
         video = self._download_json(
             'https://rumble.com/embedJS/', video_id,
             query={'request': 'video', 'v': video_id})
+        if not video:
+            raise ExtractorError('Unable to get video information. Please make sure that the URL is alive and playable in a browser.', expected=True)
+
         title = video['title']
 
         formats = []
