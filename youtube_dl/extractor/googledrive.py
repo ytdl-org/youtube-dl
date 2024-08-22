@@ -38,6 +38,15 @@ class GoogleDriveIE(InfoExtractor):
             'duration': 45,
         }
     }, {
+        'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Mk1wNUxGeHEya3c/view',
+        'md5': 'cc757300594a69bcf10edd93bfe2c23c',
+        'info_dict': {
+            'id': '0ByeS4oOUV-49Mk1wNUxGeHEya3c',
+            'ext': 'mp3',
+            'title': 'universo.mp3',
+            'duration': None,
+        }
+    }, {
         # video can't be watched anonymously due to view count limit reached,
         # but can be downloaded (see https://github.com/ytdl-org/youtube-dl/issues/14046)
         'url': 'https://drive.google.com/file/d/0B-vUyvmDLdWDcEt4WjBqcmI2XzQ/view',
@@ -173,7 +182,14 @@ class GoogleDriveIE(InfoExtractor):
         reason = get_value('reason')
         title = get_value('title')
         if not title and reason:
-            raise ExtractorError(reason, expected=True)
+            # try old style title extraction
+            webpage = self._download_webpage(
+                'http://docs.google.com/file/d/%s' % video_id, video_id)
+            title = self._search_regex(
+                r'"title"\s*,\s*"([^"]+)', webpage, 'title',
+                default=None) or self._og_search_title(webpage)
+            if not title:
+                raise ExtractorError(reason, expected=True)
 
         formats = []
         fmt_stream_map = (get_value('fmt_stream_map') or '').split(',')
