@@ -36,8 +36,12 @@ class Porn91IE(InfoExtractor):
             raise ExtractorError('91 Porn says: Daily limit 10 videos exceeded', expected=True)
 
         title = self._search_regex(
-            r'<div id="viewvideo-title">([^<]+)</div>', webpage, 'title')
-        title = title.replace('\n', '')
+            [
+                r'<div id="viewvideo-title">([^<]+)</div>',
+                r'<title>([^\n]+)',
+            ], webpage, 'title'
+        )
+        title = title.strip()
 
         video_link_url = self._search_regex(
             r'<textarea[^>]+id=["\']fm-video_link[^>]+>([^<]+)</textarea>',
