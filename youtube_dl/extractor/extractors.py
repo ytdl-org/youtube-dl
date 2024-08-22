@@ -1235,6 +1235,11 @@ from .svt import (
     SVTPlayIE,
     SVTSeriesIE,
 )
+from .switchtube import (
+  SwitchTubeIE,
+  SwitchTubeProfileIE,
+  SwitchTubeChannelIE,
+)
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
