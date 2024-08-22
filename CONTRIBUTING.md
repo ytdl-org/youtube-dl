@@ -415,6 +415,13 @@ Use `try_get` for safe metadata extraction from parsed JSON.
 
 Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
 
+There are also a number of utility functions that behave like parts of the Python standard library, but offer better compatibility or handle errors in a more graceful way. These include:
+
+* ``re.search`` &rightarrow; ``self._parse_regex``
+* ``json.loads`` &rightarrow; ``self._parse_json``
+* ``libxml2.parseMemory`` &rightarrow; ``self._parse_xml``
+* ``libxml2.xpathEval`` &rightarrow; ``xpath_with_ns``, ``xpath_element``, ``xpath_text``
+
 Explore [`youtube_dl/utils.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 
 #### More examples
@@ -432,3 +439,112 @@ duration = float_or_none(video.get('durationMs'), scale=1000)
 view_count = int_or_none(video.get('views'))
 ```
 
+### Use Subclasses for Different Extractor Types
+
+While seems easier at first to have a single extractor class handle multiple different types of URLs, this is difficult to read and maintain. If a website uses multiple URLs, they should be split into different extractors.
+
+Correct:
+```python
+class SpecialVidsIE(InfoExtractor):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        # ... write code for full URLs...
+
+class SpecialVidsEmbedLinksIE(SpecialVidsIE):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/embed/(?P<id>[0-9a-f]+)"
+
+    def _real_extract(self, url):
+        # ... write code for embedded URLs...
+```
+
+Incorrect:
+```python
+class SpecialVidsIE(InfoExtractor):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(P<em>(embed)?/)(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        # if embed != "/"
+        #     ... code for full URLs ...
+        # else:
+        #     ... code for embedded URLs ...
+
+```
+
+### Delegate Multiple URL Formats
+
+If the code for two different extractors is very similar, the extractors should *delegate* their calls.
+
+Correct:
+```python
+class SpecialVidsIE(InfoExtractor):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        display_id = self._video_id(url)
+        # ... write the parsing code ...
+        return {
+            'url': stream_url,
+            'title': video_title,
+            'id': real_id,
+            'display_id': display_id,
+            # ... more fields...
+        }
+
+
+class SpecialVidsEmbedLinksIE(SpecialVidsIE):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(P<em>(embed)?/)(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        display_id = self._video_id(url)
+        # ... download the page and parse the full URL ...
+        self.url_result(full_url)  # delegate the full URL to the other extractor
+```
+
+Incorrect:
+```python
+class SpecialVidsIE(InfoExtractor):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        display_id = self._video_id(url)
+        # ... write the parsing code ...
+        return {
+            'url': stream_url,
+            'title': video_title,
+            'id': real_id,
+            'display_id': display_id,
+            # ... more fields...
+        }
+
+
+class SpecialVidsEmbedLinksIE(SpecialVidsIE):
+    _VALID_URL = "^https://(?:www\.)specialvideos.com/(P<em>(embed)?/)(?P<id>[A-Za-z0-9-]+)"
+
+    def _real_extract(self, url):
+        display_id = self._video_id(url)
+        # ... write the parsing code for this page ...
+        # ... re-fetch the full URL ...
+        return {
+            'url': stream_url,
+            'title': video_title,
+            'id': real_id,
+            # ... more fields...
+        }
+```
+
+### Don't Repeat Yourself
+
+The *DRY principle*  is very important, because it makes code easier to understand and maintain. "DRY" is a very common code review comment, because of several common mistakes. To avoid them, ask yourself these questions after your code is working:
+
+1. Are there strings or values repeated that should be constants?
+2. Are there members or functions copy-pasted between delegate classes?
+3. Are certain actions the code takes repeated in more than one place?
+
+### Changes Must Be Testable
+
+It is often difficult to see all the effects of a change to an extractor. Thus, our rule is that *every change should be testable*. There must be at least one test that fails before the change and passes after the change.
+
+If an extractor is being updated or created, then there are no failing tests before the change. So this rule means a new test *must* be created. This is especially important when changing the valid URLs accepted by an extractor, a change that seems small but often has far-reaching consequences.
+
+Don't forget to make sure the test fails before the change, too. Otherwise, nothing has really been fixed.
