@@ -2610,9 +2610,6 @@ class YoutubeDL(object):
                 proxies = {'http': opts_proxy, 'https': opts_proxy}
         else:
             proxies = compat_urllib_request.getproxies()
-            # Set HTTPS proxy to HTTP one if given (https://github.com/ytdl-org/youtube-dl/issues/805)
-            if 'http' in proxies and 'https' not in proxies:
-                proxies['https'] = proxies['http']
         proxy_handler = PerRequestProxyHandler(proxies)
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
