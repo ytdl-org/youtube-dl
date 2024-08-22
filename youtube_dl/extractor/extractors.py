@@ -71,6 +71,11 @@ from .ard import (
     ARDIE,
     ARDMediathekIE,
 )
+from .ardaudiothek import (
+    ARDAudiothekIE,
+    ARDAudiothekPlaylistIE,
+    ARDAudiothekSearchIE,
+)
 from .arte import (
     ArteTVIE,
     ArteTVEmbedIE,
