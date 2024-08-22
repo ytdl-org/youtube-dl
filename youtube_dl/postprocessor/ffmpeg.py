@@ -370,8 +370,8 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
 class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
     def run(self, information):
-        if information['ext'] not in ('mp4', 'webm', 'mkv'):
-            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4, webm or mkv files')
+        if information['ext'] not in ('mp4', 'm4a', 'webm', 'mkv'):
+            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4, m4a, webm or mkv files')
             return [], information
         subtitles = information.get('requested_subtitles')
         if not subtitles:
@@ -410,7 +410,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # https://trac.ffmpeg.org/ticket/6016)
             '-map', '-0:d',
         ]
-        if information['ext'] == 'mp4':
+        if information['ext'] in ('mp4', 'm4a'):
             opts += ['-c:s', 'mov_text']
         for (i, lang) in enumerate(sub_langs):
             opts.extend(['-map', '%d:0' % (i + 1)])
