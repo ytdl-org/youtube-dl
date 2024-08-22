@@ -54,41 +54,76 @@ class SouthParkEsIE(SouthParkIE):
     }]
 
 
-class SouthParkDeIE(SouthParkIE):
+class SouthParkDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden|collections)/(?P<id>.+?)(\?|#|$))'
-    _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:videoclip|folgen|collections)/(?P<id>.+?)(\?|#|$))'
+    _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
+    _LANG = 'de'
 
     _TESTS = [{
-        'url': 'http://www.southpark.de/clips/uygssh/the-government-wont-respect-my-privacy#tab=featured',
+        # clip
+        'url': 'https://www.southpark.de/videoclip/ct46op/south-park-zahnfee-cartman',
         'info_dict': {
-            'id': '85487c96-b3b9-4e39-9127-ad88583d9bf2',
+            'id': 'e99d45ea-ed00-11e0-aca6-0026b9414f30',
             'ext': 'mp4',
-            'title': 'South Park|The Government Won\'t Respect My Privacy',
-            'description': 'Cartman explains the benefits of "Shitter" to Stan, Kyle and Craig.',
-            'timestamp': 1380160800,
-            'upload_date': '20130926',
+            'title': 'Zahnfee Cartman',
+            'description': 'Cartman verkleidet sich als Zahnfee, um Butters unter dem Kissen liegenden Zahn zu stehlen. Cartman bekommt 4$ für diesen Zahn, was das Streben nach mehr Zähnen nährt'
         },
     }, {
-        # non-ASCII characters in initial URL
-        'url': 'http://www.southpark.de/alle-episoden/s18e09-hashtag-aufwärmen',
+        # episode
+        'url': 'https://www.southpark.de/folgen/242csn/south-park-her-mit-dem-hirn-staffel-1-ep-7',
         'info_dict': {
-            'title': 'Hashtag „Aufwärmen“',
-            'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
+            'id': '607115f3-496f-40c3-8647-2b0bcff486c0',
+            'ext': 'mp4',
+            'title': 'South Park | Pink Eye | E 0107 | HDSS0107X deu | Version: 634312 | Comedy Central S1',
         },
-        'playlist_count': 3,
-    }, {
-        # non-ASCII characters in redirect URL
-        'url': 'http://www.southpark.de/alle-episoden/s18e09',
-        'info_dict': {
-            'title': 'Hashtag „Aufwärmen“',
-            'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
-        },
-        'playlist_count': 3,
-    }, {
-        'url': 'http://www.southpark.de/collections/2476/superhero-showdown/1',
-        'only_matching': True,
     }]
+
+    def _get_feed_query(self, uri):
+        return {
+            'accountOverride': 'intl.mtvi.com',
+            'arcEp': 'shared.southpark.gsa.de',
+            'ep': '50c78199',
+            'imageEp': 'shared.southpark.gsa.de',
+            'clusterName': 'EMEAA',
+            'mgid': uri,
+        }
+
+
+class SouthParkDeEnIE(SouthParkIE):
+    IE_NAME = 'southpark.de:en'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/en/(?:video-clips|episodes|collections)/(?P<id>.+?)(\?|#|$))'
+    _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
+
+    _TESTS = [{
+        # clip
+        'url': 'https://www.southpark.de/en/video-clips/ct46op/south-park-tooth-fairy-cartman',
+        'info_dict': {
+            'id': 'e99d45ea-ed00-11e0-aca6-0026b9414f30',
+            'ext': 'mp4',
+            'title': 'Tooth Fairy Cartman',
+            'description': 'Cartman dresses up as the Tooth Fairy to steal Butters\' tooth from underneath his pillow. Cartman gets $4 for this tooth, feeding the drive for more teeth.',
+        },
+    }, {
+        # episode
+        'url': 'https://www.southpark.de/en/episodes/yy0vjs/south-park-the-pandemic-special-season-24-ep-1',
+        'info_dict': {
+            'id': 'f5fbd823-04bc-11eb-9b1b-0e40cf2fc285',
+            'ext': 'mp4',
+            'title': 'South Park',
+            'description': 'Randy comes to terms with his role in the COVID-19 outbreak as the on-going pandemic presents continued challenges to the citizens of South Park.',
+        },
+    }]
+
+    def _get_feed_query(self, uri):
+        return {
+            'accountOverride': 'intl.mtvi.com',
+            'arcEp': 'shared.southpark.gsa.en',
+            'ep': '20476225',
+            'imageEp': 'shared.southpark.gsa.en',
+            'clusterName': 'EMEAA',
+            'mgid': uri,
+        }
 
 
 class SouthParkNlIE(SouthParkIE):
