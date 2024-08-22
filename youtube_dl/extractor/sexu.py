@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..utils import urlencode_postdata, try_get
 
 
 class SexuIE(InfoExtractor):
@@ -12,7 +15,7 @@ class SexuIE(InfoExtractor):
             'id': '961791',
             'ext': 'mp4',
             'title': 'md5:4d05a19a5fc049a63dbbaf05fb71d91b',
-            'description': 'md5:2b75327061310a3afb3fbd7d09e2e403',
+            'description': 'md5:6c7e471f9ac9bc326a9ad27be409f617',
             'categories': list,  # NSFW
             'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
@@ -23,34 +26,28 @@ class SexuIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        jwvideo = self._parse_json(
-            self._search_regex(r'\.setup\(\s*({.+?})\s*\);', webpage, 'jwvideo'),
-            video_id)
-
-        sources = jwvideo['sources']
+        apiresponse = self._download_json(
+            'https://sexu.com/api/video-info',
+            video_id, data=urlencode_postdata({'videoId': video_id}))
 
         formats = [{
-            'url': source['file'].replace('\\', ''),
-            'format_id': source.get('label'),
+            'url': source.get('src'),
+            'format_id': source.get('type'),
             'height': int(self._search_regex(
-                r'^(\d+)[pP]', source.get('label', ''), 'height',
+                r'^(\d+)[pP]', source.get('quality', ''), 'height',
                 default=None)),
-        } for source in sources if source.get('file')]
+        } for source in try_get(apiresponse, lambda x: x['sources'])]
         self._sort_formats(formats)
 
-        title = self._html_search_regex(
-            r'<title>([^<]+)\s*-\s*Sexu\.Com</title>', webpage, 'title')
+        title = self._og_search_property('title', webpage)
 
         description = self._html_search_meta(
             'description', webpage, 'description')
 
-        thumbnail = jwvideo.get('image')
+        thumbnail = self._og_search_property('image', webpage)
 
-        categories_str = self._html_search_meta(
-            'keywords', webpage, 'categories')
-        categories = (
-            None if categories_str is None
-            else categories_str.split(','))
+        categories = re.findall(
+            r'(?s)<a[^>]+class=[\'"]player-tags__item[^>]*>([^<]+)</a>', webpage)
 
         return {
             'id': video_id,
