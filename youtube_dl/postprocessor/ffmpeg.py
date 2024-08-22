@@ -325,7 +325,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         if (new_path == path
                 or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
-            return [], information
+            return [] if new_path == path else [path], information
 
         try:
             self._downloader.to_screen('[ffmpeg] Destination: ' + new_path)
