@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
     sanitized_Request,
+    try_get,
     urlencode_postdata,
 )
 
@@ -19,7 +21,7 @@ class TubiTvIE(InfoExtractor):
     _GEO_COUNTRIES = ['US']
     _TESTS = [{
         'url': 'http://tubitv.com/video/283829/the_comedian_at_the_friday',
-        'md5': '43ac06be9326f41912dc64ccf7a80320',
+        'md5': '90e715ae752b37d2074e9f310c5c483b',
         'info_dict': {
             'id': '283829',
             'ext': 'mp4',
@@ -75,8 +77,15 @@ class TubiTvIE(InfoExtractor):
             'http://tubitv.com/oz/videos/%s/content' % video_id, video_id)
         title = video_data['title']
 
+        video_url = try_get(
+            video_data,
+            (lambda x: x['url'],
+             lambda x: x['video_resources'][0]['manifest']['url']), compat_str)
+        if not video_url:
+            raise ExtractorError('This video is not available', expected=True)
+
         formats = self._extract_m3u8_formats(
-            self._proto_relative_url(video_data['url']),
+            self._proto_relative_url(video_url),
             video_id, 'mp4', 'm3u8_native')
         self._sort_formats(formats)
 
