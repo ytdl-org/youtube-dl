@@ -221,7 +221,8 @@ class YoutubeDL(object):
     listsubtitles:     Lists all available subtitles for the video
     subtitlesformat:   The format code for subtitles
     subtitleslangs:    List of languages of the subtitles to download
-    keepvideo:         Keep the video file after post-processing
+    keepvideo:         Keep original files (videos, subtitles) after post-
+                       processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
     cachedir:          Location of the cache files in the filesystem.

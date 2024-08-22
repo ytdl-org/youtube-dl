@@ -811,9 +811,9 @@ def parseOpts(overrideArguments=None):
         dest='postprocessor_args', metavar='ARGS',
         help='Give these arguments to the postprocessor (if postprocessing is required)')
     postproc.add_option(
-        '-k', '--keep-video',
+        '-k', '--keep-files', '--keep-video',
         action='store_true', dest='keepvideo', default=False,
-        help='Keep the video file on disk after the post-processing; the video is erased by default')
+        help='Keep original files on disk after the post-processing; original files (videos, subtitles) are erased by default')
     postproc.add_option(
         '--no-post-overwrites',
         action='store_true', dest='nopostoverwrites', default=False,
