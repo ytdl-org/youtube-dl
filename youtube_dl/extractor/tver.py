@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    ExtractorError,
     int_or_none,
     remove_start,
     smuggle_url,
@@ -14,7 +15,7 @@ from ..utils import (
 
 
 class TVerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tver\.jp/(?P<path>(?:corner|episode|feature)/(?P<id>f?\d+))'
+    _VALID_URL = r'https?://(?:www\.)?tver\.jp/(?P<path>(?:corner|episode|feature|lp)/(?P<id>[fc]?\d+))'
     # videos are only available for 7 days
     _TESTS = [{
         'url': 'https://tver.jp/corner/f0062178',
@@ -29,9 +30,24 @@ class TVerIE(InfoExtractor):
         # subtitle = ' '
         'url': 'https://tver.jp/corner/f0068870',
         'only_matching': True,
+    }, {
+        # redirect "f"
+        'url': 'https://tver.jp/lp/f0009694',
+        'only_matching': True,
+    }, {
+        # redirect "c"
+        'url': 'https://tver.jp/lp/c0000239',
+        'only_matching': True,
     }]
     _TOKEN = None
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s'
+
+    def _extract_redirect(self, url):
+        webpage = self._download_webpage(url, "")
+        newpath = re.search(r'to_href="(.+?)";', webpage)
+        if newpath is None:
+            raise ExtractorError('Not found redirect path', expected=True)
+        return re.match(self._VALID_URL, "https://tver.jp" + newpath.group(1)).groups()
 
     def _real_initialize(self):
         self._TOKEN = self._download_json(
@@ -39,6 +55,8 @@ class TVerIE(InfoExtractor):
 
     def _real_extract(self, url):
         path, video_id = re.match(self._VALID_URL, url).groups()
+        if path[0:2] == "lp":
+            path, video_id = self._extract_redirect(url)
         main = self._download_json(
             'https://api.tver.jp/v4/' + path, video_id,
             query={'token': self._TOKEN})['main']
