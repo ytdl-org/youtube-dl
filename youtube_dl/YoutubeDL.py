@@ -2692,11 +2692,18 @@ class YoutubeDL(object):
             # No thumbnails present, so return immediately
             return
 
+        def make_thumb_filename(filename, suffix, thumb_ext, file_ext):
+            thumb_filename = replace_extension(filename, thumb_ext, file_ext)
+            if suffix:
+                name, ext = os.path.splitext(thumb_filename)
+                thumb_filename = name + suffix + ext
+            return thumb_filename
+
         for t in thumbnails:
             thumb_ext = determine_ext(t['url'], 'jpg')
             suffix = '_%s' % t['id'] if len(thumbnails) > 1 else ''
             thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
-            t['filename'] = thumb_filename = replace_extension(filename + suffix, thumb_ext, info_dict.get('ext'))
+            t['filename'] = thumb_filename = make_thumb_filename(filename, suffix, thumb_ext, info_dict.get('ext'))
 
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                 self.to_screen('[%s] %s: Thumbnail %sis already present' %
@@ -2706,6 +2713,15 @@ class YoutubeDL(object):
                                (info_dict['extractor'], info_dict['id'], thumb_display_id))
                 try:
                     uf = self.urlopen(t['url'])
+                    if uf.headers.get('Content-Type', '').startswith('image/webp') and thumb_ext.lower() != 'webp':
+                        self.to_screen('[%s] %s: Set thumbnail %sextension to "webp" according to "Content-Type" header' %
+                                       (info_dict['extractor'], info_dict['id'], thumb_display_id))
+                        t['filename'] = thumb_filename = make_thumb_filename(
+                            filename, suffix, 'webp', info_dict.get('ext'))
+                        if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
+                            self.to_screen('[%s] %s: Thumbnail %sis already present' %
+                                           (info_dict['extractor'], info_dict['id'], thumb_display_id))
+                            continue
                     with open(encodeFilename(thumb_filename), 'wb') as thumbf:
                         shutil.copyfileobj(uf, thumbf)
                     self.to_screen('[%s] %s: Writing thumbnail %sto: %s' %
