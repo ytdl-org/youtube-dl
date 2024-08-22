@@ -117,6 +117,7 @@
  - **BIQLE**
  - **BitChute**
  - **BitChuteChannel**
+ - **BitChutePlaylist**
  - **BleacherReport**
  - **BleacherReportCMS**
  - **Bloomberg**
