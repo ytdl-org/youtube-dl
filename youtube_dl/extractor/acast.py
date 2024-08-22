@@ -48,9 +48,9 @@ class ACastIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:embed|www)\.)?acast\.com/|
-                            play\.acast\.com/s/
-                        )
+                            (?:(?:(?P<embed>embed)|www|shows)\.)?acast\.com|
+                            play\.acast\.com/s
+                        )/(?(embed)(?:$/)?)
                         (?P<channel>[^/]+)/(?P<id>[^/#?]+)
                     '''
     _TESTS = [{
@@ -77,6 +77,9 @@ class ACastIE(ACastBaseIE):
     }, {
         'url': 'https://play.acast.com/s/sparpodcast/2a92b283-1a75-4ad8-8396-499c641de0d9',
         'only_matching': True,
+    }, {
+        'url': 'https://shows.acast.com/611233d8767fdf0012f22cb6/episodes/611233e4988b6a001394b5cf',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -93,7 +96,7 @@ class ACastChannelIE(ACastBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?acast\.com/|
+                            (?:(?:www|shows)\.)?acast\.com/|
                             play\.acast\.com/s/
                         )
                         (?P<id>[^/#?]+)
@@ -104,11 +107,22 @@ class ACastChannelIE(ACastBaseIE):
             'id': '4efc5294-5385-4847-98bd-519799ce5786',
             'title': 'Today in Focus',
             'description': 'md5:c09ce28c91002ce4ffce71d6504abaae',
+            'skip': 'Error 404'
         },
         'playlist_mincount': 200,
     }, {
         'url': 'http://play.acast.com/s/ft-banking-weekly',
         'only_matching': True,
+    }, {
+        'url': 'https://shows.acast.com/611233d8767fdf0012f22cb6',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/getthebeltpod',
+        'info_dict': {
+            'id': '4caac858-3cda-44e6-b684-50d88b909c18',
+            'title': 'Get The Belt'
+        },
+        'playlist_mincount': 138,
     }]
 
     @classmethod
