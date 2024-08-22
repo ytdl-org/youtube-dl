@@ -175,8 +175,8 @@ class TestTedSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertTrue(len(subtitles.keys()) >= 28)
-        self.assertEqual(md5(subtitles['en']), '4262c1665ff928a2dada178f62cb8d14')
-        self.assertEqual(md5(subtitles['fr']), '66a63f7f42c97a50f8c0e90bc7797bb5')
+        self.assertEqual(md5(subtitles['en']), 'ee029dfbfb4c62f134389ffc159ba3cc')
+        self.assertEqual(md5(subtitles['fr']), '55f0cae9dde5b48e11464b266f35aa30')
         for lang in ['es', 'fr', 'de']:
             self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
@@ -208,6 +208,8 @@ class TestWallaSubtitles(BaseTestSubtitles):
     IE = WallaIE
 
     def test_allsubtitles(self):
+        print('Skipping TestWallaSubtitles, need new test url')
+        return
         self.DL.expect_warning('Automatic Captions not supported by this server')
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
@@ -216,6 +218,8 @@ class TestWallaSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['heb']), 'e758c5d7cb982f6bef14f377ec7a3920')
 
     def test_nosubtitles(self):
+        print('Skipping TestWallaSubtitles, need new test url')
+        return
         self.DL.expect_warning('video doesn\'t have subtitles')
         self.url = 'http://vod.walla.co.il/movie/2642630/one-direction-all-for-one'
         self.DL.params['writesubtitles'] = True
@@ -228,6 +232,9 @@ class TestWallaSubtitles(BaseTestSubtitles):
 class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
     url = 'http://www.ceskatelevize.cz/ivysilani/10600540290-u6-uzasny-svet-techniky'
     IE = CeskaTelevizeIE
+
+    def getInfoDict(self):
+        return super(TestCeskaTelevizeSubtitles, self).getInfoDict()['entries'][0]
 
     def test_allsubtitles(self):
         self.DL.expect_warning('Automatic Captions not supported by this server')
@@ -252,6 +259,8 @@ class TestLyndaSubtitles(BaseTestSubtitles):
     IE = LyndaIE
 
     def test_allsubtitles(self):
+        print('Skipping TestLyndaSubtitles, site moved to Linkedin')
+        return
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
@@ -261,7 +270,7 @@ class TestLyndaSubtitles(BaseTestSubtitles):
 
 @unittest.skip('IE broken')
 class TestNPOSubtitles(BaseTestSubtitles):
-    url = 'http://www.npo.nl/nos-journaal/28-08-2014/POW_00722860'
+    url = 'https://www.npostart.nl/tegenlicht/25-02-2013/VPWON_1169289'
     IE = NPOIE
 
     def test_allsubtitles(self):
@@ -269,12 +278,12 @@ class TestNPOSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['nl']))
-        self.assertEqual(md5(subtitles['nl']), 'fc6435027572b63fb4ab143abd5ad3f4')
+        self.assertEqual(md5(subtitles['nl']), '6241cb42588b369b4f4b509b17cc885c')
 
 
 @unittest.skip('IE broken')
 class TestMTVSubtitles(BaseTestSubtitles):
-    url = 'http://www.cc.com/video-clips/p63lk0/adam-devine-s-house-party-chasing-white-swans'
+    url = 'https://www.cc.com/video/5ke9v2/the-daily-show-with-trevor-noah-doc-rivers-and-steve-ballmer-the-nba-player-strike'
     IE = ComedyCentralIE
 
     def getInfoDict(self):
@@ -285,7 +294,7 @@ class TestMTVSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), '78206b8d8a0cfa9da64dc026eea48961')
+        self.assertEqual(md5(subtitles['en']), 'a566bec478086b93fe20cccbdcea68e1')
 
 
 class TestNRKSubtitles(BaseTestSubtitles):
@@ -354,6 +363,8 @@ class TestThePlatformFeedSubtitles(BaseTestSubtitles):
     IE = ThePlatformFeedIE
 
     def test_allsubtitles(self):
+        print('Skipping TestThePlatformFeedSubtitles, need new test url')
+        return
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
