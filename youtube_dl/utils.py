@@ -3272,7 +3272,15 @@ def date_from_str(date_str):
         unit += 's'
         delta = datetime.timedelta(**{unit: time})
         return today + delta
-    return datetime.datetime.strptime(date_str, '%Y%m%d').date()
+
+    if re.match(r'^\d{8}$', date_str):
+        try:
+            return datetime.datetime.strptime(date_str, '%Y%m%d').date()
+        except ValueError as err:
+            errmsg = 'Invalid date: %s (%s)' % (date_str, err)
+    else:
+        errmsg = 'Invalid date format: %s (must be 8 digit number)' % date_str
+    raise ValueError(errmsg)
 
 
 def hyphenate_date(date_str):
