@@ -10,6 +10,7 @@ from ..utils import (
     remove_start,
     smuggle_url,
     try_get,
+    url_or_none,
 )
 
 
@@ -52,10 +53,25 @@ class TVerIE(InfoExtractor):
             self.BRIGHTCOVE_URL_TEMPLATE % (p_id, r_id),
             {'geo_countries': ['JP']})
 
+        thumbnail = None
+        thumbnails = []
+        imgs = try_get(main, lambda x: x['images'][0], dict)
+        if imgs:
+            for q in ('small', 'image', 'large'):
+                img_url = url_or_none(imgs.get(q))
+                if img_url:
+                    thumbnail = img_url
+                    thumbnails.append({
+                        'url': thumbnail,
+                        'preference': len(thumbnails),
+                    })
+
         return {
             '_type': 'url_transparent',
             'description': try_get(main, lambda x: x['note'][0]['text'], compat_str),
             'episode_number': int_or_none(try_get(main, lambda x: x['ext']['episode_number'])),
             'url': bc_url,
             'ie_key': 'BrightcoveNew',
+            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
         }
