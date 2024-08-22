@@ -405,6 +405,36 @@ class InstagramPlaylistIE(InfoExtractor):
             self._extract_graphql(data, url), user_or_tag, user_or_tag)
 
 
+class InstagramSavedIE(InstagramPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/saved/?(?:$|[?#])'
+    IE_DESC = 'Instagram saved media'
+    IE_NAME = 'instagram:saved'
+    _TEST = {
+        'url': 'https://www.instagram.com/tatsh2dx/saved/',
+        'info_dict': {
+            'id': 'tatsh2dx',
+            'title': 'tatsh2dx',
+        },
+        'playlist_count': 5,
+        'params': {
+            'skip_download': True,
+            'playlistend': 5,
+        }
+    }
+
+    _QUERY_HASH = '8c86fed24fa03a8a2eea2a70a80c7b6b'
+
+    @staticmethod
+    def _parse_timeline_from(data):
+        return data['data']['user']['edge_saved_media']
+
+    @staticmethod
+    def _query_vars_for(data):
+        return {
+            'id': data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        }
+
+
 class InstagramUserIE(InstagramPlaylistIE):
     _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:$|[?#])'
     IE_DESC = 'Instagram user profile'
