@@ -367,6 +367,7 @@ from .espn import (
     ESPNArticleIE,
     FiveThirtyEightIE,
 )
+from .esquire import EsquireIE
 from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .expotv import ExpoTVIE
