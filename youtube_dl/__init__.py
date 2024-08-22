@@ -460,6 +460,10 @@ def _real_main(argv=None):
                 'You must provide at least one URL.\n'
                 'Type youtube-dl --help to see a list of all options.')
 
+        # Remove this `if` block when PR #9738 is finished
+        if opts.convertsubtitles and opts.skip_download:
+            ydl.report_warning('--convert-subs is a post-processing option and doesn\'t work with --skip-download')
+
         try:
             if opts.load_info_filename is not None:
                 retcode = ydl.download_with_info_file(expand_path(opts.load_info_filename))
