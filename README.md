@@ -1,5 +1,8 @@
-[![Build Status](https://github.com/ytdl-org/youtube-dl/workflows/CI/badge.svg)](https://github.com/ytdl-org/youtube-dl/actions?query=workflow%3ACI)
+# In this fork
 
+This fork adds an extractor for recording lectures from a https://livestream.kuleuven.be/ stream.
+
+# youtube-dl
 
 youtube-dl - download videos from youtube.com or other video platforms
 
@@ -238,6 +241,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          url,ffmpeg,httpie,wget
     --external-downloader-args ARGS      Give these arguments to the external
                                          downloader
+    --ffmpeg-out-override ARGS           Give these arguments to the ffmpeg
+                                         instead of `-c copy`
 
 ## Filesystem Options:
     -a, --batch-file FILE                File containing URLs to download ('-'

@@ -576,6 +576,7 @@ from .konserthusetplay import KonserthusetPlayIE
 from .krasview import KrasViewIE
 from .kth import KTHIE
 from .ku6 import Ku6IE
+from .kuleuven_live import KULLiveIE
 from .kusi import KUSIIE
 from .kuwo import (
     KuwoIE,
