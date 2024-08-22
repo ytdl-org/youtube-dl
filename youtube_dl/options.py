@@ -843,7 +843,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--xattrs',
         action='store_true', dest='xattrs', default=False,
-        help='Write metadata to the video file\'s xattrs (using dublin core and xdg standards)')
+        help='Write metadata to the video file\'s xattrs (using dublin core and xdg standards, or macOS Spotlight)')
     postproc.add_option(
         '--fixup',
         metavar='POLICY', dest='fixup', default='detect_or_warn',

@@ -6139,7 +6139,9 @@ def write_xattr(path, key, value):
                     f.write(value)
             except EnvironmentError as e:
                 raise XAttrMetadataError(e.errno, e.strerror)
-        else:
+        elif not (key.startswith('com.apple.metadata:') and value[:8] == b'bplist00'):
+            # other than macOS binary plist
+
             user_has_setfattr = check_executable('setfattr', ['--version'])
             user_has_xattr = check_executable('xattr', ['-h'])
 
@@ -6180,6 +6182,49 @@ def write_xattr(path, key, value):
                         "Couldn't find a tool to set the xattrs. "
                         "Install either the python 'xattr' module, "
                         "or the 'xattr' binary.")
+        else:
+            # macOS binary plist
+
+            # find Apple version xattr command to set binary data in hex string
+            # original xattr project's xattr command doesn't have this feature
+            xattr_bin = None
+            for _bin in ('xattr', '/usr/bin/xattr'):
+                cmd = [encodeFilename(_bin, True), encodeArgument('-h')]
+                try:
+                    p = subprocess.Popen(
+                        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                except EnvironmentError:
+                    continue
+                stdout, stderr = p.communicate()
+                if p.returncode != 0:
+                    continue
+                stdout = stdout.decode('utf-8', 'replace')
+                # help text must contain '-x: ... hex string for input' line
+                if re.search('-x: .*? hex string for input', stdout):
+                    xattr_bin = _bin
+                    break
+
+            if xattr_bin:
+                hexvalue = binascii.hexlify(value)
+                opts = ['-w', '-x', key, hexvalue]
+                cmd = ([encodeFilename(xattr_bin, True)]
+                       + [encodeArgument(o) for o in opts]
+                       + [encodeFilename(path, True)])
+                try:
+                    p = subprocess.Popen(
+                        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                except EnvironmentError as e:
+                    raise XAttrMetadataError(e.errno, e.strerror)
+                stdout, stderr = p.communicate()
+                if p.returncode != 0:
+                    stderr = stderr.decode('utf-8', 'replace')
+                    raise XAttrMetadataError(p.returncode, stderr)
+
+            else:
+                raise XAttrUnavailableError(
+                    "Couldn't find a tool to set the xattrs. "
+                    "Install either the python 'xattr' module, "
+                    "or the Apple version 'xattr' command.")
 
 
 def random_birthday(year_field, month_field, day_field):
