@@ -11,18 +11,34 @@ from ..utils import (
 class OnDemandKoreaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ondemandkorea\.com/(?P<id>[^/]+)\.html'
     _GEO_COUNTRIES = ['US', 'CA']
-    _TEST = {
-        'url': 'http://www.ondemandkorea.com/ask-us-anything-e43.html',
+    _TESTS = [{
+        'url': 'https://www.ondemandkorea.com/ask-us-anything-e43.html',
         'info_dict': {
             'id': 'ask-us-anything-e43',
             'ext': 'mp4',
-            'title': 'Ask Us Anything : E43',
+            'title': 'Ask Us Anything : Gain, Ji Soo - 09/24/2016',
+            'description': 'A talk show/game show with a school theme where celebrity guests appear as “transfer students.”',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
         'params': {
             'skip_download': 'm3u8 download'
         }
-    }
+    }, {
+        'url': 'https://www.ondemandkorea.com/confession-e01-1.html',
+        'info_dict': {
+            'id': 'confession-e01-1',
+            'ext': 'mp4',
+            'title': 'Confession : E01',
+            'description': 'Choi Do-hyun, a criminal attorney, is the son of a death row convict. Ever since Choi Pil-su got arrested for murder, Do-hyun has wanted to solve his ',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'subtitles': {
+                'English': 'mincount:1',
+            },
+        },
+        'params': {
+            'skip_download': 'm3u8 download'
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -44,11 +60,18 @@ class OnDemandKoreaIE(InfoExtractor):
                 'This video is only available to ODK PLUS members.',
                 expected=True)
 
-        title = self._og_search_title(webpage)
+        if 'ODK PREMIUM Members Only' in webpage:
+            raise ExtractorError(
+                'This video is only available to ODK PREMIUM members.',
+                expected=True)
+
+        title = self._search_regex(
+            r'class=["\']episode_title["\'][^>]*>([^<]+)',
+            webpage, 'episode_title', fatal=False) or self._og_search_title(webpage)
 
         jw_config = self._parse_json(
             self._search_regex(
-                r'(?s)jwplayer\(([\'"])(?:(?!\1).)+\1\)\.setup\s*\((?P<options>.+?)\);',
+                r'(?s)odkPlayer\.init.*?(?P<options>{[^;]+}).*?;',
                 webpage, 'jw config', group='options'),
             video_id, transform_source=js_to_json)
         info = self._parse_jwplayer_data(
@@ -57,6 +80,7 @@ class OnDemandKoreaIE(InfoExtractor):
 
         info.update({
             'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage)
         })
         return info
