@@ -1,0 +1,952 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Youtube-dl JSON output schema",
+  "description": "This schema is produced when youtube-dl -J is invoked",
+  "definitions": {
+    "single-video": {
+      "anyOf": [
+        {
+          "required": [
+            "formats"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/json-output"
+        },
+        {
+          "$ref": "#/definitions/format"
+        }
+      ]
+    },
+    "playlist": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "entries"
+      ],
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "webpage_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "webpage_url_basename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "entries": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/single-video"
+          }
+        }
+      }
+    },
+    "json-output": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-json-output",
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "$comment": "video ID"
+        },
+        "title": {
+          "type": "string"
+        },
+        "duration": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "formats": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/format"
+          }
+        },
+        "creator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timestamp": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "uploader": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "categories": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "tags": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "thumbnails": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/thumbnail"
+          }
+        },
+        "thumbnail": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "chapters": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/chapter"
+          }
+        },
+        "subtitles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/definitions/subtitle"
+            }
+          }
+        },
+        "playlist": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "comments": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/comment"
+          }
+        },
+        "chapter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "series": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "season": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "episode": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "track": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artist": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "genre": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "album": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "license": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "location": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "webpage_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "release_date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "upload_date": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "channel_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "requested_subtitles": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": {
+            "type": "object",
+            "$ref": "#/definitions/subtitle"
+          }
+        },
+        "automatic_captions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/subtitle"
+            }
+          }
+        },
+        "playlist_index": {
+          "type": [
+            "string",
+            "integer",
+            "null"
+          ]
+        },
+        "playlist_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "playlist_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "playlist_uploader": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "playlist_uploader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "view_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "average_rating": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "like_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "dislike_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "repost_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "comment_count": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "chapter_number": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "chapter_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "season_number": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "season_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "episode_number": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "episode_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "track_number": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "track_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "album_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "album_artist": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disc_number": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "release_year": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "start_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "end_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "display_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "is_live": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "age_limit": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "alt_title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-chapter",
+      "properties": {
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "start_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "end_time": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "comment": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-comment",
+      "properties": {
+        "author": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "html": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "text": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "timestamp": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "parent": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "author_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "protocol": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "http",
+        "https",
+        "rtsp",
+        "rtmp",
+        "rtmpe",
+        "mms",
+        "f4m",
+        "ism",
+        "m3u8",
+        "m3u8_native",
+        "http_dash_segments"
+      ]
+    },
+    "subtitle": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-subtitle",
+      "properties": {
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "data": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ext": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "thumbnail": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-thumbnail",
+      "properties": {
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "preference": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "width": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "height": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "filesize": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "fragment": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-fragment",
+      "properties": {
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "duration": {
+          "type": [
+            "string",
+            "number",
+            "null"
+          ]
+        },
+        "filesize": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
+    },
+    "format": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-format",
+      "properties": {
+        "url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "ext": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "width": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "height": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "resolution": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fps": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "container": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filesize": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "protocol": {
+          "$ref": "#/definitions/protocol"
+        },
+        "fragments": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/fragment"
+          }
+        },
+        "preference": {
+          "type": [
+            "string",
+            "integer",
+            "null"
+          ]
+        },
+        "language": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "quality": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "manifest_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "format_note": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "tbr": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "abr": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "acodec": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "asr": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "vbr": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "vcodec": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "filesize_approx": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "player_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "fragment_base_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "language_preference": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "source_preference": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "http_headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "stretched_ratio": {
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "no_resume": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "downloader_options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "object",
+              "string",
+              "number",
+              "boolean"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/definitions/single-video"
+    },
+    {
+      "$ref": "#/definitions/playlist"
+    }
+  ]
+}
