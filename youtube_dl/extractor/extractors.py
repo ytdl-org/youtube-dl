@@ -961,6 +961,7 @@ from .pluralsight import (
     PluralsightIE,
     PluralsightCourseIE,
 )
+from .podlovepublisher import PodlovePublisherIE
 from .podomatic import PodomaticIE
 from .pokemon import PokemonIE
 from .polskieradio import (
