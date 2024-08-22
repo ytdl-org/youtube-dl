@@ -293,7 +293,7 @@ def _real_main(argv=None):
             'key': 'EmbedThumbnail',
             'already_have_thumbnail': already_have_thumbnail
         })
-        if not already_have_thumbnail:
+        if not already_have_thumbnail and not opts.skip_download:
             opts.writethumbnail = True
     # XAttrMetadataPP should be run after post-processors that may change file
     # contents
