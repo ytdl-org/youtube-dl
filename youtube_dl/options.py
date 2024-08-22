@@ -642,7 +642,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--newline',
         action='store_true', dest='progress_with_newline', default=False,
-        help='Output progress bar as new lines')
+        help='Output progress bar as new lines (implied if output is not to the console)')
     verbosity.add_option(
         '--no-progress',
         action='store_true', dest='noprogress', default=False,

@@ -2,7 +2,6 @@ from __future__ import division, unicode_literals
 
 import os
 import re
-import sys
 import time
 import random
 
@@ -251,7 +250,7 @@ class FileDownloader(object):
                 self._report_progress_prev_line_length = len(fullmsg)
                 clear_line = '\r'
             else:
-                clear_line = ('\r\x1b[K' if sys.stderr.isatty() else '\r')
+                clear_line = '\r\x1b[K'
             self.to_screen(clear_line + fullmsg, skip_eol=not is_last_line)
         self.to_console_title('youtube-dl ' + msg)
 

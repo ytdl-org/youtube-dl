@@ -454,6 +454,9 @@ class YoutubeDL(object):
                 'Parameter outtmpl is bytes, but should be a unicode string. '
                 'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
 
+        if not self._screen_file.isatty():
+            self.params['progress_with_newline'] = True
+
         self._setup_opener()
 
         if auto_init:
