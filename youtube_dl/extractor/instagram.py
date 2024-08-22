@@ -9,6 +9,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_HTTPError,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -305,7 +306,7 @@ class InstagramPlaylistIE(InfoExtractor):
                 'first': 12,
                 'after': cursor,
             }
-            variables.update(self._query_vars_for(data))
+            variables.update(self._query_vars_for(data, url))
             variables = json.dumps(variables)
 
             if self._gis_tmpl:
@@ -320,6 +321,10 @@ class InstagramPlaylistIE(InfoExtractor):
 
             # try all of the ways to generate a GIS query, and not only use the
             # first one that works, but cache it for future requests
+            if hasattr(self, '_get_query_hash'):
+                query_hash = self._get_query_hash(url)
+            else:
+                query_hash = self._QUERY_HASH
             for gis_tmpl in gis_tmpls:
                 try:
                     json_data = self._download_json(
@@ -329,10 +334,10 @@ class InstagramPlaylistIE(InfoExtractor):
                             'X-Instagram-GIS': hashlib.md5(
                                 ('%s:%s' % (gis_tmpl, variables)).encode('utf-8')).hexdigest(),
                         }, query={
-                            'query_hash': self._QUERY_HASH,
+                            'query_hash': query_hash,
                             'variables': variables,
                         })
-                    media = self._parse_timeline_from(json_data)
+                    media = self._parse_timeline_from(json_data, url)
                     self._gis_tmpl = gis_tmpl
                     break
                 except ExtractorError as e:
@@ -351,25 +356,71 @@ class InstagramPlaylistIE(InfoExtractor):
                 node = edge.get('node')
                 if not node or not isinstance(node, dict):
                     continue
-                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
-                    continue
-                video_id = node.get('shortcode')
-                if not video_id:
+                if node.get('__typename') not in ('GraphVideo', 'GraphStoryVideo') and node.get('is_video') is not True:
                     continue
 
-                info = self.url_result(
-                    'https://instagram.com/p/%s/' % video_id,
-                    ie=InstagramIE.ie_key(), video_id=video_id)
+                if node.get('__typename') == 'GraphVideo':
+                    video_id = node.get('shortcode')
+                    if not video_id:
+                        continue
 
-                description = try_get(
-                    node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
-                    compat_str)
-                thumbnail = node.get('thumbnail_src') or node.get('display_src')
-                timestamp = int_or_none(node.get('taken_at_timestamp'))
+                    info = self.url_result(
+                        'https://instagram.com/p/%s/' % video_id,
+                        ie=InstagramIE.ie_key(), video_id=video_id)
 
-                comment_count = get_count('to_comment')
-                like_count = get_count('preview_like')
-                view_count = int_or_none(node.get('video_view_count'))
+                    description = try_get(
+                        node, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
+                        compat_str)
+                    thumbnail = node.get('thumbnail_src') or node.get('display_src')
+                    timestamp = int_or_none(node.get('taken_at_timestamp'))
+
+                    comment_count = get_count('to_comment')
+                    like_count = get_count('preview_like')
+                    view_count = int_or_none(node.get('video_view_count'))
+                elif node.get('__typename') == 'GraphStoryVideo':
+                    if 'display_resources' not in node:
+                        continue
+                    thumbnails = []
+                    for thumb in node.get('display_resources', []):
+                        if 'src' not in thumb:
+                            continue
+                        thumbnails.append({
+                            'url': thumb['src'],
+                            'width': int_or_none(thumb.get('config_width')),
+                            'height': int_or_none(thumb.get('config_height')),
+                        })
+                    formats = []
+                    owner = node.get('owner', {})
+                    creator = owner.get('username')
+                    title = ('Stories - %s' % creator) if creator else 'Stories'
+                    video_res = node.get('video_resources')
+                    if not video_res:
+                        continue
+                    for res in video_res:
+                        if 'src' not in res:
+                            continue
+                        formats.append({
+                            'url': res['src'],
+                            'format_id': res.get('profile'),
+                            'width': int_or_none(res.get('config_width')),
+                            'height': int_or_none(res.get('config_height')),
+                            'format_note': res.get('mime_type'),
+                        })
+                    thumbnail = thumbnails[0]['url'] if thumbnails else None
+                    description = None
+                    timestamp = int_or_none(node.get('taken_at_timestamp') or node.get('date'))
+                    like_count = view_count = comment_count = None
+                    info = {
+                        'thumbnails': thumbnails,
+                        'id': node['id'],
+                        'title': title,
+                        'uploader': creator,
+                        'creator': creator,
+                        'duration': int_or_none(node.get('video_duration')),
+                        'formats': formats,
+                    }
+                else:
+                    continue
 
                 info.update({
                     'description': description,
@@ -423,15 +474,13 @@ class InstagramUserIE(InstagramPlaylistIE):
         }
     }
 
-    _QUERY_HASH = '42323d64886122307be10013ad2dcc44',
+    _QUERY_HASH = '42323d64886122307be10013ad2dcc44'
 
-    @staticmethod
-    def _parse_timeline_from(data):
+    def _parse_timeline_from(self, data, url):
         # extracts the media timeline data from a GraphQL result
         return data['data']['user']['edge_owner_to_timeline_media']
 
-    @staticmethod
-    def _query_vars_for(data):
+    def _query_vars_for(self, data, url):
         # returns a dictionary of variables to add to the timeline query based
         # on the GraphQL of the original page
         return {
@@ -457,18 +506,152 @@ class InstagramTagIE(InstagramPlaylistIE):
         }
     }
 
-    _QUERY_HASH = 'f92f56d47dc7a55b606908374b43a314',
+    _QUERY_HASH = 'f92f56d47dc7a55b606908374b43a314'
 
-    @staticmethod
-    def _parse_timeline_from(data):
+    def _parse_timeline_from(self, data, url):
         # extracts the media timeline data from a GraphQL result
         return data['data']['hashtag']['edge_hashtag_to_media']
 
-    @staticmethod
-    def _query_vars_for(data):
+    def _query_vars_for(self, data, url):
         # returns a dictionary of variables to add to the timeline query based
         # on the GraphQL of the original page
         return {
             'tag_name':
                 data['entry_data']['TagPage'][0]['graphql']['hashtag']['name']
+        }
+
+
+class InstagramStoriesIE(InstagramPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?:highlights/)?stories/(?P<id>[^/]+)(/[0-9]+/?)?'
+    IE_DESC = 'Instagram stories'
+    IE_NAME = 'instagram:stories'
+    _TESTS = [{
+        'skip': 'Requires cookies',
+        'url': 'https://www.instagram.com/stories/jillianbmele/',
+        'md5': '29bc2e6a657e9eb4e81d18455e7200fc',
+        'info_dict': {
+            'id': '2284559186280109841',
+            'title': 'Stories - jillianbmele',
+            'ext': 'mp4',
+            'timestamp': 15865606971,
+            'uploader': 'jillianbmele',
+            'upload_date': '20200404',
+        },
+    }, {
+        'skip': 'Requires cookies',
+        'url': 'https://www.instagram.com/stories/highlights/17946082630331720/',
+        'md5': '41515e24cbf3478d71afe408bcdef43d',
+        'info_dict': {
+            'id': '2275290256240448451',
+            'title': 'Stories - lasvegasbarbie',
+            'ext': 'mp4',
+            'timestamp': 1585455755,
+            'uploader': 'lasvegasbarbie',
+            'upload_date': '20200329',
+        },
+    }, {
+        'skip': 'Requires cookies',
+        'url': 'https://www.instagram.com/stories/lisamarieboothe/2288168092151825799/?igshid=1fl8dqdvhla4a',
+        'md5': '08088623250416e23957b564832d20e3',
+        'info_dict': {
+            'id': '2288168092151825799',
+            'title': 'Stories - lisamarieboothe',
+            'ext': 'mp4',
+            'timestamp': 1586990910,
+            'uploader': 'lisamarieboothe',
+            'upload_date': '20200415',
+        },
+    }]
+    _QUERY_HASH = '04334405dbdef91f2c4e207b84c204d7'
+    _QUERY_HASH_HIGHLIGHTS = '45246d3fe16ccc6577e0bd297a5db1ab'
+    _QUERY_HASH_REEL_CONTENT = 'f5dc1457da7a4d3f88762dae127e0238'
+
+    def _get_query_hash(self, url):
+        path = compat_urlparse.urlparse(url).path
+        if path.startswith('/stories/highlights/'):
+            return self._QUERY_HASH_HIGHLIGHTS
+        if path.strip('/').split('/')[-1].isdigit():
+            return self._QUERY_HASH_REEL_CONTENT
+        return self._QUERY_HASH
+
+    def _parse_timeline_from(self, data, url):
+        # extracts the media timeline data from a GraphQL result
+        path = compat_urlparse.urlparse(url).path
+        if path.startswith('/stories/highlights/'):
+            return {'edges': [{'node': x} for x in data['data']['reels_media'][0]['items']]}
+        object_id = re.match(r'([0-9]+)', path.rstrip('/').split('/')[-1])
+        if object_id:
+            object_id = object_id.group(1)
+            return {'edges': [
+                {'node': x} for x in data['data']['reels_media'][0]['items']
+                if x['id'] == object_id
+            ]}
+        username = path.rstrip('/').split('/')[-1]
+        # Get the reel ID
+        reel_id = None
+        for edge in data['data']['user']['feed_reels_tray']['edge_reels_tray_to_reel']['edges']:
+            if edge['node']['owner']['username'] == username:
+                reel_id = edge['node']['id']
+                break  # There should only be one
+        if not reel_id:
+            # No story reel at the moment
+            return {'edges': []}
+        variables = {
+            'reel_ids': [reel_id],
+            'tag_names': [],
+            'location_ids': [],
+            'highlight_reel_ids': [],
+            'precomposed_overlay': False,
+            'show_story_viewer_list': True,
+            'story_viewer_fetch_count': 50,
+            'stories_video_dash_manifest': False
+        }
+        json_data = self._download_json(
+            'https://www.instagram.com/graphql/query/', username,
+            'Downloading JSON', headers={
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Instagram-GIS': hashlib.md5(
+                    ('%s:%s' % (self._gis_tmpl, variables)).encode('utf-8')).hexdigest(),
+            }, query={
+                'query_hash': self._QUERY_HASH_REEL_CONTENT,
+                'variables': json.dumps(variables),
+            })
+        if not json_data['data']['reels_media']:
+            raise ExtractorError('Matching reel not found')
+        return {'edges': [{'node': x} for x in json_data['data']['reels_media'][0]['items']]}
+
+    def _query_vars_for(self, data, url):
+        # returns a dictionary of variables to add to the timeline query based
+        # on the GraphQL of the original page
+        path = compat_urlparse.urlparse(url).path
+        if path.startswith('/stories/highlights/'):
+            return {
+                'reel_ids': [],
+                'tag_names': [],
+                'location_ids': [],
+                'highlight_reel_ids': [data['entry_data']['StoriesPage'][0]['highlight']['id']],
+                'precomposed_overlay': False,
+            }
+        object_id = re.match(r'[0-9]+', path.rstrip('/').split('/')[-1])
+        if object_id:
+            username = path.strip('/').split('/')[-2]
+            user_id = self._download_json(
+                'https://www.instagram.com/stories/%s' % username, username,
+                'Downloading JSON', headers={'X-Requested-With': 'XMLHttpRequest'},
+                query={'__a': '1'})['user']['id']
+            return {
+                'reel_ids': [user_id],
+                'tag_names': [],
+                'location_ids': [],
+                'highlight_reel_ids': [],
+                'precomposed_overlay': False,
+                'show_story_viewer_list': True,
+                'story_viewer_fetch_count': 50,
+                'story_viewer_cursor': '',
+                'stories_video_dash_manifest': False,
+            }
+        return {
+            'only_stories': True,
+            'stories_prefetch': True,
+            'stories_video_dash_manifest': False,
         }
