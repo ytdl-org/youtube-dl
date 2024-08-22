@@ -607,6 +607,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             return [], info
         self._downloader.to_screen('[ffmpeg] Converting subtitles')
         sub_filenames = []
+        temp_srt_filenames = []
         for lang, sub in subs.items():
             ext = sub['ext']
             if ext == new_ext:
@@ -640,7 +641,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 if new_ext == 'srt':
                     continue
                 else:
-                    sub_filenames.append(srt_file)
+                    temp_srt_filenames.append(srt_file)
 
             self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
@@ -649,5 +650,8 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                     'ext': new_ext,
                     'data': f.read(),
                 }
+
+        for f in temp_srt_filenames:
+            os.remove(encodeFilename(f))
 
         return sub_filenames, info
