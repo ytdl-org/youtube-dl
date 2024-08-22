@@ -1337,10 +1337,12 @@ class InfoExtractor(object):
         # At the same time `default` may be passed that assumes `fatal=False`
         # for _search_regex. Let's simulate the same behavior here as well.
         fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
+        # Give the caller extractor the opportunity to fix malformed JSON-LD.
+        transform_source = kwargs.get('transform_source', None)
         json_ld = []
         for mobj in json_ld_list:
             json_ld_item = self._parse_json(
-                mobj.group('json_ld'), video_id, fatal=fatal)
+                mobj.group('json_ld'), video_id, transform_source=transform_source, fatal=fatal)
             if not json_ld_item:
                 continue
             if isinstance(json_ld_item, dict):
