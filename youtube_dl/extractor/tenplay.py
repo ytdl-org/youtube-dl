@@ -157,6 +157,7 @@ class TenPlaySeasonIE(TenPlayBase):
             'id': 'MjMyOTIy',
         },
         'playlist_mincount': 64,
+        'skip': 'Only available in Australia',
     }, {
         'url': 'https://10play.com.au/the-bold-and-the-beautiful-fast-tracked/episodes/season-2022',
         'info_dict': {
@@ -164,6 +165,7 @@ class TenPlaySeasonIE(TenPlayBase):
             'id': 'Mjc0OTIw',
         },
         'playlist_mincount': 256,
+        'skip': 'Only available in Australia',
     }]
 
     def _entries(self, load_more_url, display_id=None):
