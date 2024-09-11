@@ -1,181 +1,201 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import functools
+
 from .common import InfoExtractor
+from ..compat import (
+    compat_itertools_count,
+    compat_kwargs,
+)
 from ..utils import (
-    parse_age_limit,
-    unescapeHTML,
-    str_to_int,
-    urljoin
+    get_elements_by_attribute,
+    HEADRequest,
+    float_or_none,
+    int_or_none,
+    merge_dicts,
+    NO_DEFAULT,
+    T,
+    traverse_obj,
+    txt_or_none,
+    url_or_none,
+    urljoin,
 )
 
-from datetime import datetime
-import base64
-import json
+
+class TenPlayBase(InfoExtractor):
+    _GEO_COUNTRIES = ['AU']
+    _GEO_BYPASS = False
+
+    def raise_geo_restricted(self, *args, **kwargs):
+        countries = args[1] if len(args) > 1 else kwargs.get('countries', NO_DEFAULT)
+        if countries is NO_DEFAULT:
+            kwargs['countries'] = self._GEO_COUNTRIES
+            kwargs = compat_kwargs(kwargs)
+        super(TenPlayBase, self).raise_geo_restricted(*args, **kwargs)
+
+    def _download_webpage_handle(self, url_or_request, video_id, *args, **kwargs):
+        res = super(TenPlayBase, self)._download_webpage_handle(url_or_request, video_id, *args, **kwargs)
+        if res and any('Sorry, 10 play is not available in your region.' in e
+                       for e in get_elements_by_attribute('class', 'iserror__text', res[0])):
+            self.raise_geo_restricted()
+        return res
 
 
-class TenPlayIE(InfoExtractor):
-    _VALID_URL = r'''(?x)^
-        https?://(?:www\.)?10play\.com\.au/(?:
-            (?:[^/]+/)+(?P<id>tpv\d{6}[a-z]{5})| (?# Individual show id)
-            (?P<show>[^/]+)/episodes/(?P<season>[^/]+)(?# Entire season playlist)
-        )'''
+class TenPlayIE(TenPlayBase):
+    _VALID_URL = r'https?://(?:www\.)?10play\.com\.au/(?:[^/]+/)+(?P<id>tpv\d{6}[a-z]{5})'
+    _NETRC_MACHINE = '10play'
     _TESTS = [{
-        'url': 'https://10play.com.au/masterchef/episodes/season-1/episode-1/tpv220408msjpb',
+        'url': 'https://10play.com.au/neighbours/web-extras/season-41/heres-a-first-look-at-mischa-bartons-neighbours-debut/tpv230911hyxnz',
         'info_dict': {
-            'id': 'tpv220408msjpb',
+            'id': '6336940246112',
             'ext': 'mp4',
-            'title': 'MasterChef - S1 Ep. 1',
-            'description': 'md5:4fe7b78e28af8f2d900cd20d900ef95c',
-            'age_limit': 10,
-            'timestamp': 1240828200,
-            'upload_date': '20090427',
+            'title': 'Here\'s A First Look At Mischa Barton\'s Neighbours Debut',
+            'alt_title': 'Here\'s A First Look At Mischa Barton\'s Neighbours Debut',
+            'description': 'Neighbours Premieres Monday, September 18 At 4:30pm On 10 And 10 Play And 6:30pm On 10 Peach',
+            'duration': 74,
+            'season': 'Season 41',
+            'season_number': 41,
+            'series': 'Neighbours',
+            'thumbnail': r're:https://.*\.jpg',
+            'uploader': 'Channel 10',
+            'age_limit': 15,
+            'timestamp': 1694386800,
+            'upload_date': '20230910',
+            'uploader_id': '2199827728001',
         },
         'params': {
             'skip_download': True,
-            'usenetrc': True,
-        }
+        },
+        'skip': 'Only available in Australia',
+    }, {
+        'url': 'https://10play.com.au/neighbours/episodes/season-42/episode-9107/tpv240902nzqyp',
+        'info_dict': {
+            'id': '9000000000091177',
+            'ext': 'mp4',
+            'title': 'Neighbours - S42 Ep. 9107',
+            'alt_title': 'Thu 05 Sep',
+            'description': 'md5:37a1f4271be34b9ee2b533426a5fbaef',
+            'duration': 1388,
+            'episode': 'Episode 9107',
+            'episode_number': 9107,
+            'season': 'Season 42',
+            'season_number': 42,
+            'series': 'Neighbours',
+            'thumbnail': r're:https://.*\.jpg',
+            'age_limit': 15,
+            'timestamp': 1725517860,
+            'upload_date': '20240905',
+            'uploader': 'Channel 10',
+            'uploader_id': '2199827728001',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'Only available in Australia',
     }, {
         'url': 'https://10play.com.au/how-to-stay-married/web-extras/season-1/terrys-talks-ep-1-embracing-change/tpv190915ylupc',
         'only_matching': True,
-    }, {
-        'info_dict': {
-            'title': 'Season 2022'
-        },
-        'url': 'https://10play.com.au/the-bold-and-the-beautiful-fast-tracked/episodes/season-2022',
-        'playlist_count': 256,
-        'params': {
-            'skip_download': True,
-            'usenetrc': True,
-        }
     }]
 
-    _NETRC_MACHINE = '10play.com.au'
-    _GEO_BYPASS = False
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._access_token = None
-
-    def get_access_token(self, content_id):
-        if self._access_token is None:
-            # log in with username and password
-            username, password = self._get_login_info()
-
-            if username is None or password is None:
-                self.raise_login_required()
-
-            ten_auth_header = base64.b64encode(datetime.utcnow().strftime("%Y%m%d%H%M%S").encode())
-
-            auth_request_data = json.dumps({"email": username, "password": password}).encode()
-            token_data = self._download_json(
-                'https://10play.com.au/api/user/auth', content_id,
-                note='Logging in to 10play',
-                data=auth_request_data,
-                headers={
-                    'Content-Type': 'application/json;charset=utf-8',
-                    'X-Network-Ten-Auth': ten_auth_header
-                })
-
-            self._access_token = token_data['jwt']['accessToken']
-
-        return self._access_token
-
-    def extract_playlist(self, url):
-        matches = self._VALID_URL_RE.match(url)
-        show = matches.group('show')
-        season = matches.group('season')
-
-        # The api/v1 endpoint is throwing up 403 Forbidden, so we need to use the old API
-        season_info = self._download_json(
-            f'https://10play.com.au/api/shows/{show}/episodes/{season}', f"{show}/{season}",
-            note='Fetching playlist info')
-
-        # Try to find a carousel with the title "episodes", otherwise default to the top one
-        episodes_carousel = next((c for c in season_info['content'][0]['components'] if c['title'].lower() == 'episodes'),
-                                 season_info['content'][0]['components'][0])
-
-        episodes = episodes_carousel['slides']
-
-        load_more_url = urljoin(url, episodes_carousel['loadMoreUrl'])
-
-        while episodes_carousel['hasMore']:
-            skip_ids = [ep['id'] for ep in episodes]
-
-            episodes_carousel = self._download_json(
-                load_more_url, f"{show}/{season}",
-                note=f'Fetching episodes {len(skip_ids)}+',
-                query={'skipIds[]': skip_ids})
-
-            episodes += episodes_carousel['items']
-
-        episodes_urls = [urljoin(url, ep['cardLink']) for ep in episodes]
-
-        return self.playlist_from_matches(episodes_urls, playlist_title=season_info['content'][0].get('title'))
-
-    # Altered version to check for geoblocking without extraneous HEAD request
-    def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
-                              entry_protocol='m3u8', preference=None,
-                              m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False, data=None, headers={},
-                              query={}):
-        res = self._download_webpage_handle(
-            m3u8_url, video_id,
-            note=note or 'Downloading m3u8 information',
-            errnote=errnote or 'Failed to download m3u8 information',
-            fatal=fatal, data=data, headers=headers, query=query)
-
-        if res is False:
-            return []
-
-        m3u8_doc, urlh = res
-        m3u8_url = urlh.geturl()
-
-        if '10play-not-in-oz' in m3u8_url:
-            self.raise_geo_restricted(countries=['AU'])
-
-        return self._parse_m3u8_formats(
-            m3u8_doc, m3u8_url, ext=ext, entry_protocol=entry_protocol,
-            preference=preference, m3u8_id=m3u8_id, live=live)
+    _AUS_AGES = {
+        'G': 0,
+        'PG': 15,
+        'M': 15,
+        'MA': 15,
+        'MA15+': 15,
+        'R': 18,
+        'X': 18,
+    }
 
     def _real_extract(self, url):
         content_id = self._match_id(url)
+        data = self._download_json(
+            'https://10play.com.au/api/v1/videos/' + content_id, content_id)
 
-        if content_id is None or content_id == 'None':
-            return self.extract_playlist(url)
-
-        video_info = self._download_json(
-            'https://10play.com.au/api/v1/videos/' + content_id, content_id, note='Fetching video info')
-
-        playback_url = video_info['playbackApiEndpoint']
-
-        headers = {}
-
-        # Handle member-gated videos
-        if video_info.get('memberGated'):
-            access_token = self.get_access_token(content_id)
-            headers.update(Authorization=f"Bearer {access_token}")
-
-        playback_info = self._download_json(
-            playback_url, content_id,
-            note='Fetching playback info',
-            headers=headers)
-
-        formats = self._extract_m3u8_formats(playback_info['source'], content_id, 'mp4')
+        video_data = self._download_json(
+            'https://vod.ten.com.au/api/videos/bcquery?command=find_videos_by_id&video_id={0}'.format(data['altId']),
+            content_id, 'Downloading video JSON')
+        m3u8_url = self._request_webpage(
+            HEADRequest(traverse_obj(video_data, ('items', 0, 'HLSURL', T(url_or_none)))),
+            content_id, 'Checking stream URL').url
+        if '10play-not-in-oz' in m3u8_url:
+            self.raise_geo_restricted()
+        # Attempt to get a higher quality stream
+        m3u8_url = m3u8_url.replace(',150,75,55,0000', ',300,150,75,55,0000')
+        formats = self._extract_m3u8_formats(m3u8_url, content_id, 'mp4')
         self._sort_formats(formats)
 
-        return {
-            'formats': formats,
+        return merge_dicts({
             'id': content_id,
-            'title': unescapeHTML(video_info.get('subtitle')) or unescapeHTML(video_info.get('title')),
-            'description': unescapeHTML(video_info.get('description')),
-            'age_limit': parse_age_limit(video_info.get('classification')),
-            'series': video_info.get('tvShow'),
-            'season': video_info.get('season'),
-            'season_number': str_to_int(video_info.get('season')),
-            'episode': unescapeHTML(video_info.get('title')),
-            'episode_number': str_to_int(video_info.get('episode')),
-            'timestamp': video_info.get('published'),
-            'duration': video_info.get('duration'),
-            'thumbnail': video_info.get('posterImageUrl'),
-        }
+            'formats': formats,
+            'uploader': 'Channel 10',
+            'uploader_id': '2199827728001',
+        }, traverse_obj(data, {
+            'subtitles': ('captionUrl', T(lambda x: None if x is None
+                                          else {'en': [{'url': x}]})),
+            'id': ('altId', T(txt_or_none)),
+            'duration': ('duration', T(float_or_none)),
+            'title': ('subtitle', T(txt_or_none)),
+            'alt_title': ('title', T(txt_or_none)),
+            'description': ('description', T(txt_or_none)),
+            'age_limit': ('classification', T(self._AUS_AGES.get)),
+            'series': ('tvShow', T(txt_or_none)),
+            'season_number': ('season', T(int_or_none)),
+            'episode_number': ('episode', T(int_or_none)),
+            'timestamp': ('published', T(int_or_none)),
+            'thumbnail': ('imageUrl', T(url_or_none)),
+        }), rev=True)
+
+
+class TenPlaySeasonIE(TenPlayBase):
+    _VALID_URL = r'https?://(?:www\.)?10play\.com\.au/(?P<show>[^/?#]+)/episodes/(?P<season>[^/?#]+)/?(?:$|[?#])'
+    _TESTS = [{
+        'url': 'https://10play.com.au/masterchef/episodes/season-14',
+        'info_dict': {
+            'title': 'Season 14',
+            'id': 'MjMyOTIy',
+        },
+        'playlist_mincount': 64,
+    }, {
+        'url': 'https://10play.com.au/the-bold-and-the-beautiful-fast-tracked/episodes/season-2022',
+        'info_dict': {
+            'title': 'Season 2022',
+            'id': 'Mjc0OTIw',
+        },
+        'playlist_mincount': 256,
+    }]
+
+    def _entries(self, load_more_url, display_id=None):
+        skip_ids = []
+        for page in compat_itertools_count(1):
+            episodes_carousel = self._download_json(
+                load_more_url, display_id, query={'skipIds[]': skip_ids},
+                note='Fetching episodes page {0}'.format(page))
+
+            episodes_chunk = episodes_carousel['items']
+            skip_ids.extend(ep['id'] for ep in episodes_chunk)
+
+            for ep in episodes_chunk:
+                yield ep['cardLink']
+            if not episodes_carousel.get('hasMore'):
+                break
+
+    def _real_extract(self, url):
+        show, season = self._match_valid_url(url).group('show', 'season')
+        season_info = self._download_json(*(s.format(show=show, season=season) for s in (
+            'https://10play.com.au/api/shows/{show}/episodes/{season}', '{show}/{season}')
+        ))
+
+        episodes_carousel = traverse_obj(season_info, (
+            'content', 0, 'components', (
+                lambda _, v: v['title'].lower() == 'episodes',
+                (Ellipsis, T(dict)),
+            )), any) or {}
+
+        playlist_id = episodes_carousel['tpId']
+
+        return self.playlist_from_matches(
+            self._entries(urljoin(url, episodes_carousel['loadMoreUrl']), playlist_id),
+            playlist_id, traverse_obj(season_info, ('content', 0, 'title', T(txt_or_none))),
+            getter=functools.partial(urljoin, url))
