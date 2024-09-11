@@ -897,21 +897,13 @@ from .ooyala import (
 )
 from .ora import OraTVIE
 from .orf import (
-    ORFTVthekIE,
-    ORFFM4IE,
+    ORFONIE,
+    ORFONLiveIE,
     ORFFM4StoryIE,
-    ORFOE1IE,
-    ORFOE3IE,
-    ORFNOEIE,
-    ORFWIEIE,
-    ORFBGLIE,
-    ORFOOEIE,
-    ORFSTMIE,
-    ORFKTNIE,
-    ORFSBGIE,
-    ORFTIRIE,
-    ORFVBGIE,
     ORFIPTVIE,
+    ORFPodcastIE,
+    ORFRadioIE,
+    ORFRadioCollectionIE,
 )
 from .outsidetv import OutsideTVIE
 from .packtpub import (
@@ -1652,7 +1644,15 @@ from .younow import (
     YouNowChannelIE,
     YouNowMomentIE,
 )
-from .youporn import YouPornIE
+from .youporn import (
+    YouPornIE,
+    YouPornCategoryIE,
+    YouPornChannelIE,
+    YouPornCollectionIE,
+    YouPornStarIE,
+    YouPornTagIE,
+    YouPornVideosIE,
+)
 from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (

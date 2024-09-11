@@ -18,6 +18,7 @@ from test.helper import (
 )
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import (
+    compat_contextlib_suppress,
     compat_http_cookiejar_Cookie,
     compat_http_server,
     compat_kwargs,
@@ -34,6 +35,9 @@ from youtube_dl.downloader.external import (
     FFmpegFD,
     HttpieFD,
     WgetFD,
+)
+from youtube_dl.postprocessor import (
+    FFmpegPostProcessor,
 )
 import threading
 
@@ -227,7 +231,17 @@ class TestAria2cFD(unittest.TestCase):
             self.assertIn('--load-cookies=%s' % downloader._cookies_tempfile, cmd)
 
 
-@ifExternalFDAvailable(FFmpegFD)
+# Handle delegated availability
+def ifFFmpegFDAvailable(externalFD):
+    # raise SkipTest, or set False!
+    avail = ifExternalFDAvailable(externalFD) and False
+    with compat_contextlib_suppress(Exception):
+        avail = FFmpegPostProcessor(downloader=None).available
+    return unittest.skipUnless(
+        avail, externalFD.get_basename() + ' not found')
+
+
+@ifFFmpegFDAvailable(FFmpegFD)
 class TestFFmpegFD(unittest.TestCase):
     _args = []
 

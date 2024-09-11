@@ -1169,10 +1169,10 @@ class InfoExtractor(object):
     def _get_netrc_login_info(self, netrc_machine=None):
         username = None
         password = None
-        netrc_machine = netrc_machine or self._NETRC_MACHINE
 
         if self._downloader.params.get('usenetrc', False):
             try:
+                netrc_machine = netrc_machine or self._NETRC_MACHINE
                 info = netrc.netrc().authenticators(netrc_machine)
                 if info is not None:
                     username = info[0]
@@ -1180,7 +1180,7 @@ class InfoExtractor(object):
                 else:
                     raise netrc.NetrcParseError(
                         'No authenticators for %s' % netrc_machine)
-            except (IOError, netrc.NetrcParseError) as err:
+            except (AttributeError, IOError, netrc.NetrcParseError) as err:
                 self._downloader.report_warning(
                     'parsing .netrc: %s' % error_to_compat_str(err))
 
@@ -1490,14 +1490,18 @@ class InfoExtractor(object):
         return dict((k, v) for k, v in info.items() if v is not None)
 
     def _search_nextjs_data(self, webpage, video_id, **kw):
-        nkw = dict((k, v) for k, v in kw.items() if k in ('transform_source', 'fatal'))
-        kw.pop('transform_source', None)
-        next_data = self._search_regex(
-            r'''<script[^>]+\bid\s*=\s*('|")__NEXT_DATA__\1[^>]*>(?P<nd>[^<]+)</script>''',
-            webpage, 'next.js data', group='nd', **kw)
-        if not next_data:
-            return {}
-        return self._parse_json(next_data, video_id, **nkw)
+        # ..., *, transform_source=None, fatal=True, default=NO_DEFAULT
+
+        # TODO: remove this backward compat
+        default = kw.get('default', NO_DEFAULT)
+        if default == '{}':
+            kw['default'] = {}
+            kw = compat_kwargs(kw)
+
+        return self._search_json(
+            r'''<script\s[^>]*?\bid\s*=\s*('|")__NEXT_DATA__\1[^>]*>''',
+            webpage, 'next.js data', video_id, end_pattern='</script>',
+            **kw)
 
     def _search_nuxt_data(self, webpage, video_id, *args, **kwargs):
         """Parses Nuxt.js metadata. This works as long as the function __NUXT__ invokes is a pure function"""
@@ -3029,7 +3033,6 @@ class InfoExtractor(object):
             transform_source=transform_source, default=None)
 
     def _extract_jwplayer_data(self, webpage, video_id, *args, **kwargs):
-
         # allow passing `transform_source` through to _find_jwplayer_data()
         transform_source = kwargs.pop('transform_source', None)
         kwfind = compat_kwargs({'transform_source': transform_source}) if transform_source else {}
@@ -3296,12 +3299,16 @@ class InfoExtractor(object):
         return ret
 
     @classmethod
-    def _merge_subtitles(cls, subtitle_dict1, subtitle_dict2):
-        """ Merge two subtitle dictionaries, language by language. """
-        ret = dict(subtitle_dict1)
-        for lang in subtitle_dict2:
-            ret[lang] = cls._merge_subtitle_items(subtitle_dict1.get(lang, []), subtitle_dict2[lang])
-        return ret
+    def _merge_subtitles(cls, subtitle_dict1, *subtitle_dicts, **kwargs):
+        """ Merge subtitle dictionaries, language by language. """
+
+        # ..., * , target=None
+        target = kwargs.get('target') or dict(subtitle_dict1)
+
+        for subtitle_dict in subtitle_dicts:
+            for lang in subtitle_dict:
+                target[lang] = cls._merge_subtitle_items(target.get(lang, []), subtitle_dict[lang])
+        return target
 
     def extract_automatic_captions(self, *args, **kwargs):
         if (self._downloader.params.get('writeautomaticsub', False)
@@ -3333,6 +3340,29 @@ class InfoExtractor(object):
 
     def _generic_title(self, url):
         return compat_urllib_parse_unquote(os.path.splitext(url_basename(url))[0])
+
+    def _yes_playlist(self, playlist_id, video_id, *args, **kwargs):
+        # smuggled_data=None, *, playlist_label='playlist', video_label='video'
+        smuggled_data = args[0] if len(args) == 1 else kwargs.get('smuggled_data')
+        playlist_label = kwargs.get('playlist_label', 'playlist')
+        video_label = kwargs.get('video_label', 'video')
+
+        if not playlist_id or not video_id:
+            return not video_id
+
+        no_playlist = (smuggled_data or {}).get('force_noplaylist')
+        if no_playlist is not None:
+            return not no_playlist
+
+        video_id = '' if video_id is True else ' ' + video_id
+        noplaylist = self.get_param('noplaylist')
+        self.to_screen(
+            'Downloading just the {0}{1} because of --no-playlist'.format(video_label, video_id)
+            if noplaylist else
+            'Downloading {0}{1} - add --no-playlist to download just the {2}{3}'.format(
+                playlist_label, '' if playlist_id is True else ' ' + playlist_id,
+                video_label, video_id))
+        return not noplaylist
 
 
 class SearchInfoExtractor(InfoExtractor):

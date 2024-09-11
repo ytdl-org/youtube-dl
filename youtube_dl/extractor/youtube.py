@@ -1636,7 +1636,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         try:
             jsi, player_id, func_code = self._extract_n_function_code(video_id, player_url)
         except ExtractorError as e:
-            raise ExtractorError('Unable to extract nsig jsi, player_id, func_codefunction code', cause=e)
+            raise ExtractorError('Unable to extract nsig function code', cause=e)
         if self.get_param('youtube_print_sig_code'):
             self.to_screen('Extracted nsig function from {0}:\n{1}\n'.format(
                 player_id, func_code[1]))
@@ -1647,10 +1647,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         except JSInterpreter.Exception as e:
             self.report_warning(
                 '%s (%s %s)' % (
-                    self.__ie_msg(
-                        'Unable to decode n-parameter: download likely to be throttled'),
+                    'Unable to decode n-parameter: expect download to be blocked or throttled',
                     error_to_compat_str(e),
-                    traceback.format_exc()))
+                    traceback.format_exc()),
+                video_id=video_id)
             return
 
         self.write_debug('Decrypted nsig {0} => {1}'.format(n, ret))
@@ -1658,13 +1658,52 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = self._search_regex(
-            r'\.get\("n"\)\)&&\(b=(?P<nfunc>[a-zA-Z_$][\w$]*)(?:\[(?P<idx>\d+)\])?\([\w$]+\)',
-            jscode, 'Initial JS player n function name', group=('nfunc', 'idx'))
+            # new: (b=String.fromCharCode(110),c=a.get(b))&&c=nfunc[idx](c)
+            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=nfunc[idx](c)
+            # or:  (PL(a),b=a.j.n||null)&&(b=nfunc[idx](b)
+            # or:  (b="nn"[+a.D],vL(a),c=a.j[b]||null)&&(c=narray[idx](c),a.set(b,c),narray.length||nfunc("")
+            # old: (b=a.get("n"))&&(b=nfunc[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
+            # older: (b=a.get("n"))&&(b=nfunc(b)
+            r'''(?x)
+                \((?:[\w$()\s]+,)*?\s*      # (
+                (?P<b>[a-z])\s*=\s*         # b=
+                (?:
+                    (?:                     # expect ,c=a.get(b) (etc)
+                        String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
+                        "n+"\[\s*\+?s*[\w$.]+\s*]
+                    )\s*(?:,[\w$()\s]+(?=,))*|
+                       (?P<old>[\w$]+)      # a (old[er])
+                   )\s*
+                   (?(old)
+                                            # b.get("n")
+                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
+                       (?:\.\s*n|\[\s*"n"\s*]|\.\s*get\s*\(\s*"n"\s*\))
+                       |                    # ,c=a.get(b)
+                       ,\s*(?P<c>[a-z])\s*=\s*[a-z]\s*
+                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
+                       (?:\[\s*(?P=b)\s*]|\.\s*get\s*\(\s*(?P=b)\s*\))
+                   )
+                                            # interstitial junk
+                   \s*(?:\|\|\s*null\s*)?(?:\)\s*)?&&\s*(?:\(\s*)?
+               (?(c)(?P=c)|(?P=b))\s*=\s*   # [c|b]=
+                                            # nfunc|nfunc[idx]
+                   (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
+            ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
+            default=(None, None))
+        # thx bashonly: yt-dlp/yt-dlp/pull/10611
+        if not func_name:
+            self.report_warning('Falling back to generic n function search')
+            return self._search_regex(
+                r'''(?xs)
+                    (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
+                    (?P<name>(?!\d)[a-zA-Z\d_$]+)\s*=\s*function\((?!\d)[a-zA-Z\d_$]+\)
+                    \s*\{(?:(?!};).)+?["']enhanced_except_
+                ''', jscode, 'Initial JS player n function name', group='name')
         if not idx:
             return func_name
 
         return self._parse_json(self._search_regex(
-            r'var {0}\s*=\s*(\[.+?\])\s*[,;]'.format(re.escape(func_name)), jscode,
+            r'var\s+{0}\s*=\s*(\[.+?\])\s*[,;]'.format(re.escape(func_name)), jscode,
             'Initial JS player n function list ({0}.{1})'.format(func_name, idx)),
             func_name, transform_source=js_to_json)[int(idx)]
 
@@ -1679,17 +1718,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         func_name = self._extract_n_function_name(jscode)
 
-        # For redundancy
-        func_code = self._search_regex(
-            r'''(?xs)%s\s*=\s*function\s*\((?P<var>[\w$]+)\)\s*
-                     # NB: The end of the regex is intentionally kept strict
-                     {(?P<code>.+?}\s*return\ [\w$]+.join\(""\))};''' % func_name,
-            jscode, 'nsig function', group=('var', 'code'), default=None)
-        if func_code:
-            func_code = ([func_code[0]], func_code[1])
-        else:
-            self.write_debug('Extracting nsig function with jsinterp')
-            func_code = jsi.extract_function_code(func_name)
+        func_code = jsi.extract_function_code(func_name)
 
         self.cache.store('youtube-nsig', player_id, func_code)
         return jsi, player_id, func_code

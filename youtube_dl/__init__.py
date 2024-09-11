@@ -21,6 +21,7 @@ from .compat import (
     workaround_optparse_bug9161,
 )
 from .utils import (
+    _UnsafeExtensionError,
     DateRange,
     decodeOption,
     DEFAULT_OUTTMPL,
@@ -172,6 +173,9 @@ def _real_main(argv=None):
         opts.max_sleep_interval = opts.sleep_interval
     if opts.ap_mso and opts.ap_mso not in MSO_INFO:
         parser.error('Unsupported TV Provider, use --ap-list-mso to get a list of supported TV Providers')
+
+    if opts.no_check_extensions:
+        _UnsafeExtensionError.lenient = True
 
     def parse_retries(retries):
         if retries in ('inf', 'infinite'):

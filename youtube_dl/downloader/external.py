@@ -11,8 +11,14 @@ from .common import FileDownloader
 from ..compat import (
     compat_setenv,
     compat_str,
+    compat_subprocess_Popen,
 )
-from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+
+try:
+    from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+except ImportError:
+    FFmpegPostProcessor = None
+
 from ..utils import (
     cli_option,
     cli_valueless_option,
@@ -361,13 +367,14 @@ class FFmpegFD(ExternalFD):
 
     @classmethod
     def available(cls):
-        return FFmpegPostProcessor().available
+        # actual availability can only be confirmed for an instance
+        return bool(FFmpegPostProcessor)
 
     def _call_downloader(self, tmpfilename, info_dict):
-        url = info_dict['url']
-        ffpp = FFmpegPostProcessor(downloader=self)
+        # `downloader` means the parent `YoutubeDL`
+        ffpp = FFmpegPostProcessor(downloader=self.ydl)
         if not ffpp.available:
-            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            self.report_error('ffmpeg required for download but no ffmpeg (nor avconv) executable could be found. Please install one.')
             return False
         ffpp.check_version()
 
@@ -396,6 +403,7 @@ class FFmpegFD(ExternalFD):
         # if end_time:
         #     args += ['-t', compat_str(end_time - start_time)]
 
+        url = info_dict['url']
         cookies = self.ydl.cookiejar.get_cookies_for_url(url)
         if cookies:
             args.extend(['-cookies', ''.join(
@@ -483,21 +491,25 @@ class FFmpegFD(ExternalFD):
 
         self._debug_cmd(args)
 
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE, env=env)
-        try:
-            retval = proc.wait()
-        except BaseException as e:
-            # subprocess.run would send the SIGKILL signal to ffmpeg and the
-            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
-            # produces a file that is playable (this is mostly useful for live
-            # streams). Note that Windows is not affected and produces playable
-            # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
-            if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
-                process_communicate_or_kill(proc, b'q')
-            else:
-                proc.kill()
-                proc.wait()
-            raise
+        # From [1], a PIPE opened in Popen() should be closed, unless
+        # .communicate() is called. Avoid leaking any PIPEs by using Popen
+        # as a context manager (newer Python 3.x and compat)
+        # Fixes "Resource Warning" in test/test_downloader_external.py
+        # [1] https://devpress.csdn.net/python/62fde12d7e66823466192e48.html
+        with compat_subprocess_Popen(args, stdin=subprocess.PIPE, env=env) as proc:
+            try:
+                retval = proc.wait()
+            except BaseException as e:
+                # subprocess.run would send the SIGKILL signal to ffmpeg and the
+                # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+                # produces a file that is playable (this is mostly useful for live
+                # streams). Note that Windows is not affected and produces playable
+                # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
+                if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
+                    process_communicate_or_kill(proc, b'q')
+                else:
+                    proc.kill()
+                raise
         return retval
 
 

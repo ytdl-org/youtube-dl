@@ -159,6 +159,9 @@ jobs:
       # wrap broken actions/setup-python@v4
       # NB may run apt-get install in Linux
       uses: ytdl-org/setup-python@v1
+      env:
+        # Temporary workaround for Python 3.5 failures - May 2024
+        PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
       with:
         python-version: ${{ matrix.python-version }}
         cache-build: true

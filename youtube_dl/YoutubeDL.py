@@ -7,6 +7,7 @@ import collections
 import copy
 import datetime
 import errno
+import functools
 import io
 import itertools
 import json
@@ -53,6 +54,7 @@ from .compat import (
     compat_urllib_request_DataHandler,
 )
 from .utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
     bug_reports_message,
@@ -127,6 +129,20 @@ from .version import __version__
 
 if compat_os_name == 'nt':
     import ctypes
+
+
+def _catch_unsafe_file_extension(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except _UnsafeExtensionError as error:
+            self.report_error(
+                '{0} found; to avoid damaging your system, this value is disallowed.'
+                ' If you believe this is an error{1}'.format(
+                    error_to_compat_str(error), bug_reports_message(',')))
+
+    return wrapper
 
 
 class YoutubeDL(object):
@@ -1039,8 +1055,8 @@ class YoutubeDL(object):
         elif result_type in ('playlist', 'multi_video'):
             # Protect from infinite recursion due to recursively nested playlists
             # (see https://github.com/ytdl-org/youtube-dl/issues/27833)
-            webpage_url = ie_result['webpage_url']
-            if webpage_url in self._playlist_urls:
+            webpage_url = ie_result.get('webpage_url')  # not all pl/mv have this
+            if webpage_url and webpage_url in self._playlist_urls:
                 self.to_screen(
                     '[download] Skipping already downloaded playlist: %s'
                     % ie_result.get('title') or ie_result.get('id'))
@@ -1048,6 +1064,10 @@ class YoutubeDL(object):
 
             self._playlist_level += 1
             self._playlist_urls.add(webpage_url)
+            new_result = dict((k, v) for k, v in extra_info.items() if k not in ie_result)
+            if new_result:
+                new_result.update(ie_result)
+                ie_result = new_result
             try:
                 return self.__process_playlist(ie_result, download)
             finally:
@@ -1593,6 +1613,28 @@ class YoutubeDL(object):
         self.cookiejar.add_cookie_header(pr)
         return pr.get_header('Cookie')
 
+    def _fill_common_fields(self, info_dict, final=True):
+
+        for ts_key, date_key in (
+                ('timestamp', 'upload_date'),
+                ('release_timestamp', 'release_date'),
+        ):
+            if info_dict.get(date_key) is None and info_dict.get(ts_key) is not None:
+                # Working around out-of-range timestamp values (e.g. negative ones on Windows,
+                # see http://bugs.python.org/issue1646728)
+                try:
+                    upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
+                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
+                except (ValueError, OverflowError, OSError):
+                    pass
+
+        # Auto generate title fields corresponding to the *_number fields when missing
+        # in order to always have clean titles. This is very common for TV series.
+        if final:
+            for field in ('chapter', 'season', 'episode'):
+                if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
+                    info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
+
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
 
@@ -1660,24 +1702,7 @@ class YoutubeDL(object):
         if 'display_id' not in info_dict and 'id' in info_dict:
             info_dict['display_id'] = info_dict['id']
 
-        for ts_key, date_key in (
-                ('timestamp', 'upload_date'),
-                ('release_timestamp', 'release_date'),
-        ):
-            if info_dict.get(date_key) is None and info_dict.get(ts_key) is not None:
-                # Working around out-of-range timestamp values (e.g. negative ones on Windows,
-                # see http://bugs.python.org/issue1646728)
-                try:
-                    upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
-                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
-                except (ValueError, OverflowError, OSError):
-                    pass
-
-        # Auto generate title fields corresponding to the *_number fields when missing
-        # in order to always have clean titles. This is very common for TV series.
-        for field in ('chapter', 'season', 'episode'):
-            if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
-                info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
+        self._fill_common_fields(info_dict)
 
         for cc_kind in ('subtitles', 'automatic_captions'):
             cc = info_dict.get(cc_kind)
@@ -1916,6 +1941,7 @@ class YoutubeDL(object):
         if self.params.get('forcejson', False):
             self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
+    @_catch_unsafe_file_extension
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
@@ -2088,18 +2114,26 @@ class YoutubeDL(object):
                         # TODO: Check acodec/vcodec
                         return False
 
-                    filename_real_ext = os.path.splitext(filename)[1][1:]
-                    filename_wo_ext = (
-                        os.path.splitext(filename)[0]
-                        if filename_real_ext == info_dict['ext']
-                        else filename)
+                    exts = [info_dict['ext']]
                     requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
                         self.report_warning(
                             'Requested formats are incompatible for merge and will be merged into mkv.')
+                    exts.append(info_dict['ext'])
+
                     # Ensure filename always has a correct extension for successful merge
-                    filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
+                    def correct_ext(filename, ext=exts[1]):
+                        if filename == '-':
+                            return filename
+                        f_name, f_real_ext = os.path.splitext(filename)
+                        f_real_ext = f_real_ext[1:]
+                        filename_wo_ext = f_name if f_real_ext in exts else filename
+                        if ext is None:
+                            ext = f_real_ext or None
+                        return join_nonempty(filename_wo_ext, ext, delim='.')
+
+                    filename = correct_ext(filename)
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
@@ -2109,8 +2143,9 @@ class YoutubeDL(object):
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = prepend_extension(
-                                self.prepare_filename(new_info),
-                                'f%s' % f['format_id'], new_info['ext'])
+                                correct_ext(
+                                    self.prepare_filename(new_info), new_info['ext']),
+                                'f%s' % (f['format_id'],), new_info['ext'])
                             if not ensure_dir_exists(fname):
                                 return
                             downloaded.append(fname)

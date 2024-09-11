@@ -45,14 +45,18 @@ from .compat import (
     compat_casefold,
     compat_chr,
     compat_collections_abc,
+    compat_contextlib_suppress,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
     compat_datetime_timedelta_total_seconds,
+    compat_etree_Element,
     compat_etree_fromstring,
+    compat_etree_iterfind,
     compat_expanduser,
     compat_html_entities,
     compat_html_entities_html5,
     compat_http_client,
+    compat_http_cookies,
     compat_integer_types,
     compat_kwargs,
     compat_ncompress as ncompress,
@@ -1713,21 +1717,6 @@ TIMEZONE_NAMES = {
     'PST': -8, 'PDT': -7   # Pacific
 }
 
-KNOWN_EXTENSIONS = (
-    'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'aac',
-    'flv', 'f4v', 'f4a', 'f4b',
-    'webm', 'ogg', 'ogv', 'oga', 'ogx', 'spx', 'opus',
-    'mkv', 'mka', 'mk3d',
-    'avi', 'divx',
-    'mov',
-    'asf', 'wmv', 'wma',
-    '3gp', '3g2',
-    'mp3',
-    'flac',
-    'ape',
-    'wav',
-    'f4f', 'f4m', 'm3u8', 'smil')
-
 # needed for sanitizing filenames in restricted mode
 ACCENT_CHARS = dict(zip('ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ',
                         itertools.chain('AAAAAA', ['AE'], 'CEEEEIIIIDNOOOOOOO', ['OE'], 'UUUUUY', ['TH', 'ss'],
@@ -1855,25 +1844,18 @@ def write_json_file(obj, fn):
     try:
         with tf:
             json.dump(obj, tf)
-        if sys.platform == 'win32':
-            # Need to remove existing file on Windows, else os.rename raises
-            # WindowsError or FileExistsError.
-            try:
+        with compat_contextlib_suppress(OSError):
+            if sys.platform == 'win32':
+                # Need to remove existing file on Windows, else os.rename raises
+                # WindowsError or FileExistsError.
                 os.unlink(fn)
-            except OSError:
-                pass
-        try:
             mask = os.umask(0)
             os.umask(mask)
             os.chmod(tf.name, 0o666 & ~mask)
-        except OSError:
-            pass
         os.rename(tf.name, fn)
     except Exception:
-        try:
+        with compat_contextlib_suppress(OSError):
             os.remove(tf.name)
-        except OSError:
-            pass
         raise
 
 
@@ -2033,14 +2015,13 @@ def extract_attributes(html_element):
     NB HTMLParser is stricter in Python 2.6 & 3.2 than in later versions,
     but the cases in the unit test will work for all of 2.6, 2.7, 3.2-3.5.
     """
-    parser = HTMLAttributeParser()
-    try:
-        parser.feed(html_element)
-        parser.close()
-    # Older Python may throw HTMLParseError in case of malformed HTML
-    except compat_HTMLParseError:
-        pass
-    return parser.attrs
+    ret = None
+    # Older Python may throw HTMLParseError in case of malformed HTML (and on .close()!)
+    with compat_contextlib_suppress(compat_HTMLParseError):
+        with contextlib.closing(HTMLAttributeParser()) as parser:
+            parser.feed(html_element)
+            ret = parser.attrs
+    return ret or {}
 
 
 def clean_html(html):
@@ -2241,7 +2222,8 @@ def _htmlentity_transform(entity_with_semicolon):
             numstr = '0%s' % numstr
         else:
             base = 10
-        # See https://github.com/ytdl-org/youtube-dl/issues/7518
+        # See https://github.com/ytdl-org/youtube-dl/issues/7518\
+        # Also, weirdly, compat_contextlib_suppress fails here in 2.6
         try:
             return compat_chr(int(numstr, base))
         except ValueError:
@@ -2348,11 +2330,9 @@ def make_HTTPS_handler(params, **kwargs):
         # Some servers may (wrongly) reject requests if ALPN extension is not sent. See:
         # https://github.com/python/cpython/issues/85140
         # https://github.com/yt-dlp/yt-dlp/issues/3878
-        try:
+        with compat_contextlib_suppress(AttributeError, NotImplementedError):
+            # fails for Python < 2.7.10, not ssl.HAS_ALPN
             ctx.set_alpn_protocols(ALPN_PROTOCOLS)
-        except (AttributeError, NotImplementedError):
-            # Python < 2.7.10, not ssl.HAS_ALPN
-            pass
 
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
@@ -2362,12 +2342,10 @@ def make_HTTPS_handler(params, **kwargs):
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
 
-        try:
+        with compat_contextlib_suppress(TypeError):
+            # Fails with Python 2.7.8 (create_default_context present
+            # but HTTPSHandler has no context=)
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
-        except TypeError:
-            # Python 2.7.8
-            # (create_default_context present but HTTPSHandler has no context=)
-            pass
 
     if sys.version_info < (3, 2):
         return YoutubeDLHTTPSHandler(params, **kwargs)
@@ -2381,15 +2359,24 @@ def make_HTTPS_handler(params, **kwargs):
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
-def bug_reports_message():
+def bug_reports_message(before=';'):
     if ytdl_is_updateable():
         update_cmd = 'type  youtube-dl -U  to update'
     else:
-        update_cmd = 'see  https://yt-dl.org/update  on how to update'
-    msg = '; please report this issue on https://yt-dl.org/bug .'
-    msg += ' Make sure you are using the latest version; %s.' % update_cmd
-    msg += ' Be sure to call youtube-dl with the --verbose flag and include its complete output.'
-    return msg
+        update_cmd = 'see  https://github.com/ytdl-org/youtube-dl/#user-content-installation  on how to update'
+
+    msg = (
+        'please report this issue on https://github.com/ytdl-org/youtube-dl/issues ,'
+        ' using the appropriate issue template.'
+        ' Make sure you are using the latest version; %s.'
+        ' Be sure to call youtube-dl with the --verbose option and include the complete output.'
+    ) % update_cmd
+
+    before = (before or '').rstrip()
+    if not before or before.endswith(('.', '!', '?')):
+        msg = msg[0].title() + msg[1:]
+
+    return (before + ' ' if before else '') + msg
 
 
 class YoutubeDLError(Exception):
@@ -2404,7 +2391,7 @@ class ExtractorError(YoutubeDLError):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
-
+        self.orig_msg = msg
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
         if video_id is not None:
@@ -3176,12 +3163,10 @@ def parse_iso8601(date_str, delimiter='T', timezone=None):
     if timezone is None:
         timezone, date_str = extract_timezone(date_str)
 
-    try:
+    with compat_contextlib_suppress(ValueError):
         date_format = '%Y-%m-%d{0}%H:%M:%S'.format(delimiter)
         dt = datetime.datetime.strptime(date_str, date_format) - timezone
         return calendar.timegm(dt.timetuple())
-    except ValueError:
-        pass
 
 
 def date_formats(day_first=True):
@@ -3201,17 +3186,13 @@ def unified_strdate(date_str, day_first=True):
     _, date_str = extract_timezone(date_str)
 
     for expression in date_formats(day_first):
-        try:
+        with compat_contextlib_suppress(ValueError):
             upload_date = datetime.datetime.strptime(date_str, expression).strftime('%Y%m%d')
-        except ValueError:
-            pass
     if upload_date is None:
         timetuple = email.utils.parsedate_tz(date_str)
         if timetuple:
-            try:
+            with compat_contextlib_suppress(ValueError):
                 upload_date = datetime.datetime(*timetuple[:6]).strftime('%Y%m%d')
-            except ValueError:
-                pass
     if upload_date is not None:
         return compat_str(upload_date)
 
@@ -3240,11 +3221,9 @@ def unified_timestamp(date_str, day_first=True):
         date_str = m.group(1)
 
     for expression in date_formats(day_first):
-        try:
+        with compat_contextlib_suppress(ValueError):
             dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
             return calendar.timegm(dt.timetuple())
-        except ValueError:
-            pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
         return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
@@ -3965,19 +3944,22 @@ def parse_duration(s):
     return duration
 
 
-def prepend_extension(filename, ext, expected_real_ext=None):
+def _change_extension(prepend, filename, ext, expected_real_ext=None):
     name, real_ext = os.path.splitext(filename)
-    return (
-        '{0}.{1}{2}'.format(name, ext, real_ext)
-        if not expected_real_ext or real_ext[1:] == expected_real_ext
-        else '{0}.{1}'.format(filename, ext))
+    sanitize_extension = _UnsafeExtensionError.sanitize_extension
+
+    if not expected_real_ext or real_ext.partition('.')[0::2] == ('', expected_real_ext):
+        filename = name
+        if prepend and real_ext:
+            sanitize_extension(ext, prepend=prepend)
+            return ''.join((filename, '.', ext, real_ext))
+
+    # Mitigate path traversal and file impersonation attacks
+    return '.'.join((filename, sanitize_extension(ext)))
 
 
-def replace_extension(filename, ext, expected_real_ext=None):
-    name, real_ext = os.path.splitext(filename)
-    return '{0}.{1}'.format(
-        name if not expected_real_ext or real_ext[1:] == expected_real_ext else filename,
-        ext)
+prepend_extension = functools.partial(_change_extension, True)
+replace_extension = functools.partial(_change_extension, False)
 
 
 def check_executable(exe, args=[]):
@@ -6262,15 +6244,16 @@ if __debug__:
 
 def traverse_obj(obj, *paths, **kwargs):
     """
-    Safely traverse nested `dict`s and `Iterable`s
+    Safely traverse nested `dict`s and `Iterable`s, etc
 
     >>> obj = [{}, {"key": "value"}]
     >>> traverse_obj(obj, (1, "key"))
-    "value"
+    'value'
 
     Each of the provided `paths` is tested and the first producing a valid result will be returned.
     The next path will also be tested if the path branched but no results could be found.
-    Supported values for traversal are `Mapping`, `Iterable` and `re.Match`.
+    Supported values for traversal are `Mapping`, `Iterable`, `re.Match`, `xml.etree.ElementTree`
+    (xpath) and `http.cookies.Morsel`.
     Unhelpful values (`{}`, `None`) are treated as the absence of a value and discarded.
 
     The paths will be wrapped in `variadic`, so that `'key'` is conveniently the same as `('key', )`.
@@ -6278,8 +6261,9 @@ def traverse_obj(obj, *paths, **kwargs):
     The keys in the path can be one of:
         - `None`:           Return the current object.
         - `set`:            Requires the only item in the set to be a type or function,
-                            like `{type}`/`{func}`. If a `type`, returns only values
-                            of this type. If a function, returns `func(obj)`.
+                            like `{type}`/`{type, type, ...}`/`{func}`. If one or more `type`s,
+                            return only values that have one of the types. If a function,
+                            return `func(obj)`.
         - `str`/`int`:      Return `obj[key]`. For `re.Match`, return `obj.group(key)`.
         - `slice`:          Branch out and return all values in `obj[key]`.
         - `Ellipsis`:       Branch out and return a list of all values.
@@ -6291,8 +6275,10 @@ def traverse_obj(obj, *paths, **kwargs):
                             For `Iterable`s, `key` is the enumeration count of the value.
                             For `re.Match`es, `key` is the group number (0 = full match)
                             as well as additionally any group names, if given.
-        - `dict`            Transform the current object and return a matching dict.
+        - `dict`:           Transform the current object and return a matching dict.
                             Read as: `{key: traverse_obj(obj, path) for key, path in dct.items()}`.
+        - `any`-builtin:    Take the first matching object and return it, resetting branching.
+        - `all`-builtin:    Take all matching objects and return them as a list, resetting branching.
 
         `tuple`, `list`, and `dict` all support nested paths and branches.
 
@@ -6308,10 +6294,8 @@ def traverse_obj(obj, *paths, **kwargs):
     @param get_all          If `False`, return the first matching result, otherwise all matching ones.
     @param casesense        If `False`, consider string dictionary keys as case insensitive.
 
-    The following are only meant to be used by YoutubeDL.prepare_outtmpl and are not part of the API
+    The following is only meant to be used by YoutubeDL.prepare_outtmpl and is not part of the API
 
-    @param _is_user_input    Whether the keys are generated from user input.
-                            If `True` strings get converted to `int`/`slice` if needed.
     @param _traverse_string  Whether to traverse into objects as strings.
                             If `True`, any non-compatible object will first be
                             converted into a string and then traversed into.
@@ -6331,7 +6315,6 @@ def traverse_obj(obj, *paths, **kwargs):
     expected_type = kwargs.get('expected_type')
     get_all = kwargs.get('get_all', True)
     casesense = kwargs.get('casesense', True)
-    _is_user_input = kwargs.get('_is_user_input', False)
     _traverse_string = kwargs.get('_traverse_string', False)
 
     # instant compat
@@ -6345,10 +6328,8 @@ def traverse_obj(obj, *paths, **kwargs):
         type_test = lambda val: try_call(expected_type or IDENTITY, args=(val,))
 
     def lookup_or_none(v, k, getter=None):
-        try:
+        with compat_contextlib_suppress(LookupError):
             return getter(v, k) if getter else v[k]
-        except IndexError:
-            return None
 
     def from_iterable(iterables):
         # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
@@ -6370,12 +6351,13 @@ def traverse_obj(obj, *paths, **kwargs):
             result = obj
 
         elif isinstance(key, set):
-            assert len(key) == 1, 'Set should only be used to wrap a single item'
-            item = next(iter(key))
-            if isinstance(item, type):
-                result = obj if isinstance(obj, item) else None
+            assert len(key) >= 1, 'At least one item is required in a `set` key'
+            if all(isinstance(item, type) for item in key):
+                result = obj if isinstance(obj, tuple(key)) else None
             else:
-                result = try_call(item, args=(obj,))
+                item = next(iter(key))
+                assert len(key) == 1, 'Multiple items in a `set` key must all be types'
+                result = try_call(item, args=(obj,)) if not isinstance(item, type) else None
 
         elif isinstance(key, (list, tuple)):
             branching = True
@@ -6384,9 +6366,11 @@ def traverse_obj(obj, *paths, **kwargs):
 
         elif key is Ellipsis:
             branching = True
+            if isinstance(obj, compat_http_cookies.Morsel):
+                obj = dict(obj, key=obj.key, value=obj.value)
             if isinstance(obj, compat_collections_abc.Mapping):
                 result = obj.values()
-            elif is_iterable_like(obj):
+            elif is_iterable_like(obj, (compat_collections_abc.Iterable, compat_etree_Element)):
                 result = obj
             elif isinstance(obj, compat_re_Match):
                 result = obj.groups()
@@ -6398,9 +6382,11 @@ def traverse_obj(obj, *paths, **kwargs):
 
         elif callable(key):
             branching = True
+            if isinstance(obj, compat_http_cookies.Morsel):
+                obj = dict(obj, key=obj.key, value=obj.value)
             if isinstance(obj, compat_collections_abc.Mapping):
                 iter_obj = obj.items()
-            elif is_iterable_like(obj):
+            elif is_iterable_like(obj, (compat_collections_abc.Iterable, compat_etree_Element)):
                 iter_obj = enumerate(obj)
             elif isinstance(obj, compat_re_Match):
                 iter_obj = itertools.chain(
@@ -6422,6 +6408,8 @@ def traverse_obj(obj, *paths, **kwargs):
                           if v is not None or default is not NO_DEFAULT) or None
 
         elif isinstance(obj, compat_collections_abc.Mapping):
+            if isinstance(obj, compat_http_cookies.Morsel):
+                obj = dict(obj, key=obj.key, value=obj.value)
             result = (try_call(obj.get, args=(key,))
                       if casesense or try_call(obj.__contains__, args=(key,))
                       else next((v for k, v in obj.items() if casefold(k) == key), None))
@@ -6439,11 +6427,39 @@ def traverse_obj(obj, *paths, **kwargs):
         else:
             result = None
             if isinstance(key, (int, slice)):
-                if is_iterable_like(obj, compat_collections_abc.Sequence):
+                if is_iterable_like(obj, (compat_collections_abc.Sequence, compat_etree_Element)):
                     branching = isinstance(key, slice)
                     result = lookup_or_none(obj, key)
                 elif _traverse_string:
                     result = lookup_or_none(str(obj), key)
+
+            elif isinstance(obj, compat_etree_Element) and isinstance(key, str):
+                xpath, _, special = key.rpartition('/')
+                if not special.startswith('@') and not special.endswith('()'):
+                    xpath = key
+                    special = None
+
+                # Allow abbreviations of relative paths, absolute paths error
+                if xpath.startswith('/'):
+                    xpath = '.' + xpath
+                elif xpath and not xpath.startswith('./'):
+                    xpath = './' + xpath
+
+                def apply_specials(element):
+                    if special is None:
+                        return element
+                    if special == '@':
+                        return element.attrib
+                    if special.startswith('@'):
+                        return try_call(element.attrib.get, args=(special[1:],))
+                    if special == 'text()':
+                        return element.text
+                    raise SyntaxError('apply_specials is missing case for {0!r}'.format(special))
+
+                if xpath:
+                    result = list(map(apply_specials, compat_etree_iterfind(obj, xpath)))
+                else:
+                    result = apply_specials(obj)
 
         return branching, result if branching else (result,)
 
@@ -6465,16 +6481,17 @@ def traverse_obj(obj, *paths, **kwargs):
 
         key = None
         for last, key in lazy_last(variadic(path, (str, bytes, dict, set))):
-            if _is_user_input and isinstance(key, str):
-                if key == ':':
-                    key = Ellipsis
-                elif ':' in key:
-                    key = slice(*map(int_or_none, key.split(':')))
-                elif int_or_none(key) is not None:
-                    key = int(key)
-
             if not casesense and isinstance(key, str):
                 key = compat_casefold(key)
+
+            if key in (any, all):
+                has_branched = False
+                filtered_objs = (obj for obj in objs if obj not in (None, {}))
+                if key is any:
+                    objs = (next(filtered_objs, None),)
+                else:
+                    objs = (list(filtered_objs),)
+                continue
 
             if __debug__ and callable(key):
                 # Verify function signature
@@ -6514,9 +6531,9 @@ def traverse_obj(obj, *paths, **kwargs):
     return None if default is NO_DEFAULT else default
 
 
-def T(x):
-    """ For use in yt-dl instead of {type} or set((type,)) """
-    return set((x,))
+def T(*x):
+    """ For use in yt-dl instead of {type, ...} or set((type, ...)) """
+    return set(x)
 
 
 def get_first(obj, keys, **kwargs):
@@ -6532,3 +6549,169 @@ def join_nonempty(*values, **kwargs):
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
     return delim.join(map(compat_str, filter(None, values)))
+
+
+class Namespace(object):
+    """Immutable namespace"""
+
+    def __init__(self, **kw_attr):
+        self.__dict__.update(kw_attr)
+
+    def __iter__(self):
+        return iter(self.__dict__.values())
+
+    @property
+    def items_(self):
+        return self.__dict__.items()
+
+
+MEDIA_EXTENSIONS = Namespace(
+    common_video=('avi', 'flv', 'mkv', 'mov', 'mp4', 'webm'),
+    video=('3g2', '3gp', 'f4v', 'mk3d', 'divx', 'mpg', 'ogv', 'm4v', 'wmv'),
+    common_audio=('aiff', 'alac', 'flac', 'm4a', 'mka', 'mp3', 'ogg', 'opus', 'wav'),
+    audio=('aac', 'ape', 'asf', 'f4a', 'f4b', 'm4b', 'm4p', 'm4r', 'oga', 'ogx', 'spx', 'vorbis', 'wma', 'weba'),
+    thumbnails=('jpg', 'png', 'webp'),
+    # storyboards=('mhtml', ),
+    subtitles=('srt', 'vtt', 'ass', 'lrc', 'ttml'),
+    manifests=('f4f', 'f4m', 'm3u8', 'smil', 'mpd'),
+)
+MEDIA_EXTENSIONS.video = MEDIA_EXTENSIONS.common_video + MEDIA_EXTENSIONS.video
+MEDIA_EXTENSIONS.audio = MEDIA_EXTENSIONS.common_audio + MEDIA_EXTENSIONS.audio
+
+KNOWN_EXTENSIONS = (
+    MEDIA_EXTENSIONS.video + MEDIA_EXTENSIONS.audio
+    + MEDIA_EXTENSIONS.manifests
+)
+
+
+class _UnsafeExtensionError(Exception):
+    """
+    Mitigation exception for unwanted file overwrite/path traversal
+
+    Ref: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-79w7-vh3h-8g4j
+    """
+    _ALLOWED_EXTENSIONS = frozenset(itertools.chain(
+        (   # internal
+            'description',
+            'json',
+            'meta',
+            'orig',
+            'part',
+            'temp',
+            'uncut',
+            'unknown_video',
+            'ytdl',
+        ),
+        # video
+        MEDIA_EXTENSIONS.video, (
+            'asx',
+            'ismv',
+            'm2t',
+            'm2ts',
+            'm2v',
+            'm4s',
+            'mng',
+            'mp2v',
+            'mp4v',
+            'mpe',
+            'mpeg',
+            'mpeg1',
+            'mpeg2',
+            'mpeg4',
+            'mxf',
+            'ogm',
+            'qt',
+            'rm',
+            'swf',
+            'ts',
+            'vob',
+            'vp9',
+        ),
+        # audio
+        MEDIA_EXTENSIONS.audio, (
+            '3ga',
+            'ac3',
+            'adts',
+            'aif',
+            'au',
+            'dts',
+            'isma',
+            'it',
+            'mid',
+            'mod',
+            'mpga',
+            'mp1',
+            'mp2',
+            'mp4a',
+            'mpa',
+            'ra',
+            'shn',
+            'xm',
+        ),
+        # image
+        MEDIA_EXTENSIONS.thumbnails, (
+            'avif',
+            'bmp',
+            'gif',
+            'ico',
+            'heic',
+            'jng',
+            'jpeg',
+            'jxl',
+            'svg',
+            'tif',
+            'tiff',
+            'wbmp',
+        ),
+        # subtitle
+        MEDIA_EXTENSIONS.subtitles, (
+            'dfxp',
+            'fs',
+            'ismt',
+            'json3',
+            'sami',
+            'scc',
+            'srv1',
+            'srv2',
+            'srv3',
+            'ssa',
+            'tt',
+            'xml',
+        ),
+        # others
+        MEDIA_EXTENSIONS.manifests,
+        (
+            # not used in yt-dl
+            # *MEDIA_EXTENSIONS.storyboards,
+            # 'desktop',
+            # 'ism',
+            # 'm3u',
+            # 'sbv',
+            # 'swp',
+            # 'url',
+            # 'webloc',
+        )))
+
+    def __init__(self, extension):
+        super(_UnsafeExtensionError, self).__init__('unsafe file extension: {0!r}'.format(extension))
+        self.extension = extension
+
+    # support --no-check-extensions
+    lenient = False
+
+    @classmethod
+    def sanitize_extension(cls, extension, **kwargs):
+        # ... /, *, prepend=False
+        prepend = kwargs.get('prepend', False)
+
+        if '/' in extension or '\\' in extension:
+            raise cls(extension)
+
+        if not prepend:
+            last = extension.rpartition('.')[-1]
+            if last == 'bin':
+                extension = last = 'unknown_video'
+            if not (cls.lenient or last.lower() in cls._ALLOWED_EXTENSIONS):
+                raise cls(extension)
+
+        return extension

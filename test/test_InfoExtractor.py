@@ -153,6 +153,9 @@ class TestInfoExtractor(unittest.TestCase):
 '''
         search = self.ie._search_nextjs_data(html, 'testID')
         self.assertEqual(search['props']['pageProps']['video']['id'], 'testid')
+        search = self.ie._search_nextjs_data(
+            'no next.js data here, move along', 'testID', default={'status': 0})
+        self.assertEqual(search['status'], 0)
 
     def test_search_nuxt_data(self):
         html = '''
