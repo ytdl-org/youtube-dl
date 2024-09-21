@@ -5,7 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import ExtractorError, join_nonempty
 
 
 class NPOIE(InfoExtractor):
@@ -241,7 +241,7 @@ class SchoolTVIE(NPOIE):
 
         return {
             'id': video_id,
-            'title': metadata.get('title', '') + ' - ' + metadata.get('subtitle', ''),
+            'title': join_nonempty('title', 'subtitle', from_dict=metadata),
             'description': metadata.get('description') or metadata.get('short_description'),
             'formats': formats,
         }
