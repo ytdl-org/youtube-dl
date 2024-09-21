@@ -5,7 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError, join_nonempty
+from ..utils import ExtractorError, join_nonempty, traverse_obj
 
 
 class NPOIE(InfoExtractor):
@@ -140,9 +140,9 @@ class BNNVaraIE(NPOIE):
 
         return {
             'id': product_id,
-            'title': media.get('data', {}).get('player', {}).get('title'),
+            'title': traverse_obj(media, ('data', 'player', 'title')),
             'formats': formats,
-            'thumbnail': media.get('data', {}).get('player', {}).get('image').get('url'),
+            'thumbnail': traverse_obj(media, ('data', 'player', 'image', 'url')),
         }
 
 
