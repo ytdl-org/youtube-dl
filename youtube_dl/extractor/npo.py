@@ -95,7 +95,7 @@ class NPOIE(InfoExtractor):
                 },
                 fatal=False,
             )
-            stream_url = stream_link.get('stream', {}).get('streamURL')
+            stream_url = traverse_obj(stream_link, ('stream', 'streamURL'))
             formats.extend(self._extract_mpd_formats(stream_url, slug, mpd_id='dash', fatal=False))
         return formats
 
@@ -160,7 +160,7 @@ class ONIE(NPOIE):
 
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
-        page, _ = self._download_webpage_handle(url, video_id)
+        page = self._download_webpage(url, video_id)
         results = re.findall("page: '(.+)'", page)
         formats = []
         for result in results:
