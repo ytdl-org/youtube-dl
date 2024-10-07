@@ -13,7 +13,7 @@ from ..utils import (
 
 class MgoonIE(InfoExtractor):
     _VALID_URL = r'''(?x)https?://(?:www\.)?
-    (?:(:?m\.)?mgoon\.com/(?:ch/(?:.+)/v|play/view)|
+    (?:(?:m\.)?mgoon\.com/(?:ch/(?:.+)/v|play/view)|
         video\.mgoon\.com)/(?P<id>[0-9]+)'''
     _API_URL = 'http://mpos.mgoon.com/player/video?id={0:}'
     _TESTS = [
