@@ -1,17 +1,24 @@
 from __future__ import unicode_literals
 
-import os.path
+import os
 import re
 import subprocess
 import sys
+import tempfile
 import time
 
 from .common import FileDownloader
 from ..compat import (
     compat_setenv,
     compat_str,
+    compat_subprocess_Popen,
 )
-from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+
+try:
+    from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+except ImportError:
+    FFmpegPostProcessor = None
+
 from ..utils import (
     cli_option,
     cli_valueless_option,
@@ -23,6 +30,8 @@ from ..utils import (
     check_executable,
     is_outdated_version,
     process_communicate_or_kill,
+    T,
+    traverse_obj,
 )
 
 
@@ -30,6 +39,7 @@ class ExternalFD(FileDownloader):
     def real_download(self, filename, info_dict):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
+        self._cookies_tempfile = None
 
         try:
             started = time.time()
@@ -42,6 +52,13 @@ class ExternalFD(FileDownloader):
             # should take place
             retval = 0
             self.to_screen('[%s] Interrupted by user' % self.get_basename())
+        finally:
+            if self._cookies_tempfile and os.path.isfile(self._cookies_tempfile):
+                try:
+                    os.remove(self._cookies_tempfile)
+                except OSError:
+                    self.report_warning(
+                        'Unable to delete temporary cookies file "{0}"'.format(self._cookies_tempfile))
 
         if retval == 0:
             status = {
@@ -97,6 +114,16 @@ class ExternalFD(FileDownloader):
     def _configuration_args(self, default=[]):
         return cli_configuration_args(self.params, 'external_downloader_args', default)
 
+    def _write_cookies(self):
+        if not self.ydl.cookiejar.filename:
+            tmp_cookies = tempfile.NamedTemporaryFile(suffix='.cookies', delete=False)
+            tmp_cookies.close()
+            self._cookies_tempfile = tmp_cookies.name
+            self.to_screen('[download] Writing temporary cookies file to "{0}"'.format(self._cookies_tempfile))
+        # real_download resets _cookies_tempfile; if it's None, save() will write to cookiejar.filename
+        self.ydl.cookiejar.save(self._cookies_tempfile, ignore_discard=True, ignore_expires=True)
+        return self.ydl.cookiejar.filename or self._cookies_tempfile
+
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
         cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
@@ -110,13 +137,21 @@ class ExternalFD(FileDownloader):
             self.to_stderr(stderr.decode('utf-8', 'replace'))
         return p.returncode
 
+    @staticmethod
+    def _header_items(info_dict):
+        return traverse_obj(
+            info_dict, ('http_headers', T(dict.items), Ellipsis))
+
 
 class CurlFD(ExternalFD):
     AVAILABLE_OPT = '-V'
 
     def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [self.exe, '--location', '-o', tmpfilename]
-        for key, val in info_dict['http_headers'].items():
+        cmd = [self.exe, '--location', '-o', tmpfilename, '--compressed']
+        cookie_header = self.ydl.cookiejar.get_cookie_header(info_dict['url'])
+        if cookie_header:
+            cmd += ['--cookie', cookie_header]
+        for key, val in self._header_items(info_dict):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._bool_option('--continue-at', 'continuedl', '-', '0')
         cmd += self._valueless_option('--silent', 'noprogress')
@@ -151,8 +186,11 @@ class AxelFD(ExternalFD):
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-o', tmpfilename]
-        for key, val in info_dict['http_headers'].items():
+        for key, val in self._header_items(info_dict):
             cmd += ['-H', '%s: %s' % (key, val)]
+        cookie_header = self.ydl.cookiejar.get_cookie_header(info_dict['url'])
+        if cookie_header:
+            cmd += ['-H', 'Cookie: {0}'.format(cookie_header), '--max-redirect=0']
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
@@ -162,8 +200,10 @@ class WgetFD(ExternalFD):
     AVAILABLE_OPT = '--version'
 
     def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
-        for key, val in info_dict['http_headers'].items():
+        cmd = [self.exe, '-O', tmpfilename, '-nv', '--compression=auto']
+        if self.ydl.cookiejar.get_cookie_header(info_dict['url']):
+            cmd += ['--load-cookies', self._write_cookies()]
+        for key, val in self._header_items(info_dict):
             cmd += ['--header', '%s: %s' % (key, val)]
         cmd += self._option('--limit-rate', 'ratelimit')
         retry = self._option('--tries', 'retries')
@@ -172,7 +212,10 @@ class WgetFD(ExternalFD):
                 retry[1] = '0'
             cmd += retry
         cmd += self._option('--bind-address', 'source_address')
-        cmd += self._option('--proxy', 'proxy')
+        proxy = self.params.get('proxy')
+        if proxy:
+            for var in ('http_proxy', 'https_proxy'):
+                cmd += ['--execute', '%s=%s' % (var, proxy)]
         cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
@@ -182,21 +225,58 @@ class WgetFD(ExternalFD):
 class Aria2cFD(ExternalFD):
     AVAILABLE_OPT = '-v'
 
+    @staticmethod
+    def _aria2c_filename(fn):
+        return fn if os.path.isabs(fn) else os.path.join('.', fn)
+
     def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [self.exe, '-c']
-        cmd += self._configuration_args([
-            '--min-split-size', '1M', '--max-connection-per-server', '4'])
-        dn = os.path.dirname(tmpfilename)
-        if dn:
-            cmd += ['--dir', dn]
-        cmd += ['--out', os.path.basename(tmpfilename)]
-        for key, val in info_dict['http_headers'].items():
+        cmd = [self.exe, '-c',
+               '--console-log-level=warn', '--summary-interval=0', '--download-result=hide',
+               '--http-accept-gzip=true', '--file-allocation=none', '-x16', '-j16', '-s16']
+        if 'fragments' in info_dict:
+            cmd += ['--allow-overwrite=true', '--allow-piece-length-change=true']
+        else:
+            cmd += ['--min-split-size', '1M']
+
+        if self.ydl.cookiejar.get_cookie_header(info_dict['url']):
+            cmd += ['--load-cookies={0}'.format(self._write_cookies())]
+        for key, val in self._header_items(info_dict):
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._configuration_args(['--max-connection-per-server', '4'])
+        cmd += ['--out', os.path.basename(tmpfilename)]
+        cmd += self._option('--max-overall-download-limit', 'ratelimit')
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
         cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
-        cmd += ['--', info_dict['url']]
+        cmd += self._bool_option('--show-console-readout', 'noprogress', 'false', 'true', '=')
+        cmd += self._configuration_args()
+
+        # aria2c strips out spaces from the beginning/end of filenames and paths.
+        # We work around this issue by adding a "./" to the beginning of the
+        # filename and relative path, and adding a "/" at the end of the path.
+        # See: https://github.com/yt-dlp/yt-dlp/issues/276
+        # https://github.com/ytdl-org/youtube-dl/issues/20312
+        # https://github.com/aria2/aria2/issues/1373
+        dn = os.path.dirname(tmpfilename)
+        if dn:
+            cmd += ['--dir', self._aria2c_filename(dn) + os.path.sep]
+        if 'fragments' not in info_dict:
+            cmd += ['--out', self._aria2c_filename(os.path.basename(tmpfilename))]
+        cmd += ['--auto-file-renaming=false']
+        if 'fragments' in info_dict:
+            cmd += ['--file-allocation=none', '--uri-selector=inorder']
+            url_list_file = '%s.frag.urls' % (tmpfilename, )
+            url_list = []
+            for frag_index, fragment in enumerate(info_dict['fragments']):
+                fragment_filename = '%s-Frag%d' % (os.path.basename(tmpfilename), frag_index)
+                url_list.append('%s\n\tout=%s' % (fragment['url'], self._aria2c_filename(fragment_filename)))
+            stream, _ = self.sanitize_open(url_list_file, 'wb')
+            stream.write('\n'.join(url_list).encode())
+            stream.close()
+            cmd += ['-i', self._aria2c_filename(url_list_file)]
+        else:
+            cmd += ['--', info_dict['url']]
         return cmd
 
 
@@ -235,8 +315,10 @@ class Aria2pFD(ExternalFD):
         }
         options['dir'] = os.path.dirname(tmpfilename) or os.path.abspath('.')
         options['out'] = os.path.basename(tmpfilename)
+        if self.ydl.cookiejar.get_cookie_header(info_dict['url']):
+            options['load-cookies'] = self._write_cookies()
         options['header'] = []
-        for key, val in info_dict['http_headers'].items():
+        for key, val in self._header_items(info_dict):
             options['header'].append('{0}: {1}'.format(key, val))
         download = aria2.add_uris([info_dict['url']], options)
         status = {
@@ -265,8 +347,16 @@ class HttpieFD(ExternalFD):
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = ['http', '--download', '--output', tmpfilename, info_dict['url']]
-        for key, val in info_dict['http_headers'].items():
+        for key, val in self._header_items(info_dict):
             cmd += ['%s:%s' % (key, val)]
+
+        # httpie 3.1.0+ removes the Cookie header on redirect, so this should be safe for now. [1]
+        # If we ever need cookie handling for redirects, we can export the cookiejar into a session. [2]
+        # 1: https://github.com/httpie/httpie/security/advisories/GHSA-9w4w-cpc8-h2fq
+        # 2: https://httpie.io/docs/cli/sessions
+        cookie_header = self.ydl.cookiejar.get_cookie_header(info_dict['url'])
+        if cookie_header:
+            cmd += ['Cookie:%s' % cookie_header]
         return cmd
 
 
@@ -277,13 +367,14 @@ class FFmpegFD(ExternalFD):
 
     @classmethod
     def available(cls):
-        return FFmpegPostProcessor().available
+        # actual availability can only be confirmed for an instance
+        return bool(FFmpegPostProcessor)
 
     def _call_downloader(self, tmpfilename, info_dict):
-        url = info_dict['url']
-        ffpp = FFmpegPostProcessor(downloader=self)
+        # `downloader` means the parent `YoutubeDL`
+        ffpp = FFmpegPostProcessor(downloader=self.ydl)
         if not ffpp.available:
-            self.report_error('m3u8 download detected but ffmpeg or avconv could not be found. Please install one.')
+            self.report_error('ffmpeg required for download but no ffmpeg (nor avconv) executable could be found. Please install one.')
             return False
         ffpp.check_version()
 
@@ -312,7 +403,15 @@ class FFmpegFD(ExternalFD):
         # if end_time:
         #     args += ['-t', compat_str(end_time - start_time)]
 
-        if info_dict['http_headers'] and re.match(r'^https?://', url):
+        url = info_dict['url']
+        cookies = self.ydl.cookiejar.get_cookies_for_url(url)
+        if cookies:
+            args.extend(['-cookies', ''.join(
+                '{0}={1}; path={2}; domain={3};\r\n'.format(
+                    cookie.name, cookie.value, cookie.path, cookie.domain)
+                for cookie in cookies)])
+
+        if info_dict.get('http_headers') and re.match(r'^https?://', url):
             # Trailing \r\n after each HTTP header is important to prevent warning from ffmpeg/avconv:
             # [http @ 00000000003d2fa0] No trailing CRLF found in HTTP header.
             headers = handle_youtubedl_headers(info_dict['http_headers'])
@@ -392,21 +491,25 @@ class FFmpegFD(ExternalFD):
 
         self._debug_cmd(args)
 
-        proc = subprocess.Popen(args, stdin=subprocess.PIPE, env=env)
-        try:
-            retval = proc.wait()
-        except BaseException as e:
-            # subprocess.run would send the SIGKILL signal to ffmpeg and the
-            # mp4 file couldn't be played, but if we ask ffmpeg to quit it
-            # produces a file that is playable (this is mostly useful for live
-            # streams). Note that Windows is not affected and produces playable
-            # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
-            if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
-                process_communicate_or_kill(proc, b'q')
-            else:
-                proc.kill()
-                proc.wait()
-            raise
+        # From [1], a PIPE opened in Popen() should be closed, unless
+        # .communicate() is called. Avoid leaking any PIPEs by using Popen
+        # as a context manager (newer Python 3.x and compat)
+        # Fixes "Resource Warning" in test/test_downloader_external.py
+        # [1] https://devpress.csdn.net/python/62fde12d7e66823466192e48.html
+        with compat_subprocess_Popen(args, stdin=subprocess.PIPE, env=env) as proc:
+            try:
+                retval = proc.wait()
+            except BaseException as e:
+                # subprocess.run would send the SIGKILL signal to ffmpeg and the
+                # mp4 file couldn't be played, but if we ask ffmpeg to quit it
+                # produces a file that is playable (this is mostly useful for live
+                # streams). Note that Windows is not affected and produces playable
+                # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
+                if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
+                    process_communicate_or_kill(proc, b'q')
+                else:
+                    proc.kill()
+                raise
         return retval
 
 

@@ -1,81 +1,479 @@
 name: CI
-on: [push, pull_request]
+
+env:
+  all-cpython-versions: 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
+  main-cpython-versions: 2.7, 3.2, 3.5, 3.9, 3.11
+  pypy-versions: pypy-2.7, pypy-3.6, pypy-3.7
+  cpython-versions: main
+  test-set: core
+  # Python beta version to be built using pyenv before setup-python support
+  # Must also be included in all-cpython-versions 
+  next: 3.13
+
+on:
+  push:
+    # push inputs aren't known to GitHub
+    inputs:
+      cpython-versions:
+        type: string
+        default: all
+      test-set:
+        type: string
+        default: core
+  pull_request:
+    # pull_request inputs aren't known to GitHub
+    inputs:
+      cpython-versions:
+        type: string
+        default: main
+      test-set:
+        type: string
+        default: both
+  workflow_dispatch:
+    inputs:
+      cpython-versions:
+        type: choice
+        description: CPython versions (main = 2.7, 3.2, 3.5, 3.9, 3.11)
+        options:
+          - all
+          - main
+        required: true
+        default: main
+      test-set:
+        type: choice
+        description: core, download
+        options:
+          - both
+          - core
+          - download
+        required: true
+        default: both
+
+permissions:
+  contents: read
+
 jobs:
+  select:
+    name: Select tests from inputs
+    runs-on: ubuntu-latest
+    outputs:
+      cpython-versions: ${{ steps.run.outputs.cpython-versions }}
+      test-set: ${{ steps.run.outputs.test-set }}
+      own-pip-versions: ${{ steps.run.outputs.own-pip-versions }}
+    steps:
+    # push and pull_request inputs aren't known to GitHub (pt3)
+    - name: Set push defaults
+      if: ${{ github.event_name == 'push' }}
+      env:
+        cpython-versions: all
+        test-set: core
+      run: |
+        echo "cpython-versions=${{env.cpython-versions}}" >> "$GITHUB_ENV"
+        echo "test_set=${{env.test_set}}" >> "$GITHUB_ENV"
+    - name: Get pull_request inputs
+      if: ${{ github.event_name == 'pull_request' }}
+      env:
+        cpython-versions: main
+        test-set: both
+      run: |
+        echo "cpython-versions=${{env.cpython-versions}}" >> "$GITHUB_ENV"
+        echo "test_set=${{env.test_set}}" >> "$GITHUB_ENV"
+    - name: Make version array
+      id: run
+      run: |
+        # Make a JSON Array from comma/space-separated string (no extra escaping)
+        json_list() { \
+          ret=""; IFS="${IFS},"; set -- $*; \
+          for a in "$@"; do \
+            ret=$(printf '%s"%s"' "${ret}${ret:+, }" "$a"); \
+          done; \
+          printf '[%s]' "$ret"; }
+        tests="${{ inputs.test-set || env.test-set }}"
+        [ $tests = both ] && tests="core download"
+        printf 'test-set=%s\n' "$(json_list $tests)" >> "$GITHUB_OUTPUT"
+        versions="${{ inputs.cpython-versions || env.cpython-versions }}"
+        if [ "$versions" = all ]; then \
+          versions="${{ env.all-cpython-versions }}"; else \
+          versions="${{ env.main-cpython-versions }}"; \
+        fi
+        printf 'cpython-versions=%s\n' \
+          "$(json_list ${versions}${versions:+, }${{ env.pypy-versions }})" >> "$GITHUB_OUTPUT"
+        # versions with a special get-pip.py in a per-version subdirectory
+        printf 'own-pip-versions=%s\n' \
+          "$(json_list 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6)" >> "$GITHUB_OUTPUT"
+
   tests:
-    name: Tests
+    name: Run tests
+    needs: select
+    permissions:
+      contents: read
+      packages: write
     runs-on: ${{ matrix.os }}
+    env:
+      PIP: python -m pip
+      PIP_DISABLE_PIP_VERSION_CHECK: true
+      PIP_NO_PYTHON_VERSION_WARNING: true
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-18.04]
-        # TODO: python 2.6
-        python-version: [2.7, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy-2.7, pypy-3.6, pypy-3.7]
+        os: [ubuntu-20.04]
+        python-version: ${{ fromJSON(needs.select.outputs.cpython-versions) }}
         python-impl: [cpython]
-        ytdl-test-set: [core, download]
+        ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
         run-tests-ext: [sh]
         include:
-        # python 3.2 is only available on windows via setup-python
         - os: windows-2019
-          python-version: 3.2
+          python-version: 3.4
           python-impl: cpython
-          ytdl-test-set: core
+          ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: bat
         - os: windows-2019
-          python-version: 3.2
+          python-version: 3.4
           python-impl: cpython
-          ytdl-test-set: download
+          ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: bat
         # jython
-        - os: ubuntu-18.04
+        - os: ubuntu-20.04
+          python-version: 2.7
           python-impl: jython
-          ytdl-test-set: core
+          ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: sh
-        - os: ubuntu-18.04
+        - os: ubuntu-20.04
+          python-version: 2.7
           python-impl: jython
-          ytdl-test-set: download
+          ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: sh
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      if: ${{ matrix.python-impl == 'cpython' }}
+    - name: Prepare Linux
+      if: ${{ startswith(matrix.os, 'ubuntu') }}
+      shell: bash
+      run: |
+        # apt in runner, if needed, may not be up-to-date
+        sudo apt-get update
+    - name: Checkout
+      uses: actions/checkout@v3
+    #-------- Python 3 -----
+    - name: Set up supported Python ${{ matrix.python-version }}
+      id: setup-python
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version != '2.6' && matrix.python-version != '2.7' && matrix.python-version != env.next }}
+      # wrap broken actions/setup-python@v4
+      # NB may run apt-get install in Linux
+      uses: ytdl-org/setup-python@v1
+      env:
+        # Temporary workaround for Python 3.5 failures - May 2024
+        PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
       with:
         python-version: ${{ matrix.python-version }}
+        cache-build: true
+        allow-build: info
+    - name: Locate supported Python ${{ matrix.python-version }}
+      if: ${{ env.pythonLocation }}
+      shell: bash
+      run: |
+        echo "PYTHONHOME=${pythonLocation}" >> "$GITHUB_ENV"
+        export expected="${{ steps.setup-python.outputs.python-path }}"
+        dirname() { printf '%s\n' \
+            'import os, sys' \
+            'print(os.path.dirname(sys.argv[1]))' \
+            | ${expected} - "$1"; }
+        expd="$(dirname "$expected")"
+        export python="$(command -v python)"
+        [ "$expd" = "$(dirname "$python")" ] || echo "PATH=$expd:${PATH}" >> "$GITHUB_ENV"
+        [ -x "$python" ] || printf '%s\n' \
+            'import os' \
+            'exp = os.environ["expected"]' \
+            'python = os.environ["python"]' \
+            'exps = os.path.split(exp)' \
+            'if python and (os.path.dirname(python) == exp[0]):' \
+            '    exit(0)' \
+            'exps[1] = "python" + os.path.splitext(exps[1])[1]' \
+            'python = os.path.join(*exps)' \
+            'try:' \
+            '    os.symlink(exp, python)' \
+            'except AttributeError:' \
+            '    os.rename(exp, python)' \
+            | ${expected} -
+        printf '%s\n' \
+            'import sys' \
+            'print(sys.path)' \
+            | ${expected} -
+    #-------- Python next (was 3.12) -
+    - name: Set up CPython 3.next environment
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
+      shell: bash
+      run: |
+        PYENV_ROOT=$HOME/.local/share/pyenv
+        echo "PYENV_ROOT=${PYENV_ROOT}" >> "$GITHUB_ENV"
+    - name: Cache Python 3.next 
+      id: cachenext
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
+      uses: actions/cache@v3
+      with:
+        key: python-${{ env.next }}
+        path: |
+          ${{ env.PYENV_ROOT }}
+    - name: Build and set up Python 3.next
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next && ! steps.cachenext.outputs.cache-hit }}
+      # dl and build locally
+      shell: bash
+      run: |
+        # Install build environment
+        sudo apt-get install -y build-essential llvm libssl-dev tk-dev  \
+                      libncursesw5-dev libreadline-dev libsqlite3-dev   \
+                      libffi-dev xz-utils zlib1g-dev libbz2-dev liblzma-dev
+        # Download PyEnv from its GitHub repository.
+        export PYENV_ROOT=${{ env.PYENV_ROOT }}
+        export PATH=$PYENV_ROOT/bin:$PATH
+        git clone "https://github.com/pyenv/pyenv.git" "$PYENV_ROOT"
+        pyenv install ${{ env.next }}
+    - name: Locate Python 3.next
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
+      shell: bash
+      run: |
+        PYTHONHOME="$(echo "${{ env.PYENV_ROOT }}/versions/${{ env.next }}."*)"
+        test -n "$PYTHONHOME"
+        echo "PYTHONHOME=$PYTHONHOME" >> "$GITHUB_ENV"
+        echo "PATH=${PYTHONHOME}/bin:$PATH" >> "$GITHUB_ENV"
+    #-------- Python 2.7 --
+    - name: Set up Python 2.7
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.7' }}
+      # install 2.7
+      shell: bash
+      run: |
+        sudo apt-get install -y python2 python-is-python2
+        echo "PYTHONHOME=/usr" >> "$GITHUB_ENV"
+    #-------- Python 2.6 --
+    - name: Set up Python 2.6 environment
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' }}
+      shell: bash
+      run: |
+        openssl_name=openssl-1.0.2u
+        echo "openssl_name=${openssl_name}" >> "$GITHUB_ENV"
+        openssl_dir=$HOME/.local/opt/$openssl_name
+        echo "openssl_dir=${openssl_dir}" >> "$GITHUB_ENV"
+        PYENV_ROOT=$HOME/.local/share/pyenv
+        echo "PYENV_ROOT=${PYENV_ROOT}" >> "$GITHUB_ENV"
+        sudo apt-get install -y openssl ca-certificates
+    - name: Cache Python 2.6
+      id: cache26
+      if: ${{ matrix.python-version == '2.6' }}
+      uses: actions/cache@v3
+      with:
+        key: python-2.6.9
+        path: |
+          ${{ env.openssl_dir }}
+          ${{ env.PYENV_ROOT }}
+    - name: Build and set up Python 2.6
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' && ! steps.cache26.outputs.cache-hit }}
+      # dl and build locally
+      shell: bash
+      run: |
+        # Install build environment
+        sudo apt-get install -y build-essential llvm libssl-dev tk-dev  \
+                      libncursesw5-dev libreadline-dev libsqlite3-dev   \
+                      libffi-dev xz-utils zlib1g-dev libbz2-dev liblzma-dev
+        # Download and install OpenSSL 1.0.2, back in time
+        openssl_name=${{ env.openssl_name }}
+        openssl_targz=${openssl_name}.tar.gz
+        openssl_dir=${{ env.openssl_dir }}
+        openssl_inc=$openssl_dir/include
+        openssl_lib=$openssl_dir/lib
+        openssl_ssl=$openssl_dir/ssl
+        curl -L "https://www.openssl.org/source/$openssl_targz" -o $openssl_targz
+        tar -xf $openssl_targz
+        ( cd $openssl_name; \
+          ./config --prefix=$openssl_dir --openssldir=${openssl_dir}/ssl \
+            --libdir=lib -Wl,-rpath=${openssl_dir}/lib shared zlib-dynamic && \
+          make && \
+          make install )
+        rm -rf $openssl_name
+        rmdir $openssl_ssl/certs && ln -s /etc/ssl/certs $openssl_ssl/certs
+        # Download PyEnv from its GitHub repository.
+        export PYENV_ROOT=${{ env.PYENV_ROOT }}
+        export PATH=$PYENV_ROOT/bin:$PATH
+        git clone "https://github.com/pyenv/pyenv.git" "$PYENV_ROOT"
+        # Prevent pyenv build trying (and failing) to update pip
+        export GET_PIP=get-pip-2.6.py
+        echo 'import sys; sys.exit(0)' > ${GET_PIP}
+        GET_PIP=$(realpath $GET_PIP)
+        # Build and install Python
+        export CFLAGS="-I$openssl_inc"
+        export LDFLAGS="-L$openssl_lib"
+        export LD_LIBRARY_PATH="$openssl_lib"
+        pyenv install 2.6.9
+    - name: Locate Python 2.6
+      if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == '2.6' }}
+      shell: bash
+      run: |
+        PYTHONHOME="${{ env.PYENV_ROOT }}/versions/2.6.9"
+        echo "PYTHONHOME=$PYTHONHOME" >> "$GITHUB_ENV"
+        echo "PATH=${PYTHONHOME}/bin:$PATH" >> "$GITHUB_ENV"
+        echo "LD_LIBRARY_PATH=${{ env.openssl_dir }}/lib${LD_LIBRARY_PATH:+:}${LD_LIBRARY_PATH}" >> "$GITHUB_ENV"
+    #-------- Jython ------
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
         java-version: 8
+        distribution: 'zulu'
+    - name: Setup Jython environment
+      if: ${{ matrix.python-impl == 'jython' }}
+      shell: bash
+      run: |
+        echo "JYTHON_ROOT=${HOME}/jython" >> "$GITHUB_ENV"
+        echo "PIP=pip" >> "$GITHUB_ENV"
+    - name: Cache Jython
+      id: cachejy
+      if: ${{ matrix.python-impl == 'jython' && matrix.python-version == '2.7' }}
+      uses: actions/cache@v3
+      with:
+        # 2.7.3 now available, may solve SNI issue
+        key: jython-2.7.1
+        path: |
+          ${{ env.JYTHON_ROOT }}
     - name: Install Jython
-      if: ${{ matrix.python-impl == 'jython' }}
+      if: ${{ matrix.python-impl == 'jython' && matrix.python-version == '2.7' && ! steps.cachejy.outputs.cache-hit }}
+      shell: bash
       run: |
-        wget https://repo1.maven.org/maven2/org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar -O jython-installer.jar
-        java -jar jython-installer.jar -s -d "$HOME/jython"
-        echo "$HOME/jython/bin" >> $GITHUB_PATH
-    - name: Install nose
-      if: ${{ matrix.python-impl != 'jython' }}
-      run: pip install nose
-    - name: Install nose (Jython)
-      if: ${{ matrix.python-impl == 'jython' }}
-      # Working around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
+        JYTHON_ROOT="${{ env.JYTHON_ROOT }}"
+        curl -L "https://repo1.maven.org/maven2/org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar" -o jython-installer.jar
+        java -jar jython-installer.jar -s -d "${JYTHON_ROOT}"
+        echo "${JYTHON_ROOT}/bin" >> "$GITHUB_PATH"
+    - name: Set up cached Jython
+      if: ${{ steps.cachejy.outputs.cache-hit }}
+      shell: bash
       run: |
-        wget https://files.pythonhosted.org/packages/99/4f/13fb671119e65c4dce97c60e67d3fd9e6f7f809f2b307e2611f4701205cb/nose-1.3.7-py2-none-any.whl
-        pip install nose-1.3.7-py2-none-any.whl
+        JYTHON_ROOT="${{ env.JYTHON_ROOT }}"
+        echo "${JYTHON_ROOT}/bin" >> $GITHUB_PATH
+    - name: Install supporting Python 2.7 if possible
+      if: ${{ steps.cachejy.outputs.cache-hit }}
+      shell: bash
+      run: |
+        sudo apt-get install -y python2.7 || true
+    #-------- pip ---------
+    - name: Set up supported Python ${{ matrix.python-version }} pip
+      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || matrix.python-version == '2.7' }}
+      # This step may run in either Linux or Windows
+      shell: bash
+      run: |
+        echo "$PATH"
+        echo "$PYTHONHOME"
+        # curl is available on both Windows and Linux, -L follows redirects, -O gets name
+        python -m ensurepip || python -m pip --version || { \
+          get_pip="${{ contains(needs.select.outputs.own-pip-versions, matrix.python-version) && format('{0}/', matrix.python-version) || '' }}"; \
+          curl -L -O "https://bootstrap.pypa.io/pip/${get_pip}get-pip.py"; \
+          python get-pip.py; }
+    - name: Set up Python 2.6 pip
+      if: ${{ matrix.python-version == '2.6' }}
+      shell: bash
+      run: |
+        python -m pip --version || { \
+          curl -L -O "https://bootstrap.pypa.io/pip/2.6/get-pip.py"; \
+          curl -L -O "https://files.pythonhosted.org/packages/ac/95/a05b56bb975efa78d3557efa36acaf9cf5d2fd0ee0062060493687432e03/pip-9.0.3-py2.py3-none-any.whl"; \
+          python get-pip.py --no-setuptools --no-wheel pip-9.0.3-py2.py3-none-any.whl; }
+        # work-around to invoke pip module on 2.6: https://bugs.python.org/issue2751
+        echo "PIP=python -m pip.__main__" >> "$GITHUB_ENV"
+    - name: Set up other Python ${{ matrix.python-version }} pip
+      if: ${{ matrix.python-version == '3.2' && steps.setup-python.outputs.python-path }}
+      shell: bash
+      run: |
+        python -m pip --version || { \
+          curl -L -O "https://bootstrap.pypa.io/pip/3.2/get-pip.py"; \
+          curl -L -O "https://files.pythonhosted.org/packages/b2/d0/cd115fe345dd6f07ec1c780020a7dfe74966fceeb171e0f20d1d4905b0b7/pip-7.1.2-py2.py3-none-any.whl"; \
+          python get-pip.py --no-setuptools --no-wheel pip-7.1.2-py2.py3-none-any.whl; }
+    #-------- unittest ----
+    - name: Upgrade Unittest for Python 2.6
+      if: ${{ matrix.python-version == '2.6' }}
+      shell: bash
+      run: |
+        # Work around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
+        $PIP -qq show unittest2 || { \
+          for u in "65/26/32b8464df2a97e6dd1b656ed26b2c194606c16fe163c695a992b36c11cdf/six-1.13.0-py2.py3-none-any.whl" \
+              "f2/94/3af39d34be01a24a6e65433d19e107099374224905f1e0cc6bbe1fd22a2f/argparse-1.4.0-py2.py3-none-any.whl" \
+              "c7/a3/c5da2a44c85bfbb6eebcfc1dde24933f8704441b98fdde6528f4831757a6/linecache2-1.0.0-py2.py3-none-any.whl" \
+              "17/0a/6ac05a3723017a967193456a2efa0aa9ac4b51456891af1e2353bb9de21e/traceback2-1.4.0-py2.py3-none-any.whl" \
+              "72/20/7f0f433060a962200b7272b8c12ba90ef5b903e218174301d0abfd523813/unittest2-1.1.0-py2.py3-none-any.whl"; do \
+            curl -L -O "https://files.pythonhosted.org/packages/${u}"; \
+            $PIP install ${u##*/}; \
+          done; }
+        # make tests use unittest2
+        for test in ./test/test_*.py ./test/helper.py; do
+          sed -r -i -e '/^import unittest$/s/test/test2 as unittest/' "$test"
+        done
+    #-------- nose --------
+    - name: Install nose for Python ${{ matrix.python-version }}
+      if: ${{ (matrix.python-version != '3.2' && steps.setup-python.outputs.python-path) || (matrix.python-impl == 'cpython' && (matrix.python-version == '2.7' || matrix.python-version == env.next)) }}
+      shell: bash
+      run: |
+        echo "$PATH"
+        echo "$PYTHONHOME"
+        # Use PyNose for recent Pythons instead of Nose
+        py3ver="${{ matrix.python-version }}"
+        py3ver=${py3ver#3.}
+        [ "$py3ver" != "${{ matrix.python-version }}" ] && py3ver=${py3ver%.*} || py3ver=0
+        [ "$py3ver" -ge 9 ] && nose=pynose || nose=nose
+        $PIP -qq show $nose || $PIP install $nose
+    - name: Install nose for other Python 2
+      if: ${{ matrix.python-impl == 'jython' || (matrix.python-impl == 'cpython' && matrix.python-version == '2.6') }}
+      shell: bash
+      run: |
+        # Work around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
+        $PIP -qq show nose || { \
+          curl -L -O "https://files.pythonhosted.org/packages/99/4f/13fb671119e65c4dce97c60e67d3fd9e6f7f809f2b307e2611f4701205cb/nose-1.3.7-py2-none-any.whl"; \
+          $PIP install nose-1.3.7-py2-none-any.whl; }
+    - name: Install nose for other Python 3
+      if: ${{ matrix.python-version == '3.2' && steps.setup-python.outputs.python-path }}
+      shell: bash
+      run: |
+        $PIP -qq show nose || { \
+          curl -L -O "https://files.pythonhosted.org/packages/15/d8/dd071918c040f50fa1cf80da16423af51ff8ce4a0f2399b7bf8de45ac3d9/nose-1.3.7-py3-none-any.whl"; \
+          $PIP install nose-1.3.7-py3-none-any.whl; }
+    - name: Set up nosetest test
+      if: ${{ contains(needs.select.outputs.test-set, matrix.ytdl-test-set ) }}
+      shell: bash
+      run: |
+        # set PYTHON_VER
+        PYTHON_VER=${{ matrix.python-version }}
+        [ "${PYTHON_VER#*-}" != "$PYTHON_VER" ] || PYTHON_VER="${{ matrix.python-impl }}-${PYTHON_VER}"
+        echo "PYTHON_VER=$PYTHON_VER" >> "$GITHUB_ENV"
+        echo "PYTHON_IMPL=${{ matrix.python-impl }}" >> "$GITHUB_ENV"
+        # define a test to validate the Python version used by nosetests
+        printf '%s\n' \
+          'from __future__ import unicode_literals' \
+          'import sys, os, platform' \
+          'try:' \
+          '    import unittest2 as unittest' \
+          'except ImportError:' \
+          '    import unittest' \
+          'class TestPython(unittest.TestCase):' \
+          '    def setUp(self):' \
+          '        self.ver = os.environ["PYTHON_VER"].split("-")' \
+          '    def test_python_ver(self):' \
+          '        self.assertEqual(["%d" % v for v in sys.version_info[:2]], self.ver[-1].split(".")[:2])' \
+          '        self.assertTrue(sys.version.startswith(self.ver[-1]))' \
+          '        self.assertIn(self.ver[0], ",".join((sys.version, platform.python_implementation())).lower())' \
+          '    def test_python_impl(self):' \
+          '        self.assertIn(platform.python_implementation().lower(), (os.environ["PYTHON_IMPL"], self.ver[0]))' \
+          > test/test_python.py
+    #-------- TESTS -------
     - name: Run tests
+      if: ${{ contains(needs.select.outputs.test-set, matrix.ytdl-test-set ) }}
       continue-on-error: ${{ matrix.ytdl-test-set == 'download' || matrix.python-impl == 'jython' }}
       env:
         YTDL_TEST_SET: ${{ matrix.ytdl-test-set }}
-      run: ./devscripts/run_tests.${{ matrix.run-tests-ext }}
+      run: |
+        ./devscripts/run_tests.${{ matrix.run-tests-ext }}
   flake8:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Install flake8
       run: pip install flake8
     - name: Run flake8
       run: flake8 .
+

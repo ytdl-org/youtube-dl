@@ -141,7 +141,8 @@ class HttpFD(FileDownloader):
                     # Content-Range is either not present or invalid. Assuming remote webserver is
                     # trying to send the whole file, resume is not possible, so wiping the local file
                     # and performing entire redownload
-                    self.report_unable_to_resume()
+                    if range_start > 0:
+                        self.report_unable_to_resume()
                     ctx.resume_len = 0
                     ctx.open_mode = 'wb'
                 ctx.data_len = int_or_none(ctx.data.info().get('Content-length', None))
@@ -293,7 +294,7 @@ class HttpFD(FileDownloader):
 
                 # Progress message
                 speed = self.calc_speed(start, now, byte_counter - ctx.resume_len)
-                eta = self.calc_eta(speed, ctx.data_len and (ctx.data_len - ctx.resume_len))
+                eta = self.calc_eta(speed, ctx.data_len and (ctx.data_len - byte_counter))
 
                 self._hook_progress({
                     'status': 'downloading',

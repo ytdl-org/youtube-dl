@@ -8,11 +8,14 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import io
 import re
 import string
 
-from youtube_dl.compat import compat_str, compat_urlretrieve
+from youtube_dl.compat import (
+    compat_open as open,
+    compat_str,
+    compat_urlretrieve,
+)
 
 from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
@@ -143,6 +146,42 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/dac945fd/player_ias.vflset/en_US/base.js',
         'o8BkRxXhuYsBCWi6RplPdP', '3Lx32v_hmzTm6A',
     ),
+    (
+        'https://www.youtube.com/s/player/6f20102c/player_ias.vflset/en_US/base.js',
+        'lE8DhoDmKqnmJJ', 'pJTTX6XyJP2BYw',
+    ),
+    (
+        'https://www.youtube.com/s/player/cfa9e7cb/player_ias.vflset/en_US/base.js',
+        'qO0NiMtYQ7TeJnfFG2', 'k9cuJDHNS5O7kQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/b7910ca8/player_ias.vflset/en_US/base.js',
+        '_hXMCwMt9qE310D', 'LoZMgkkofRMCZQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/590f65a6/player_ias.vflset/en_US/base.js',
+        '1tm7-g_A9zsI8_Lay_', 'xI4Vem4Put_rOg',
+    ),
+    (
+        'https://www.youtube.com/s/player/b22ef6e7/player_ias.vflset/en_US/base.js',
+        'b6HcntHGkvBLk_FRf', 'kNPW6A7FyP2l8A',
+    ),
+    (
+        'https://www.youtube.com/s/player/3400486c/player_ias.vflset/en_US/base.js',
+        'lL46g3XifCKUZn1Xfw', 'z767lhet6V2Skl',
+    ),
+    (
+        'https://www.youtube.com/s/player/5604538d/player_ias.vflset/en_US/base.js',
+        '7X-he4jjvMx7BCX', 'sViSydX8IHtdWA',
+    ),
+    (
+        'https://www.youtube.com/s/player/20dfca59/player_ias.vflset/en_US/base.js',
+        '-fLCxedkAk4LUTK2', 'O8kfRq1y1eyHGw',
+    ),
+    (
+        'https://www.youtube.com/s/player/b12cc44b/player_ias.vflset/en_US/base.js',
+        'keLa5R2U00sR9SQK', 'N1OGyujjEwMnLw',
+    ),
 ]
 
 
@@ -196,7 +235,7 @@ def t_factory(name, sig_func, url_pattern):
 
             if not os.path.exists(fn):
                 compat_urlretrieve(url, fn)
-            with io.open(fn, encoding='utf-8') as testf:
+            with open(fn, encoding='utf-8') as testf:
                 jscode = testf.read()
             self.assertEqual(sig_func(jscode, sig_input), expected_sig)
 

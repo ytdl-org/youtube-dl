@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 
-import io
 import os
 import subprocess
 import time
@@ -9,6 +8,7 @@ import re
 
 from .common import AudioConversionError, PostProcessor
 
+from ..compat import compat_open as open
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -74,8 +74,11 @@ class FFmpegPostProcessor(PostProcessor):
         return FFmpegPostProcessor(downloader)._versions
 
     def _determine_executables(self):
-        programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
+        # ordered to match prefer_ffmpeg!
+        convs = ['ffmpeg', 'avconv']
+        probes = ['ffprobe', 'avprobe']
         prefer_ffmpeg = True
+        programs = convs + probes
 
         def get_ffmpeg_version(path):
             ver = get_exe_version(path, args=['-version'])
@@ -96,6 +99,7 @@ class FFmpegPostProcessor(PostProcessor):
 
         self._paths = None
         self._versions = None
+        location = None
         if self._downloader:
             prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', True)
             location = self._downloader.params.get('ffmpeg_location')
@@ -118,33 +122,21 @@ class FFmpegPostProcessor(PostProcessor):
                     location = os.path.dirname(os.path.abspath(location))
                     if basename in ('ffmpeg', 'ffprobe'):
                         prefer_ffmpeg = True
+        self._paths = dict(
+            (p, p if location is None else os.path.join(location, p))
+            for p in programs)
+        self._versions = dict(
+            x for x in (
+                (p, get_ffmpeg_version(self._paths[p])) for p in programs)
+            if x[1] is not None)
 
-                self._paths = dict(
-                    (p, os.path.join(location, p)) for p in programs)
-                self._versions = dict(
-                    (p, get_ffmpeg_version(self._paths[p])) for p in programs)
-        if self._versions is None:
-            self._versions = dict(
-                (p, get_ffmpeg_version(p)) for p in programs)
-            self._paths = dict((p, p) for p in programs)
-
-        if prefer_ffmpeg is False:
-            prefs = ('avconv', 'ffmpeg')
-        else:
-            prefs = ('ffmpeg', 'avconv')
-        for p in prefs:
-            if self._versions[p]:
-                self.basename = p
-                break
-
-        if prefer_ffmpeg is False:
-            prefs = ('avprobe', 'ffprobe')
-        else:
-            prefs = ('ffprobe', 'avprobe')
-        for p in prefs:
-            if self._versions[p]:
-                self.probe_basename = p
-                break
+        basenames = [None, None]
+        for i, progs in enumerate((convs, probes)):
+            for p in progs[::-1 if prefer_ffmpeg is False else 1]:
+                if self._versions.get(p):
+                    basenames[i] = p
+                    break
+        self.basename, self.probe_basename = basenames
 
     @property
     def available(self):
@@ -493,7 +485,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         chapters = info.get('chapters', [])
         if chapters:
             metadata_filename = replace_extension(filename, 'meta')
-            with io.open(metadata_filename, 'wt', encoding='utf-8') as f:
+            with open(metadata_filename, 'w', encoding='utf-8') as f:
                 def ffmpeg_escape(text):
                     return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
 
@@ -636,7 +628,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 with open(dfxp_file, 'rb') as f:
                     srt_data = dfxp2srt(f.read())
 
-                with io.open(srt_file, 'wt', encoding='utf-8') as f:
+                with open(srt_file, 'w', encoding='utf-8') as f:
                     f.write(srt_data)
                 old_file = srt_file
 
@@ -652,7 +644,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
 
             self.run_ffmpeg(old_file, new_file, ['-f', new_format])
 
-            with io.open(new_file, 'rt', encoding='utf-8') as f:
+            with open(new_file, 'r', encoding='utf-8') as f:
                 subs[lang] = {
                     'ext': new_ext,
                     'data': f.read(),

@@ -1,22 +1,24 @@
 from __future__ import unicode_literals
 
 import errno
-import io
 import hashlib
 import json
 import os.path
 import re
-import types
 import ssl
 import sys
+import types
+import unittest
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import (
+    compat_open as open,
     compat_os_name,
     compat_str,
 )
 from youtube_dl.utils import (
+    IDENTITY,
     preferredencoding,
     write_string,
 )
@@ -27,10 +29,10 @@ def get_params(override=None):
                                    "parameters.json")
     LOCAL_PARAMETERS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                          "local_parameters.json")
-    with io.open(PARAMETERS_FILE, encoding='utf-8') as pf:
+    with open(PARAMETERS_FILE, encoding='utf-8') as pf:
         parameters = json.load(pf)
     if os.path.exists(LOCAL_PARAMETERS_FILE):
-        with io.open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
+        with open(LOCAL_PARAMETERS_FILE, encoding='utf-8') as pf:
             parameters.update(json.load(pf))
     if override:
         parameters.update(override)
@@ -72,7 +74,8 @@ class FakeYDL(YoutubeDL):
     def to_screen(self, s, skip_eol=None):
         print(s)
 
-    def trouble(self, s, tb=None):
+    def trouble(self, *args, **kwargs):
+        s = args[0] if len(args) > 0 else kwargs.get('message', 'Missing message')
         raise Exception(s)
 
     def download(self, x):
@@ -139,7 +142,7 @@ def expect_value(self, got, expected, field):
         self.assertTrue(
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
-    elif isinstance(expected, compat_str) and re.match(r'^lambda \w+:', expected):
+    elif isinstance(expected, compat_str) and re.match(r'lambda \w+:', expected):
         fn = eval(expected)
         suite = expected.split(':', 1)[1].strip()
         self.assertTrue(
@@ -178,18 +181,18 @@ def expect_value(self, got, expected, field):
             op, _, expected_num = expected.partition(':')
             expected_num = int(expected_num)
             if op == 'mincount':
-                assert_func = assertGreaterEqual
+                assert_func = self.assertGreaterEqual
                 msg_tmpl = 'Expected %d items in field %s, but only got %d'
             elif op == 'maxcount':
-                assert_func = assertLessEqual
+                assert_func = self.assertLessEqual
                 msg_tmpl = 'Expected maximum %d items in field %s, but got %d'
             elif op == 'count':
-                assert_func = assertEqual
+                assert_func = self.assertEqual
                 msg_tmpl = 'Expected exactly %d items in field %s, but got %d'
             else:
                 assert False
             assert_func(
-                self, len(got), expected_num,
+                len(got), expected_num,
                 msg_tmpl % (expected_num, field, len(got)))
             return
         self.assertEqual(
@@ -259,27 +262,6 @@ def assertRegexpMatches(self, text, regexp, msg=None):
             self.assertTrue(m, msg)
 
 
-def assertGreaterEqual(self, got, expected, msg=None):
-    if not (got >= expected):
-        if msg is None:
-            msg = '%r not greater than or equal to %r' % (got, expected)
-        self.assertTrue(got >= expected, msg)
-
-
-def assertLessEqual(self, got, expected, msg=None):
-    if not (got <= expected):
-        if msg is None:
-            msg = '%r not less than or equal to %r' % (got, expected)
-        self.assertTrue(got <= expected, msg)
-
-
-def assertEqual(self, got, expected, msg=None):
-    if not (got == expected):
-        if msg is None:
-            msg = '%r not equal to %r' % (got, expected)
-        self.assertTrue(got == expected, msg)
-
-
 def expect_warnings(ydl, warnings_re):
     real_warning = ydl.report_warning
 
@@ -297,3 +279,7 @@ def http_server_port(httpd):
     else:
         sock = httpd.socket
     return sock.getsockname()[1]
+
+
+def expectedFailureIf(cond):
+    return unittest.expectedFailure if cond else IDENTITY

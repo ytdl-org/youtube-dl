@@ -14,13 +14,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import io
 import itertools
 import json
-import re
+import types
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
-    encode_base_n,
+    base_url,
     caesar,
     clean_html,
     clean_podcast_url,
@@ -28,11 +29,12 @@ from youtube_dl.utils import (
     DateRange,
     detect_exe_version,
     determine_ext,
-    dict_get,
+    encode_base_n,
     encode_compat_str,
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    expand_path,
     extract_attributes,
     ExtractorError,
     find_xpath_attr,
@@ -42,7 +44,6 @@ from youtube_dl.utils import (
     get_element_by_attribute,
     get_elements_by_class,
     get_elements_by_attribute,
-    get_first,
     InAdvancePagedList,
     int_or_none,
     intlist_to_bytes,
@@ -51,6 +52,7 @@ from youtube_dl.utils import (
     js_to_json,
     LazyList,
     limit_length,
+    lowercase_escape,
     merge_dicts,
     mimetype2ext,
     month_by_name,
@@ -59,24 +61,26 @@ from youtube_dl.utils import (
     OnDemandPagedList,
     orderedSet,
     parse_age_limit,
+    parse_bitrate,
     parse_duration,
     parse_filesize,
+    parse_codecs,
     parse_count,
     parse_iso8601,
     parse_resolution,
-    parse_bitrate,
+    parse_qs,
     pkcs1pad,
-    read_batch_urls,
-    sanitize_filename,
-    sanitize_path,
-    sanitize_url,
-    expand_path,
     prepend_extension,
-    replace_extension,
+    read_batch_urls,
     remove_start,
     remove_end,
     remove_quotes,
+    replace_extension,
     rot47,
+    sanitize_filename,
+    sanitize_path,
+    sanitize_url,
+    sanitized_Request,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -84,17 +88,14 @@ from youtube_dl.utils import (
     strip_or_none,
     subtitles_filename,
     timeconvert,
-    traverse_obj,
     try_call,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
     unsmuggle_url,
     uppercase_escape,
-    lowercase_escape,
     url_basename,
     url_or_none,
-    base_url,
     urljoin,
     urlencode_postdata,
     urshift,
@@ -112,7 +113,7 @@ from youtube_dl.utils import (
     cli_option,
     cli_valueless_option,
     cli_bool_option,
-    parse_codecs,
+    YoutubeDLHandler,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -122,15 +123,10 @@ from youtube_dl.compat import (
     compat_setenv,
     compat_str,
     compat_urlparse,
-    compat_parse_qs,
 )
 
 
 class TestUtil(unittest.TestCase):
-
-    # yt-dlp shim
-    def assertCountEqual(self, expected, got, msg='count should be the same'):
-        return self.assertEqual(len(tuple(expected)), len(tuple(got)), msg=msg)
 
     def test_timeconvert(self):
         self.assertTrue(timeconvert('') is None)
@@ -252,6 +248,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('foo bar'), 'foo bar')
 
+    def test_sanitized_Request(self):
+        self.assertFalse(sanitized_Request('http://foo.bar').has_header('Authorization'))
+        self.assertFalse(sanitized_Request('http://:foo.bar').has_header('Authorization'))
+        self.assertEqual(sanitized_Request('http://@foo.bar').get_header('Authorization'),
+                         'Basic Og==')
+        self.assertEqual(sanitized_Request('http://:pass@foo.bar').get_header('Authorization'),
+                         'Basic OnBhc3M=')
+        self.assertEqual(sanitized_Request('http://user:@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjo=')
+        self.assertEqual(sanitized_Request('http://user:pass@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjpwYXNz')
+
     def test_expand_path(self):
         def env(var):
             return '%{0}%'.format(var) if sys.platform == 'win32' else '${0}'.format(var)
@@ -264,6 +272,27 @@ class TestUtil(unittest.TestCase):
             expand_path('~/%s' % env('YOUTUBE_DL_EXPATH_PATH')),
             '%s/expanded' % compat_getenv('HOME'))
 
+    _uncommon_extensions = [
+        ('exe', 'abc.exe.ext'),
+        ('de', 'abc.de.ext'),
+        ('../.mp4', None),
+        ('..\\.mp4', None),
+    ]
+
+    def assertUnsafeExtension(self, ext=None):
+        assert_raises = self.assertRaises(_UnsafeExtensionError)
+        assert_raises.ext = ext
+        orig_exit = assert_raises.__exit__
+
+        def my_exit(self_, exc_type, exc_val, exc_tb):
+            did_raise = orig_exit(exc_type, exc_val, exc_tb)
+            if did_raise and assert_raises.ext is not None:
+                self.assertEqual(assert_raises.ext, assert_raises.exception.extension, 'Unsafe extension  not as unexpected')
+            return did_raise
+
+        assert_raises.__exit__ = types.MethodType(my_exit, assert_raises)
+        return assert_raises
+
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
         self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
@@ -272,6 +301,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
 
+        # Test uncommon extensions
+        self.assertEqual(prepend_extension('abc.ext', 'bin'), 'abc.bin.ext')
+        for ext, result in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc', ext)
+            if result:
+                self.assertEqual(prepend_extension('abc.ext', ext, 'ext'), result)
+            else:
+                with self.assertUnsafeExtension(ext):
+                    prepend_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc.unexpected_ext', ext, 'ext')
+
     def test_replace_extension(self):
         self.assertEqual(replace_extension('abc.ext', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('abc.ext', 'temp', 'ext'), 'abc.temp')
@@ -279,6 +321,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+        # Test uncommon extensions
+        self.assertEqual(replace_extension('abc.ext', 'bin'), 'abc.unknown_video')
+        for ext, _ in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc', ext)
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.unexpected_ext', ext, 'ext')
 
     def test_subtitles_filename(self):
         self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt'), 'abc.en.vtt')
@@ -509,11 +561,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(float_or_none(set()), None)
 
     def test_int_or_none(self):
+        self.assertEqual(int_or_none(42), 42)
         self.assertEqual(int_or_none('42'), 42)
         self.assertEqual(int_or_none(''), None)
         self.assertEqual(int_or_none(None), None)
         self.assertEqual(int_or_none([]), None)
         self.assertEqual(int_or_none(set()), None)
+        self.assertEqual(int_or_none('42', base=8), 34)
+        self.assertRaises(TypeError, int_or_none(42, base=8))
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
@@ -680,38 +735,36 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(isinstance(data, bytes))
 
     def test_update_url_query(self):
-        def query_dict(url):
-            return compat_parse_qs(compat_urlparse.urlparse(url).query)
-        self.assertEqual(query_dict(update_url_query(
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'quality': ['HD'], 'format': ['mp4']})),
-            query_dict('http://example.com/path?quality=HD&format=mp4'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?quality=HD&format=mp4'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'system': ['LINUX', 'WINDOWS']})),
-            query_dict('http://example.com/path?system=LINUX&system=WINDOWS'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?system=LINUX&system=WINDOWS'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': 'id,formats,subtitles'})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': ('id,formats,subtitles', 'thumbnails')})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path?manifest=f4m', {'manifest': []})),
-            query_dict('http://example.com/path'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path?system=LINUX&system=WINDOWS', {'system': 'LINUX'})),
-            query_dict('http://example.com/path?system=LINUX'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?system=LINUX'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': b'id,formats,subtitles'})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'width': 1080, 'height': 720})),
-            query_dict('http://example.com/path?width=1080&height=720'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?width=1080&height=720'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'bitrate': 5020.43})),
-            query_dict('http://example.com/path?bitrate=5020.43'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?bitrate=5020.43'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'test': '第二行тест'})),
-            query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
+            parse_qs('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
     def test_multipart_encode(self):
         self.assertEqual(
@@ -722,28 +775,6 @@ class TestUtil(unittest.TestCase):
             b'--AAAAAA\r\nContent-Disposition: form-data; name="\xe6\xac\x84\xe4\xbd\x8d"\r\n\r\n\xe5\x80\xbc\r\n--AAAAAA--\r\n')
         self.assertRaises(
             ValueError, multipart_encode, {b'field': b'value'}, boundary='value')
-
-    def test_dict_get(self):
-        FALSE_VALUES = {
-            'none': None,
-            'false': False,
-            'zero': 0,
-            'empty_string': '',
-            'empty_list': [],
-        }
-        d = FALSE_VALUES.copy()
-        d['a'] = 42
-        self.assertEqual(dict_get(d, 'a'), 42)
-        self.assertEqual(dict_get(d, 'b'), None)
-        self.assertEqual(dict_get(d, 'b', 42), 42)
-        self.assertEqual(dict_get(d, ('a', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'a', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'c', 'a', 'd', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'c', )), None)
-        self.assertEqual(dict_get(d, ('b', 'c', ), 42), 42)
-        for key, false_value in FALSE_VALUES.items():
-            self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
-            self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
 
     def test_merge_dicts(self):
         self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
@@ -903,6 +934,111 @@ class TestUtil(unittest.TestCase):
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
 
+    def test_remove_dot_segments(self):
+
+        def remove_dot_segments(p):
+            q = '' if p.startswith('/') else '/'
+            p = 'http://example.com' + q + p
+            p = compat_urlparse.urlsplit(YoutubeDLHandler._fix_path(p)).path
+            return p[1:] if q else p
+
+        self.assertEqual(remove_dot_segments('/a/b/c/./../../g'), '/a/g')
+        self.assertEqual(remove_dot_segments('mid/content=5/../6'), 'mid/6')
+        self.assertEqual(remove_dot_segments('/ad/../cd'), '/cd')
+        self.assertEqual(remove_dot_segments('/ad/../cd/'), '/cd/')
+        self.assertEqual(remove_dot_segments('/..'), '/')
+        self.assertEqual(remove_dot_segments('/./'), '/')
+        self.assertEqual(remove_dot_segments('/./a'), '/a')
+        self.assertEqual(remove_dot_segments('/abc/./.././d/././e/.././f/./../../ghi'), '/ghi')
+        self.assertEqual(remove_dot_segments('/'), '/')
+        self.assertEqual(remove_dot_segments('/t'), '/t')
+        self.assertEqual(remove_dot_segments('t'), 't')
+        self.assertEqual(remove_dot_segments(''), '')
+        self.assertEqual(remove_dot_segments('/../a/b/c'), '/a/b/c')
+        self.assertEqual(remove_dot_segments('../a'), 'a')
+        self.assertEqual(remove_dot_segments('./a'), 'a')
+        self.assertEqual(remove_dot_segments('.'), '')
+        self.assertEqual(remove_dot_segments('////'), '////')
+
+    def test_js_to_json_vars_strings(self):
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'null': a,
+                    'nullStr': b,
+                    'true': c,
+                    'trueStr': d,
+                    'false': e,
+                    'falseStr': f,
+                    'unresolvedVar': g,
+                }''',
+                {
+                    'a': 'null',
+                    'b': '"null"',
+                    'c': 'true',
+                    'd': '"true"',
+                    'e': 'false',
+                    'f': '"false"',
+                    'g': 'var',
+                }
+            )),
+            {
+                'null': None,
+                'nullStr': 'null',
+                'true': True,
+                'trueStr': 'true',
+                'false': False,
+                'falseStr': 'false',
+                'unresolvedVar': 'var'
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'int': a,
+                    'intStr': b,
+                    'float': c,
+                    'floatStr': d,
+                }''',
+                {
+                    'a': '123',
+                    'b': '"123"',
+                    'c': '1.23',
+                    'd': '"1.23"',
+                }
+            )),
+            {
+                'int': 123,
+                'intStr': '123',
+                'float': 1.23,
+                'floatStr': '1.23',
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'object': a,
+                    'objectStr': b,
+                    'array': c,
+                    'arrayStr': d,
+                }''',
+                {
+                    'a': '{}',
+                    'b': '"{}"',
+                    'c': '[]',
+                    'd': '"[]"',
+                }
+            )),
+            {
+                'object': {},
+                'objectStr': '{}',
+                'array': [],
+                'arrayStr': '[]',
+            }
+        )
+
     def test_js_to_json_realworld(self):
         inp = '''{
             'clip':{'provider':'pseudo'}
@@ -973,10 +1109,10 @@ class TestUtil(unittest.TestCase):
             !42: 42
         }''')
         self.assertEqual(json.loads(on), {
-            'a': 0,
-            'b': 1,
-            'c': 0,
-            'd': 42.42,
+            'a': True,
+            'b': False,
+            'c': False,
+            'd': True,
             'e': [],
             'f': "abc",
             'g': "",
@@ -1046,9 +1182,25 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{ "040": "040" }')
         self.assertEqual(json.loads(on), {'040': '040'})
 
+        on = js_to_json('[1,//{},\n2]')
+        self.assertEqual(json.loads(on), [1, 2])
+
+        on = js_to_json(r'"\^\$\#"')
+        self.assertEqual(json.loads(on), R'^$#', msg='Unnecessary escapes should be stripped')
+
+        on = js_to_json('\'"\\""\'')
+        self.assertEqual(json.loads(on), '"""', msg='Unnecessary quote escape should be escaped')
+
     def test_js_to_json_malformed(self):
         self.assertEqual(js_to_json('42a1'), '42"a1"')
         self.assertEqual(js_to_json('42a-1'), '42"a"-1')
+
+    def test_js_to_json_template_literal(self):
+        self.assertEqual(js_to_json('`Hello ${name}`', {'name': '"world"'}), '"Hello world"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '"X"'}), '"XX"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '5'}), '"55"')
+        self.assertEqual(js_to_json('`${name}"${name}"`', {'name': '5'}), '"5\\"5\\""')
+        self.assertEqual(js_to_json('`${name}`', {}), '"name"')
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
@@ -1563,238 +1715,7 @@ Line 1
         self.assertEqual(variadic(None), (None, ))
         self.assertEqual(variadic('spam'), ('spam', ))
         self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
-
-    def test_traverse_obj(self):
-        _TEST_DATA = {
-            100: 100,
-            1.2: 1.2,
-            'str': 'str',
-            'None': None,
-            '...': Ellipsis,
-            'urls': [
-                {'index': 0, 'url': 'https://www.example.com/0'},
-                {'index': 1, 'url': 'https://www.example.com/1'},
-            ],
-            'data': (
-                {'index': 2},
-                {'index': 3},
-            ),
-            'dict': {},
-        }
-
-        # Test base functionality
-        self.assertEqual(traverse_obj(_TEST_DATA, ('str',)), 'str',
-                         msg='allow tuple path')
-        self.assertEqual(traverse_obj(_TEST_DATA, ['str']), 'str',
-                         msg='allow list path')
-        self.assertEqual(traverse_obj(_TEST_DATA, (value for value in ("str",))), 'str',
-                         msg='allow iterable path')
-        self.assertEqual(traverse_obj(_TEST_DATA, 'str'), 'str',
-                         msg='single items should be treated as a path')
-        self.assertEqual(traverse_obj(_TEST_DATA, None), _TEST_DATA)
-        self.assertEqual(traverse_obj(_TEST_DATA, 100), 100)
-        self.assertEqual(traverse_obj(_TEST_DATA, 1.2), 1.2)
-
-        # Test Ellipsis behavior
-        self.assertCountEqual(traverse_obj(_TEST_DATA, Ellipsis),
-                              (item for item in _TEST_DATA.values() if item is not None),
-                              msg='`...` should give all values except `None`')
-        self.assertCountEqual(traverse_obj(_TEST_DATA, ('urls', 0, Ellipsis)), _TEST_DATA['urls'][0].values(),
-                              msg='`...` selection for dicts should select all values')
-        self.assertEqual(traverse_obj(_TEST_DATA, (Ellipsis, Ellipsis, 'url')),
-                         ['https://www.example.com/0', 'https://www.example.com/1'],
-                         msg='nested `...` queries should work')
-        self.assertCountEqual(traverse_obj(_TEST_DATA, (Ellipsis, Ellipsis, 'index')), range(4),
-                              msg='`...` query result should be flattened')
-
-        # Test function as key
-        self.assertEqual(traverse_obj(_TEST_DATA, lambda x, y: x == 'urls' and isinstance(y, list)),
-                         [_TEST_DATA['urls']],
-                         msg='function as query key should perform a filter based on (key, value)')
-        self.assertCountEqual(traverse_obj(_TEST_DATA, lambda _, x: isinstance(x[0], compat_str)), {'str'},
-                              msg='exceptions in the query function should be caught')
-
-        # Test alternative paths
-        self.assertEqual(traverse_obj(_TEST_DATA, 'fail', 'str'), 'str',
-                         msg='multiple `paths` should be treated as alternative paths')
-        self.assertEqual(traverse_obj(_TEST_DATA, 'str', 100), 'str',
-                         msg='alternatives should exit early')
-        self.assertEqual(traverse_obj(_TEST_DATA, 'fail', 'fail'), None,
-                         msg='alternatives should return `default` if exhausted')
-        self.assertEqual(traverse_obj(_TEST_DATA, (Ellipsis, 'fail'), 100), 100,
-                         msg='alternatives should track their own branching return')
-        self.assertEqual(traverse_obj(_TEST_DATA, ('dict', Ellipsis), ('data', Ellipsis)), list(_TEST_DATA['data']),
-                         msg='alternatives on empty objects should search further')
-
-        # Test branch and path nesting
-        self.assertEqual(traverse_obj(_TEST_DATA, ('urls', (3, 0), 'url')), ['https://www.example.com/0'],
-                         msg='tuple as key should be treated as branches')
-        self.assertEqual(traverse_obj(_TEST_DATA, ('urls', [3, 0], 'url')), ['https://www.example.com/0'],
-                         msg='list as key should be treated as branches')
-        self.assertEqual(traverse_obj(_TEST_DATA, ('urls', ((1, 'fail'), (0, 'url')))), ['https://www.example.com/0'],
-                         msg='double nesting in path should be treated as paths')
-        self.assertEqual(traverse_obj(['0', [1, 2]], [(0, 1), 0]), [1],
-                         msg='do not fail early on branching')
-        self.assertCountEqual(traverse_obj(_TEST_DATA, ('urls', ((1, ('fail', 'url')), (0, 'url')))),
-                              ['https://www.example.com/0', 'https://www.example.com/1'],
-                              msg='triple nesting in path should be treated as branches')
-        self.assertEqual(traverse_obj(_TEST_DATA, ('urls', ('fail', (Ellipsis, 'url')))),
-                         ['https://www.example.com/0', 'https://www.example.com/1'],
-                         msg='ellipsis as branch path start gets flattened')
-
-        # Test dictionary as key
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: 100, 1: 1.2}), {0: 100, 1: 1.2},
-                         msg='dict key should result in a dict with the same keys')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: ('urls', 0, 'url')}),
-                         {0: 'https://www.example.com/0'},
-                         msg='dict key should allow paths')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: ('urls', (3, 0), 'url')}),
-                         {0: ['https://www.example.com/0']},
-                         msg='tuple in dict path should be treated as branches')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: ('urls', ((1, 'fail'), (0, 'url')))}),
-                         {0: ['https://www.example.com/0']},
-                         msg='double nesting in dict path should be treated as paths')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: ('urls', ((1, ('fail', 'url')), (0, 'url')))}),
-                         {0: ['https://www.example.com/1', 'https://www.example.com/0']},
-                         msg='triple nesting in dict path should be treated as branches')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: 'fail'}), {},
-                         msg='remove `None` values when dict key')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: 'fail'}, default=Ellipsis), {0: Ellipsis},
-                         msg='do not remove `None` values if `default`')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: 'dict'}), {0: {}},
-                         msg='do not remove empty values when dict key')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: 'dict'}, default=Ellipsis), {0: {}},
-                         msg='do not remove empty values when dict key and a default')
-        self.assertEqual(traverse_obj(_TEST_DATA, {0: ('dict', Ellipsis)}), {0: []},
-                         msg='if branch in dict key not successful, return `[]`')
-
-        # Testing default parameter behavior
-        _DEFAULT_DATA = {'None': None, 'int': 0, 'list': []}
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, 'fail'), None,
-                         msg='default value should be `None`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, 'fail', 'fail', default=Ellipsis), Ellipsis,
-                         msg='chained fails should result in default')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, 'None', 'int'), 0,
-                         msg='should not short cirquit on `None`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, 'fail', default=1), 1,
-                         msg='invalid dict key should result in `default`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, 'None', default=1), 1,
-                         msg='`None` is a deliberate sentinel and should become `default`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, ('list', 10)), None,
-                         msg='`IndexError` should result in `default`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, (Ellipsis, 'fail'), default=1), 1,
-                         msg='if branched but not successful return `default` if defined, not `[]`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, (Ellipsis, 'fail'), default=None), None,
-                         msg='if branched but not successful return `default` even if `default` is `None`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, (Ellipsis, 'fail')), [],
-                         msg='if branched but not successful return `[]`, not `default`')
-        self.assertEqual(traverse_obj(_DEFAULT_DATA, ('list', Ellipsis)), [],
-                         msg='if branched but object is empty return `[]`, not `default`')
-
-        # Testing expected_type behavior
-        _EXPECTED_TYPE_DATA = {'str': 'str', 'int': 0}
-        self.assertEqual(traverse_obj(_EXPECTED_TYPE_DATA, 'str', expected_type=compat_str), 'str',
-                         msg='accept matching `expected_type` type')
-        self.assertEqual(traverse_obj(_EXPECTED_TYPE_DATA, 'str', expected_type=int), None,
-                         msg='reject non matching `expected_type` type')
-        self.assertEqual(traverse_obj(_EXPECTED_TYPE_DATA, 'int', expected_type=lambda x: compat_str(x)), '0',
-                         msg='transform type using type function')
-        self.assertEqual(traverse_obj(_EXPECTED_TYPE_DATA, 'str',
-                                      expected_type=lambda _: 1 / 0), None,
-                         msg='wrap expected_type function in try_call')
-        self.assertEqual(traverse_obj(_EXPECTED_TYPE_DATA, Ellipsis, expected_type=compat_str), ['str'],
-                         msg='eliminate items that expected_type fails on')
-
-        # Test get_all behavior
-        _GET_ALL_DATA = {'key': [0, 1, 2]}
-        self.assertEqual(traverse_obj(_GET_ALL_DATA, ('key', Ellipsis), get_all=False), 0,
-                         msg='if not `get_all`, return only first matching value')
-        self.assertEqual(traverse_obj(_GET_ALL_DATA, Ellipsis, get_all=False), [0, 1, 2],
-                         msg='do not overflatten if not `get_all`')
-
-        # Test casesense behavior
-        _CASESENSE_DATA = {
-            'KeY': 'value0',
-            0: {
-                'KeY': 'value1',
-                0: {'KeY': 'value2'},
-            },
-            # FULLWIDTH LATIN CAPITAL LETTER K
-            '\uff2bey': 'value3',
-        }
-        self.assertEqual(traverse_obj(_CASESENSE_DATA, 'key'), None,
-                         msg='dict keys should be case sensitive unless `casesense`')
-        self.assertEqual(traverse_obj(_CASESENSE_DATA, 'keY',
-                                      casesense=False), 'value0',
-                         msg='allow non matching key case if `casesense`')
-        self.assertEqual(traverse_obj(_CASESENSE_DATA, '\uff4bey',  # FULLWIDTH LATIN SMALL LETTER K
-                                      casesense=False), 'value3',
-                         msg='allow non matching Unicode key case if `casesense`')
-        self.assertEqual(traverse_obj(_CASESENSE_DATA, (0, ('keY',)),
-                                      casesense=False), ['value1'],
-                         msg='allow non matching key case in branch if `casesense`')
-        self.assertEqual(traverse_obj(_CASESENSE_DATA, (0, ((0, 'keY'),)),
-                                      casesense=False), ['value2'],
-                         msg='allow non matching key case in branch path if `casesense`')
-
-        # Test traverse_string behavior
-        _TRAVERSE_STRING_DATA = {'str': 'str', 1.2: 1.2}
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, ('str', 0)), None,
-                         msg='do not traverse into string if not `traverse_string`')
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, ('str', 0),
-                                      _traverse_string=True), 's',
-                         msg='traverse into string if `traverse_string`')
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, (1.2, 1),
-                                      _traverse_string=True), '.',
-                         msg='traverse into converted data if `traverse_string`')
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, ('str', Ellipsis),
-                                      _traverse_string=True), list('str'),
-                         msg='`...` branching into string should result in list')
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, ('str', (0, 2)),
-                                      _traverse_string=True), ['s', 'r'],
-                         msg='branching into string should result in list')
-        self.assertEqual(traverse_obj(_TRAVERSE_STRING_DATA, ('str', lambda _, x: x),
-                                      _traverse_string=True), list('str'),
-                         msg='function branching into string should result in list')
-
-        # Test is_user_input behavior
-        _IS_USER_INPUT_DATA = {'range8': list(range(8))}
-        self.assertEqual(traverse_obj(_IS_USER_INPUT_DATA, ('range8', '3'),
-                                      _is_user_input=True), 3,
-                         msg='allow for string indexing if `is_user_input`')
-        self.assertCountEqual(traverse_obj(_IS_USER_INPUT_DATA, ('range8', '3:'),
-                                           _is_user_input=True), tuple(range(8))[3:],
-                              msg='allow for string slice if `is_user_input`')
-        self.assertCountEqual(traverse_obj(_IS_USER_INPUT_DATA, ('range8', ':4:2'),
-                                           _is_user_input=True), tuple(range(8))[:4:2],
-                              msg='allow step in string slice if `is_user_input`')
-        self.assertCountEqual(traverse_obj(_IS_USER_INPUT_DATA, ('range8', ':'),
-                                           _is_user_input=True), range(8),
-                              msg='`:` should be treated as `...` if `is_user_input`')
-        with self.assertRaises(TypeError, msg='too many params should result in error'):
-            traverse_obj(_IS_USER_INPUT_DATA, ('range8', ':::'), _is_user_input=True)
-
-        # Test re.Match as input obj
-        mobj = re.match(r'^0(12)(?P<group>3)(4)?$', '0123')
-        self.assertEqual(traverse_obj(mobj, Ellipsis), [x for x in mobj.groups() if x is not None],
-                         msg='`...` on a `re.Match` should give its `groups()`')
-        self.assertEqual(traverse_obj(mobj, lambda k, _: k in (0, 2)), ['0123', '3'],
-                         msg='function on a `re.Match` should give groupno, value starting at 0')
-        self.assertEqual(traverse_obj(mobj, 'group'), '3',
-                         msg='str key on a `re.Match` should give group with that name')
-        self.assertEqual(traverse_obj(mobj, 2), '3',
-                         msg='int key on a `re.Match` should give group with that name')
-        self.assertEqual(traverse_obj(mobj, 'gRoUp', casesense=False), '3',
-                         msg='str key on a `re.Match` should respect casesense')
-        self.assertEqual(traverse_obj(mobj, 'fail'), None,
-                         msg='failing str key on a `re.Match` should return `default`')
-        self.assertEqual(traverse_obj(mobj, 'gRoUpS', casesense=False), None,
-                         msg='failing str key on a `re.Match` should return `default`')
-        self.assertEqual(traverse_obj(mobj, 8), None,
-                         msg='failing int key on a `re.Match` should return `default`')
-
-    def test_get_first(self):
-        self.assertEqual(get_first([{'a': None}, {'a': 'spam'}], 'a'), 'spam')
+        self.assertEqual(variadic('spam', allowed_types=[dict]), 'spam')
 
     def test_join_nonempty(self):
         self.assertEqual(join_nonempty('a', 'b'), 'a-b')

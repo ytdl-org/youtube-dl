@@ -4,11 +4,10 @@
 from __future__ import absolute_import, unicode_literals
 
 import collections
-import contextlib
 import copy
 import datetime
 import errno
-import fileinput
+import functools
 import io
 import itertools
 import json
@@ -26,15 +25,26 @@ import tokenize
 import traceback
 import random
 
+try:
+    from ssl import OPENSSL_VERSION
+except ImportError:
+    # Must be Python 2.6, should be built against 1.0.2
+    OPENSSL_VERSION = 'OpenSSL 1.0.2(?)'
 from string import ascii_letters
 
 from .compat import (
     compat_basestring,
-    compat_cookiejar,
+    compat_collections_chain_map as ChainMap,
+    compat_filter as filter,
     compat_get_terminal_size,
     compat_http_client,
+    compat_http_cookiejar_Cookie,
+    compat_http_cookies_SimpleCookie,
+    compat_integer_types,
     compat_kwargs,
+    compat_map as map,
     compat_numeric_types,
+    compat_open as open,
     compat_os_name,
     compat_str,
     compat_tokenize_tokenize,
@@ -44,8 +54,10 @@ from .compat import (
     compat_urllib_request_DataHandler,
 )
 from .utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
+    bug_reports_message,
     ContentTooShortError,
     date_from_str,
     DateRange,
@@ -61,10 +73,11 @@ from .utils import (
     format_bytes,
     formatSeconds,
     GeoRestrictedError,
-    HEADRequest,
     int_or_none,
     ISO3166Utils,
+    join_nonempty,
     locked_file,
+    LazyList,
     make_HTTPS_handler,
     MaxDownloadsReached,
     orderedSet,
@@ -76,7 +89,6 @@ from .utils import (
     preferredencoding,
     prepend_extension,
     process_communicate_or_kill,
-    PUTRequest,
     register_socks_protocols,
     render_table,
     replace_extension,
@@ -88,6 +100,7 @@ from .utils import (
     std_headers,
     str_or_none,
     subtitles_filename,
+    traverse_obj,
     UnavailableVideoError,
     url_basename,
     version_tuple,
@@ -97,6 +110,7 @@ from .utils import (
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
+    ytdl_is_updateable,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
@@ -115,6 +129,20 @@ from .version import __version__
 
 if compat_os_name == 'nt':
     import ctypes
+
+
+def _catch_unsafe_file_extension(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        try:
+            return func(self, *args, **kwargs)
+        except _UnsafeExtensionError as error:
+            self.report_error(
+                '{0} found; to avoid damaging your system, this value is disallowed.'
+                ' If you believe this is an error{1}'.format(
+                    error_to_compat_str(error), bug_reports_message(',')))
+
+    return wrapper
 
 
 class YoutubeDL(object):
@@ -366,6 +394,9 @@ class YoutubeDL(object):
         self.params.update(params)
         self.cache = Cache(self)
 
+        self._header_cookies = []
+        self._load_cookies_from_headers(self.params.get('http_headers'))
+
         def check_deprecated(param, option, suggestion):
             if self.params.get(param) is not None:
                 self.report_warning(
@@ -572,7 +603,7 @@ class YoutubeDL(object):
         if self.params.get('cookiefile') is not None:
             self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
-    def trouble(self, message=None, tb=None):
+    def trouble(self, *args, **kwargs):
         """Determine action to take when a download problem appears.
 
         Depending on if the downloader has been configured to ignore
@@ -581,6 +612,11 @@ class YoutubeDL(object):
 
         tb, if given, is additional traceback information.
         """
+        # message=None, tb=None, is_error=True
+        message = args[0] if len(args) > 0 else kwargs.get('message', None)
+        tb = args[1] if len(args) > 1 else kwargs.get('tb', None)
+        is_error = args[2] if len(args) > 2 else kwargs.get('is_error', True)
+
         if message is not None:
             self.to_stderr(message)
         if self.params.get('verbose'):
@@ -593,7 +629,10 @@ class YoutubeDL(object):
                 else:
                     tb_data = traceback.format_list(traceback.extract_stack())
                     tb = ''.join(tb_data)
-            self.to_stderr(tb)
+            if tb:
+                self.to_stderr(tb)
+        if not is_error:
+            return
         if not self.params.get('ignoreerrors', False):
             if sys.exc_info()[0] and hasattr(sys.exc_info()[1], 'exc_info') and sys.exc_info()[1].exc_info[0]:
                 exc_info = sys.exc_info()[1].exc_info
@@ -602,11 +641,18 @@ class YoutubeDL(object):
             raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
-    def report_warning(self, message):
+    def report_warning(self, message, only_once=False, _cache={}):
         '''
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
+        if only_once:
+            m_hash = hash((self, message))
+            m_cnt = _cache.setdefault(m_hash, 0)
+            _cache[m_hash] = m_cnt + 1
+            if m_cnt > 0:
+                return
+
         if self.params.get('logger') is not None:
             self.params['logger'].warning(message)
         else:
@@ -619,7 +665,7 @@ class YoutubeDL(object):
             warning_message = '%s %s' % (_msg_header, message)
             self.to_stderr(warning_message)
 
-    def report_error(self, message, tb=None):
+    def report_error(self, message, *args, **kwargs):
         '''
         Do the same as trouble, but prefixes the message with 'ERROR:', colored
         in red if stderr is a tty file.
@@ -628,8 +674,18 @@ class YoutubeDL(object):
             _msg_header = '\033[0;31mERROR:\033[0m'
         else:
             _msg_header = 'ERROR:'
-        error_message = '%s %s' % (_msg_header, message)
-        self.trouble(error_message, tb)
+        kwargs['message'] = '%s %s' % (_msg_header, message)
+        self.trouble(*args, **kwargs)
+
+    def report_unscoped_cookies(self, *args, **kwargs):
+        # message=None, tb=False, is_error=False
+        if len(args) <= 2:
+            kwargs.setdefault('is_error', False)
+            if len(args) <= 0:
+                kwargs.setdefault(
+                    'message',
+                    'Unscoped cookies are not allowed: please specify some sort of scoping')
+        self.report_error(*args, **kwargs)
 
     def report_file_already_downloaded(self, file_name):
         """Report file has already been fully downloaded."""
@@ -825,7 +881,7 @@ class YoutubeDL(object):
                 msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
                 self.report_error(msg)
             except ExtractorError as e:  # An error we somewhat expected
-                self.report_error(compat_str(e), e.format_traceback())
+                self.report_error(compat_str(e), tb=e.format_traceback())
             except MaxDownloadsReached:
                 raise
             except Exception as e:
@@ -835,8 +891,83 @@ class YoutubeDL(object):
                     raise
         return wrapper
 
+    def _remove_cookie_header(self, http_headers):
+        """Filters out `Cookie` header from an `http_headers` dict
+        The `Cookie` header is removed to prevent leaks as a result of unscoped cookies.
+        See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
+
+        @param http_headers     An `http_headers` dict from which any `Cookie` header
+                                should be removed, or None
+        """
+        return dict(filter(lambda pair: pair[0].lower() != 'cookie', (http_headers or {}).items()))
+
+    def _load_cookies(self, data, **kwargs):
+        """Loads cookies from a `Cookie` header
+
+        This tries to work around the security vulnerability of passing cookies to every domain.
+
+        @param data         The Cookie header as a string to load the cookies from
+        @param autoscope    If `False`, scope cookies using Set-Cookie syntax and error for cookie without domains
+                            If `True`, save cookies for later to be stored in the jar with a limited scope
+                            If a URL, save cookies in the jar with the domain of the URL
+        """
+        # autoscope=True (kw-only)
+        autoscope = kwargs.get('autoscope', True)
+
+        for cookie in compat_http_cookies_SimpleCookie(data).values() if data else []:
+            if autoscope and any(cookie.values()):
+                raise ValueError('Invalid syntax in Cookie Header')
+
+            domain = cookie.get('domain') or ''
+            expiry = cookie.get('expires')
+            if expiry == '':  # 0 is valid so we check for `''` explicitly
+                expiry = None
+            prepared_cookie = compat_http_cookiejar_Cookie(
+                cookie.get('version') or 0, cookie.key, cookie.value, None, False,
+                domain, True, True, cookie.get('path') or '', bool(cookie.get('path')),
+                bool(cookie.get('secure')), expiry, False, None, None, {})
+
+            if domain:
+                self.cookiejar.set_cookie(prepared_cookie)
+            elif autoscope is True:
+                self.report_warning(
+                    'Passing cookies as a header is a potential security risk; '
+                    'they will be scoped to the domain of the downloaded urls. '
+                    'Please consider loading cookies from a file or browser instead.',
+                    only_once=True)
+                self._header_cookies.append(prepared_cookie)
+            elif autoscope:
+                self.report_warning(
+                    'The extractor result contains an unscoped cookie as an HTTP header. '
+                    'If you are specifying an input URL, ' + bug_reports_message(),
+                    only_once=True)
+                self._apply_header_cookies(autoscope, [prepared_cookie])
+            else:
+                self.report_unscoped_cookies()
+
+    def _load_cookies_from_headers(self, headers):
+        self._load_cookies(traverse_obj(headers, 'cookie', casesense=False))
+
+    def _apply_header_cookies(self, url, cookies=None):
+        """This method applies stray header cookies to the provided url
+
+        This loads header cookies and scopes them to the domain provided in `url`.
+        While this is not ideal, it helps reduce the risk of them being sent to
+        an unintended destination.
+        """
+        parsed = compat_urllib_parse.urlparse(url)
+        if not parsed.hostname:
+            return
+
+        for cookie in map(copy.copy, cookies or self._header_cookies):
+            cookie.domain = '.' + parsed.hostname
+            self.cookiejar.set_cookie(cookie)
+
     @__handle_extraction_exceptions
     def __extract_info(self, url, ie, download, extra_info, process):
+        # Compat with passing cookies in http headers
+        self._apply_header_cookies(url)
+
         ie_result = ie.extract(url)
         if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
             return
@@ -862,7 +993,7 @@ class YoutubeDL(object):
 
     def process_ie_result(self, ie_result, download=True, extra_info={}):
         """
-        Take the result of the ie(may be modified) and resolve all unresolved
+        Take the result of the ie (may be modified) and resolve all unresolved
         references (URLs, playlist items).
 
         It will also download the videos if 'download'.
@@ -924,8 +1055,8 @@ class YoutubeDL(object):
         elif result_type in ('playlist', 'multi_video'):
             # Protect from infinite recursion due to recursively nested playlists
             # (see https://github.com/ytdl-org/youtube-dl/issues/27833)
-            webpage_url = ie_result['webpage_url']
-            if webpage_url in self._playlist_urls:
+            webpage_url = ie_result.get('webpage_url')  # not all pl/mv have this
+            if webpage_url and webpage_url in self._playlist_urls:
                 self.to_screen(
                     '[download] Skipping already downloaded playlist: %s'
                     % ie_result.get('title') or ie_result.get('id'))
@@ -933,6 +1064,10 @@ class YoutubeDL(object):
 
             self._playlist_level += 1
             self._playlist_urls.add(webpage_url)
+            new_result = dict((k, v) for k, v in extra_info.items() if k not in ie_result)
+            if new_result:
+                new_result.update(ie_result)
+                ie_result = new_result
             try:
                 return self.__process_playlist(ie_result, download)
             finally:
@@ -1389,17 +1524,16 @@ class YoutubeDL(object):
                         'abr': formats_info[1].get('abr'),
                         'ext': output_ext,
                     }
-                video_selector, audio_selector = map(_build_selector_function, selector.selector)
 
                 def selector_function(ctx):
-                    for pair in itertools.product(
-                            video_selector(copy.deepcopy(ctx)), audio_selector(copy.deepcopy(ctx))):
+                    selector_fn = lambda x: _build_selector_function(x)(ctx)
+                    for pair in itertools.product(*map(selector_fn, selector.selector)):
                         yield _merge(pair)
 
             filters = [self._build_format_filter(f) for f in selector.filters]
 
             def final_selector(ctx):
-                ctx_copy = copy.deepcopy(ctx)
+                ctx_copy = dict(ctx)
                 for _filter in filters:
                     ctx_copy['formats'] = list(filter(_filter, ctx_copy['formats']))
                 return selector_function(ctx_copy)
@@ -1434,28 +1568,72 @@ class YoutubeDL(object):
         parsed_selector = _parse_format_selection(iter(TokenIterator(tokens)))
         return _build_selector_function(parsed_selector)
 
-    def _calc_headers(self, info_dict):
-        res = std_headers.copy()
+    def _calc_headers(self, info_dict, load_cookies=False):
+        if load_cookies:  # For --load-info-json
+            # load cookies from http_headers in legacy info.json
+            self._load_cookies(traverse_obj(info_dict, ('http_headers', 'Cookie'), casesense=False),
+                               autoscope=info_dict['url'])
+            # load scoped cookies from info.json
+            self._load_cookies(info_dict.get('cookies'), autoscope=False)
 
-        add_headers = info_dict.get('http_headers')
-        if add_headers:
-            res.update(add_headers)
-
-        cookies = self._calc_cookies(info_dict)
+        cookies = self.cookiejar.get_cookies_for_url(info_dict['url'])
         if cookies:
-            res['Cookie'] = cookies
+            # Make a string like name1=val1; attr1=a_val1; ...name2=val2; ...
+            # By convention a cookie name can't be a well-known attribute name
+            # so this syntax is unambiguous and can be parsed by (eg) SimpleCookie
+            encoder = compat_http_cookies_SimpleCookie()
+            values = []
+            attributes = (('Domain', '='), ('Path', '='), ('Secure',), ('Expires', '='), ('Version', '='))
+            attributes = tuple([x[0].lower()] + list(x) for x in attributes)
+            for cookie in cookies:
+                _, value = encoder.value_encode(cookie.value)
+                # Py 2 '' --> '', Py 3 '' --> '""'
+                if value == '':
+                    value = '""'
+                values.append('='.join((cookie.name, value)))
+                for attr in attributes:
+                    value = getattr(cookie, attr[0], None)
+                    if value:
+                        values.append('%s%s' % (''.join(attr[1:]), value if len(attr) == 3 else ''))
+            info_dict['cookies'] = '; '.join(values)
+
+        res = std_headers.copy()
+        res.update(info_dict.get('http_headers') or {})
+        res = self._remove_cookie_header(res)
 
         if 'X-Forwarded-For' not in res:
             x_forwarded_for_ip = info_dict.get('__x_forwarded_for_ip')
             if x_forwarded_for_ip:
                 res['X-Forwarded-For'] = x_forwarded_for_ip
 
-        return res
+        return res or None
 
     def _calc_cookies(self, info_dict):
         pr = sanitized_Request(info_dict['url'])
         self.cookiejar.add_cookie_header(pr)
         return pr.get_header('Cookie')
+
+    def _fill_common_fields(self, info_dict, final=True):
+
+        for ts_key, date_key in (
+                ('timestamp', 'upload_date'),
+                ('release_timestamp', 'release_date'),
+        ):
+            if info_dict.get(date_key) is None and info_dict.get(ts_key) is not None:
+                # Working around out-of-range timestamp values (e.g. negative ones on Windows,
+                # see http://bugs.python.org/issue1646728)
+                try:
+                    upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
+                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
+                except (ValueError, OverflowError, OSError):
+                    pass
+
+        # Auto generate title fields corresponding to the *_number fields when missing
+        # in order to always have clean titles. This is very common for TV series.
+        if final:
+            for field in ('chapter', 'season', 'episode'):
+                if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
+                    info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
 
     def process_video_result(self, info_dict, download=True):
         assert info_dict.get('_type', 'video') == 'video'
@@ -1524,24 +1702,7 @@ class YoutubeDL(object):
         if 'display_id' not in info_dict and 'id' in info_dict:
             info_dict['display_id'] = info_dict['id']
 
-        for ts_key, date_key in (
-                ('timestamp', 'upload_date'),
-                ('release_timestamp', 'release_date'),
-        ):
-            if info_dict.get(date_key) is None and info_dict.get(ts_key) is not None:
-                # Working around out-of-range timestamp values (e.g. negative ones on Windows,
-                # see http://bugs.python.org/issue1646728)
-                try:
-                    upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
-                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
-                except (ValueError, OverflowError, OSError):
-                    pass
-
-        # Auto generate title fields corresponding to the *_number fields when missing
-        # in order to always have clean titles. This is very common for TV series.
-        for field in ('chapter', 'season', 'episode'):
-            if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
-                info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
+        self._fill_common_fields(info_dict)
 
         for cc_kind in ('subtitles', 'automatic_captions'):
             cc = info_dict.get(cc_kind)
@@ -1629,10 +1790,13 @@ class YoutubeDL(object):
                 format['protocol'] = determine_protocol(format)
             # Add HTTP headers, so that external programs can use them from the
             # json output
-            full_format_info = info_dict.copy()
-            full_format_info.update(format)
-            format['http_headers'] = self._calc_headers(full_format_info)
-        # Remove private housekeeping stuff
+            format['http_headers'] = self._calc_headers(ChainMap(format, info_dict), load_cookies=True)
+
+        # Safeguard against old/insecure infojson when using --load-info-json
+        info_dict['http_headers'] = self._remove_cookie_header(
+            info_dict.get('http_headers') or {}) or None
+
+        # Remove private housekeeping stuff (copied to http_headers in _calc_headers())
         if '__x_forwarded_for_ip' in info_dict:
             del info_dict['__x_forwarded_for_ip']
 
@@ -1775,8 +1939,9 @@ class YoutubeDL(object):
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict))
+            self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
+    @_catch_unsafe_file_extension
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
 
@@ -1835,7 +2000,7 @@ class YoutubeDL(object):
             else:
                 try:
                     self.to_screen('[info] Writing video description to: ' + descfn)
-                    with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
+                    with open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
                         descfile.write(info_dict['description'])
                 except (OSError, IOError):
                     self.report_error('Cannot write description file ' + descfn)
@@ -1850,7 +2015,7 @@ class YoutubeDL(object):
             else:
                 try:
                     self.to_screen('[info] Writing video annotations to: ' + annofn)
-                    with io.open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
+                    with open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
                         annofile.write(info_dict['annotations'])
                 except (KeyError, TypeError):
                     self.report_warning('There are no annotations to write.')
@@ -1877,7 +2042,7 @@ class YoutubeDL(object):
                         try:
                             # Use newline='' to prevent conversion of newline characters
                             # See https://github.com/ytdl-org/youtube-dl/issues/10268
-                            with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
+                            with open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                                 subfile.write(sub_info['data'])
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
@@ -1886,24 +2051,16 @@ class YoutubeDL(object):
                         try:
                             sub_data = ie._request_webpage(
                                 sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                            with open(encodeFilename(sub_filename), 'wb') as subfile:
                                 subfile.write(sub_data)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue
 
-        if self.params.get('writeinfojson', False):
-            infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(infofn)):
-                self.to_screen('[info] Video description metadata is already present')
-            else:
-                self.to_screen('[info] Writing video description metadata as JSON to: ' + infofn)
-                try:
-                    write_json_file(self.filter_requested_info(info_dict), infofn)
-                except (OSError, IOError):
-                    self.report_error('Cannot write metadata to JSON file ' + infofn)
-                    return
+        self._write_info_json(
+            'video description', info_dict,
+            replace_extension(filename, 'info.json', info_dict.get('ext')))
 
         self._write_thumbnails(info_dict, filename)
 
@@ -1924,7 +2081,11 @@ class YoutubeDL(object):
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
                         self.to_screen('[debug] Invoking downloader on %r' % info.get('url'))
-                    return fd.download(name, info)
+
+                    new_info = dict((k, v) for k, v in info.items() if not k.startswith('__p'))
+                    new_info['http_headers'] = self._calc_headers(new_info)
+
+                    return fd.download(name, new_info)
 
                 if info_dict.get('requested_formats') is not None:
                     downloaded = []
@@ -1953,18 +2114,26 @@ class YoutubeDL(object):
                         # TODO: Check acodec/vcodec
                         return False
 
-                    filename_real_ext = os.path.splitext(filename)[1][1:]
-                    filename_wo_ext = (
-                        os.path.splitext(filename)[0]
-                        if filename_real_ext == info_dict['ext']
-                        else filename)
+                    exts = [info_dict['ext']]
                     requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
                         self.report_warning(
                             'Requested formats are incompatible for merge and will be merged into mkv.')
+                    exts.append(info_dict['ext'])
+
                     # Ensure filename always has a correct extension for successful merge
-                    filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
+                    def correct_ext(filename, ext=exts[1]):
+                        if filename == '-':
+                            return filename
+                        f_name, f_real_ext = os.path.splitext(filename)
+                        f_real_ext = f_real_ext[1:]
+                        filename_wo_ext = f_name if f_real_ext in exts else filename
+                        if ext is None:
+                            ext = f_real_ext or None
+                        return join_nonempty(filename_wo_ext, ext, delim='.')
+
+                    filename = correct_ext(filename)
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
@@ -1974,8 +2143,9 @@ class YoutubeDL(object):
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = prepend_extension(
-                                self.prepare_filename(new_info),
-                                'f%s' % f['format_id'], new_info['ext'])
+                                correct_ext(
+                                    self.prepare_filename(new_info), new_info['ext']),
+                                'f%s' % (f['format_id'],), new_info['ext'])
                             if not ensure_dir_exists(fname):
                                 return
                             downloaded.append(fname)
@@ -2089,16 +2259,13 @@ class YoutubeDL(object):
                 raise
             else:
                 if self.params.get('dump_single_json', False):
-                    self.to_stdout(json.dumps(res))
+                    self.to_stdout(json.dumps(self.sanitize_info(res)))
 
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with contextlib.closing(fileinput.FileInput(
-                [info_filename], mode='r',
-                openhook=fileinput.hook_encoded('utf-8'))) as f:
-            # FileInput doesn't have a read method, we can't call json.load
-            info = self.filter_requested_info(json.loads('\n'.join(f)))
+        with open(info_filename, encoding='utf-8') as f:
+            info = self.filter_requested_info(json.load(f))
         try:
             self.process_ie_result(info, download=True)
         except DownloadError:
@@ -2111,10 +2278,36 @@ class YoutubeDL(object):
         return self._download_retcode
 
     @staticmethod
-    def filter_requested_info(info_dict):
-        return dict(
-            (k, v) for k, v in info_dict.items()
-            if k not in ['requested_formats', 'requested_subtitles'])
+    def sanitize_info(info_dict, remove_private_keys=False):
+        ''' Sanitize the infodict for converting to json '''
+        if info_dict is None:
+            return info_dict
+
+        if remove_private_keys:
+            reject = lambda k, v: (v is None
+                                   or k.startswith('__')
+                                   or k in ('requested_formats',
+                                            'requested_subtitles'))
+        else:
+            reject = lambda k, v: False
+
+        def filter_fn(obj):
+            if isinstance(obj, dict):
+                return dict((k, filter_fn(v)) for k, v in obj.items() if not reject(k, v))
+            elif isinstance(obj, (list, tuple, set, LazyList)):
+                return list(map(filter_fn, obj))
+            elif obj is None or any(isinstance(obj, c)
+                                    for c in (compat_integer_types,
+                                              (compat_str, float, bool))):
+                return obj
+            else:
+                return repr(obj)
+
+        return filter_fn(info_dict)
+
+    @classmethod
+    def filter_requested_info(cls, info_dict):
+        return cls.sanitize_info(info_dict, True)
 
     def post_process(self, filename, ie_info):
         """Run all the postprocessors on the given file."""
@@ -2300,27 +2493,6 @@ class YoutubeDL(object):
         """ Start an HTTP download """
         if isinstance(req, compat_basestring):
             req = sanitized_Request(req)
-        # an embedded /../ sequence is not automatically handled by urllib2
-        # see https://github.com/yt-dlp/yt-dlp/issues/3355
-        url = req.get_full_url()
-        parts = url.partition('/../')
-        if parts[1]:
-            url = compat_urllib_parse.urljoin(parts[0] + parts[1][:1], parts[1][1:] + parts[2])
-        if url:
-            # worse, URL path may have initial /../ against RFCs: work-around
-            # by stripping such prefixes, like eg Firefox
-            parts = compat_urllib_parse.urlsplit(url)
-            path = parts.path
-            while path.startswith('/../'):
-                path = path[3:]
-            url = parts._replace(path=path).geturl()
-            # get a new Request with the munged URL
-            if url != req.get_full_url():
-                req_type = {'HEAD': HEADRequest, 'PUT': PUTRequest}.get(
-                    req.get_method(), compat_urllib_request.Request)
-                req = req_type(
-                    url, data=req.data, headers=dict(req.header_items()),
-                    origin_req_host=req.origin_req_host, unverifiable=req.unverifiable)
         return self._opener.open(req, timeout=self._socket_timeout)
 
     def print_debug_header(self):
@@ -2342,9 +2514,12 @@ class YoutubeDL(object):
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
-        self._write_string('[debug] youtube-dl version ' + __version__ + '\n')
+        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))
+        writeln_debug('youtube-dl version ', __version__)
         if _LAZY_LOADER:
-            self._write_string('[debug] Lazy loading extractors enabled' + '\n')
+            writeln_debug('Lazy loading extractors enabled')
+        if ytdl_is_updateable():
+            writeln_debug('Single file build')
         try:
             sp = subprocess.Popen(
                 ['git', 'rev-parse', '--short', 'HEAD'],
@@ -2353,7 +2528,7 @@ class YoutubeDL(object):
             out, err = process_communicate_or_kill(sp)
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
-                self._write_string('[debug] Git HEAD: ' + out + '\n')
+                writeln_debug('Git HEAD: ', out)
         except Exception:
             try:
                 sys.exc_clear()
@@ -2366,9 +2541,22 @@ class YoutubeDL(object):
                 return impl_name + ' version %d.%d.%d' % sys.pypy_version_info[:3]
             return impl_name
 
-        self._write_string('[debug] Python version %s (%s) - %s\n' % (
-            platform.python_version(), python_implementation(),
-            platform_name()))
+        def libc_ver():
+            try:
+                return platform.libc_ver()
+            except OSError:  # We may not have access to the executable
+                return []
+
+        libc = join_nonempty(*libc_ver(), delim=' ')
+        writeln_debug('Python %s (%s %s %s) - %s - %s%s' % (
+            platform.python_version(),
+            python_implementation(),
+            platform.machine(),
+            platform.architecture()[0],
+            platform_name(),
+            OPENSSL_VERSION,
+            (' - %s' % (libc, )) if libc else ''
+        ))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()
@@ -2380,17 +2568,17 @@ class YoutubeDL(object):
         )
         if not exe_str:
             exe_str = 'none'
-        self._write_string('[debug] exe versions: %s\n' % exe_str)
+        writeln_debug('exe versions: %s' % (exe_str, ))
 
         proxy_map = {}
         for handler in self._opener.handlers:
             if hasattr(handler, 'proxies'):
                 proxy_map.update(handler.proxies)
-        self._write_string('[debug] Proxy map: ' + compat_str(proxy_map) + '\n')
+        writeln_debug('Proxy map: ', compat_str(proxy_map))
 
         if self.params.get('call_home', False):
             ipaddr = self.urlopen('https://yt-dl.org/ip').read().decode('utf-8')
-            self._write_string('[debug] Public IP address: %s\n' % ipaddr)
+            writeln_debug('Public IP address: %s' % (ipaddr, ))
             latest_version = self.urlopen(
                 'https://yt-dl.org/latest/version').read().decode('utf-8')
             if version_tuple(latest_version) > version_tuple(__version__):
@@ -2407,7 +2595,7 @@ class YoutubeDL(object):
         opts_proxy = self.params.get('proxy')
 
         if opts_cookiefile is None:
-            self.cookiejar = compat_cookiejar.CookieJar()
+            self.cookiejar = YoutubeDLCookieJar()
         else:
             opts_cookiefile = expand_path(opts_cookiefile)
             self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
@@ -2467,6 +2655,28 @@ class YoutubeDL(object):
         if encoding is None:
             encoding = preferredencoding()
         return encoding
+
+    def _write_info_json(self, label, info_dict, infofn, overwrite=None):
+        if not self.params.get('writeinfojson', False):
+            return False
+
+        def msg(fmt, lbl):
+            return fmt % (lbl + ' metadata',)
+
+        if overwrite is None:
+            overwrite = not self.params.get('nooverwrites', False)
+
+        if not overwrite and os.path.exists(encodeFilename(infofn)):
+            self.to_screen(msg('[info] %s is already present', label.title()))
+            return 'exists'
+        else:
+            self.to_screen(msg('[info] Writing %s as JSON to: ', label) + infofn)
+            try:
+                write_json_file(self.filter_requested_info(info_dict), infofn)
+                return True
+            except (OSError, IOError):
+                self.report_error(msg('Cannot write %s to JSON file ', label) + infofn)
+                return
 
     def _write_thumbnails(self, info_dict, filename):
         if self.params.get('writethumbnail', False):

@@ -59,7 +59,7 @@ class ITVBaseIE(InfoExtractor):
 
     @staticmethod
     def _vanilla_ua_header():
-        return {'User-agent': 'Mozilla/5.0'}
+        return {'User-Agent': 'Mozilla/5.0'}
 
     def _download_webpage_handle(self, url, video_id, *args, **kwargs):
         # specialised to (a) use vanilla UA (b) detect geo-block
@@ -69,7 +69,7 @@ class ITVBaseIE(InfoExtractor):
                 'user_agent' not in params
                 and not any(re.match(r'(?i)user-agent\s*:', h)
                             for h in (params.get('headers') or []))
-                and 'User-agent' not in (kwargs.get('headers') or {})):
+                and 'User-Agent' not in (kwargs.get('headers') or {})):
 
             kwargs.setdefault('headers', {})
             kwargs['headers'] = self._vanilla_ua_header()

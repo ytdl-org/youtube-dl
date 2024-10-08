@@ -2,10 +2,16 @@
 from __future__ import unicode_literals
 
 import datetime
-import io
 import json
+import os.path
 import textwrap
+import sys
 
+dirn = os.path.dirname
+
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
+
+from utils import write_file
 
 atom_template = textwrap.dedent("""\
     <?xml version="1.0" encoding="utf-8"?>
@@ -72,5 +78,4 @@ for v in versions:
 entries_str = textwrap.indent(''.join(entries), '\t')
 atom_template = atom_template.replace('@ENTRIES@', entries_str)
 
-with io.open('update/releases.atom', 'w', encoding='utf-8') as atom_file:
-    atom_file.write(atom_template)
+write_file('update/releases.atom', atom_template)
