@@ -13,6 +13,7 @@ from ..utils import (
     merge_dicts,
     parse_duration,
     parse_iso8601,
+    T,
     traverse_obj,
     update_url_query,
     url_or_none,
@@ -35,7 +36,7 @@ class SBSIE(InfoExtractor):
                 <meta\s+property="og:video"\s+content=|
                 <iframe[^>]+?src=
             )
-            (["\'])(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''']
+            ("|\')(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''']
 
     _TESTS = [{
         # Exceptional unrestricted show for testing, thanks SBS,
@@ -94,18 +95,14 @@ class SBSIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    # change default entry_protocol kwarg for _extract_smil_formats()
+    # TODO: ..._and_subtitles()
     def _extract_m3u8_formats(self, m3u8_url, video_id, *args, **kwargs):
-        # ext, entry_protocol, preference, m3u8_id, note, errnote, fatal,
-        # live, data, headers, query
-        entry_protocol = args[1] if len(args) > 1 else kwargs.get('entry_protocol')
-        if not entry_protocol:
-            entry_protocol = 'm3u8_native'
-            if len(args) > 1:
-                args = list(args)
-                args[1] = entry_protocol
-            else:
-                kwargs['entry_protocol'] = entry_protocol
-                kwargs = compat_kwargs(kwargs)
+        # ext, entry_protocol, ...
+        entry_protocol = kwargs.get('entry_protocol')
+        if not entry_protocol and len(args) <= 1:
+            kwargs['entry_protocol'] = 'm3u8_native'
+            kwargs = compat_kwargs(kwargs)
 
         return super(SBSIE, self)._extract_m3u8_formats(m3u8_url, video_id, *args, **kwargs)
 
@@ -144,8 +141,8 @@ class SBSIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         # get media links directly though later metadata may contain contentUrl
-        smil_url = self._get_smil_url(video_id)
-        formats = self._extract_smil_formats(smil_url, video_id, fatal=False) or []
+        formats, subtitles = self._extract_smil_formats(  # self._extract_smil_formats_and_subtitles(
+            self._get_smil_url(video_id), video_id, fatal=False), {}
 
         if not formats:
             urlh = self._request_webpage(
@@ -160,16 +157,16 @@ class SBSIE(InfoExtractor):
 
         # try for metadata from the same source
         player_data = self._get_player_data(video_id, fatal=False)
-        media = traverse_obj(player_data, 'video_object', expected_type=dict) or {}
+        media = traverse_obj(player_data, 'video_object', T(dict)) or {}
+
         # get, or add, metadata from catalogue
         media.update(self._call_api(video_id, 'mpx-media/' + video_id, fatal=not media))
 
-        # utils candidate for use with traverse_obj()
         def txt_or_none(s):
             return (s.strip() or None) if isinstance(s, compat_str) else None
 
         # expected_type fn for thumbs
-        def xlate_thumb(t):
+        def mk_thumb(t):
             u = url_or_none(t.get('contentUrl'))
             return u and {
                 'id': t.get('name'),
@@ -185,51 +182,36 @@ class SBSIE(InfoExtractor):
                 result = parse_duration(d)
             return result
 
-        def traverse_media(*args, **kwargs):
-            nkwargs = None
-            if 'expected_type' not in kwargs:
-                kwargs['expected_type'] = txt_or_none
-                nkwargs = kwargs
-            if 'get_all' not in kwargs:
-                kwargs['get_all'] = False
-                nkwargs = kwargs
-            if nkwargs:
-                kwargs = compat_kwargs(nkwargs)
-            return traverse_obj(media, *args, **kwargs)
-
         # For named episodes, use the catalogue's title to set episode, rather than generic 'Episode N'.
-        if traverse_media('partOfSeries', expected_type=dict):
-            media['epName'] = traverse_media('title')
+        if traverse_obj(media, ('partOfSeries', T(dict))):
+            media['epName'] = traverse_obj(media, 'title')
 
-        return merge_dicts(*reversed(({
+        str = txt_or_none  # instant compat
+        return merge_dicts({
             'id': video_id,
-        }, dict((k, traverse_media(v)) for k, v in {
-            'title': 'name',
-            'description': 'description',
-            'channel': ('taxonomy', 'channel', 'name'),
-            'series': ((('partOfSeries', 'name'), 'seriesTitle')),
-            'series_id': ((('partOfSeries', 'uuid'), 'seriesID')),
-            'episode': 'epName',
-        }.items()), {
-            'season_number': traverse_media((('partOfSeries', None), 'seasonNumber'), expected_type=int_or_none),
-            'episode_number': traverse_media('episodeNumber', expected_type=int_or_none),
-            'timestamp': traverse_media('datePublished', ('publication', 'startDate'),
-                                        expected_type=parse_iso8601),
-            'release_year': traverse_media('releaseYear', expected_type=int_or_none),
-            'duration': traverse_media('duration', expected_type=really_parse_duration),
-            'is_live': traverse_media('liveStream', expected_type=bool),
-            'age_limit': self.AUS_TV_PARENTAL_GUIDELINES.get(traverse_media(
-                'classificationID', 'contentRating', default='').upper()),
-            'categories': traverse_media(
-                ('genres', Ellipsis), ('taxonomy', ('genre', 'subgenre'), 'name'),
-                get_all=True) or None,
-            'tags': traverse_media(
-                (('consumerAdviceTexts', ('sbsSubCertification', 'consumerAdvice')), Ellipsis),
-                get_all=True) or None,
-            'thumbnails': traverse_media(('thumbnails', Ellipsis),
-                                         expected_type=xlate_thumb, get_all=True),
+        }, traverse_obj(media, {
+            'title': ('name', T(str)),
+            'description': ('description', T(str)),
+            'channel': ('taxonomy', 'channel', 'name', T(str)),
+            'series': ((('partOfSeries', 'name'), 'seriesTitle'), T(str)),
+            'series_id': ((('partOfSeries', 'uuid'), 'seriesID'), T(str)),
+            'season_number': (('partOfSeries', None), 'seasonNumber', T(int_or_none)),
+            'episode': ('epName', T(str)),
+            'episode_number': ('episodeNumber', T(int_or_none)),
+            'timestamp': ('datePublished', ('publication', 'startDate'), T(parse_iso8601)),
+            'release_year': ('releaseYear', T(int_or_none)),
+            'duration': ('duration', T(really_parse_duration)),
+            'is_live': ('liveStream', T(bool)),
+            'age_limit': ('classificationID', 'contentRating',
+                          T(lambda x: self.AUS_TV_PARENTAL_GUIDELINES.get(x, '').upper() or None)),  # dict.get is unhashable in py3.7
+        }, get_all=False), traverse_obj(media, {
+            'categories': (('genres', Ellipsis), ('taxonomy', ('genre', 'subgenre'),
+                           'name', T(str))),
+            'tags': (('consumerAdviceTexts', ('sbsSubCertification', 'consumerAdvice')),
+                     Ellipsis, T(str)),
+            'thumbnails': ('thumbnails', lambda _, v: v['contentUrl'], T(mk_thumb)),
+        }), {
             'formats': formats,
-            # TODO: _extract_smil_formats_and_subtitles()
-            # 'subtitles': subtitles,
+            'subtitles': subtitles,
             'uploader': 'SBSC',
-        })))
+        }, rev=True)
