@@ -6,6 +6,7 @@ from ..utils import (
     ExtractorError,
     get_element_by_id,
     int_or_none,
+    join_nonempty,
     js_to_json,
     merge_dicts,
     parse_age_limit,
@@ -193,3 +194,80 @@ class TubiTvIE(InfoExtractor):
             'series': ('title', T(strip_or_none)),
             # 'series_id': ('id', T(compat_str)),
         }), get_all=False), info)
+
+
+class TubiTvShowIE(InfoExtractor):
+    IE_NAME = 'tubitv:series'
+    _VALID_URL = r'https?://(?:www\.)?tubitv\.com/series/\d+/(?P<show_name>[^/?#]+)(?:/season-(?P<season>\d+))?'
+    _TESTS = [{
+        'url': 'https://tubitv.com/series/3936/the-joy-of-painting-with-bob-ross?start=true',
+        'playlist_mincount': 390,
+        'info_dict': {
+            'id': 'the-joy-of-painting-with-bob-ross',
+        },
+    }, {
+        'url': 'https://tubitv.com/series/3936/the-joy-of-painting-with-bob-ross/season-1',
+        'playlist_count': 13,
+        'info_dict': {
+            'id': 'the-joy-of-painting-with-bob-ross-season-1',
+        },
+    }, {
+        'url': 'https://tubitv.com/series/3936/the-joy-of-painting-with-bob-ross/season-3',
+        'playlist_count': 13,
+        'info_dict': {
+            'id': 'the-joy-of-painting-with-bob-ross-season-3',
+        },
+    }]
+
+    def _real_extract(self, url):
+        playlist_id, selected_season = self._match_valid_url(url).group(
+            'show_name', 'season')
+
+        def entries(s_url, playlist_id, selected_season_num):
+
+            def get_season_data(s_num, fatal=False):
+                if s_num is None:
+                    url, s_id = s_url, playlist_id
+                else:
+                    url = '%s/season-%d' % (s_url, s_num)
+                    s_id = '%s-season-%d' % (playlist_id, s_num)
+                webpage = self._download_webpage(url, s_id, fatal=fatal)
+                data = self._search_json(
+                    r'window\s*\.\s*__data\s*=', webpage or '', 'data', s_id,
+                    transform_source=js_to_json, default={})
+                return data['video'] if fatal else data.get('video', {})
+
+            data = get_season_data(None, fatal=True)
+            # The {series_id}.seasons JSON may lack some episodes that are available
+            # Iterate over the season numbers instead [1]
+            # 1. https://github.com/yt-dlp/yt-dlp/issues/11170#issuecomment-2399918777
+            seasons = (
+                traverse_obj(data, (
+                    'byId', lambda _, v: v['type'] == 's', 'seasons', Ellipsis,
+                    'number', T(int_or_none)))
+                if selected_season is None
+                else [selected_season])
+
+            unavail_cnt = 0
+            select_episodes = lambda _, v: v['type'] == 'v'
+            for season_number in seasons:
+                if not data:
+                    data = get_season_data(season_number)
+
+                unavail_cnt += len(traverse_obj(data, ('byId', select_episodes, 'policy_match', T(lambda m: (not m) or None))))
+
+                for episode_id, episode in traverse_obj(data, ('byId', select_episodes, T(lambda e: (e['id'], e)))):
+                    yield merge_dicts(self.url_result(
+                        'https://tubitv.com/tv-shows/{0}/'.format(episode_id), TubiTvIE.ie_key(), episode_id), {
+                            'season_number': season_number,
+                            'episode_number': int_or_none(episode.get('num')),
+                    })
+
+                data = None
+
+            if unavail_cnt > 0:
+                self.report_warning('%d items were marked as unavailable: check that the desired content is available or provide login parameters if needed' % unavail_cnt)
+
+        return self.playlist_result(
+            entries(url, playlist_id, int_or_none(selected_season)),
+            join_nonempty(playlist_id, selected_season, delim='-season-'))
