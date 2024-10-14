@@ -130,7 +130,7 @@ class PornHubBaseIE(InfoExtractor):
 
 class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub'  # Thumbzilla -> Redtube.com, Modelhub -> uviu.com
-    _PORNHUB_PATH_RE = r'/(?:(?:view_video\.php%s)\?(?:.+&)viewkey=%s)(?P<id>[\da-z]+)'
+    _PORNHUB_PATH_RE = r'/(?:(?:view_video\.php%s)\?(?:.+&)?viewkey=%s)(?P<id>[\da-z]+)'
     _VALID_URL = r'https?://(?:[^/]+\.)?%s%s' % (
         PornHubBaseIE._PORNHUB_HOST_RE, _PORNHUB_PATH_RE % ('|video/show', '|embed/'))
     _PORNHUB_PATH_RE = _PORNHUB_PATH_RE % ('', '')
