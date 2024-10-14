@@ -9,7 +9,6 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import (
-    assertGreaterEqual,
     expect_warnings,
     get_params,
     gettestcases,
@@ -20,25 +19,34 @@ from test.helper import (
 
 
 import hashlib
-import io
 import json
 import socket
 
 import youtube_dl.YoutubeDL
 from youtube_dl.compat import (
     compat_http_client,
-    compat_urllib_error,
     compat_HTTPError,
+    compat_open as open,
+    compat_urllib_error,
 )
 from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
+    error_to_compat_str,
     format_bytes,
+    IDENTITY,
+    preferredencoding,
     UnavailableVideoError,
 )
 from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
+
+# Some unittest APIs require actual str
+if not isinstance('TEST', str):
+    _encode_str = lambda s: s.encode(preferredencoding())
+else:
+    _encode_str = IDENTITY
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
@@ -100,28 +108,31 @@ def generator(test_case, tname):
 
         def print_skipping(reason):
             print('Skipping %s: %s' % (test_case['name'], reason))
+            self.skipTest(_encode_str(reason))
+
         if not ie.working():
             print_skipping('IE marked as not _WORKING')
-            return
 
         for tc in test_cases:
             info_dict = tc.get('info_dict', {})
             if not (info_dict.get('id') and info_dict.get('ext')):
-                raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
+                raise Exception('Test definition (%s) requires both \'id\' and \'ext\' keys present to define the output file' % (tname, ))
 
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
-            return
+
         for other_ie in other_ies:
             if not other_ie.working():
                 print_skipping('test depends on %sIE, marked as not WORKING' % other_ie.ie_key())
-                return
 
         params = get_params(test_case.get('params', {}))
         params['outtmpl'] = tname + '_' + params['outtmpl']
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
-            params.setdefault('playlistend', test_case.get('playlist_mincount'))
+            params.setdefault('playlistend',
+                              test_case['playlist_maxcount'] + 1
+                              if test_case.get('playlist_maxcount')
+                              else test_case.get('playlist_mincount'))
             params.setdefault('skip_download', True)
 
         ydl = YoutubeDL(params, auto_init=False)
@@ -147,6 +158,7 @@ def generator(test_case, tname):
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
                 try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
+
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -161,7 +173,9 @@ def generator(test_case, tname):
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
-                        raise
+                        msg = getattr(err, 'msg', error_to_compat_str(err))
+                        err.msg = '%s (%s)' % (msg, tname, )
+                        raise err
 
                     if try_num == RETRIES:
                         report_warning('%s failed due to network errors, skipping...' % tname)
@@ -179,12 +193,18 @@ def generator(test_case, tname):
                 expect_info_dict(self, res_dict, test_case.get('info_dict', {}))
 
             if 'playlist_mincount' in test_case:
-                assertGreaterEqual(
-                    self,
+                self.assertGreaterEqual(
                     len(res_dict['entries']),
                     test_case['playlist_mincount'],
                     'Expected at least %d in playlist %s, but got only %d' % (
                         test_case['playlist_mincount'], test_case['url'],
+                        len(res_dict['entries'])))
+            if 'playlist_maxcount' in test_case:
+                self.assertLessEqual(
+                    len(res_dict['entries']),
+                    test_case['playlist_maxcount'],
+                    'Expected at most %d in playlist %s, but got %d' % (
+                        test_case['playlist_maxcount'], test_case['url'],
                         len(res_dict['entries'])))
             if 'playlist_count' in test_case:
                 self.assertEqual(
@@ -210,7 +230,15 @@ def generator(test_case, tname):
                 # First, check test cases' data against extracted data alone
                 expect_info_dict(self, tc_res_dict, tc.get('info_dict', {}))
                 # Now, check downloaded file consistency
+                # support test-case with volatile ID, signalled by regexp value
+                if tc.get('info_dict', {}).get('id', '').startswith('re:'):
+                    test_id = tc['info_dict']['id']
+                    tc['info_dict']['id'] = tc_res_dict['id']
+                else:
+                    test_id = None
                 tc_filename = get_tc_filename(tc)
+                if test_id:
+                    tc['info_dict']['id'] = test_id
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
@@ -219,8 +247,8 @@ def generator(test_case, tname):
                         if params.get('test'):
                             expected_minsize = max(expected_minsize, 10000)
                         got_fsize = os.path.getsize(tc_filename)
-                        assertGreaterEqual(
-                            self, got_fsize, expected_minsize,
+                        self.assertGreaterEqual(
+                            got_fsize, expected_minsize,
                             'Expected %s to be at least %s, but it\'s only %s ' %
                             (tc_filename, format_bytes(expected_minsize),
                                 format_bytes(got_fsize)))
@@ -233,7 +261,7 @@ def generator(test_case, tname):
                 self.assertTrue(
                     os.path.exists(info_json_fn),
                     'Missing info file %s' % info_json_fn)
-                with io.open(info_json_fn, encoding='utf-8') as infof:
+                with open(info_json_fn, encoding='utf-8') as infof:
                     info_dict = json.load(infof)
                 expect_info_dict(self, info_dict, tc.get('info_dict', {}))
         finally:

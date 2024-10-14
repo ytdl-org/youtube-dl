@@ -8,14 +8,18 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import io
 import re
 import string
+
+from youtube_dl.compat import (
+    compat_open as open,
+    compat_str,
+    compat_urlretrieve,
+)
 
 from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.jsinterp import JSInterpreter
-from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _SIG_TESTS = [
     (
@@ -67,6 +71,10 @@ _SIG_TESTS = [
 
 _NSIG_TESTS = [
     (
+        'https://www.youtube.com/s/player/7862ca1f/player_ias.vflset/en_US/base.js',
+        'X_LCxVDjAavgE5t', 'yxJ1dM6iz5ogUg',
+    ),
+    (
         'https://www.youtube.com/s/player/9216d1f7/player_ias.vflset/en_US/base.js',
         'SLp9F5bwjAdhE9F-', 'gWnb9IK2DJ8Q1w',
     ),
@@ -90,12 +98,97 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/e06dea74/player_ias.vflset/en_US/base.js',
         'AiuodmaDDYw8d3y4bf', 'ankd8eza2T6Qmw',
     ),
+    (
+        'https://www.youtube.com/s/player/5dd88d1d/player-plasma-ias-phone-en_US.vflset/base.js',
+        'kSxKFLeqzv_ZyHSAt', 'n8gS8oRlHOxPFA',
+    ),
+    (
+        'https://www.youtube.com/s/player/324f67b9/player_ias.vflset/en_US/base.js',
+        'xdftNy7dh9QGnhW', '22qLGxrmX8F1rA',
+    ),
+    (
+        'https://www.youtube.com/s/player/4c3f79c5/player_ias.vflset/en_US/base.js',
+        'TDCstCG66tEAO5pR9o', 'dbxNtZ14c-yWyw',
+    ),
+    (
+        'https://www.youtube.com/s/player/c81bbb4a/player_ias.vflset/en_US/base.js',
+        'gre3EcLurNY2vqp94', 'Z9DfGxWP115WTg',
+    ),
+    (
+        'https://www.youtube.com/s/player/1f7d5369/player_ias.vflset/en_US/base.js',
+        'batNX7sYqIJdkJ', 'IhOkL_zxbkOZBw',
+    ),
+    (
+        'https://www.youtube.com/s/player/009f1d77/player_ias.vflset/en_US/base.js',
+        '5dwFHw8aFWQUQtffRq', 'audescmLUzI3jw',
+    ),
+    (
+        'https://www.youtube.com/s/player/dc0c6770/player_ias.vflset/en_US/base.js',
+        '5EHDMgYLV6HPGk_Mu-kk', 'n9lUJLHbxUI0GQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/c2199353/player_ias.vflset/en_US/base.js',
+        '5EHDMgYLV6HPGk_Mu-kk', 'AD5rgS85EkrE7',
+    ),
+    (
+        'https://www.youtube.com/s/player/113ca41c/player_ias.vflset/en_US/base.js',
+        'cgYl-tlYkhjT7A', 'hI7BBr2zUgcmMg',
+    ),
+    (
+        'https://www.youtube.com/s/player/c57c113c/player_ias.vflset/en_US/base.js',
+        '-Txvy6bT5R6LqgnQNx', 'dcklJCnRUHbgSg',
+    ),
+    (
+        'https://www.youtube.com/s/player/5a3b6271/player_ias.vflset/en_US/base.js',
+        'B2j7f_UPT4rfje85Lu_e', 'm5DmNymaGQ5RdQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/dac945fd/player_ias.vflset/en_US/base.js',
+        'o8BkRxXhuYsBCWi6RplPdP', '3Lx32v_hmzTm6A',
+    ),
+    (
+        'https://www.youtube.com/s/player/6f20102c/player_ias.vflset/en_US/base.js',
+        'lE8DhoDmKqnmJJ', 'pJTTX6XyJP2BYw',
+    ),
+    (
+        'https://www.youtube.com/s/player/cfa9e7cb/player_ias.vflset/en_US/base.js',
+        'qO0NiMtYQ7TeJnfFG2', 'k9cuJDHNS5O7kQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/b7910ca8/player_ias.vflset/en_US/base.js',
+        '_hXMCwMt9qE310D', 'LoZMgkkofRMCZQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/590f65a6/player_ias.vflset/en_US/base.js',
+        '1tm7-g_A9zsI8_Lay_', 'xI4Vem4Put_rOg',
+    ),
+    (
+        'https://www.youtube.com/s/player/b22ef6e7/player_ias.vflset/en_US/base.js',
+        'b6HcntHGkvBLk_FRf', 'kNPW6A7FyP2l8A',
+    ),
+    (
+        'https://www.youtube.com/s/player/3400486c/player_ias.vflset/en_US/base.js',
+        'lL46g3XifCKUZn1Xfw', 'z767lhet6V2Skl',
+    ),
+    (
+        'https://www.youtube.com/s/player/5604538d/player_ias.vflset/en_US/base.js',
+        '7X-he4jjvMx7BCX', 'sViSydX8IHtdWA',
+    ),
+    (
+        'https://www.youtube.com/s/player/20dfca59/player_ias.vflset/en_US/base.js',
+        '-fLCxedkAk4LUTK2', 'O8kfRq1y1eyHGw',
+    ),
+    (
+        'https://www.youtube.com/s/player/b12cc44b/player_ias.vflset/en_US/base.js',
+        'keLa5R2U00sR9SQK', 'N1OGyujjEwMnLw',
+    ),
 ]
 
 
 class TestPlayerInfo(unittest.TestCase):
     def test_youtube_extract_player_info(self):
         PLAYER_URLS = (
+            ('https://www.youtube.com/s/player/4c3f79c5/player_ias.vflset/en_US/base.js', '4c3f79c5'),
             ('https://www.youtube.com/s/player/64dddad9/player_ias.vflset/en_US/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player_ias.vflset/fr_FR/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player-plasma-ias-phone-en_US.vflset/base.js', '64dddad9'),
@@ -142,7 +235,7 @@ def t_factory(name, sig_func, url_pattern):
 
             if not os.path.exists(fn):
                 compat_urlretrieve(url, fn)
-            with io.open(fn, encoding='utf-8') as testf:
+            with open(fn, encoding='utf-8') as testf:
                 jscode = testf.read()
             self.assertEqual(sig_func(jscode, sig_input), expected_sig)
 

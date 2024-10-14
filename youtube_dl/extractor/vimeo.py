@@ -261,27 +261,33 @@ class VimeoIE(VimeoBaseInfoExtractor):
 
     # _VALID_URL matches Vimeo URLs
     _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            (?:
-                                www|
-                                player
-                            )
-                            \.
-                        )?
-                        vimeo(?:pro)?\.com/
-                        (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
-                        (?:.*?/)?
-                        (?:
-                            (?:
-                                play_redirect_hls|
-                                moogaloop\.swf)\?clip_id=
-                            )?
-                        (?:videos?/)?
-                        (?P<id>[0-9]+)
-                        (?:/(?P<unlisted_hash>[\da-f]{10}))?
-                        /?(?:[?&].*)?(?:[#].*)?$
-                    '''
+                     https?://
+                         (?:
+                             (?:
+                                 www|
+                                 player
+                             )
+                             \.
+                         )?
+                         vimeo(?:pro)?\.com/
+                         (?:
+                             (?P<u>user)|
+                             (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
+                             (?:.*?/)??
+                             (?P<q>
+                                 (?:
+                                     play_redirect_hls|
+                                     moogaloop\.swf)\?clip_id=
+                             )?
+                             (?:videos?/)?
+                         )
+                         (?P<id>[0-9]+)
+                         (?(u)
+                             /(?!videos|likes)[^/?#]+/?|
+                             (?(q)|/(?P<unlisted_hash>[\da-f]{10}))?
+                         )
+                         (?:(?(q)[&]|(?(u)|/?)[?]).+?)?(?:[#].*)?$
+                 '''
     IE_NAME = 'vimeo'
     _TESTS = [
         {
@@ -518,14 +524,33 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            'url': 'https://vimeo.com/160743502/abd0e13fb4',
-            'only_matching': True,
-        },
-        {
             # requires passing unlisted_hash(a52724358e) to load_download_config request
             'url': 'https://vimeo.com/392479337/a52724358e',
             'only_matching': True,
-        }
+        },
+        {
+            # similar, but all numeric: ID must be 581039021, not 9603038895
+            # issue #29690
+            'url': 'https://vimeo.com/581039021/9603038895',
+            'info_dict': {
+                'id': '581039021',
+                # these have to be provided but we don't care
+                'ext': 'mp4',
+                'timestamp': 1627621014,
+                'title': 're:.+',
+                'uploader_id': 're:.+',
+                'uploader': 're:.+',
+                'upload_date': r're:\d+',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # user playlist alias -> https://vimeo.com/258705797
+            'url': 'https://vimeo.com/user26785108/newspiritualguide',
+            'only_matching': True,
+        },
         # https://gettingthingsdone.com/workflowmap/
         # vimeo embed with check-password page protected by Referer header
     ]
@@ -648,8 +673,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
             raise
 
         if '//player.vimeo.com/video/' in url:
-            config = self._parse_json(self._search_regex(
-                r'\bconfig\s*=\s*({.+?})\s*;', webpage, 'info section'), video_id)
+            config = self._search_json(
+                r'\b(?:playerC|c)onfig\s*=', webpage, 'info section', video_id)
             if config.get('view') == 4:
                 config = self._verify_player_video_password(
                     redirect_url, video_id, headers)

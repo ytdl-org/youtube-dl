@@ -1,6 +1,9 @@
 # coding: utf-8
 
 from __future__ import unicode_literals
+from ..utils import (
+    ExtractorError,
+)
 
 from ..compat import (
     compat_b64decode,
@@ -90,7 +93,11 @@ class InfoQIE(BokeCCBaseIE):
         }]
 
     def _extract_http_audio(self, webpage, video_id):
-        fields = self._form_hidden_inputs('mp3Form', webpage)
+        try:
+            fields = self._form_hidden_inputs('mp3Form', webpage)
+        except ExtractorError:
+            fields = {}
+
         http_audio_url = fields.get('filename')
         if not http_audio_url:
             return []

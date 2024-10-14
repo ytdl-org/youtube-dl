@@ -50,6 +50,9 @@ def _get_suitable_downloader(info_dict, params={}):
         ed = get_external_downloader(external_downloader)
         if ed.can_download(info_dict):
             return ed
+        # Avoid using unwanted args since external_downloader was rejected
+        if params.get('external_downloader_args'):
+            params['external_downloader_args'] = None
 
     protocol = info_dict['protocol']
     if protocol.startswith('m3u8') and info_dict.get('is_live'):

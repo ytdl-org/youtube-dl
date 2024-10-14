@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -23,7 +24,7 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com)'
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
@@ -34,7 +35,7 @@ class XHamsterIE(InfoExtractor):
                     ''' % _DOMAINS
     _TESTS = [{
         'url': 'https://xhamster.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
-        'md5': '98b4687efb1ffd331c4197854dc09e8f',
+        'md5': '34e1ab926db5dc2750fed9e1f34304bb',
         'info_dict': {
             'id': '1509445',
             'display_id': 'femaleagent-shy-beauty-takes-the-bait',
@@ -43,6 +44,7 @@ class XHamsterIE(InfoExtractor):
             'timestamp': 1350194821,
             'upload_date': '20121014',
             'uploader': 'Ruseful2011',
+            'uploader_id': 'ruseful2011',
             'duration': 893,
             'age_limit': 18,
         },
@@ -72,6 +74,7 @@ class XHamsterIE(InfoExtractor):
             'timestamp': 1454948101,
             'upload_date': '20160208',
             'uploader': 'parejafree',
+            'uploader_id': 'parejafree',
             'duration': 72,
             'age_limit': 18,
         },
@@ -116,6 +119,12 @@ class XHamsterIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
         'only_matching': True,
     }]
 
@@ -245,6 +254,7 @@ class XHamsterIE(InfoExtractor):
             else:
                 categories = None
 
+            uploader_url = url_or_none(try_get(video, lambda x: x['author']['pageURL']))
             return {
                 'id': video_id,
                 'display_id': display_id,
@@ -253,6 +263,8 @@ class XHamsterIE(InfoExtractor):
                 'timestamp': int_or_none(video.get('created')),
                 'uploader': try_get(
                     video, lambda x: x['author']['name'], compat_str),
+                'uploader_url': uploader_url,
+                'uploader_id': uploader_url.split('/')[-1] if uploader_url else None,
                 'thumbnail': video.get('thumbURL'),
                 'duration': int_or_none(video.get('duration')),
                 'view_count': int_or_none(video.get('views')),
@@ -261,7 +273,7 @@ class XHamsterIE(InfoExtractor):
                 'dislike_count': int_or_none(try_get(
                     video, lambda x: x['rating']['dislikes'], int)),
                 'comment_count': int_or_none(video.get('views')),
-                'age_limit': age_limit,
+                'age_limit': age_limit if age_limit is not None else 18,
                 'categories': categories,
                 'formats': formats,
             }
@@ -352,6 +364,7 @@ class XHamsterIE(InfoExtractor):
             'description': description,
             'upload_date': upload_date,
             'uploader': uploader,
+            'uploader_id': uploader.lower() if uploader else None,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,
@@ -420,6 +433,12 @@ class XHamsterUserIE(InfoExtractor):
             'id': 'firatkaan',
         },
         'playlist_mincount': 1,
+    }, {
+        'url': 'https://xhday.com/users/mobhunter',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/users/pelushe21',
+        'only_matching': True,
     }]
 
     def _entries(self, user_id):

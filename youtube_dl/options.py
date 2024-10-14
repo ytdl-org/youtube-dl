@@ -11,6 +11,7 @@ from .compat import (
     compat_get_terminal_size,
     compat_getenv,
     compat_kwargs,
+    compat_open as open,
     compat_shlex_split,
 )
 from .utils import (
@@ -41,14 +42,11 @@ def _hide_login_info(opts):
 def parseOpts(overrideArguments=None):
     def _readOptions(filename_bytes, default=[]):
         try:
-            optionf = open(filename_bytes)
+            optionf = open(filename_bytes, encoding=preferredencoding())
         except IOError:
             return default  # silently skip if file is not present
         try:
-            # FIXME: https://github.com/ytdl-org/youtube-dl/commit/dfe5fa49aed02cf36ba9f743b11b0903554b5e56
             contents = optionf.read()
-            if sys.version_info < (3,):
-                contents = contents.decode(preferredencoding())
             res = compat_shlex_split(contents, comments=True)
         finally:
             optionf.close()
@@ -270,11 +268,11 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--match-title',
         dest='matchtitle', metavar='REGEX',
-        help='Download only matching titles (regex or caseless sub-string)')
+        help='Download only matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--reject-title',
         dest='rejecttitle', metavar='REGEX',
-        help='Skip download for matching titles (regex or caseless sub-string)')
+        help='Skip download for matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--max-downloads',
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
@@ -536,6 +534,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_check_certificate', default=False,
         help='Suppress HTTPS certificate validation')
     workarounds.add_option(
+        '--no-check-extensions',
+        action='store_true', dest='no_check_extensions', default=False,
+        help='Suppress file extension validation')
+    workarounds.add_option(
         '--prefer-insecure',
         '--prefer-unsecure', action='store_true', dest='prefer_insecure',
         help='Use an unencrypted connection to retrieve information about the video. (Currently supported only for YouTube)')
@@ -546,12 +548,14 @@ def parseOpts(overrideArguments=None):
     workarounds.add_option(
         '--referer',
         metavar='URL', dest='referer', default=None,
-        help='Specify a custom referer, use if the video access is restricted to one domain',
+        help='Specify a custom Referer: use if the video access is restricted to one domain',
     )
     workarounds.add_option(
         '--add-header',
         metavar='FIELD:VALUE', dest='headers', action='append',
-        help='Specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times',
+        help=('Specify a custom HTTP header and its value, separated by a colon \':\'. You can use this option multiple times. '
+              'NB Use --cookies rather than adding a Cookie header if its contents may be sensitive; '
+              'data from a Cookie header will be sent to all domains, not just the one intended')
     )
     workarounds.add_option(
         '--bidi-workaround',
@@ -734,8 +738,12 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopart', default=False,
         help='Do not use .part files - write directly into output file')
     filesystem.add_option(
+        '--mtime',
+        action='store_true', dest='updatetime', default=True,
+        help='Use the Last-modified header to set the file modification time (default)')
+    filesystem.add_option(
         '--no-mtime',
-        action='store_false', dest='updatetime', default=True,
+        action='store_false', dest='updatetime',
         help='Do not use the Last-modified header to set the file modification time')
     filesystem.add_option(
         '--write-description',
@@ -801,7 +809,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--postprocessor-args',
         dest='postprocessor_args', metavar='ARGS',
-        help='Give these arguments to the postprocessor')
+        help='Give these arguments to the postprocessor (if postprocessing is required)')
     postproc.add_option(
         '-k', '--keep-video',
         action='store_true', dest='keepvideo', default=False,

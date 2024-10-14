@@ -11,6 +11,7 @@ from test.helper import try_rm
 
 
 from youtube_dl import YoutubeDL
+from youtube_dl.utils import DownloadError
 
 
 def _download_restricted(url, filename, age):
@@ -26,7 +27,10 @@ def _download_restricted(url, filename, age):
     ydl.add_default_info_extractors()
     json_filename = os.path.splitext(filename)[0] + '.info.json'
     try_rm(json_filename)
-    ydl.download([url])
+    try:
+        ydl.download([url])
+    except DownloadError:
+        try_rm(json_filename)
     res = os.path.exists(json_filename)
     try_rm(json_filename)
     return res
@@ -38,12 +42,12 @@ class TestAgeRestriction(unittest.TestCase):
         self.assertFalse(_download_restricted(url, filename, age))
 
     def test_youtube(self):
-        self._assert_restricted('07FYdnEawAQ', '07FYdnEawAQ.mp4', 10)
+        self._assert_restricted('HtVdAasjOgU', 'HtVdAasjOgU.mp4', 10)
 
     def test_youporn(self):
         self._assert_restricted(
-            'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
-            '505835.mp4', 2, old_age=25)
+            'https://www.youporn.com/watch/16715086/sex-ed-in-detention-18-asmr/',
+            '16715086.mp4', 2, old_age=25)
 
 
 if __name__ == '__main__':

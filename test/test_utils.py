@@ -12,13 +12,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Various small unit tests
 import io
+import itertools
 import json
+import types
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
+    _UnsafeExtensionError,
     age_restricted,
     args_to_str,
-    encode_base_n,
+    base_url,
     caesar,
     clean_html,
     clean_podcast_url,
@@ -26,11 +29,12 @@ from youtube_dl.utils import (
     DateRange,
     detect_exe_version,
     determine_ext,
-    dict_get,
+    encode_base_n,
     encode_compat_str,
     encodeFilename,
     escape_rfc3986,
     escape_url,
+    expand_path,
     extract_attributes,
     ExtractorError,
     find_xpath_attr,
@@ -44,8 +48,11 @@ from youtube_dl.utils import (
     int_or_none,
     intlist_to_bytes,
     is_html,
+    join_nonempty,
     js_to_json,
+    LazyList,
     limit_length,
+    lowercase_escape,
     merge_dicts,
     mimetype2ext,
     month_by_name,
@@ -54,24 +61,26 @@ from youtube_dl.utils import (
     OnDemandPagedList,
     orderedSet,
     parse_age_limit,
+    parse_bitrate,
     parse_duration,
     parse_filesize,
+    parse_codecs,
     parse_count,
     parse_iso8601,
     parse_resolution,
-    parse_bitrate,
+    parse_qs,
     pkcs1pad,
-    read_batch_urls,
-    sanitize_filename,
-    sanitize_path,
-    sanitize_url,
-    expand_path,
     prepend_extension,
-    replace_extension,
+    read_batch_urls,
     remove_start,
     remove_end,
     remove_quotes,
+    replace_extension,
     rot47,
+    sanitize_filename,
+    sanitize_path,
+    sanitize_url,
+    sanitized_Request,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -79,19 +88,19 @@ from youtube_dl.utils import (
     strip_or_none,
     subtitles_filename,
     timeconvert,
+    try_call,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
     unsmuggle_url,
     uppercase_escape,
-    lowercase_escape,
     url_basename,
     url_or_none,
-    base_url,
     urljoin,
     urlencode_postdata,
     urshift,
     update_url_query,
+    variadic,
     version_tuple,
     xpath_with_ns,
     xpath_element,
@@ -104,7 +113,7 @@ from youtube_dl.utils import (
     cli_option,
     cli_valueless_option,
     cli_bool_option,
-    parse_codecs,
+    YoutubeDLHandler,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -112,12 +121,13 @@ from youtube_dl.compat import (
     compat_getenv,
     compat_os_name,
     compat_setenv,
+    compat_str,
     compat_urlparse,
-    compat_parse_qs,
 )
 
 
 class TestUtil(unittest.TestCase):
+
     def test_timeconvert(self):
         self.assertTrue(timeconvert('') is None)
         self.assertTrue(timeconvert('bougrg') is None)
@@ -236,6 +246,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+        self.assertEqual(sanitize_url('foo bar'), 'foo bar')
+
+    def test_sanitized_Request(self):
+        self.assertFalse(sanitized_Request('http://foo.bar').has_header('Authorization'))
+        self.assertFalse(sanitized_Request('http://:foo.bar').has_header('Authorization'))
+        self.assertEqual(sanitized_Request('http://@foo.bar').get_header('Authorization'),
+                         'Basic Og==')
+        self.assertEqual(sanitized_Request('http://:pass@foo.bar').get_header('Authorization'),
+                         'Basic OnBhc3M=')
+        self.assertEqual(sanitized_Request('http://user:@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjo=')
+        self.assertEqual(sanitized_Request('http://user:pass@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjpwYXNz')
 
     def test_expand_path(self):
         def env(var):
@@ -249,6 +272,27 @@ class TestUtil(unittest.TestCase):
             expand_path('~/%s' % env('YOUTUBE_DL_EXPATH_PATH')),
             '%s/expanded' % compat_getenv('HOME'))
 
+    _uncommon_extensions = [
+        ('exe', 'abc.exe.ext'),
+        ('de', 'abc.de.ext'),
+        ('../.mp4', None),
+        ('..\\.mp4', None),
+    ]
+
+    def assertUnsafeExtension(self, ext=None):
+        assert_raises = self.assertRaises(_UnsafeExtensionError)
+        assert_raises.ext = ext
+        orig_exit = assert_raises.__exit__
+
+        def my_exit(self_, exc_type, exc_val, exc_tb):
+            did_raise = orig_exit(exc_type, exc_val, exc_tb)
+            if did_raise and assert_raises.ext is not None:
+                self.assertEqual(assert_raises.ext, assert_raises.exception.extension, 'Unsafe extension  not as unexpected')
+            return did_raise
+
+        assert_raises.__exit__ = types.MethodType(my_exit, assert_raises)
+        return assert_raises
+
     def test_prepend_extension(self):
         self.assertEqual(prepend_extension('abc.ext', 'temp'), 'abc.temp.ext')
         self.assertEqual(prepend_extension('abc.ext', 'temp', 'ext'), 'abc.temp.ext')
@@ -257,6 +301,19 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(prepend_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(prepend_extension('.abc.ext', 'temp'), '.abc.temp.ext')
 
+        # Test uncommon extensions
+        self.assertEqual(prepend_extension('abc.ext', 'bin'), 'abc.bin.ext')
+        for ext, result in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc', ext)
+            if result:
+                self.assertEqual(prepend_extension('abc.ext', ext, 'ext'), result)
+            else:
+                with self.assertUnsafeExtension(ext):
+                    prepend_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                prepend_extension('abc.unexpected_ext', ext, 'ext')
+
     def test_replace_extension(self):
         self.assertEqual(replace_extension('abc.ext', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('abc.ext', 'temp', 'ext'), 'abc.temp')
@@ -264,6 +321,16 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('abc', 'temp'), 'abc.temp')
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
+
+        # Test uncommon extensions
+        self.assertEqual(replace_extension('abc.ext', 'bin'), 'abc.unknown_video')
+        for ext, _ in self._uncommon_extensions:
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc', ext)
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.ext', ext, 'ext')
+            with self.assertUnsafeExtension(ext):
+                replace_extension('abc.unexpected_ext', ext, 'ext')
 
     def test_subtitles_filename(self):
         self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt'), 'abc.en.vtt')
@@ -370,6 +437,9 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('Sep 11, 2013 | 5:49 AM'), 1378878540)
         self.assertEqual(unified_timestamp('December 15, 2017 at 7:49 am'), 1513324140)
         self.assertEqual(unified_timestamp('2018-03-14T08:32:43.1493874+00:00'), 1521016363)
+        self.assertEqual(unified_timestamp('December 31 1969 20:00:01 EDT'), 1)
+        self.assertEqual(unified_timestamp('Wednesday 31 December 1969 18:01:26 MDT'), 86)
+        self.assertEqual(unified_timestamp('12/31/1969 20:01:18 EDT', False), 78)
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
@@ -491,11 +561,14 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(float_or_none(set()), None)
 
     def test_int_or_none(self):
+        self.assertEqual(int_or_none(42), 42)
         self.assertEqual(int_or_none('42'), 42)
         self.assertEqual(int_or_none(''), None)
         self.assertEqual(int_or_none(None), None)
         self.assertEqual(int_or_none([]), None)
         self.assertEqual(int_or_none(set()), None)
+        self.assertEqual(int_or_none('42', base=8), 34)
+        self.assertRaises(TypeError, int_or_none(42, base=8))
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
@@ -662,38 +735,36 @@ class TestUtil(unittest.TestCase):
         self.assertTrue(isinstance(data, bytes))
 
     def test_update_url_query(self):
-        def query_dict(url):
-            return compat_parse_qs(compat_urlparse.urlparse(url).query)
-        self.assertEqual(query_dict(update_url_query(
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'quality': ['HD'], 'format': ['mp4']})),
-            query_dict('http://example.com/path?quality=HD&format=mp4'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?quality=HD&format=mp4'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'system': ['LINUX', 'WINDOWS']})),
-            query_dict('http://example.com/path?system=LINUX&system=WINDOWS'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?system=LINUX&system=WINDOWS'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': 'id,formats,subtitles'})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': ('id,formats,subtitles', 'thumbnails')})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles&fields=thumbnails'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path?manifest=f4m', {'manifest': []})),
-            query_dict('http://example.com/path'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path?system=LINUX&system=WINDOWS', {'system': 'LINUX'})),
-            query_dict('http://example.com/path?system=LINUX'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?system=LINUX'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'fields': b'id,formats,subtitles'})),
-            query_dict('http://example.com/path?fields=id,formats,subtitles'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?fields=id,formats,subtitles'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'width': 1080, 'height': 720})),
-            query_dict('http://example.com/path?width=1080&height=720'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?width=1080&height=720'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'bitrate': 5020.43})),
-            query_dict('http://example.com/path?bitrate=5020.43'))
-        self.assertEqual(query_dict(update_url_query(
+            parse_qs('http://example.com/path?bitrate=5020.43'))
+        self.assertEqual(parse_qs(update_url_query(
             'http://example.com/path', {'test': '第二行тест'})),
-            query_dict('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
+            parse_qs('http://example.com/path?test=%E7%AC%AC%E4%BA%8C%E8%A1%8C%D1%82%D0%B5%D1%81%D1%82'))
 
     def test_multipart_encode(self):
         self.assertEqual(
@@ -704,28 +775,6 @@ class TestUtil(unittest.TestCase):
             b'--AAAAAA\r\nContent-Disposition: form-data; name="\xe6\xac\x84\xe4\xbd\x8d"\r\n\r\n\xe5\x80\xbc\r\n--AAAAAA--\r\n')
         self.assertRaises(
             ValueError, multipart_encode, {b'field': b'value'}, boundary='value')
-
-    def test_dict_get(self):
-        FALSE_VALUES = {
-            'none': None,
-            'false': False,
-            'zero': 0,
-            'empty_string': '',
-            'empty_list': [],
-        }
-        d = FALSE_VALUES.copy()
-        d['a'] = 42
-        self.assertEqual(dict_get(d, 'a'), 42)
-        self.assertEqual(dict_get(d, 'b'), None)
-        self.assertEqual(dict_get(d, 'b', 42), 42)
-        self.assertEqual(dict_get(d, ('a', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'a', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'c', 'a', 'd', )), 42)
-        self.assertEqual(dict_get(d, ('b', 'c', )), None)
-        self.assertEqual(dict_get(d, ('b', 'c', ), 42), 42)
-        for key, false_value in FALSE_VALUES.items():
-            self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
-            self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
 
     def test_merge_dicts(self):
         self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
@@ -885,6 +934,111 @@ class TestUtil(unittest.TestCase):
         )
         self.assertEqual(escape_url('http://vimeo.com/56015672#at=0'), 'http://vimeo.com/56015672#at=0')
 
+    def test_remove_dot_segments(self):
+
+        def remove_dot_segments(p):
+            q = '' if p.startswith('/') else '/'
+            p = 'http://example.com' + q + p
+            p = compat_urlparse.urlsplit(YoutubeDLHandler._fix_path(p)).path
+            return p[1:] if q else p
+
+        self.assertEqual(remove_dot_segments('/a/b/c/./../../g'), '/a/g')
+        self.assertEqual(remove_dot_segments('mid/content=5/../6'), 'mid/6')
+        self.assertEqual(remove_dot_segments('/ad/../cd'), '/cd')
+        self.assertEqual(remove_dot_segments('/ad/../cd/'), '/cd/')
+        self.assertEqual(remove_dot_segments('/..'), '/')
+        self.assertEqual(remove_dot_segments('/./'), '/')
+        self.assertEqual(remove_dot_segments('/./a'), '/a')
+        self.assertEqual(remove_dot_segments('/abc/./.././d/././e/.././f/./../../ghi'), '/ghi')
+        self.assertEqual(remove_dot_segments('/'), '/')
+        self.assertEqual(remove_dot_segments('/t'), '/t')
+        self.assertEqual(remove_dot_segments('t'), 't')
+        self.assertEqual(remove_dot_segments(''), '')
+        self.assertEqual(remove_dot_segments('/../a/b/c'), '/a/b/c')
+        self.assertEqual(remove_dot_segments('../a'), 'a')
+        self.assertEqual(remove_dot_segments('./a'), 'a')
+        self.assertEqual(remove_dot_segments('.'), '')
+        self.assertEqual(remove_dot_segments('////'), '////')
+
+    def test_js_to_json_vars_strings(self):
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'null': a,
+                    'nullStr': b,
+                    'true': c,
+                    'trueStr': d,
+                    'false': e,
+                    'falseStr': f,
+                    'unresolvedVar': g,
+                }''',
+                {
+                    'a': 'null',
+                    'b': '"null"',
+                    'c': 'true',
+                    'd': '"true"',
+                    'e': 'false',
+                    'f': '"false"',
+                    'g': 'var',
+                }
+            )),
+            {
+                'null': None,
+                'nullStr': 'null',
+                'true': True,
+                'trueStr': 'true',
+                'false': False,
+                'falseStr': 'false',
+                'unresolvedVar': 'var'
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'int': a,
+                    'intStr': b,
+                    'float': c,
+                    'floatStr': d,
+                }''',
+                {
+                    'a': '123',
+                    'b': '"123"',
+                    'c': '1.23',
+                    'd': '"1.23"',
+                }
+            )),
+            {
+                'int': 123,
+                'intStr': '123',
+                'float': 1.23,
+                'floatStr': '1.23',
+            }
+        )
+
+        self.assertDictEqual(
+            json.loads(js_to_json(
+                '''{
+                    'object': a,
+                    'objectStr': b,
+                    'array': c,
+                    'arrayStr': d,
+                }''',
+                {
+                    'a': '{}',
+                    'b': '"{}"',
+                    'c': '[]',
+                    'd': '"[]"',
+                }
+            )),
+            {
+                'object': {},
+                'objectStr': '{}',
+                'array': [],
+                'arrayStr': '[]',
+            }
+        )
+
     def test_js_to_json_realworld(self):
         inp = '''{
             'clip':{'provider':'pseudo'}
@@ -955,10 +1109,10 @@ class TestUtil(unittest.TestCase):
             !42: 42
         }''')
         self.assertEqual(json.loads(on), {
-            'a': 0,
-            'b': 1,
-            'c': 0,
-            'd': 42.42,
+            'a': True,
+            'b': False,
+            'c': False,
+            'd': True,
             'e': [],
             'f': "abc",
             'g': "",
@@ -1028,9 +1182,25 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{ "040": "040" }')
         self.assertEqual(json.loads(on), {'040': '040'})
 
+        on = js_to_json('[1,//{},\n2]')
+        self.assertEqual(json.loads(on), [1, 2])
+
+        on = js_to_json(r'"\^\$\#"')
+        self.assertEqual(json.loads(on), R'^$#', msg='Unnecessary escapes should be stripped')
+
+        on = js_to_json('\'"\\""\'')
+        self.assertEqual(json.loads(on), '"""', msg='Unnecessary quote escape should be escaped')
+
     def test_js_to_json_malformed(self):
         self.assertEqual(js_to_json('42a1'), '42"a1"')
         self.assertEqual(js_to_json('42a-1'), '42"a"-1')
+
+    def test_js_to_json_template_literal(self):
+        self.assertEqual(js_to_json('`Hello ${name}`', {'name': '"world"'}), '"Hello world"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '"X"'}), '"XX"')
+        self.assertEqual(js_to_json('`${name}${name}`', {'name': '5'}), '"55"')
+        self.assertEqual(js_to_json('`${name}"${name}"`', {'name': '5'}), '"5\\"5\\""')
+        self.assertEqual(js_to_json('`${name}`', {}), '"name"')
 
     def test_extract_attributes(self):
         self.assertEqual(extract_attributes('<e x="y">'), {'x': 'y'})
@@ -1474,6 +1644,84 @@ Line 1
     def test_clean_podcast_url(self):
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
+
+    def test_LazyList(self):
+        it = list(range(10))
+
+        self.assertEqual(list(LazyList(it)), it)
+        self.assertEqual(LazyList(it).exhaust(), it)
+        self.assertEqual(LazyList(it)[5], it[5])
+
+        self.assertEqual(LazyList(it)[5:], it[5:])
+        self.assertEqual(LazyList(it)[:5], it[:5])
+        self.assertEqual(LazyList(it)[::2], it[::2])
+        self.assertEqual(LazyList(it)[1::2], it[1::2])
+        self.assertEqual(LazyList(it)[5::-1], it[5::-1])
+        self.assertEqual(LazyList(it)[6:2:-2], it[6:2:-2])
+        self.assertEqual(LazyList(it)[::-1], it[::-1])
+
+        self.assertTrue(LazyList(it))
+        self.assertFalse(LazyList(range(0)))
+        self.assertEqual(len(LazyList(it)), len(it))
+        self.assertEqual(repr(LazyList(it)), repr(it))
+        self.assertEqual(compat_str(LazyList(it)), compat_str(it))
+
+        self.assertEqual(list(LazyList(it, reverse=True)), it[::-1])
+        self.assertEqual(list(reversed(LazyList(it))[::-1]), it)
+        self.assertEqual(list(reversed(LazyList(it))[1:3:7]), it[::-1][1:3:7])
+
+    def test_LazyList_laziness(self):
+
+        def test(ll, idx, val, cache):
+            self.assertEqual(ll[idx], val)
+            self.assertEqual(ll._cache, list(cache))
+
+        ll = LazyList(range(10))
+        test(ll, 0, 0, range(1))
+        test(ll, 5, 5, range(6))
+        test(ll, -3, 7, range(10))
+
+        ll = LazyList(range(10), reverse=True)
+        test(ll, -1, 0, range(1))
+        test(ll, 3, 6, range(10))
+
+        ll = LazyList(itertools.count())
+        test(ll, 10, 10, range(11))
+        ll = reversed(ll)
+        test(ll, -15, 14, range(15))
+
+    def test_try_call(self):
+        def total(*x, **kwargs):
+            return sum(x) + sum(kwargs.values())
+
+        self.assertEqual(try_call(None), None,
+                         msg='not a fn should give None')
+        self.assertEqual(try_call(lambda: 1), 1,
+                         msg='int fn with no expected_type should give int')
+        self.assertEqual(try_call(lambda: 1, expected_type=int), 1,
+                         msg='int fn with expected_type int should give int')
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
+                         msg='int fn with wrong expected_type should give None')
+        self.assertEqual(try_call(total, args=(0, 1, 0, ), expected_type=int), 1,
+                         msg='fn should accept arglist')
+        self.assertEqual(try_call(total, kwargs={'a': 0, 'b': 1, 'c': 0}, expected_type=int), 1,
+                         msg='fn should accept kwargs')
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
+                         msg='int fn with no expected_type should give None')
+        self.assertEqual(try_call(lambda x: {}, total, args=(42, ), expected_type=int), 42,
+                         msg='expect first int result with expected_type int')
+
+    def test_variadic(self):
+        self.assertEqual(variadic(None), (None, ))
+        self.assertEqual(variadic('spam'), ('spam', ))
+        self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
+        self.assertEqual(variadic('spam', allowed_types=[dict]), 'spam')
+
+    def test_join_nonempty(self):
+        self.assertEqual(join_nonempty('a', 'b'), 'a-b')
+        self.assertEqual(join_nonempty(
+            'a', 'b', 'c', 'd',
+            from_dict={'a': 'c', 'c': [], 'b': 'd', 'd': None}), 'c-d')
 
 
 if __name__ == '__main__':

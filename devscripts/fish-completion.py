@@ -6,9 +6,12 @@ import os
 from os.path import dirname as dirn
 import sys
 
-sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
+
 import youtube_dl
 from youtube_dl.utils import shell_quote
+
+from utils import read_file, write_file
 
 FISH_COMPLETION_FILE = 'youtube-dl.fish'
 FISH_COMPLETION_TEMPLATE = 'devscripts/fish-completion.in'
@@ -38,11 +41,9 @@ def build_completion(opt_parser):
             complete_cmd.extend(EXTRA_ARGS.get(long_option, []))
             commands.append(shell_quote(complete_cmd))
 
-    with open(FISH_COMPLETION_TEMPLATE) as f:
-        template = f.read()
+    template = read_file(FISH_COMPLETION_TEMPLATE)
     filled_template = template.replace('{{commands}}', '\n'.join(commands))
-    with open(FISH_COMPLETION_FILE, 'w') as f:
-        f.write(filled_template)
+    write_file(FISH_COMPLETION_FILE, filled_template)
 
 
 parser = youtube_dl.parseOpts()[0]

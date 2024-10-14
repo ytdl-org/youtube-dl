@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-import io
 import optparse
 import os.path
 import re
 
+from utils import read_file, write_file
+
 ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 README_FILE = os.path.join(ROOT_DIR, 'README.md')
-
 PREFIX = r'''%YOUTUBE-DL(1)
 
 # NAME
@@ -29,8 +29,7 @@ def main():
 
     outfile, = args
 
-    with io.open(README_FILE, encoding='utf-8') as f:
-        readme = f.read()
+    readme = read_file(README_FILE)
 
     readme = re.sub(r'(?s)^.*?(?=# DESCRIPTION)', '', readme)
     readme = re.sub(r'\s+youtube-dl \[OPTIONS\] URL \[URL\.\.\.\]', '', readme)
@@ -38,8 +37,7 @@ def main():
 
     readme = filter_options(readme)
 
-    with io.open(outfile, 'w', encoding='utf-8') as outf:
-        outf.write(readme)
+    write_file(outfile, readme)
 
 
 def filter_options(readme):
