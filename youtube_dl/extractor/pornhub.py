@@ -73,8 +73,6 @@ class PornHubBaseIE(InfoExtractor):
             return
 
         site = host.split('.', 1)[0]
-        if 'premium' not in site:
-            site = site.replace('model', 'porn')
 
         # Both sites pornhub and pornhubpremium have separate accounts
         # so there should be an option to provide credentials for both.
