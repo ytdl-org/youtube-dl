@@ -1179,7 +1179,7 @@ class YoutubeDL(object):
         x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
         for i, entry in enumerate(entries, 1):
-            self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
+            self.to_screen('[download] Downloading file %s of %s' % (i, n_entries))
             # This __x_forwarded_for_ip thing is a bit ugly but requires
             # minimal changes
             if x_forwarded_for:
