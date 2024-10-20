@@ -192,7 +192,7 @@ class BNNVaraIE(NPOIE):
                                     })
 
         product_id = traverse_obj(media, ('data', 'player', 'pomsProductId'))
-        formats = self._download_by_product_id(product_id, video_id) if product_id else []
+        formats = self._extract_formats_by_product_id(product_id, video_id) if product_id else []
         self._sort_formats(formats)
 
         return {
