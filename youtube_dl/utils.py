@@ -4498,7 +4498,7 @@ def strip_jsonp(code):
 def js_to_json(code, *args, **kwargs):
 
     # vars is a dict of (var, val) pairs to substitute
-    vars = args[0] if len(args) > 0 else kwargs.get('vars', {})
+    js_vars = args[0] if len(args) > 0 else kwargs.get('vars', {})
     strict = kwargs.get('strict', False)
 
     STRING_QUOTES = '\'"`'
@@ -4523,9 +4523,13 @@ def js_to_json(code, *args, **kwargs):
                 else escape)
 
     def template_substitute(match):
-        evaluated = js_to_json(match.group(1), vars, strict=strict)
+        evaluated = js_to_json(match.group(1), js_vars, strict=strict)
         if evaluated[0] == '"':
-            return json.loads(evaluated)
+            try:
+                return json.loads(evaluated)
+            except JSONDecodeError:
+                if strict:
+                    raise
         return evaluated
 
     def fix_kv(m):
@@ -4559,14 +4563,14 @@ def js_to_json(code, *args, **kwargs):
                 i = int(im.group(1), base)
                 return ('"%s":' if v.endswith(':') else '%s') % inv(i)
 
-        if v in vars:
+        if v in js_vars:
             try:
                 if not strict:
-                    json.loads(vars[v])
+                    json.loads(js_vars[v])
             except JSONDecodeError:
-                return inv(json.dumps(vars[v]))
+                return inv(json.dumps(js_vars[v]))
             else:
-                return inv(vars[v])
+                return inv(js_vars[v])
 
         if not strict:
             v = try_call(inv, args=(v,), default=v)
@@ -4577,7 +4581,7 @@ def js_to_json(code, *args, **kwargs):
         raise ValueError('Unknown value: ' + v)
 
     def create_map(mobj):
-        return json.dumps(dict(json.loads(js_to_json(mobj.group(1) or '[]', vars=vars))))
+        return json.dumps(dict(json.loads(js_to_json(mobj.group(1) or '[]', vars=js_vars))))
 
     code = re.sub(r'new Map\((\[.*?\])?\)', create_map, code)
     if not strict:
@@ -6715,3 +6719,8 @@ class _UnsafeExtensionError(Exception):
                 raise cls(extension)
 
         return extension
+
+
+def json_stringify(json_data, **kwargs):
+    kwargs.setdefault('separators', (',', ':'))
+    return json.dumps(json_data, **kwargs).decode('utf-8')
