@@ -50,30 +50,22 @@ class NPOIE(InfoExtractor):
 
         program_metadata = self._download_json('https://npo.nl/start/api/domain/program-detail',
                                                slug, query={'slug': slug})
-        product_id = program_metadata.get('productId')
-        images = program_metadata.get('images')
-        thumbnail = None
-        for image in images:
-            thumbnail = image.get('url')
-            break
-        title = program_metadata.get('title')
-        descriptions = program_metadata.get('description', {})
-        description = descriptions.get('long') or descriptions.get('short') or descriptions.get('brief')
-        duration = program_metadata.get('durationInSeconds')
-
+        product_id = traverse_obj(program_metadata, 'productId')
         if not product_id:
-            raise ExtractorError('No productId found for slug: %s' % slug)
-
+            raise ExtractorError('No productId found for slug: %s' % (slug,))
         formats = self._extract_formats_by_product_id(product_id, slug, url)
-
-        return {
+        self._sort_formats(formats)
+        return merge_dicts(traverse_obj(program_metadata, {
+            'title': 'title',
+            'description': (('description', ('long', 'short', 'brief')), 'title'),
+            'thumbnail': ('images', Ellipsis, 'url', T(url_or_none)),
+            'duration': ('durationInSeconds', T(int_or_none)),
+        }, get_all=False), {
             'id': slug,
             'formats': formats,
-            'title': title or slug,
-            'description': description or title or slug,
-            'thumbnail': thumbnail,
-            'duration': duration,
-        }
+            'title': slug,
+            'description': slug,
+        })
 
     def _extract_formats_by_product_id(self, product_id, slug, url=None):
         token = self._get_token(product_id)
@@ -299,9 +291,7 @@ class SchoolTVIE(NPOIE):
 
         formats = self._extract_formats_by_product_id(metadata.get('poms_mid'), video_id)
 
-        if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL, '
-                                 'perhaps because all stream URLs are DRM protected.')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -322,9 +312,7 @@ class NTRSubsiteIE(NPOIE):
             formats.extend(self._extract_formats_by_product_id(result, video_id))
             break
 
-        if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL, '
-                                 'perhaps because all stream URLs are DRM protected.')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -370,9 +358,7 @@ class VPROIE(NPOIE):
             formats.extend(self._extract_formats_by_product_id(result, video_id))
             break
 
-        if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL, '
-                                 'perhaps because all stream URLs are DRM protected.')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
