@@ -5,7 +5,7 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError, join_nonempty, traverse_obj
+from ..utils import ExtractorError, int_or_none, join_nonempty, merge_dicts, traverse_obj, url_or_none, T
 
 
 class NPOIE(InfoExtractor):
