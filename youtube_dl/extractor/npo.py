@@ -198,7 +198,7 @@ class BNNVaraIE(NPOIE):
                                     headers={
                                         'Content-Type': 'application/json',
                                     })
-        
+
         product_id = traverse_obj(media, ('data', 'player', 'pomsProductId'))
         formats = self._download_by_product_id(product_id, video_id) if product_id else []
         self._sort_formats(formats)
@@ -231,9 +231,7 @@ class ONIE(NPOIE):
         for result in results:
             formats.extend(self._extract_formats_by_product_id(result, video_id))
 
-        if not formats:
-            raise ExtractorError('Could not find a POMS product id in the provided URL, '
-                                 'perhaps because all stream URLs are DRM protected.')
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
