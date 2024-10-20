@@ -1960,7 +1960,7 @@ def get_element_by_attribute(attribute, value, html, escape_value=True):
 def get_elements_by_class(class_name, html):
     """Return the content of all tags with the specified class in the passed HTML document as a list"""
     return get_elements_by_attribute(
-        'class', r'[^\'"]*\b%s\b[^\'"]*' % re.escape(class_name),
+        'class', r'[^\'"]*(?<!-)\b%s\b(?!-)[^\'"]*' % re.escape(class_name),
         html, escape_value=False)
 
 
