@@ -13,6 +13,7 @@ from ..utils import (
     decode_packed_codes,
     determine_ext,
     ExtractorError,
+    get_element_by_class,
     get_element_by_id,
     int_or_none,
     merge_dicts,
@@ -200,11 +201,20 @@ class XFileShareIE(InfoExtractor):
             host,
             'embed-%s.html' % video_id if host in ('govid.me', 'vidlo.us') else video_id)
         webpage = self._download_webpage(url, video_id)
-        container_div = get_element_by_id('container', webpage) or webpage
+        main = self._search_regex(
+            r'(?s)<main>(.+)</main>', webpage, 'main', default=webpage)
+        container_div = (
+            get_element_by_id('container', main)
+            or get_element_by_class('container', main)
+            or webpage)
         if self._search_regex(
                 r'>This server is in maintenance mode\.', container_div,
                 'maint error', group=0, default=None):
             raise ExtractorError(clean_html(container_div), expected=True)
+        if self._search_regex(
+                'not available in your country', container_div,
+                'geo block', group=0, default=None):
+            self.raise_geo_restricted()
         if self._search_regex(
                 self._FILE_NOT_FOUND_REGEXES, container_div,
                 'missing video error', group=0, default=None):
