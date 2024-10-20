@@ -118,6 +118,70 @@ class BNNVaraIE(NPOIE):
     def _real_extract(self, url):
         url = url.rstrip('/')
         video_id = url.split('/')[-1]
+        graphql_query = """query getMedia($id: ID!, $mediaUrl: String, $hasAdConsent: Boolean!, $atInternetId: Int) {
+                            player(
+                                id: $id
+                                mediaUrl: $mediaUrl
+                                hasAdConsent: $hasAdConsent
+                                atInternetId: $atInternetId
+                            ) {
+                            ... on PlayerSucces {
+                                brand {
+                                    name
+                                    slug
+                                    broadcastsEnabled
+                                    __typename
+                                }
+                                title
+                                programTitle
+                                pomsProductId
+                                broadcasters {
+                                    name
+                                    __typename
+                                }
+                                duration
+                                classifications {
+                                    title
+                                    imageUrl
+                                    type
+                                    __typename
+                                }
+                                image {
+                                    title
+                                    url
+                                    __typename
+                                }
+                                cta {
+                                    title
+                                    url
+                                    __typename
+                                }
+                                genres {
+                                    name
+                                    __typename
+                                }
+                                subtitles {
+                                    url
+                                    language
+                                    __typename
+                                }
+                                sources {
+                                    name
+                                    url
+                                    ratio
+                                    __typename
+                                }
+                                    type
+                                    token
+                                    __typename
+                                }
+                                ... on PlayerError {
+                                    error
+                                    __typename
+                                }
+                                    __typename
+                            }
+}"""
 
         media = self._download_json('https://api.bnnvara.nl/bff/graphql',
                                     video_id,
@@ -129,7 +193,7 @@ class BNNVaraIE(NPOIE):
                                                 'hasAdConsent': False,
                                                 'atInternetId': 70
                                             },
-                                            'query': 'query getMedia($id: ID!, $mediaUrl: String, $hasAdConsent: Boolean!, $atInternetId: Int) {\n  player(\n    id: $id\n    mediaUrl: $mediaUrl\n    hasAdConsent: $hasAdConsent\n    atInternetId: $atInternetId\n  ) {\n    ... on PlayerSucces {\n      brand {\n        name\n        slug\n        broadcastsEnabled\n        __typename\n      }\n      title\n      programTitle\n      pomsProductId\n      broadcasters {\n        name\n        __typename\n      }\n      duration\n      classifications {\n        title\n        imageUrl\n        type\n        __typename\n      }\n      image {\n        title\n        url\n        __typename\n      }\n      cta {\n        title\n        url\n        __typename\n      }\n      genres {\n        name\n        __typename\n      }\n      subtitles {\n        url\n        language\n        __typename\n      }\n      sources {\n        name\n        url\n        ratio\n        __typename\n      }\n      type\n      token\n      __typename\n    }\n    ... on PlayerError {\n      error\n      __typename\n    }\n    __typename\n  }\n}'
+                                            'query': graphql_query
                                         }).encode('utf8'),
                                     headers={
                                         'Content-Type': 'application/json',
