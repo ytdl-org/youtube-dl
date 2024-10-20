@@ -17,23 +17,23 @@ class NPOIE(InfoExtractor):
         'url': 'https://npo.nl/start/serie/zembla/seizoen-2015/wie-is-de-mol-2/',
         'md5': 'f9ce9c43cc8bc3b8138df1562b99c379',
         'info_dict': {
-            'description': 'Wie is de mol? (2)',
-            'duration': 2439,
-            'ext': 'm4v',
-            'id': 'wie-is-de-mol-2',
+            'title': 'Wie is de mol? (2)',
             'thumbnail': 'https://assets-start.npo.nl/resources/2023/07/01/e723c3cf-3e42-418a-9ba5-f6dbb64b516a.jpg',
-            'title': 'Wie is de mol? (2)'
+            'duration': 2439,
+            'id': 'wie-is-de-mol-2',
+            'description': 'wie-is-de-mol-2',
+            'ext': 'mp4',
         }
     }, {
         'url': 'https://npo.nl/start/serie/vpro-tegenlicht/seizoen-11/zwart-geld-de-toekomst-komt-uit-afrika',
         'md5': 'c84d054219c4888ed53b4ee3d01b2d93',
         'info_dict': {
-            'id': 'zwart-geld-de-toekomst-komt-uit-afrika',
             'title': 'Zwart geld: de toekomst komt uit Afrika',
-            'ext': 'mp4',
-            'description': 'Zwart geld: de toekomst komt uit Afrika',
             'thumbnail': 'https://assets-start.npo.nl/resources/2023/06/30/d9879593-1944-4249-990c-1561dac14d8e.jpg',
-            'duration': 3000
+            'duration': 3000,
+            'id': 'zwart-geld-de-toekomst-komt-uit-afrika',
+            'description': 'zwart-geld-de-toekomst-komt-uit-afrika',
+            'ext': 'mp4',
         },
     }]
 
@@ -211,7 +211,9 @@ class ONIE(NPOIE):
         'url': 'https://ongehoordnederland.tv/2024/03/01/korte-clips/heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel/',
         'md5': 'a85ebd50fa86fe5cbce654655f7dbb12',
         'info_dict': {
-
+            'id': 'heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel',
+            'title': 'heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel',
+            'ext': 'mp4',
         }
     }]
 
@@ -243,6 +245,7 @@ class ZAPPIE(NPOIE):
         'info_dict': {
             'id': 'POMS_AT_811523',
             'title': 'POMS_AT_811523',
+            'ext': 'mp4',
         },
     }]
 
@@ -268,8 +271,9 @@ class SchoolTVIE(NPOIE):
         'md5': 'e9ef151c4886994e2bea23593348cb14',
         'info_dict': {
             'id': 'zapp-music-challenge-2015-zapp-music-challenge-2015',
-            'title': 'Zapp Music Challenge 2015 - Alain Clark & Yaell',
-            'description': "Een nummer schrijven met de super bekende soulzanger en producer Alain Clark? Dat is de uitdaging voor de dertienjarige Yaell uit Delft. En als het dan echt goed is, mag hij het ook nog eens live gaan spelen op de speelplaats bij Giel Beelen! Muziek is heel erg belangrijk in het leven van Yaell. 'Als er geen muziek zou zijn, dan zou ik heel veel niet kunnen.' Hij is dan ook altijd aan het schrijven, vaak over zijn eigen leven. Maar soms is het best lastig om die teksten te verzinnen. Vindt hij de inspiratie om een hit te maken met Alain?"
+            'title': 'Zapp Music Challenge 2015-Alain Clark & Yaell',
+            'description': "Een nummer schrijven met de super bekende soulzanger en producer Alain Clark? Dat is de uitdaging voor de dertienjarige Yaell uit Delft. En als het dan echt goed is, mag hij het ook nog eens live gaan spelen op de speelplaats bij Giel Beelen! Muziek is heel erg belangrijk in het leven van Yaell. 'Als er geen muziek zou zijn, dan zou ik heel veel niet kunnen.' Hij is dan ook altijd aan het schrijven, vaak over zijn eigen leven. Maar soms is het best lastig om die teksten te verzinnen. Vindt hij de inspiratie om een hit te maken met Alain?",
+            'ext': 'mp4',
         },
     }]
 
@@ -331,6 +335,7 @@ class HetKlokhuisIE(NTRSubsiteIE):
         'info_dict': {
             'id': 'aliens',
             'title': 'aliens',
+            'ext': 'mp4',
         },
     }]
 
@@ -345,7 +350,7 @@ class VPROIE(NPOIE):
         'info_dict': {
             'id': 'offline-als-luxe.html',
             'title': 'offline-als-luxe.html',
-            'ext': 'm4v',
+            'ext': 'mp4',
         },
     }]
 
@@ -377,5 +382,6 @@ class AndereTijdenIE(NTRSubsiteIE):
         'info_dict': {
             'id': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
             'title': 'Duitse-soldaten-over-de-Slag-bij-Arnhem',
+            'ext': 'mp4',
         },
     }]
