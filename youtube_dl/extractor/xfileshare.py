@@ -12,6 +12,7 @@ from ..utils import (
     clean_html,
     decode_packed_codes,
     determine_ext,
+    extract_attributes,
     ExtractorError,
     get_element_by_class,
     get_element_by_id,
@@ -57,39 +58,40 @@ def aa_decode(aa_code):
 
 class XFileShareIE(InfoExtractor):
     _SITES = (
-        # status check 2024-02: site availability, G site: search
-        (r'aparat\.cam', 'Aparat'),  # Cloudflare says host error 522, apparently changed to wolfstreeam.tv
-        (r'filemoon\.sx/.', 'FileMoon'),
-        (r'gounlimited\.to', 'GoUnlimited'),  # no media pages listed
+        # status check 2024-10: site availability, G site: search
+        (r'aparat\.cam', 'Aparat'),  # Cloudflare says host error 522, apparently changed to wolfstream.tv
+        (r'filemoon\.(?:sx|to|in)', 'FileMoon'),
+        # (r'gounlimited\.to', 'GoUnlimited'),  # domain not found
         (r'govid\.me', 'GoVid'),  # no media pages listed
-        (r'highstream\.tv', 'HighStream'),  # clipwatching.com redirects here
-        (r'holavid\.com', 'HolaVid'),  # Cloudflare says host error 522
-        # (r'streamty\.com', 'Streamty'),  # no media pages listed, connection timeout
-        # (r'thevideobee\.to', 'TheVideoBee'),  # no pages listed, refuses connection
-        (r'uqload\.to', 'Uqload'),  # .com, .co redirect here
-        (r'(?:vedbam\.xyz|vadbam.net)', 'V?dB?m'),  # vidbom.com redirects here, but no valid media pages listed
+        (r'highstream\.tv', 'HighStream'),  # Cloudflare says host error 522, clipwatching.com now dead
+        (r'holavid\.com', 'HolaVid'),  # hoster default home page
+        # (r'streamty\.com', 'Streamty'),  # spam parking domain
+        # (r'thevideobee\.to', 'TheVideoBee'),  # domain for sale
+        (r'uqload\.ws', 'Uqload'),  # .com, .co, .to redirect here
+        # (r'(vadbam.net', 'VadBam'),  # domain not found
+        (r'(?:vedbam\.xyz|vadbam\.net|vbn\d\.vdbtm\.shop)', 'V?dB?m'),  # vidbom.com redirects here, but no valid media pages listed
         (r'vidlo\.us', 'vidlo'),  # no valid media pages listed
         (r'vidlocker\.xyz', 'VidLocker'),  # no media pages listed
-        (r'(?:w\d\.)?viidshar\.com', 'VidShare'),  # vidshare.tv redirects here
+        (r'(?:w\d\.)?viidshar\.com', 'VidShare'),  # vidshare.tv parked
         # (r'vup\.to', 'VUp'),  # domain not found
-        (r'wolfstream\.tv', 'WolfStream'),
-        (r'xvideosharing\.com', 'XVideoSharing'),  # just started showing 'maintenance mode'
+        # (r'wolfstream\.tv', 'WolfStream'),  # domain not found
+        (r'xvideosharing\.com', 'XVideoSharing'),
     )
 
     IE_DESC = 'XFileShare-based sites: %s' % ', '.join(list(zip(*_SITES))[1])
-    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?P<sub>[a-z]/|)(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(site for site in list(zip(*_SITES))[0]))
     _EMBED_REGEX = [r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:%s)/embed-[0-9a-zA-Z]+.*?)\1' % '|'.join(site for site in list(zip(*_SITES))[0])]
 
     _FILE_NOT_FOUND_REGEXES = (
-        r'>(?:404 - )?File Not Found<',
-        r'>The file was removed by administrator<',
+        r'>\s*(?:404 - )?File Not Found\s*<',
+        r'>\s*The file was removed by administrator\s*<',
     )
     _TITLE_REGEXES = (
         r'style="z-index: [0-9]+;">([^<]+)</span>',
         r'<td nowrap>([^<]+)</td>',
         r'h4-fine[^>]*>([^<]+)<',
-        r'>Watch (.+)[ <]',
+        r'>Watch (.+?)(?: mp4)?(?: The Ultimate Free Video Hosting Solution for Webmasters and Bloggers)?<',
         r'<h2 class="video-page-head">([^<]+)</h2>',
         r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<',  # streamin.to (dead)
         r'title\s*:\s*"([^"]+)"',  # govid.me
@@ -107,38 +109,41 @@ class XFileShareIE(InfoExtractor):
 
     _TESTS = [{
         'note': 'link in `sources`',
-        'url': 'https://uqload.to/dcsu06gdb45o',
-        'md5': '7f8db187b254379440bf4fcad094ae86',
+        'url': 'https://uqload.ws/4sah252totrk.html',
+        'md5': '1f11151b5044862fbc3c112732f9f7d8',
         'info_dict': {
-            'id': 'dcsu06gdb45o',
+            'id': '4sah252totrk',
             'ext': 'mp4',
-            'title': 'f2e31015957e74c8c8427982e161c3fc mp4',
+            'title': 'JEONGHAN WONWOO Interview With Allure Korea Arabic Sub',
             'thumbnail': r're:https://.*\.jpg'
         },
         'params': {
             'nocheckcertificate': True,
         },
-        'expected_warnings': ['Unable to extract JWPlayer data'],
+        # 'expected_warnings': ['Unable to extract JWPlayer data'],
     }, {
-        'note': 'link in decoded `sources`',
-        'url': 'https://xvideosharing.com/1tlg6agrrdgc',
-        'md5': '2608ce41932c1657ae56258a64e647d9',
+        'note': 'link in Playerjs',  # need test with 'link in decoded `sources`'
+        'url': 'https://xvideosharing.com/8cnupzc1z8xq.html',
+        'md5': '9725ca7229e8f3046f2417da3bd5eddc',
         'info_dict': {
-            'id': '1tlg6agrrdgc',
+            'id': '8cnupzc1z8xq',
             'ext': 'mp4',
-            'title': '0121',
+            'title': 'HEVC X265 Big Buck Bunny 1080 10s 20MB',
             'thumbnail': r're:https?://.*\.jpg',
         },
-        'skip': 'This server is in maintenance mode.',
     }, {
-        'note': 'JWPlayer link in un-p,a,c,k,e,d JS',
-        'url': 'https://filemoon.sx/e/dw40rxrzruqz',
-        'md5': '5a713742f57ac4aef29b74733e8dda01',
+        'note': 'JWPlayer link in un-p,a,c,k,e,d JS, in player frame',
+        'url': 'https://filemoon.sx/d/fbsxidybremo',
+        'md5': '82007a71661630f60e866f0d6ed31b2a',
         'info_dict': {
-            'id': 'dw40rxrzruqz',
-            'title': 'dw40rxrzruqz',
+            'id': 'fbsxidybremo',
+            'title': 'Uchouten',
             'ext': 'mp4'
         },
+        'params': {
+            'skip_download': 'ffmpeg',
+        },
+        'expected_warnings': ['hlsnative has detected features it does not support'],
     }, {
         'note': 'JWPlayer link in un-p,a,c,k,e,d JS',
         'url': 'https://vadbam.net/6lnbkci96wly.html',
@@ -151,7 +156,7 @@ class XFileShareIE(InfoExtractor):
     }, {
         'note': 'JWPlayer link in clear',
         'url': 'https://w1.viidshar.com/nnibe0xf0h79.html',
-        'md5': 'f0a580ce9df06cc61b4a5c979d672367',
+        'md5': 'b95b97978093bc287c322307c689bd94',
         'info_dict': {
             'id': 'nnibe0xf0h79',
             'title': 'JaGa 68ar',
@@ -162,25 +167,19 @@ class XFileShareIE(InfoExtractor):
         },
         'expected_warnings': ['hlsnative has detected features it does not support'],
     }, {
-        'note': 'JWPlayer link in clear',
-        'url': 'https://wolfstream.tv/a3drtehyrg52.html',
-        'md5': '1901d86a79c5e0c6a51bdc9a4cfd3769',
-        'info_dict': {
-            'id': 'a3drtehyrg52',
-            'title': 'NFL 2023 W04 DET@GB',
-            'ext': 'mp4'
-        },
-    }, {
         'url': 'https://aparat.cam/n4d6dh0wvlpr',
-        'only_matching': True,
-    }, {
-        'url': 'https://uqload.to/ug5somm0ctnk.html',
         'only_matching': True,
     }, {
         'url': 'https://highstream.tv/2owiyz3sjoux',
         'only_matching': True,
     }, {
         'url': 'https://vedbam.xyz/6lnbkci96wly.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://vbn2.vdbtm.shop/6lnbkci96wly.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://filemoon.in/e/5abn1ze9jifb',
         'only_matching': True,
     }]
 
@@ -195,10 +194,10 @@ class XFileShareIE(InfoExtractor):
         return list(yield_urls())
 
     def _real_extract(self, url):
-        host, video_id = self._match_valid_url(url).group('host', 'id')
+        host, sub, video_id = self._match_valid_url(url).group('host', 'sub', 'id')
 
-        url = 'https://%s/%s' % (
-            host,
+        url = 'https://%s/%s%s' % (
+            host, sub,
             'embed-%s.html' % video_id if host in ('govid.me', 'vidlo.us') else video_id)
         webpage = self._download_webpage(url, video_id)
         main = self._search_regex(
@@ -238,38 +237,41 @@ class XFileShareIE(InfoExtractor):
 
         title = (
             self._search_regex(self._TITLE_REGEXES, webpage, 'title', default=None)
-            or self._og_search_title(webpage, default=None)
-            or video_id).strip()
+            or self._og_search_title(webpage, default='')).strip()
 
-        obf_code = True
-        while obf_code:
+        def deobfuscate(html):
             for regex, func in (
                     (r'(?s)(?<!-)\b(eval\(function\(p,a,c,k,e,d\)\{(?:(?!</script>).)+\)\))',
                      decode_packed_codes),
                     (r'(ﾟ.+)', aa_decode)):
-                obf_code = self._search_regex(regex, webpage, 'obfuscated code', default=None)
+                obf_code = self._search_regex(regex, html, 'obfuscated code', default=None)
                 if obf_code:
-                    webpage = webpage.replace(obf_code, func(obf_code))
-                    break
+                    return html.replace(obf_code, func(obf_code))
 
-        jwplayer_data = self._find_jwplayer_data(
-            webpage.replace(r'\'', '\''), video_id)
-        result = self._parse_jwplayer_data(
-            jwplayer_data, video_id, require_title=False,
-            m3u8_id='hls', mpd_id='dash')
-
-        if not traverse_obj(result, 'formats'):
-            if jwplayer_data:
+        def jw_extract(html):
+            jwplayer_data = self._find_jwplayer_data(
+                html.replace(r'\'', '\''), video_id)
+            result = self._parse_jwplayer_data(
+                jwplayer_data, video_id, require_title=False,
+                m3u8_id='hls', mpd_id='dash')
+            result = traverse_obj(result, (
+                (None, ('entries', 0)), T(lambda r: r if r['formats'] else None)),
+                get_all=False) or {}
+            if not result and jwplayer_data:
                 self.report_warning(
                     'Failed to extract JWPlayer formats', video_id=video_id)
+            return result
+
+        def extract_from_links(html):
             urls = set()
             for regex in self._SOURCE_URL_REGEXES:
-                for mobj in re.finditer(regex, webpage):
+                for mobj in re.finditer(regex, html):
                     urls.add(mobj.group('url'))
 
-            sources = self._search_regex(
-                r'sources\s*:\s*(\[(?!{)[^\]]+\])', webpage, 'sources', default=None)
-            urls.update(traverse_obj(sources, (T(lambda s: self._parse_json(s, video_id)), Ellipsis)))
+            sources = self._search_json(
+                r'\bsources\s*:', webpage, 'sources', video_id,
+                contains_pattern=r'\[(?!{)[^\]]+\]', default=[])
+            urls.update(sources)
 
             formats = []
             for video_url in traverse_obj(urls, (Ellipsis, T(url_or_none))):
@@ -283,7 +285,33 @@ class XFileShareIE(InfoExtractor):
                         'url': video_url,
                         'format_id': 'sd',
                     })
-            result = {'formats': formats}
+            return {'formats': formats}
+
+        def extract_info(html):
+            html = deobfuscate(html) or html
+            result = jw_extract(html)
+            if not result.get('formats'):
+                result = extract_from_links(html)
+            return result
+
+        def pages_to_extract(html):
+            yield html
+            # page with separate protected download page also has player link
+            player_iframe = self._search_regex(
+                r'(<iframe\s[^>]+>)',
+                get_element_by_id('iframe-holder', html) or '',
+                'player iframe', default='')
+            player_url = extract_attributes(player_iframe).get('src')
+            if player_url:
+                html = self._download_webpage(player_url, video_id, note='Downloading player page', fatal=False)
+            if html:
+                yield html
+
+        result = {}
+        for html in pages_to_extract(webpage):
+            result = extract_info(html)
+            if result.get('formats'):
+                break
 
         self._sort_formats(result['formats'])
 
