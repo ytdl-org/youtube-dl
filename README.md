@@ -44,6 +44,11 @@ Or with [MacPorts](https://www.macports.org/):
 
     sudo port install youtube-dl
 
+we can also use [snap](https://snapcraft.io/yt-dlp) for linux:-
+```bash
+sudo snap install yt-dlp
+```
+
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
