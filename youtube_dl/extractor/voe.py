@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
+from ..compat import compat_base64_b64decode 
 from ..utils import (
     int_or_none,
     js_to_json,
@@ -19,7 +20,7 @@ class VOEIE(InfoExtractor):
         'url': 'https://voe.sx/e/ng7ja5n5n2y8',
         'info_dict': {
             'id': 'ng7ja5n5n2y8',
-            'title': 'md5:a86687fb962742f04652aee19ad34e06',
+            'title': 'md5:8dd774de9b73851151d80ef6baaea7f1',
             'thumbnail': r're:^https?://.*\.jpg$',
             'ext': 'm3u8',
         },
@@ -49,7 +50,7 @@ class VOEIE(InfoExtractor):
         for fmt in ('mp4', 'hls'):
             if fmt not in sources:
                 continue
-            sources[fmt] = url_or_none(sources['fmt']) or url_or_none(base64.b64decode(sources['fmt']))
+            sources[fmt] = url_or_none(sources[fmt]) or url_or_none(compat_base64_b64decode(sources[fmt]).decode('utf-8'))
             f_url = sources.get('hls')
         if f_url:
             formats.extend(self._extract_m3u8_formats(
