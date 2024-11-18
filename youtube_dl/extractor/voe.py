@@ -1,10 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
-
 from .common import InfoExtractor
-from ..compat import compat_base64_b64decode 
+from ..compat import compat_base64_b64decode
 from ..utils import (
     int_or_none,
     js_to_json,
