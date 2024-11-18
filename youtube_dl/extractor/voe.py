@@ -32,15 +32,14 @@ class VOEIE(InfoExtractor):
             'https://voe.sx/e/%s' % video_id, video_id)
 
         player_url = self._search_regex(
-            r'''("|')(?P<url>https://(?!voe\.sx/)[^/]+%s)\1\s*;''' % (path,),
+            r'''("|')(?P<url>https://(?!voe\.sx/)[^/]+%s)\1\s*;''' % (video_path,),
             webpage, 'redirect', group='url', default=None)
         if player_url:
             webpage = self._download_webpage(
                 player_url, video_id, note='Redirecting to player page')
 
-
         sources = self._search_json(
-            r'\bsources\s*=', webpage, 'sources', video_id,  transform_source=js_to_json)      
+            r'\bsources\s*=', webpage, 'sources', video_id, transform_source=js_to_json)
 
         title = self._search_regex(
             r'<title>(?:Watch\s+)?(?P<title>.+?)(?:-\s+VOE\s+\|.+)?</title>',
