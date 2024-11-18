@@ -47,7 +47,7 @@ class VOEIE(InfoExtractor):
             webpage, 'title', group='title')
 
         formats = []
-        for fmt in ('mp4, 'hls'):
+        for fmt in ('mp4', 'hls'):
             if fmt not in sources:
                 continue
             sources[fmt] = url_or_none(sources['fmt']) or url_or_none(base64.b64decode(sources['fmt']))
