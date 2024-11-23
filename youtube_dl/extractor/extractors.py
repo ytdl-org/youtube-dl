@@ -731,7 +731,12 @@ from .ndr import (
     NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
-from .nebula import NebulaIE
+from .nebula import (
+    NebulaIE,
+    NebulaChannelIE,
+    NebulaClassIE,
+    NebulaSubscriptionsIE,
+)
 from .nerdcubed import NerdCubedFeedIE
 from .netzkino import NetzkinoIE
 from .neteasemusic import (
