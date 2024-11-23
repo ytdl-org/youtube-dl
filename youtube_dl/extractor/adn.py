@@ -26,34 +26,42 @@ from ..utils import (
     strip_or_none,
     try_get,
     unified_strdate,
+    urlencode_postdata,
 )
 
 
 class ADNIE(InfoExtractor):
-    IE_DESC = 'Anime Digital Network'
-    _VALID_URL = r'https?://(?:www\.)?animedigitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
-    _TEST = {
-        'url': 'http://animedigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
-        'md5': '0319c99885ff5547565cacb4f3f9348d',
+    IE_DESC = 'Animation Digital Network'
+    _VALID_URL = r'https?://(?:www\.)?(?:animation|anime)digitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://animationdigitalnetwork.fr/video/fruits-basket/9841-episode-1-a-ce-soir',
+        'md5': '1c9ef066ceb302c86f80c2b371615261',
         'info_dict': {
-            'id': '7778',
+            'id': '9841',
             'ext': 'mp4',
-            'title': 'Blue Exorcist - Kyôto Saga - Episode 1',
-            'description': 'md5:2f7b5aa76edbc1a7a92cedcda8a528d5',
-            'series': 'Blue Exorcist - Kyôto Saga',
-            'duration': 1467,
-            'release_date': '20170106',
+            'title': 'Fruits Basket - Episode 1',
+            'description': 'md5:14be2f72c3c96809b0ca424b0097d336',
+            'series': 'Fruits Basket',
+            'duration': 1437,
+            'release_date': '20190405',
             'comment_count': int,
             'average_rating': float,
-            'season_number': 2,
-            'episode': 'Début des hostilités',
+            'season_number': 1,
+            'episode': 'À ce soir !',
             'episode_number': 1,
-        }
-    }
+        },
+        'skip': 'Only available in region (FR, ...)',
+    }, {
+        'url': 'http://animedigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
+        'only_matching': True,
+    }]
 
-    _BASE_URL = 'http://animedigitalnetwork.fr'
-    _API_BASE_URL = 'https://gw.api.animedigitalnetwork.fr/'
+    _NETRC_MACHINE = 'animationdigitalnetwork'
+    _BASE = 'animationdigitalnetwork.fr'
+    _API_BASE_URL = 'https://gw.api.' + _BASE + '/'
     _PLAYER_BASE_URL = _API_BASE_URL + 'player/'
+    _HEADERS = {}
+    _LOGIN_ERR_MESSAGE = 'Unable to log in'
     _RSA_KEY = (0x9B42B08905199A5CCE2026274399CA560ECB209EE9878A708B1C0812E1BB8CB5D1FB7441861147C1A1F2F3A0476DD63A9CAC20D3E983613346850AA6CB38F16DC7D720FD7D86FC6E5B3D5BBC72E14CD0BF9E869F2CEA2CCAD648F1DCE38F1FF916CEFB2D339B64AA0264372344BC775E265E8A852F88144AB0BD9AA06C1A4ABB, 65537)
     _POS_ALIGN_MAP = {
         'start': 1,
@@ -78,14 +86,14 @@ class ADNIE(InfoExtractor):
         if subtitle_location:
             enc_subtitles = self._download_webpage(
                 subtitle_location, video_id, 'Downloading subtitles data',
-                fatal=False, headers={'Origin': 'https://animedigitalnetwork.fr'})
+                fatal=False, headers={'Origin': 'https://' + self._BASE})
         if not enc_subtitles:
             return None
 
-        # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
+        # http://animationdigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(binascii.unhexlify(self._K + 'ab9f52f5baae7c72')),
+            bytes_to_intlist(binascii.unhexlify(self._K + '7fac1178830cfe0c')),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
@@ -129,19 +137,43 @@ Format: Marked,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text'''
             }])
         return subtitles
 
+    def _real_initialize(self):
+        username, password = self._get_login_info()
+        if not username:
+            return
+        try:
+            url = self._API_BASE_URL + 'authentication/login'
+            access_token = (self._download_json(
+                url, None, 'Logging in', self._LOGIN_ERR_MESSAGE, fatal=False,
+                data=urlencode_postdata({
+                    'password': password,
+                    'rememberMe': False,
+                    'source': 'Web',
+                    'username': username,
+                })) or {}).get('accessToken')
+            if access_token:
+                self._HEADERS = {'authorization': 'Bearer ' + access_token}
+        except ExtractorError as e:
+            message = None
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                resp = self._parse_json(
+                    self._webpage_read_content(e.cause, url, username),
+                    username, fatal=False) or {}
+                message = resp.get('message') or resp.get('code')
+            self.report_warning(message or self._LOGIN_ERR_MESSAGE)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_base_url = self._PLAYER_BASE_URL + 'video/%s/' % video_id
         player = self._download_json(
             video_base_url + 'configuration', video_id,
-            'Downloading player config JSON metadata')['player']
+            'Downloading player config JSON metadata',
+            headers=self._HEADERS)['player']
         options = player['options']
 
         user = options['user']
         if not user.get('hasAccess'):
-            raise ExtractorError(
-                'This video is only available for paying users', expected=True)
-            # self.raise_login_required() # FIXME: Login is not implemented
+            self.raise_login_required()
 
         token = self._download_json(
             user.get('refreshTokenUrl') or (self._PLAYER_BASE_URL + 'refresh/token'),
@@ -184,12 +216,13 @@ Format: Marked,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text'''
                     # This usually goes away with a different random pkcs1pad, so retry
                     continue
 
-                error = self._parse_json(e.cause.read(), video_id)
+                error = self._parse_json(
+                    self._webpage_read_content(e.cause, links_url, video_id),
+                    video_id, fatal=False) or {}
                 message = error.get('message')
                 if e.cause.code == 403 and error.get('code') == 'player-bad-geolocation-country':
                     self.raise_geo_restricted(msg=message)
-                else:
-                    raise ExtractorError(message)
+                raise ExtractorError(message)
         else:
             raise ExtractorError('Giving up retrying')
 

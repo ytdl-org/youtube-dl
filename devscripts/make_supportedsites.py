@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
-import io
 import optparse
-import os
+import os.path
 import sys
 
-
 # Import youtube_dl
-ROOT_DIR = os.path.join(os.path.dirname(__file__), '..')
-sys.path.insert(0, ROOT_DIR)
+dirn = os.path.dirname
+
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
+
 import youtube_dl
+
+from utils import write_file
 
 
 def main():
@@ -38,8 +40,7 @@ def main():
         ' - ' + md + '\n'
         for md in gen_ies_md(ies))
 
-    with io.open(outfile, 'w', encoding='utf-8') as outf:
-        outf.write(out)
+    write_file(outfile, out)
 
 
 if __name__ == '__main__':

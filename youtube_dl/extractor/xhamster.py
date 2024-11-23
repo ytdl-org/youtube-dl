@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -11,16 +12,19 @@ from ..utils import (
     dict_get,
     extract_attributes,
     ExtractorError,
+    float_or_none,
     int_or_none,
     parse_duration,
+    str_or_none,
     try_get,
     unified_strdate,
     url_or_none,
+    urljoin,
 )
 
 
 class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com)'
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
@@ -31,7 +35,7 @@ class XHamsterIE(InfoExtractor):
                     ''' % _DOMAINS
     _TESTS = [{
         'url': 'https://xhamster.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
-        'md5': '98b4687efb1ffd331c4197854dc09e8f',
+        'md5': '34e1ab926db5dc2750fed9e1f34304bb',
         'info_dict': {
             'id': '1509445',
             'display_id': 'femaleagent-shy-beauty-takes-the-bait',
@@ -40,6 +44,7 @@ class XHamsterIE(InfoExtractor):
             'timestamp': 1350194821,
             'upload_date': '20121014',
             'uploader': 'Ruseful2011',
+            'uploader_id': 'ruseful2011',
             'duration': 893,
             'age_limit': 18,
         },
@@ -69,6 +74,7 @@ class XHamsterIE(InfoExtractor):
             'timestamp': 1454948101,
             'upload_date': '20160208',
             'uploader': 'parejafree',
+            'uploader_id': 'parejafree',
             'duration': 72,
             'age_limit': 18,
         },
@@ -114,6 +120,12 @@ class XHamsterIE(InfoExtractor):
     }, {
         'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
         'only_matching': True,
+    }, {
+        'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -146,36 +158,89 @@ class XHamsterIE(InfoExtractor):
             video = initials['videoModel']
             title = video['title']
             formats = []
-            for format_id, formats_dict in video['sources'].items():
+            format_urls = set()
+            format_sizes = {}
+            sources = try_get(video, lambda x: x['sources'], dict) or {}
+            for format_id, formats_dict in sources.items():
                 if not isinstance(formats_dict, dict):
                     continue
+                download_sources = try_get(sources, lambda x: x['download'], dict) or {}
+                for quality, format_dict in download_sources.items():
+                    if not isinstance(format_dict, dict):
+                        continue
+                    format_sizes[quality] = float_or_none(format_dict.get('size'))
                 for quality, format_item in formats_dict.items():
                     if format_id == 'download':
                         # Download link takes some time to be generated,
                         # skipping for now
                         continue
-                        if not isinstance(format_item, dict):
-                            continue
-                        format_url = format_item.get('link')
-                        filesize = int_or_none(
-                            format_item.get('size'), invscale=1000000)
-                    else:
-                        format_url = format_item
-                        filesize = None
+                    format_url = format_item
                     format_url = url_or_none(format_url)
-                    if not format_url:
+                    if not format_url or format_url in format_urls:
                         continue
+                    format_urls.add(format_url)
                     formats.append({
                         'format_id': '%s-%s' % (format_id, quality),
                         'url': format_url,
                         'ext': determine_ext(format_url, 'mp4'),
                         'height': get_height(quality),
-                        'filesize': filesize,
+                        'filesize': format_sizes.get(quality),
                         'http_headers': {
                             'Referer': urlh.geturl(),
                         },
                     })
-            self._sort_formats(formats)
+            xplayer_sources = try_get(
+                initials, lambda x: x['xplayerSettings']['sources'], dict)
+            if xplayer_sources:
+                hls_sources = xplayer_sources.get('hls')
+                if isinstance(hls_sources, dict):
+                    for hls_format_key in ('url', 'fallback'):
+                        hls_url = hls_sources.get(hls_format_key)
+                        if not hls_url:
+                            continue
+                        hls_url = urljoin(url, hls_url)
+                        if not hls_url or hls_url in format_urls:
+                            continue
+                        format_urls.add(hls_url)
+                        formats.extend(self._extract_m3u8_formats(
+                            hls_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                            m3u8_id='hls', fatal=False))
+                standard_sources = xplayer_sources.get('standard')
+                if isinstance(standard_sources, dict):
+                    for format_id, formats_list in standard_sources.items():
+                        if not isinstance(formats_list, list):
+                            continue
+                        for standard_format in formats_list:
+                            if not isinstance(standard_format, dict):
+                                continue
+                            for standard_format_key in ('url', 'fallback'):
+                                standard_url = standard_format.get(standard_format_key)
+                                if not standard_url:
+                                    continue
+                                standard_url = urljoin(url, standard_url)
+                                if not standard_url or standard_url in format_urls:
+                                    continue
+                                format_urls.add(standard_url)
+                                ext = determine_ext(standard_url, 'mp4')
+                                if ext == 'm3u8':
+                                    formats.extend(self._extract_m3u8_formats(
+                                        standard_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                                        m3u8_id='hls', fatal=False))
+                                    continue
+                                quality = (str_or_none(standard_format.get('quality'))
+                                           or str_or_none(standard_format.get('label'))
+                                           or '')
+                                formats.append({
+                                    'format_id': '%s-%s' % (format_id, quality),
+                                    'url': standard_url,
+                                    'ext': ext,
+                                    'height': get_height(quality),
+                                    'filesize': format_sizes.get(quality),
+                                    'http_headers': {
+                                        'Referer': standard_url,
+                                    },
+                                })
+            self._sort_formats(formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
             categories_list = video.get('categories')
             if isinstance(categories_list, list):
@@ -189,6 +254,7 @@ class XHamsterIE(InfoExtractor):
             else:
                 categories = None
 
+            uploader_url = url_or_none(try_get(video, lambda x: x['author']['pageURL']))
             return {
                 'id': video_id,
                 'display_id': display_id,
@@ -197,6 +263,8 @@ class XHamsterIE(InfoExtractor):
                 'timestamp': int_or_none(video.get('created')),
                 'uploader': try_get(
                     video, lambda x: x['author']['name'], compat_str),
+                'uploader_url': uploader_url,
+                'uploader_id': uploader_url.split('/')[-1] if uploader_url else None,
                 'thumbnail': video.get('thumbURL'),
                 'duration': int_or_none(video.get('duration')),
                 'view_count': int_or_none(video.get('views')),
@@ -205,7 +273,7 @@ class XHamsterIE(InfoExtractor):
                 'dislike_count': int_or_none(try_get(
                     video, lambda x: x['rating']['dislikes'], int)),
                 'comment_count': int_or_none(video.get('views')),
-                'age_limit': age_limit,
+                'age_limit': age_limit if age_limit is not None else 18,
                 'categories': categories,
                 'formats': formats,
             }
@@ -296,6 +364,7 @@ class XHamsterIE(InfoExtractor):
             'description': description,
             'upload_date': upload_date,
             'uploader': uploader,
+            'uploader_id': uploader.lower() if uploader else None,
             'thumbnail': thumbnail,
             'duration': duration,
             'view_count': view_count,
@@ -364,6 +433,12 @@ class XHamsterUserIE(InfoExtractor):
             'id': 'firatkaan',
         },
         'playlist_mincount': 1,
+    }, {
+        'url': 'https://xhday.com/users/mobhunter',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/users/pelushe21',
+        'only_matching': True,
     }]
 
     def _entries(self, user_id):

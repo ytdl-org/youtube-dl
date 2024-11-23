@@ -58,10 +58,9 @@ class NRKBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id, item=None, note=None, fatal=True, query=None):
         return self._download_json(
-            urljoin('http://psapi.nrk.no/', path),
+            urljoin('https://psapi.nrk.no/', path),
             video_id, note or 'Downloading %s JSON' % item,
-            fatal=fatal, query=query,
-            headers={'Accept-Encoding': 'gzip, deflate, br'})
+            fatal=fatal, query=query)
 
 
 class NRKIE(NRKBaseIE):

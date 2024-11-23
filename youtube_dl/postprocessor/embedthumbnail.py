@@ -13,9 +13,12 @@ from ..utils import (
     encodeFilename,
     PostProcessingError,
     prepend_extension,
+    process_communicate_or_kill,
     replace_extension,
-    shell_quote
+    shell_quote,
 )
+
+from ..compat import compat_open as open
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -89,10 +92,14 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         elif info['ext'] in ['m4a', 'mp4']:
-            if not check_executable('AtomicParsley', ['-v']):
+            atomicparsley = next((x
+                                  for x in ['AtomicParsley', 'atomicparsley']
+                                  if check_executable(x, ['-v'])), None)
+
+            if atomicparsley is None:
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
-            cmd = [encodeFilename('AtomicParsley', True),
+            cmd = [encodeFilename(atomicparsley, True),
                    encodeFilename(filename, True),
                    encodeArgument('--artwork'),
                    encodeFilename(thumbnail_filename, True),
@@ -105,7 +112,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 self._downloader.to_screen('[debug] AtomicParsley command line: %s' % shell_quote(cmd))
 
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            stdout, stderr = process_communicate_or_kill(p)
 
             if p.returncode != 0:
                 msg = stderr.decode('utf-8', 'replace').strip()

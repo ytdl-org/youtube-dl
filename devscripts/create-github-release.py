@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import unicode_literals
 
-import io
 import json
 import mimetypes
 import netrc
@@ -10,7 +9,9 @@ import os
 import re
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+dirn = os.path.dirname
+
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
 
 from youtube_dl.compat import (
     compat_basestring,
@@ -22,6 +23,7 @@ from youtube_dl.utils import (
     make_HTTPS_handler,
     sanitized_Request,
 )
+from utils import read_file
 
 
 class GitHubReleaser(object):
@@ -89,8 +91,7 @@ def main():
 
     changelog_file, version, build_path = args
 
-    with io.open(changelog_file, encoding='utf-8') as inf:
-        changelog = inf.read()
+    changelog = read_file(changelog_file)
 
     mobj = re.search(r'(?s)version %s\n{2}(.+?)\n{3}' % version, changelog)
     body = mobj.group(1) if mobj else ''

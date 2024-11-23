@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+
 from ..utils import (
     float_or_none,
     get_element_by_id,
@@ -11,6 +12,7 @@ from ..utils import (
     strip_or_none,
     unified_strdate,
     urljoin,
+    str_to_int,
 )
 
 
@@ -36,6 +38,26 @@ class VidLiiIE(InfoExtractor):
             'tags': ['Vidlii', 'Jan', 'Videogames'],
         }
     }, {
+        # HD
+        'url': 'https://www.vidlii.com/watch?v=2Ng8Abj2Fkl',
+        'md5': '450e7da379c884788c3a4fa02a3ce1a4',
+        'info_dict': {
+            'id': '2Ng8Abj2Fkl',
+            'ext': 'mp4',
+            'title': 'test',
+            'description': 'md5:cc55a86032a7b6b3cbfd0f6b155b52e9',
+            'thumbnail': 'https://www.vidlii.com/usfi/thmp/2Ng8Abj2Fkl.jpg',
+            'uploader': 'VidLii',
+            'uploader_url': 'https://www.vidlii.com/user/VidLii',
+            'upload_date': '20200927',
+            'duration': 5,
+            'view_count': int,
+            'comment_count': int,
+            'average_rating': float,
+            'categories': ['Film & Animation'],
+            'tags': list,
+        },
+    }, {
         'url': 'https://www.vidlii.com/embed?v=tJluaH4BJ3v&a=0',
         'only_matching': True,
     }]
@@ -46,11 +68,32 @@ class VidLiiIE(InfoExtractor):
         webpage = self._download_webpage(
             'https://www.vidlii.com/watch?v=%s' % video_id, video_id)
 
-        video_url = self._search_regex(
-            r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1', webpage,
-            'video url', group='url')
+        formats = []
 
-        title = self._search_regex(
+        def add_format(format_url, height=None):
+            height = int(self._search_regex(r'(\d+)\.mp4',
+                         format_url, 'height', default=360))
+
+            formats.append({
+                'url': format_url,
+                'format_id': '%dp' % height if height else None,
+                'height': height,
+            })
+
+        sources = re.findall(
+            r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
+            webpage)
+
+        formats = []
+        if len(sources) > 1:
+            add_format(sources[1][1])
+            self._check_formats(formats, video_id)
+        if len(sources) > 0:
+            add_format(sources[0][1])
+
+        self._sort_formats(formats)
+
+        title = self._html_search_regex(
             (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'), webpage,
             'title')
 
@@ -82,9 +125,9 @@ class VidLiiIE(InfoExtractor):
             default=None) or self._search_regex(
             r'duration\s*:\s*(\d+)', webpage, 'duration', fatal=False))
 
-        view_count = int_or_none(self._search_regex(
-            (r'<strong>(\d+)</strong> views',
-             r'Views\s*:\s*<strong>(\d+)</strong>'),
+        view_count = str_to_int(self._html_search_regex(
+            (r'<strong>([\d,.]+)</strong> views',
+             r'Views\s*:\s*<strong>([\d,.]+)</strong>'),
             webpage, 'view count', fatal=False))
 
         comment_count = int_or_none(self._search_regex(
@@ -109,7 +152,7 @@ class VidLiiIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
+            'formats': formats,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,

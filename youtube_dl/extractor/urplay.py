@@ -4,7 +4,11 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     dict_get,
+    ExtractorError,
     int_or_none,
+    ISO639Utils,
+    parse_age_limit,
+    try_get,
     unified_timestamp,
 )
 
@@ -21,6 +25,12 @@ class URPlayIE(InfoExtractor):
             'description': 'md5:5344508a52aa78c1ced6c1b8b9e44e9a',
             'timestamp': 1513292400,
             'upload_date': '20171214',
+            'series': 'UR Samtiden - Livet, universum och rymdens märkliga musik',
+            'duration': 2269,
+            'categories': ['Vetenskap & teknik'],
+            'tags': ['Kritiskt tänkande', 'Vetenskap', 'Vetenskaplig verksamhet'],
+            'episode': 'Om vetenskap, kritiskt tänkande och motstånd',
+            'age_limit': 15,
         },
     }, {
         'url': 'https://urskola.se/Produkter/190031-Tripp-Trapp-Trad-Sovkudde',
@@ -31,6 +41,10 @@ class URPlayIE(InfoExtractor):
             'description': 'md5:b86bffdae04a7e9379d1d7e5947df1d1',
             'timestamp': 1440086400,
             'upload_date': '20150820',
+            'series': 'Tripp, Trapp, Träd',
+            'duration': 865,
+            'tags': ['Sova'],
+            'episode': 'Sovkudde',
         },
     }, {
         'url': 'http://urskola.se/Produkter/155794-Smasagor-meankieli-Grodan-i-vida-varlden',
@@ -41,9 +55,19 @@ class URPlayIE(InfoExtractor):
         video_id = self._match_id(url)
         url = url.replace('skola.se/Produkter', 'play.se/program')
         webpage = self._download_webpage(url, video_id)
-        urplayer_data = self._parse_json(self._html_search_regex(
-            r'data-react-class="components/Player/Player"[^>]+data-react-props="({.+?})"',
-            webpage, 'urplayer data'), video_id)['currentProduct']
+        urplayer_data = self._search_regex(
+            r'(?s)\bid\s*=\s*"__NEXT_DATA__"[^>]*>\s*({.+?})\s*</script',
+            webpage, 'urplayer next data', fatal=False) or {}
+        if urplayer_data:
+            urplayer_data = self._parse_json(urplayer_data, video_id, fatal=False)
+            urplayer_data = try_get(urplayer_data, lambda x: x['props']['pageProps']['program'], dict)
+            if not urplayer_data:
+                raise ExtractorError('Unable to parse __NEXT_DATA__')
+        else:
+            accessible_episodes = self._parse_json(self._html_search_regex(
+                r'data-react-class="routes/Product/components/ProgramContainer/ProgramContainer"[^>]+data-react-props="({.+?})"',
+                webpage, 'urplayer data'), video_id)['accessibleEpisodes']
+            urplayer_data = next(e for e in accessible_episodes if e.get('id') == int_or_none(video_id))
         episode = urplayer_data['title']
         raw_streaming_info = urplayer_data['streamingInfo']['raw']
         host = self._download_json(
@@ -60,6 +84,30 @@ class URPlayIE(InfoExtractor):
                     'http://%s/%splaylist.m3u8' % (host, file_http),
                     video_id, skip_protocols=['f4m', 'rtmp', 'rtsp']))
         self._sort_formats(formats)
+
+        subtitles = {}
+
+        def parse_lang_code(code):
+            "3-character language code or None (utils candidate)"
+            if code is None:
+                return
+            lang = code.lower()
+            if not ISO639Utils.long2short(lang):
+                lang = ISO639Utils.short2long(lang)
+            return lang or None
+
+        for k, v in (urplayer_data['streamingInfo'].get('sweComplete') or {}).items():
+            if (k in ('sd', 'hd') or not isinstance(v, dict)):
+                continue
+            lang, sttl_url = (v.get(kk) for kk in ('language', 'location', ))
+            if not sttl_url:
+                continue
+            lang = parse_lang_code(lang)
+            if not lang:
+                continue
+            sttl = subtitles.get(lang) or []
+            sttl.append({'ext': k, 'url': sttl_url, })
+            subtitles[lang] = sttl
 
         image = urplayer_data.get('image') or {}
         thumbnails = []
@@ -93,4 +141,7 @@ class URPlayIE(InfoExtractor):
             'season': series.get('label'),
             'episode': episode,
             'episode_number': int_or_none(urplayer_data.get('episodeNumber')),
+            'age_limit': parse_age_limit(min(try_get(a, lambda x: x['from'], int) or 0
+                                             for a in urplayer_data.get('ageRanges', []))),
+            'subtitles': subtitles,
         }

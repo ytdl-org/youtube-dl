@@ -5,16 +5,18 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+dirn = os.path.dirname
+
+sys.path.insert(0, dirn(dirn(os.path.abspath(__file__))))
 
 import errno
-import io
 import json
 import re
 import subprocess
 
 from youtube_dl.swfinterp import SWFInterpreter
+from youtube_dl.compat import compat_open as open
 
 
 TEST_DIR = os.path.join(
@@ -43,7 +45,7 @@ def _make_testfunc(testfile):
                     '-static-link-runtime-shared-libraries', as_file])
             except OSError as ose:
                 if ose.errno == errno.ENOENT:
-                    print('mxmlc not found! Skipping test.')
+                    self.skipTest('mxmlc not found!')
                     return
                 raise
 
@@ -51,7 +53,7 @@ def _make_testfunc(testfile):
             swf_content = swf_f.read()
         swfi = SWFInterpreter(swf_content)
 
-        with io.open(as_file, 'r', encoding='utf-8') as as_f:
+        with open(as_file, 'r', encoding='utf-8') as as_f:
             as_content = as_f.read()
 
         def _find_spec(key):

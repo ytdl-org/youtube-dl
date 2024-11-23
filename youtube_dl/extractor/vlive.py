@@ -106,7 +106,7 @@ class VLiveIE(VLiveBaseIE):
             raise ExtractorError('Unable to log in', expected=True)
 
     def _call_api(self, path_template, video_id, fields=None):
-        query = {'appId': self._APP_ID, 'gcc': 'KR'}
+        query = {'appId': self._APP_ID, 'gcc': 'KR', 'platformType': 'PC'}
         if fields:
             query['fields'] = fields
         try:
@@ -116,7 +116,7 @@ class VLiveIE(VLiveBaseIE):
                 headers={'Referer': 'https://www.vlive.tv/'}, query=query)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                self.raise_login_required(json.loads(e.cause.read().decode())['message'])
+                self.raise_login_required(json.loads(e.cause.read().decode('utf-8'))['message'])
             raise
 
     def _real_extract(self, url):

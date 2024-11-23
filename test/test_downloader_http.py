@@ -9,7 +9,11 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import http_server_port, try_rm
+from test.helper import (
+    FakeLogger,
+    http_server_port,
+    try_rm,
+)
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.downloader.http import HttpFD
@@ -66,17 +70,6 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             assert False
 
 
-class FakeLogger(object):
-    def debug(self, msg):
-        pass
-
-    def warning(self, msg):
-        pass
-
-    def error(self, msg):
-        pass
-
-
 class TestHttpFD(unittest.TestCase):
     def setUp(self):
         self.httpd = compat_http_server.HTTPServer(
@@ -95,7 +88,7 @@ class TestHttpFD(unittest.TestCase):
         self.assertTrue(downloader.real_download(filename, {
             'url': 'http://127.0.0.1:%d/%s' % (self.port, ep),
         }))
-        self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
+        self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE, ep)
         try_rm(encodeFilename(filename))
 
     def download_all(self, params):
