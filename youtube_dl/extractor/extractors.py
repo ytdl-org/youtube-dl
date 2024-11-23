@@ -309,6 +309,7 @@ from .douyutv import (
     DouyuShowIE,
     DouyuTVIE,
 )
+from .doodstream import DoodStreamIE
 from .dplay import (
     DPlayIE,
     DiscoveryPlusIE,
