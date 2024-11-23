@@ -136,7 +136,8 @@ class NebulaBaseIE(InfoExtractor):
             'series': 'channel_title',
             'creator': 'channel_title',
             'thumbnail': ('images', 'thumbnail', 'src', T(url_or_none)),
-            'episode_number': ('order', {int_or_none}),
+            'episode_number': ('order', T(int_or_none)),
+
             # Old code was wrongly setting extractor_key from NebulaSubscriptionsIE
             # '_old_archive_ids': ('zype_id', {lambda x: [
             #    make_archive_id(NebulaIE, x), make_archive_id(NebulaSubscriptionsIE, x)] if x else None}),
