@@ -61,7 +61,7 @@ class DoodStreamIE(InfoExtractor):
             'duration': 12.0,
         },
     }, {
-        'url': 'http://dood.ws /d/h7ecgw5oqn8k',
+        'url': 'http://dood.ws/d/h7ecgw5oqn8k',
         'only_matching': True,
     }, {
         'url': 'https://dood.li/d/wlihoael8uog',
@@ -94,7 +94,7 @@ class DoodStreamIE(InfoExtractor):
                 'Referer': url,
             }, note='Downloading authpage URL')
         final_url += ''.join((random_choice(ascii_letters + digits)
-                                        for _ in range(10)))
+                              for _ in range(10)))
         final_url = update_url_query(final_url, {
             'token': token,
             'expiry': int(time_time() * 1000),
