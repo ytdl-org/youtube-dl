@@ -78,16 +78,16 @@ class DoodStreamIE(InfoExtractor):
             return self._html_search_regex(r'<title\b[^>]*>([^<]+?)(?:[|-]\s+DoodStream\s*)?</title', html, 'title', fatal=fatal)
 
         title = get_title(webpage)
-        if title == 'Video not found':
+        if title == 'Video not found' or (
+                title == '' and 'Not Found' == self._html_search_regex(r'<h1\b[^>]*>([^<]+?)</h1', webpage, 'heading1', default=None)):
             raise ExtractorError(title, expected=True)
-        token = self._html_search_regex(r'''[?&]token=([a-z0-9]+)[&']''', webpage, 'token')
 
-        headers.update({
-            # 'User-Agent': 'Mozilla/5.0',  # (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/66.0',
-            'referer': url
-        })
-
-        pass_md5 = self._html_search_regex(r'(/pass_md5.*?)\'', webpage, 'pass_md5')
+        pass_md5, token = self._search_regex(
+            r'["\']/(?P<pm>pass_md5/[\da-f-]+/(?P<tok>[\da-z]+))', webpage, 'tokens',
+            group=('pm', 'tok'))
+        headers = {
+            'Referer': url,
+        }
         # construct the media link
         final_url = self._download_webpage(
             'https://%s/%s' % (host, pass_md5), video_id, headers={
@@ -100,6 +100,7 @@ class DoodStreamIE(InfoExtractor):
             'expiry': int(time_time() * 1000),
         })
 
+        # get additional metadata
         thumb = next(filter(None, (url_or_none(self._html_search_meta(x, webpage, default=None))
                                    for x in ('og:image', 'twitter:image'))), None)
         description = self._html_search_meta(
