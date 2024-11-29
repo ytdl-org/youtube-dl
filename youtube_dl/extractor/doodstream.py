@@ -1,9 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import random
-import string
-import time
+from random import choice as random_choice
+from string import ascii_letters, digits
+from time import time as time_time
 
 from ..compat import compat_filter as filter
 from ..utils import (
@@ -21,40 +21,20 @@ from .common import InfoExtractor
 
 
 class DoodStreamIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dood\.(?:to|watch|so|la|pm|sh|ws|one)/[ed]/(?P<id>[a-z0-9]+)'
+    # dood.* redirects
+    # .watch -> .re (but HEAD request fails in GenericIE)
+    # .so -> .li
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>dood\.(?:to|la|li|pm|re|sh|watch|ws|one)|ds2play\.com)/[ed]/(?P<id>[a-z\d]+)'
     _TESTS = [{
-        'url': 'http://dood.to/e/5s1wmbdacezb',
-        'md5': '4568b83b31e13242b3f1ff96c55f0595',
+        'url': 'https://dood.li/e/h7ecgw5oqn8k',
+        'md5': '90f2af170551c17fc78bee7426890054',
         'info_dict': {
-            'id': '5s1wmbdacezb',
+            'id': 'h7ecgw5oqn8k',
             'ext': 'mp4',
-            'title': 'Kat Wonders - Monthly May 2020',
-            'description': 'Kat Wonders - Monthly May 2020 | DoodStream.com',
-            'thumbnail': 'https://img.doodcdn.com/snaps/flyus84qgl2fsk4g.jpg',
+            'title': 'Free-Slow-Music',
+            'upload_date': '20230814',
+            'thumbnail': 'https://img.doodcdn.co/splash/7mbnwydhb6kb7xyk.jpg',
         },
-        'skip': 'Video not found',
-    }, {
-        'url': 'http://dood.watch/d/5s1wmbdacezb',
-        'md5': '4568b83b31e13242b3f1ff96c55f0595',
-        'info_dict': {
-            'id': '5s1wmbdacezb',
-            'ext': 'mp4',
-            'title': 'Kat Wonders - Monthly May 2020',
-            'description': 'Kat Wonders - Monthly May 2020 | DoodStream.com',
-            'thumbnail': 'https://img.doodcdn.com/snaps/flyus84qgl2fsk4g.jpg',
-        },
-        'skip': 'Video not found',
-    }, {
-        'url': 'https://dood.to/d/jzrxn12t2s7n',
-        'md5': '3207e199426eca7c2aa23c2872e6728a',
-        'info_dict': {
-            'id': 'jzrxn12t2s7n',
-            'ext': 'mp4',
-            'title': 'Stacy Cruz Cute ALLWAYSWELL',
-            'description': 'Stacy Cruz Cute ALLWAYSWELL | DoodStream.com',
-            'thumbnail': 'https://img.doodcdn.com/snaps/8edqd5nppkac3x8u.jpg',
-        },
-        'skip': 'Video not found',
     }, {
         'url': 'https://dood.to/d/is34uy8wvaet',
         'md5': '04740d3ba93bcd638aa7a097d9226710',
@@ -66,9 +46,10 @@ class DoodStreamIE(InfoExtractor):
             'thumbnail': r're:https?://img\.doodcdn\.com?/[\w/]+\.jpg',
             'filesize_approx': int,
             'duration': 9886,
-        }
+        },
+        'skip': 'Video not found',
     }, {
-        'url': 'https://dood.so/d/wlihoael8uog',
+        'url': 'https://dood.sh/d/wlihoael8uog',
         'md5': '2c14444c89788cc309738c1560abe278',
         'info_dict': {
             'id': 'wlihoael8uog',
@@ -78,16 +59,20 @@ class DoodStreamIE(InfoExtractor):
             'upload_date': '20220319',
             'filesize_approx': int,
             'duration': 12.0,
-        }
+        },
+    }, {
+        'url': 'http://dood.ws /d/h7ecgw5oqn8k',
+        'only_matching': True,
+    }, {
+        'url': 'https://dood.li/d/wlihoael8uog',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        url = 'https://dood.to/e/' + video_id
-        headers = {
-            'User-Agent': 'Mozilla/5.0',  # (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/66.0',
-        }
-        webpage = self._download_webpage(url, video_id, headers=headers)
+        host = 'dood.li'
+        url = 'https://%s/e/%s' % (host, video_id)
+        webpage = self._download_webpage(url, video_id, note='Downloading "/e/" webpage')
 
         def get_title(html, fatal=False):
             return self._html_search_regex(r'<title\b[^>]*>([^<]+?)(?:[|-]\s+DoodStream\s*)?</title', html, 'title', fatal=fatal)
@@ -103,18 +88,26 @@ class DoodStreamIE(InfoExtractor):
         })
 
         pass_md5 = self._html_search_regex(r'(/pass_md5.*?)\'', webpage, 'pass_md5')
-        final_url = (
-            self._download_webpage('https://dood.to' + pass_md5, video_id, headers=headers, note='Downloading final URL')
-            + ''.join((random.choice(string.ascii_letters + string.digits) for _ in range(10)))
-        )
-        final_url = update_url_query(final_url, {'token': token, 'expiry': int(time.time() * 1000), })
+        # construct the media link
+        final_url = self._download_webpage(
+            'https://%s/%s' % (host, pass_md5), video_id, headers={
+                'Referer': url,
+            }, note='Downloading authpage URL')
+        final_url += ''.join((random_choice(ascii_letters + digits)
+                                        for _ in range(10)))
+        final_url = update_url_query(final_url, {
+            'token': token,
+            'expiry': int(time_time() * 1000),
+        })
 
         thumb = next(filter(None, (url_or_none(self._html_search_meta(x, webpage, default=None))
                                    for x in ('og:image', 'twitter:image'))), None)
         description = self._html_search_meta(
             ('og:description', 'description', 'twitter:description'), webpage, default=None)
 
-        webpage = self._download_webpage('https://dood.to/d/' + video_id, video_id, headers=headers, fatal=False) or ''
+        webpage = self._download_webpage(
+            'https://%s/d/%s' % (host, video_id), video_id, fatal=False,
+            note='Downloading alternative "/d/" page') or ''
 
         title = (
             self._html_search_meta(('og:title', 'twitter:title'), webpage, default=None)
