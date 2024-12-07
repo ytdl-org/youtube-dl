@@ -5,7 +5,7 @@ import json
 import operator
 import re
 
-from functools import update_wrapper
+from functools import update_wrapper, wraps
 
 from .utils import (
     error_to_compat_str,
@@ -20,9 +20,11 @@ from .compat import (
     compat_basestring,
     compat_chr,
     compat_collections_chain_map as ChainMap,
+    compat_contextlib_suppress,
     compat_filter as filter,
     compat_itertools_zip_longest as zip_longest,
     compat_map as map,
+    compat_numeric_types,
     compat_str,
 )
 
@@ -138,6 +140,38 @@ def _js_ternary(cndn, if_true=True, if_false=False):
     return if_true
 
 
+def _js_unary_op(op):
+
+    @wraps_op(op)
+    def wrapped(_, a):
+        return op(a)
+
+    return wrapped
+
+
+# https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof
+def _js_typeof(expr):
+    with compat_contextlib_suppress(TypeError, KeyError):
+        return {
+            JS_Undefined: 'undefined',
+            _NaN: 'number',
+            _Infinity: 'number',
+            True: 'boolean',
+            False: 'boolean',
+            None: 'object',
+        }[expr]
+    for t, n in (
+        (compat_basestring, 'string'),
+        (compat_numeric_types, 'number'),
+    ):
+        if isinstance(expr, t):
+            return n
+    if callable(expr):
+        return 'function'
+    # TODO: Symbol, BigInt
+    return 'object'
+
+
 # (op, definition) in order of binding priority, tightest first
 # avoid dict to maintain order
 # definition None => Defined in JSInterpreter._operator
@@ -174,6 +208,11 @@ _SC_OPERATORS = (
     ('??', None),
     ('||', None),
     ('&&', None),
+)
+
+_UNARY_OPERATORS_X = (
+    ('void', _js_unary_op(lambda _: JS_Undefined)),
+    ('typeof', _js_unary_op(_js_typeof)),
 )
 
 _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS))
@@ -242,6 +281,7 @@ class Debugger(object):
 
     @classmethod
     def wrap_interpreter(cls, f):
+        @wraps(f)
         def interpret_statement(self, stmt, local_vars, allow_recursion, *args, **kwargs):
             if cls.ENABLED and stmt.strip():
                 cls.write(stmt, level=allow_recursion)
@@ -347,6 +387,8 @@ class JSInterpreter(object):
     def __op_chars(cls):
         op_chars = set(';,[')
         for op in cls._all_operators():
+            if op[0].isalpha():
+                continue
             op_chars.update(op[0])
         return op_chars
 
@@ -425,7 +467,7 @@ class JSInterpreter(object):
         if not _cached:
             _cached.extend(itertools.chain(
                 # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence
-                _SC_OPERATORS, _LOG_OPERATORS, _COMP_OPERATORS, _OPERATORS))
+                _SC_OPERATORS, _LOG_OPERATORS, _COMP_OPERATORS, _OPERATORS, _UNARY_OPERATORS_X))
         return _cached
 
     def _operator(self, op, left_val, right_expr, expr, local_vars, allow_recursion):
@@ -478,6 +520,52 @@ class JSInterpreter(object):
         ''')
     _FINALLY_RE = re.compile(r'finally\s*\{')
     _SWITCH_RE = re.compile(r'switch\s*\(')
+
+    def handle_operators(self, expr, local_vars, allow_recursion):
+
+        for op, _ in self._all_operators():
+            # hackety: </> have higher priority than <</>>, but don't confuse them
+            skip_delim = (op + op) if op in '<>*?' else None
+            if op == '?':
+                skip_delim = (skip_delim, '?.')
+            separated = list(self._separate(expr, op, skip_delims=skip_delim))
+            if len(separated) < 2:
+                continue
+
+            right_expr = separated.pop()
+            # handle operators that are both unary and binary, minimal BODMAS
+            if op in ('+', '-'):
+                # simplify/adjust consecutive instances of these operators
+                undone = 0
+                separated = [s.strip() for s in separated]
+                while len(separated) > 1 and not separated[-1]:
+                    undone += 1
+                    separated.pop()
+                if op == '-' and undone % 2 != 0:
+                    right_expr = op + right_expr
+                elif op == '+':
+                    while len(separated) > 1 and set(separated[-1]) <= self.OP_CHARS:
+                        right_expr = separated.pop() + right_expr
+                    if separated[-1][-1:] in self.OP_CHARS:
+                        right_expr = separated.pop() + right_expr
+                # hanging op at end of left => unary + (strip) or - (push right)
+                left_val = separated[-1] if separated else ''
+                for dm_op in ('*', '%', '/', '**'):
+                    bodmas = tuple(self._separate(left_val, dm_op, skip_delims=skip_delim))
+                    if len(bodmas) > 1 and not bodmas[-1].strip():
+                        expr = op.join(separated) + op + right_expr
+                        if len(separated) > 1:
+                            separated.pop()
+                            right_expr = op.join((left_val, right_expr))
+                        else:
+                            separated = [op.join((left_val, right_expr))]
+                            right_expr = None
+                        break
+                if right_expr is None:
+                    continue
+
+            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
+            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), True
 
     @Debugger.wrap_interpreter
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
@@ -533,9 +621,15 @@ class JSInterpreter(object):
             else:
                 raise self.Exception('Unsupported object {obj:.100}'.format(**locals()), expr=expr)
 
-        if expr.startswith('void '):
-            left = self.interpret_expression(expr[5:], local_vars, allow_recursion)
-            return None, should_return
+        for op, _ in _UNARY_OPERATORS_X:
+            if not expr.startswith(op):
+                continue
+            operand = expr[len(op):]
+            if not operand or operand[0] != ' ':
+                continue
+            op_result = self.handle_operators(expr, local_vars, allow_recursion)
+            if op_result:
+                return op_result[0], should_return
 
         if expr.startswith('{'):
             inner, outer = self._separate_at_paren(expr)
@@ -582,7 +676,7 @@ class JSInterpreter(object):
                 if_expr, expr = self._separate_at_paren(expr)
             else:
                 # may lose ... else ... because of ll.368-374
-                if_expr, expr = self._separate_at_paren(expr, delim=';')
+                if_expr, expr = self._separate_at_paren(' %s;' % (expr,), delim=';')
             else_expr = None
             m = re.match(r'else\s*(?P<block>\{)?', expr)
             if m:
@@ -790,49 +884,9 @@ class JSInterpreter(object):
             idx = self.interpret_expression(m.group('idx'), local_vars, allow_recursion)
             return self._index(val, idx), should_return
 
-        for op, _ in self._all_operators():
-            # hackety: </> have higher priority than <</>>, but don't confuse them
-            skip_delim = (op + op) if op in '<>*?' else None
-            if op == '?':
-                skip_delim = (skip_delim, '?.')
-            separated = list(self._separate(expr, op, skip_delims=skip_delim))
-            if len(separated) < 2:
-                continue
-
-            right_expr = separated.pop()
-            # handle operators that are both unary and binary, minimal BODMAS
-            if op in ('+', '-'):
-                # simplify/adjust consecutive instances of these operators
-                undone = 0
-                separated = [s.strip() for s in separated]
-                while len(separated) > 1 and not separated[-1]:
-                    undone += 1
-                    separated.pop()
-                if op == '-' and undone % 2 != 0:
-                    right_expr = op + right_expr
-                elif op == '+':
-                    while len(separated) > 1 and set(separated[-1]) <= self.OP_CHARS:
-                        right_expr = separated.pop() + right_expr
-                    if separated[-1][-1:] in self.OP_CHARS:
-                        right_expr = separated.pop() + right_expr
-                # hanging op at end of left => unary + (strip) or - (push right)
-                left_val = separated[-1] if separated else ''
-                for dm_op in ('*', '%', '/', '**'):
-                    bodmas = tuple(self._separate(left_val, dm_op, skip_delims=skip_delim))
-                    if len(bodmas) > 1 and not bodmas[-1].strip():
-                        expr = op.join(separated) + op + right_expr
-                        if len(separated) > 1:
-                            separated.pop()
-                            right_expr = op.join((left_val, right_expr))
-                        else:
-                            separated = [op.join((left_val, right_expr))]
-                            right_expr = None
-                        break
-                if right_expr is None:
-                    continue
-
-            left_val = self.interpret_expression(op.join(separated), local_vars, allow_recursion)
-            return self._operator(op, left_val, right_expr, expr, local_vars, allow_recursion), should_return
+        op_result = self.handle_operators(expr, local_vars, allow_recursion)
+        if op_result:
+            return op_result[0], should_return
 
         if md.get('attribute'):
             variable, member, nullish = m.group('var', 'member', 'nullish')
