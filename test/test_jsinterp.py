@@ -266,7 +266,20 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { return (l=[0,1,2,3], function(a, b){return a+b})((l[1], l[2]), l[3]) }', 5)
 
     def test_void(self):
-        self._test('function f() { return void 42; }', None)
+        self._test('function f() { return void 42; }', JS_Undefined)
+
+    def test_typeof(self):
+        self._test('function f() { return typeof undefined; }', 'undefined')
+        self._test('function f() { return typeof NaN; }', 'number')
+        self._test('function f() { return typeof Infinity; }', 'number')
+        self._test('function f() { return typeof true; }', 'boolean')
+        self._test('function f() { return typeof null; }', 'object')
+        self._test('function f() { return typeof "a string"; }', 'string')
+        self._test('function f() { return typeof 42; }', 'number')
+        self._test('function f() { return typeof 42.42; }', 'number')
+        self._test('function f() { var g = function(){}; return typeof g; }', 'function')
+        self._test('function f() { return typeof {key: "value"}; }', 'object')
+        # not yet implemented: Symbol, BigInt
 
     def test_return_function(self):
         jsi = JSInterpreter('''
