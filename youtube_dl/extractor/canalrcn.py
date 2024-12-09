@@ -4,15 +4,17 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    extract_attributes,
-    int_or_none,
-    traverse_obj
+    clean_html,
+    try_get,
 )
 import json
-import re
 
 class CanalrcnIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?canalrcn\.com/(?:[^/]+/)+(?P<id>[^/?&#]+)'
+    
+    # Specify geo-restriction
+    _GEO_COUNTRIES = ['CO']
+    
     _TESTS = [{
         'url': 'https://www.canalrcn.com/la-rosa-de-guadalupe/capitulos/la-rosa-de-guadalupe-capitulo-58-los-enamorados-3619',
         'info_dict': {
@@ -25,14 +27,14 @@ class CanalrcnIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-        'skip': 'Geo-restricted to Colombia',
+        'expected_warnings': ['Video is geo-restricted to Colombia'],
+        'skip': 'Geo-restricted to Colombia'
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         
-        # Extract JSON-LD data
         json_ld = self._search_regex(
             r'<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json>[^<]+)</script>',
             webpage, 'JSON-LD', group='json', default='{}')
@@ -42,7 +44,6 @@ class CanalrcnIE(InfoExtractor):
         except json.JSONDecodeError:
             raise ExtractorError('Could not parse JSON-LD data')
             
-        # Find the VideoObject in the JSON-LD array
         video_data = None
         if isinstance(json_data, list):
             for item in json_data:
@@ -53,20 +54,21 @@ class CanalrcnIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Could not find video information in JSON-LD data')
 
-        # Extract player information
-        player_match = re.search(r'dailymotion\.createPlayer\("([^"]+)",\s*{([^}]+)}', webpage)
-        if not player_match:
-            raise ExtractorError('Could not find player configuration')
+        embed_url = video_data.get('embedUrl')
+        if not embed_url:
+            raise ExtractorError('Could not find video embed URL')
 
-        player_config = player_match.group(2)
-        video_url_match = re.search(r'video:\s*["\']([^"\']+)', player_config)
-        if not video_url_match:
-            raise ExtractorError('Could not find video URL')
-
-        dailymotion_id = video_url_match.group(1).split('&&')[0]
-
-        # Configure geo-bypass headers
-        self._downloader.params['geo_verification_proxy'] = 'co'
+        dailymotion_id = self._search_regex(
+            r'dailymotion\.com/(?:embed/)?video/([a-zA-Z0-9]+)',
+            embed_url,
+            'dailymotion id'
+        )
+        
+        #geo-restriction handling
+        self.raise_geo_restricted(
+            msg='This video is only available in Colombia',
+            countries=self._GEO_COUNTRIES
+        )
 
         return {
             '_type': 'url_transparent',
@@ -77,5 +79,4 @@ class CanalrcnIE(InfoExtractor):
             'description': video_data.get('description'),
             'thumbnail': video_data.get('thumbnailUrl'),
             'duration': video_data.get('duration'),
-            'note': 'Video is geo-restricted to Colombia',
         }
