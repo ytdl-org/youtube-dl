@@ -2,37 +2,80 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
+from ..utils import (
+    ExtractorError,
+    extract_attributes,
+    int_or_none,
+    traverse_obj
+)
+import json
+import re
 
 class CanalrcnIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?canalrcn\.com/watch/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'https://canalrcn.com/watch/42',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+    _VALID_URL = r'https?://(?:www\.)?canalrcn\.com/(?:[^/]+/)+(?P<id>[^/?&#]+)'
+    _TESTS = [{
+        'url': 'https://www.canalrcn.com/la-rosa-de-guadalupe/capitulos/la-rosa-de-guadalupe-capitulo-58-los-enamorados-3619',
         'info_dict': {
-            'id': '42',
+            'id': 'x8ecrn2',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-        }
-    }
+            'title': 'La rosa de Guadalupe | Capítulo 58 | Los enamorados',
+            'description': 'Pamela conoce a un hombre, pero sus papás no se lo aprueban porque no tiene recursos.',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png|webp)',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'Geo-restricted to Colombia',
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+        
+        # Extract JSON-LD data
+        json_ld = self._search_regex(
+            r'<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json>[^<]+)</script>',
+            webpage, 'JSON-LD', group='json', default='{}')
+        
+        try:
+            json_data = json.loads(json_ld)
+        except json.JSONDecodeError:
+            raise ExtractorError('Could not parse JSON-LD data')
+            
+        # Find the VideoObject in the JSON-LD array
+        video_data = None
+        if isinstance(json_data, list):
+            for item in json_data:
+                if isinstance(item, dict) and item.get('@type') == 'VideoObject':
+                    video_data = item
+                    break
+        
+        if not video_data:
+            raise ExtractorError('Could not find video information in JSON-LD data')
 
-        # TODO more code goes here, for example ...
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
+        # Extract player information
+        player_match = re.search(r'dailymotion\.createPlayer\("([^"]+)",\s*{([^}]+)}', webpage)
+        if not player_match:
+            raise ExtractorError('Could not find player configuration')
+
+        player_config = player_match.group(2)
+        video_url_match = re.search(r'video:\s*["\']([^"\']+)', player_config)
+        if not video_url_match:
+            raise ExtractorError('Could not find video URL')
+
+        dailymotion_id = video_url_match.group(1).split('&&')[0]
+
+        # Configure geo-bypass headers
+        self._downloader.params['geo_verification_proxy'] = 'co'
 
         return {
-            'id': video_id,
-            'title': title,
-            'description': self._og_search_description(webpage),
-            'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
-            # TODO more properties (see youtube_dl/extractor/common.py)
+            '_type': 'url_transparent',
+            'url': 'http://www.dailymotion.com/video/%s' % dailymotion_id,
+            'ie_key': 'Dailymotion',
+            'id': dailymotion_id,
+            'title': video_data.get('name'),
+            'description': video_data.get('description'),
+            'thumbnail': video_data.get('thumbnailUrl'),
+            'duration': video_data.get('duration'),
+            'note': 'Video is geo-restricted to Colombia',
         }
