@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class YourExtractorIE(InfoExtractor):
+class CanalrcnIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?canalrcn\.com/watch/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'https://yourextractor.com/watch/42',
+        'url': 'https://canalrcn.com/watch/42',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': '42',
