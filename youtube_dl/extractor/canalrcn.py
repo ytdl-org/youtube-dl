@@ -4,17 +4,18 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    clean_html,
-    try_get,
 )
 import json
 
+
 class CanalrcnIE(InfoExtractor):
+    """Information extractor for canalrcn.com"""
+
     _VALID_URL = r'https?://(?:www\.)?canalrcn\.com/(?:[^/]+/)+(?P<id>[^/?&#]+)'
-    
+
     # Specify geo-restriction
     _GEO_COUNTRIES = ['CO']
-    
+
     _TESTS = [{
         'url': 'https://www.canalrcn.com/la-rosa-de-guadalupe/capitulos/la-rosa-de-guadalupe-capitulo-58-los-enamorados-3619',
         'info_dict': {
@@ -34,23 +35,23 @@ class CanalrcnIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        
+
         json_ld = self._search_regex(
             r'<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json>[^<]+)</script>',
             webpage, 'JSON-LD', group='json', default='{}')
-        
+
         try:
             json_data = json.loads(json_ld)
         except json.JSONDecodeError:
             raise ExtractorError('Could not parse JSON-LD data')
-            
+
         video_data = None
         if isinstance(json_data, list):
             for item in json_data:
                 if isinstance(item, dict) and item.get('@type') == 'VideoObject':
                     video_data = item
                     break
-        
+
         if not video_data:
             raise ExtractorError('Could not find video information in JSON-LD data')
 
@@ -63,8 +64,7 @@ class CanalrcnIE(InfoExtractor):
             embed_url,
             'dailymotion id'
         )
-        
-        #geo-restriction handling
+        # geo-restriction handling
         self.raise_geo_restricted(
             msg='This video is only available in Colombia',
             countries=self._GEO_COUNTRIES
