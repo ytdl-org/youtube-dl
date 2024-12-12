@@ -483,6 +483,13 @@ class TestJSInterpreter(unittest.TestCase):
             self._test(jsi, 't-e-s-t', args=[test_input, '-'])
             self._test(jsi, '', args=[[], '-'])
 
+        self._test('function f(){return '
+                   '[1, 1.0, "abc", {a: 1}, null, undefined, Infinity, NaN].join()}',
+                   '1,1,abc,[object Object],,,Infinity,NaN')
+        self._test('function f(){return '
+                   '[1, 1.0, "abc", {a: 1}, null, undefined, Infinity, NaN].join("~")}',
+                   '1~1~abc~[object Object]~~~Infinity~NaN')
+
     def test_split(self):
         test_result = list('test')
         tests = [
@@ -496,6 +503,18 @@ class TestJSInterpreter(unittest.TestCase):
             self._test(jsi, test_result, args=['t-e-s-t', '-'])
             self._test(jsi, [''], args=['', '-'])
             self._test(jsi, [], args=['', ''])
+        # RegExp split
+        self._test('function f(){return "test".split(/(?:)/)}',
+                   ['t', 'e', 's', 't'])
+        self._test('function f(){return "t-e-s-t".split(/[es-]+/)}',
+                   ['t', 't'])
+        # from MDN: surrogate pairs aren't handled: case 1 fails
+        # self._test('function f(){return "😄😄".split(/(?:)/)}',
+        #            ['\ud83d', '\ude04', '\ud83d', '\ude04'])
+        # case 2 beats Py3.2: it gets the case 1 result
+        if sys.version_info >= (2, 6) and not ((3, 0) <= sys.version_info < (3, 3)):
+            self._test('function f(){return "😄😄".split(/(?:)/u)}',
+                       ['😄', '😄'])
 
     def test_slice(self):
         self._test('function f(){return [0, 1, 2, 3, 4, 5, 6, 7, 8].slice()}', [0, 1, 2, 3, 4, 5, 6, 7, 8])
