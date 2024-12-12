@@ -1113,37 +1113,31 @@ class JSInterpreter(object):
                     index, how_many = map(int, (argvals + [len(obj)])[:2])
                     if index < 0:
                         index += len(obj)
-                    add_items = argvals[2:]
-                    res = []
-                    for _ in range(index, min(index + how_many, len(obj))):
-                        res.append(obj.pop(index))
-                    for i, item in enumerate(add_items):
-                        obj.insert(index + i, item)
+                    res = [obj.pop(index)
+                           for _ in range(index, min(index + how_many, len(obj)))]
+                    obj[index:index] = argvals[2:]
                     return res
-                elif member == 'unshift':
-                    assertion(isinstance(obj, list), 'must be applied on a list')
-                    assertion(argvals, 'takes one or more arguments')
-                    for item in reversed(argvals):
-                        obj.insert(0, item)
-                    return obj
-                elif member == 'pop':
+                elif member in ('shift', 'pop'):
                     assertion(isinstance(obj, list), 'must be applied on a list')
                     assertion(not argvals, 'does not take any arguments')
-                    if not obj:
-                        return
-                    return obj.pop()
+                    return obj.pop(0 if member == 'shift' else -1) if len(obj) > 0 else JS_Undefined
+                elif member == 'unshift':
+                    assertion(isinstance(obj, list), 'must be applied on a list')
+                    # not enforced: assertion(argvals, 'takes one or more arguments')
+                    obj[0:0] = argvals
+                    return len(obj)
                 elif member == 'push':
-                    assertion(argvals, 'takes one or more arguments')
+                    # not enforced: assertion(argvals, 'takes one or more arguments')
                     obj.extend(argvals)
-                    return obj
+                    return len(obj)
                 elif member == 'forEach':
                     assertion(argvals, 'takes one or more arguments')
-                    assertion(len(argvals) <= 2, 'takes at-most 2 arguments')
+                    assertion(len(argvals) <= 2, 'takes at most 2 arguments')
                     f, this = (argvals + [''])[:2]
                     return [f((item, idx, obj), {'this': this}, allow_recursion) for idx, item in enumerate(obj)]
                 elif member == 'indexOf':
                     assertion(argvals, 'takes one or more arguments')
-                    assertion(len(argvals) <= 2, 'takes at-most 2 arguments')
+                    assertion(len(argvals) <= 2, 'takes at most 2 arguments')
                     idx, start = (argvals + [0])[:2]
                     try:
                         return obj.index(idx, start)
@@ -1152,7 +1146,7 @@ class JSInterpreter(object):
                 elif member == 'charCodeAt':
                     assertion(isinstance(obj, compat_str), 'must be applied on a string')
                     # assertion(len(argvals) == 1, 'takes exactly one argument') # but not enforced
-                    idx = argvals[0] if isinstance(argvals[0], int) else 0
+                    idx = argvals[0] if len(argvals) > 0 and isinstance(argvals[0], int) else 0
                     if idx >= len(obj):
                         return None
                     return ord(obj[idx])
