@@ -1740,7 +1740,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         def extract_nsig(s):
             try:
-                ret = func([s])
+                ret = func([s], kwargs={'_ytdl_do_not_return': s})
             except JSInterpreter.Exception:
                 raise
             except Exception as e:
