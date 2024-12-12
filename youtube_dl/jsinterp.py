@@ -368,7 +368,7 @@ class Debugger(object):
                 raise
             if cls.ENABLED and stmt.strip():
                 if should_ret or repr(ret) != stmt:
-                    cls.write(['->', '=>'][should_ret], repr(ret), '<-|', stmt, level=allow_recursion)
+                    cls.write(['->', '=>'][bool(should_ret)], repr(ret), '<-|', stmt, level=allow_recursion)
             return ret, should_ret
         return interpret_statement
 
@@ -603,7 +603,7 @@ class JSInterpreter(object):
 
     # used below
     _VAR_RET_THROW_RE = re.compile(r'''(?x)
-        (?P<var>(?:var|const|let)\s)|return(?:\s+|(?=["'])|$)|(?P<throw>throw\s+)
+        (?:(?P<var>var|const|let)\s+|(?P<ret>return)(?:\s+|(?=["'])|$)|(?P<throw>throw)\s+)
         ''')
     _COMPOUND_RE = re.compile(r'''(?x)
         (?P<try>try)\s*\{|
@@ -683,7 +683,7 @@ class JSInterpreter(object):
             expr = stmt[len(m.group(0)):].strip()
             if m.group('throw'):
                 raise JS_Throw(self.interpret_expression(expr, local_vars, allow_recursion))
-            should_return = not m.group('var')
+            should_return = 'return' if m.group('ret') else False
         if not expr:
             return None, should_return
 
@@ -968,14 +968,20 @@ class JSInterpreter(object):
             return _Infinity, should_return
 
         elif md.get('return'):
-            return local_vars[m.group('name')], should_return
+            ret = local_vars[m.group('name')]
+            # challenge may try to force returning the original value
+            # use an optional internal var to block this
+            if should_return == 'return':
+                if '_ytdl_do_not_return' not in local_vars:
+                    return ret, True
+                return (ret, True) if ret != local_vars['_ytdl_do_not_return'] else (ret, False)
+            else:
+                return ret, should_return
 
-        try:
+        with compat_contextlib_suppress(ValueError):
             ret = json.loads(js_to_json(expr))  # strict=True)
             if not md.get('attribute'):
                 return ret, should_return
-        except ValueError:
-            pass
 
         if md.get('indexing'):
             val = local_vars[m.group('in')]
@@ -1213,7 +1219,7 @@ class JSInterpreter(object):
             yield self.interpret_expression(v, local_vars, allow_recursion)
 
     def extract_object(self, objname):
-        _FUNC_NAME_RE = r'''(?:[a-zA-Z$0-9]+|"[a-zA-Z$0-9]+"|'[a-zA-Z$0-9]+')'''
+        _FUNC_NAME_RE = r'''(?:{n}|"{n}"|'{n}')'''.format(n=_NAME_RE)
         obj = {}
         fields = next(filter(None, (
             obj_m.group('fields') for obj_m in re.finditer(
@@ -1272,6 +1278,7 @@ class JSInterpreter(object):
 
     def extract_function_from_code(self, argnames, code, *global_stack):
         local_vars = {}
+
         while True:
             mobj = re.search(r'function\((?P<args>[^)]*)\)\s*{', code)
             if mobj is None:
@@ -1282,10 +1289,11 @@ class JSInterpreter(object):
                 [x.strip() for x in mobj.group('args').split(',')],
                 body, local_vars, *global_stack))
             code = code[:start] + name + remaining
+
         return self.build_function(argnames, code, local_vars, *global_stack)
 
-    def call_function(self, funcname, *args):
-        return self.extract_function(funcname)(args)
+    def call_function(self, funcname, *args, **kw_global_vars):
+        return self.extract_function(funcname)(args, kw_global_vars)
 
     @classmethod
     def build_arglist(cls, arg_text):
@@ -1304,8 +1312,9 @@ class JSInterpreter(object):
         global_stack = list(global_stack) or [{}]
         argnames = tuple(argnames)
 
-        def resf(args, kwargs={}, allow_recursion=100):
-            global_stack[0].update(zip_longest(argnames, args, fillvalue=None))
+        def resf(args, kwargs=None, allow_recursion=100):
+            kwargs = kwargs or {}
+            global_stack[0].update(zip_longest(argnames, args, fillvalue=JS_Undefined))
             global_stack[0].update(kwargs)
             var_stack = LocalNameSpace(*global_stack)
             ret, should_abort = self.interpret_statement(code.replace('\n', ' '), var_stack, allow_recursion - 1)
