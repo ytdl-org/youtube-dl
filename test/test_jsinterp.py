@@ -366,6 +366,16 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { let a; return a?.qq; }', JS_Undefined)
         self._test('function f() { let a = {m1: 42, m2: 0 }; return a?.qq; }', JS_Undefined)
 
+    def test_indexing(self):
+        self._test('function f() { return [1, 2, 3, 4][3]}', 4)
+        self._test('function f() { return [1, [2, [3, [4]]]][1][1][1][0]}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o[3]}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o["3"]}', 4)
+        self._test('function f() { return [1, [2, {3: [4]}]][1][1]["3"][0]}', 4)
+        self._test('function f() { return [1, 2, 3, 4].length}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o.length}', JS_Undefined)
+        self._test('function f() { var o = {1: 2, 3: 4}; o["length"] = 42; return o.length}', 42)
+
     def test_regex(self):
         self._test('function f() { let a=/,,[/,913,/](,)}/; }', None)
 
