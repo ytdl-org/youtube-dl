@@ -544,6 +544,40 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return "012345678".slice(-1, 1)}', '')
         self._test('function f(){return "012345678".slice(-3, -1)}', '67')
 
+    def test_pop(self):
+        # pop
+        self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.pop(), a]}',
+                   [8, [0, 1, 2, 3, 4, 5, 6, 7]])
+        self._test('function f(){return [].pop()}', JS_Undefined)
+        # push
+        self._test('function f(){var a = [0, 1, 2]; return [a.push(3, 4), a]}',
+                   [5, [0, 1, 2, 3, 4]])
+        self._test('function f(){var a = [0, 1, 2]; return [a.push(), a]}',
+                   [3, [0, 1, 2]])
+
+    def test_shift(self):
+        # shift
+        self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.shift(), a]}',
+                   [0, [1, 2, 3, 4, 5, 6, 7, 8]])
+        self._test('function f(){return [].shift()}', JS_Undefined)
+        # unshift
+        self._test('function f(){var a = [0, 1, 2]; return [a.unshift(3, 4), a]}',
+                   [5, [3, 4, 0, 1, 2]])
+        self._test('function f(){var a = [0, 1, 2]; return [a.unshift(), a]}',
+                   [3, [0, 1, 2]])
+
+    def test_forEach(self):
+        self._test('function f(){var ret = []; var l = [4, 2]; '
+                   'var log = function(e,i,a){ret.push([e,i,a]);}; '
+                   'l.forEach(log); '
+                   'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
+                   [2, 4, 1, [4, 2]])
+        self._test('function f(){var ret = []; var l = [4, 2]; '
+                   'var log = function(e,i,a){this.push([e,i,a]);}; '
+                   'l.forEach(log, ret); '
+                   'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
+                   [2, 4, 1, [4, 2]])
+
 
 if __name__ == '__main__':
     unittest.main()
