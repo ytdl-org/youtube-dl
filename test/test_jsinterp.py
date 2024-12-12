@@ -160,7 +160,6 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){var x = 20; x += 30 + 1; return x;}', 51)
         self._test('function f(){var x = 20; x -= 30 + 1; return x;}', -11)
 
-    @unittest.skip('Not yet fully implemented')
     def test_comments(self):
         self._test('''
             function f() {
@@ -178,6 +177,15 @@ class TestJSInterpreter(unittest.TestCase):
                 return y;
             }
         ''', 3)
+
+        self._test('''
+            function f() {
+                var x = ( /* 1 + */ 2 +
+                          /* 30 * 40 */
+                          50);
+                return x;
+            }
+        ''', 52)
 
     def test_precedence(self):
         self._test('''
