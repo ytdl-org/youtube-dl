@@ -549,13 +549,14 @@ class JSInterpreter(object):
         except Exception as e:
             raise self.Exception('Failed to evaluate {left_val!r:.50} {op} {right_val!r:.50}'.format(**locals()), expr, cause=e)
 
-    def _index(self, obj, idx, allow_undefined=False):
-        if idx == 'length':
+    def _index(self, obj, idx, allow_undefined=True):
+        if idx == 'length' and isinstance(obj, list):
             return len(obj)
         try:
-            return obj[int(idx)] if isinstance(obj, list) else obj[idx]
-        except Exception as e:
+            return obj[int(idx)] if isinstance(obj, list) else obj[compat_str(idx)]
+        except (TypeError, KeyError, IndexError) as e:
             if allow_undefined:
+                # when is not allowed?
                 return JS_Undefined
             raise self.Exception('Cannot get index {idx!r:.100}'.format(**locals()), expr=repr(obj), cause=e)
 
@@ -882,13 +883,13 @@ class JSInterpreter(object):
 
         m = re.match(r'''(?x)
             (?P<assign>
-                (?P<out>{_NAME_RE})(?:\[(?P<index>[^\]]+?)\])?\s*
+                (?P<out>{_NAME_RE})(?:\[(?P<out_idx>(?:.+?\]\s*\[)*.+?)\])?\s*
                 (?P<op>{_OPERATOR_RE})?
                 =(?!=)(?P<expr>.*)$
             )|(?P<return>
                 (?!if|return|true|false|null|undefined|NaN|Infinity)(?P<name>{_NAME_RE})$
             )|(?P<indexing>
-                (?P<in>{_NAME_RE})\[(?P<idx>.+)\]$
+                (?P<in>{_NAME_RE})\[(?P<in_idx>(?:.+?\]\s*\[)*.+?)\]$
             )|(?P<attribute>
                 (?P<var>{_NAME_RE})(?:(?P<nullish>\?)?\.(?P<member>[^(]+)|\[(?P<member2>[^\]]+)\])\s*
             )|(?P<function>
@@ -898,19 +899,23 @@ class JSInterpreter(object):
         if md.get('assign'):
             left_val = local_vars.get(m.group('out'))
 
-            if not m.group('index'):
+            if not m.group('out_idx'):
                 local_vars[m.group('out')] = self._operator(
                     m.group('op'), left_val, m.group('expr'), expr, local_vars, allow_recursion)
                 return local_vars[m.group('out')], should_return
             elif left_val in (None, JS_Undefined):
                 raise self.Exception('Cannot index undefined variable ' + m.group('out'), expr=expr)
 
-            idx = self.interpret_expression(m.group('index'), local_vars, allow_recursion)
-            if not isinstance(idx, (int, float)):
-                raise self.Exception('List index %s must be integer' % (idx, ), expr=expr)
-            idx = int(idx)
+            indexes = re.split(r'\]\s*\[', m.group('out_idx'))
+            for i, idx in enumerate(indexes, 1):
+                idx = self.interpret_expression(idx, local_vars, allow_recursion)
+                if i < len(indexes):
+                    left_val = self._index(left_val, idx)
+            if isinstance(idx, float):
+                idx = int(idx)
             left_val[idx] = self._operator(
-                m.group('op'), self._index(left_val, idx), m.group('expr'), expr, local_vars, allow_recursion)
+                m.group('op'), self._index(left_val, idx) if m.group('op') else None,
+                m.group('expr'), expr, local_vars, allow_recursion)
             return left_val[idx], should_return
 
         elif expr.isdigit():
@@ -939,8 +944,10 @@ class JSInterpreter(object):
 
         if md.get('indexing'):
             val = local_vars[m.group('in')]
-            idx = self.interpret_expression(m.group('idx'), local_vars, allow_recursion)
-            return self._index(val, idx), should_return
+            for idx in re.split(r'\]\s*\[', m.group('in_idx')):
+                idx = self.interpret_expression(idx, local_vars, allow_recursion)
+                val = self._index(val, idx)
+            return val, should_return
 
         op_result = self.handle_operators(expr, local_vars, allow_recursion)
         if op_result:
@@ -989,7 +996,7 @@ class JSInterpreter(object):
 
                 # Member access
                 if arg_str is None:
-                    return self._index(obj, member, nullish)
+                    return self._index(obj, member)
 
                 # Function call
                 argvals = [
