@@ -488,9 +488,18 @@ class JSInterpreter(object):
         skipping = 0
         if skip_delims:
             skip_delims = variadic(skip_delims)
+        skip_txt = None
         for idx, char in enumerate(expr):
+            if skip_txt and idx <= skip_txt[1]:
+                continue
             paren_delta = 0
             if not in_quote:
+                if char == '/' and expr[idx:idx + 2] == '/*':
+                    # skip a comment
+                    skip_txt = expr[idx:].find('*/', 2)
+                    skip_txt = [idx, idx + skip_txt + 1] if skip_txt >= 2 else None
+                    if skip_txt:
+                        continue
                 if char in _MATCHING_PARENS:
                     counters[_MATCHING_PARENS[char]] += 1
                     paren_delta = 1
@@ -523,12 +532,19 @@ class JSInterpreter(object):
             if pos < delim_len:
                 pos += 1
                 continue
-            yield expr[start: idx - delim_len]
+            if skip_txt and skip_txt[0] >= start and skip_txt[1] <= idx - delim_len:
+                yield expr[start:skip_txt[0]] + expr[skip_txt[1] + 1: idx - delim_len]
+            else:
+                yield expr[start: idx - delim_len]
+            skip_txt = None
             start, pos = idx + 1, 0
             splits += 1
             if max_split and splits >= max_split:
                 break
-        yield expr[start:]
+        if skip_txt and skip_txt[0] >= start:
+            yield expr[start:skip_txt[0]] + expr[skip_txt[1] + 1:]
+        else:
+            yield expr[start:]
 
     @classmethod
     def _separate_at_paren(cls, expr, delim=None):
