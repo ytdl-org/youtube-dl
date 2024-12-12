@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -275,7 +276,8 @@ def signature(jscode, sig_input):
 
 def n_sig(jscode, sig_input):
     funcname = YoutubeIE(FakeYDL())._extract_n_function_name(jscode)
-    return JSInterpreter(jscode).call_function(funcname, sig_input)
+    return JSInterpreter(jscode).call_function(
+        funcname, sig_input, _ytdl_do_not_return=sig_input)
 
 
 make_sig_test = t_factory(
