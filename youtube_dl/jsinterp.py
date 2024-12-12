@@ -397,6 +397,9 @@ class JSInterpreter(object):
         RE_FLAGS = {
             # special knowledge: Python's re flags are bitmask values, current max 128
             # invent new bitmask values well above that for literal parsing
+            # JS 'u' flag is effectively always set (surrogate pairs aren't seen),
+            # but \u{...} and \p{...} escapes aren't handled); no additional JS 'v'
+            # features are supported
             # TODO: execute matches with these flags (remaining: d, y)
             'd': 1024,  # Generate indices for substring matches
             'g': 2048,  # Global search
@@ -404,6 +407,7 @@ class JSInterpreter(object):
             'm': re.M,  # Multi-line search
             's': re.S,  # Allows . to match newline characters
             'u': re.U,  # Treat a pattern as a sequence of unicode code points
+            'v': re.U,  # Like 'u' with extended character class and \p{} syntax
             'y': 4096,  # Perform a "sticky" search that matches starting at the current position in the target string
         }
 
@@ -1047,13 +1051,47 @@ class JSInterpreter(object):
                     raise self.Exception('Unsupported Math method ' + member, expr=expr)
 
                 if member == 'split':
-                    assertion(argvals, 'takes one or more arguments')
-                    assertion(len(argvals) == 1, 'with limit argument is not implemented')
-                    return obj.split(argvals[0]) if argvals[0] else list(obj)
+                    assertion(len(argvals) <= 2, 'takes at most two arguments')
+                    if len(argvals) > 1:
+                        limit = argvals[1]
+                        assertion(isinstance(limit, int) and limit >= 0, 'integer limit >= 0')
+                        if limit == 0:
+                            return []
+                    else:
+                        limit = 0
+                    if len(argvals) == 0:
+                        argvals = [JS_Undefined]
+                    elif isinstance(argvals[0], self.JS_RegExp):
+                        # avoid re.split(), similar but not enough
+
+                        def where():
+                            for m in argvals[0].finditer(obj):
+                                yield m.span(0)
+                            yield (None, None)
+
+                        def splits(limit=limit):
+                            i = 0
+                            for j, jj in where():
+                                if j == jj == 0:
+                                    continue
+                                if j is None and i >= len(obj):
+                                    break
+                                yield obj[i:j]
+                                if jj is None or limit == 1:
+                                    break
+                                limit -= 1
+                                i = jj
+
+                        return list(splits())
+                    return (
+                        obj.split(argvals[0], limit - 1) if argvals[0] and argvals[0] != JS_Undefined
+                        else list(obj)[:limit or None])
                 elif member == 'join':
                     assertion(isinstance(obj, list), 'must be applied on a list')
-                    assertion(len(argvals) == 1, 'takes exactly one argument')
-                    return argvals[0].join(obj)
+                    assertion(len(argvals) <= 1, 'takes at most one argument')
+                    return (',' if len(argvals) == 0 else argvals[0]).join(
+                        ('' if x in (None, JS_Undefined) else _js_toString(x))
+                        for x in obj)
                 elif member == 'reverse':
                     assertion(not argvals, 'does not take any arguments')
                     obj.reverse()
