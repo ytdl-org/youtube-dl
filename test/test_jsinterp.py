@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -11,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import re
 
-from youtube_dl.compat import compat_str
+from youtube_dl.compat import compat_str as str
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
 
 NaN = object()
@@ -19,7 +20,7 @@ NaN = object()
 
 class TestJSInterpreter(unittest.TestCase):
     def _test(self, jsi_or_code, expected, func='f', args=()):
-        if isinstance(jsi_or_code, compat_str):
+        if isinstance(jsi_or_code, str):
             jsi_or_code = JSInterpreter(jsi_or_code)
         got = jsi_or_code.call_function(func, *args)
         if expected is NaN:
@@ -89,7 +90,35 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return 19 & 21;}', 17)
         self._test('function f(){return 11 >> 2;}', 2)
         self._test('function f(){return []? 2+3: 4;}', 5)
+        # equality
+        self._test('function f(){return 1 == 1}', True)
+        self._test('function f(){return 1 == 1.0}', True)
+        self._test('function f(){return 1 == "1"}', True)
         self._test('function f(){return 1 == 2}', False)
+        self._test('function f(){return 1 != "1"}', False)
+        self._test('function f(){return 1 != 2}', True)
+        self._test('function f(){var x = {a: 1}; var y = x; return x == y}', True)
+        self._test('function f(){var x = {a: 1}; return x == {a: 1}}', False)
+        self._test('function f(){return NaN == NaN}', False)
+        self._test('function f(){return null == undefined}', True)
+        self._test('function f(){return "spam, eggs" == "spam, eggs"}', True)
+        # strict equality
+        self._test('function f(){return 1 === 1}', True)
+        self._test('function f(){return 1 === 1.0}', True)
+        self._test('function f(){return 1 === "1"}', False)
+        self._test('function f(){return 1 === 2}', False)
+        self._test('function f(){var x = {a: 1}; var y = x; return x === y}', True)
+        self._test('function f(){var x = {a: 1}; return x === {a: 1}}', False)
+        self._test('function f(){return NaN === NaN}', False)
+        self._test('function f(){return null === undefined}', False)
+        self._test('function f(){return null === null}', True)
+        self._test('function f(){return undefined === undefined}', True)
+        self._test('function f(){return "uninterned" === "uninterned"}', True)
+        self._test('function f(){return 1 === 1}', True)
+        self._test('function f(){return 1 === "1"}', False)
+        self._test('function f(){return 1 !== 1}', False)
+        self._test('function f(){return 1 !== "1"}', True)
+        # expressions
         self._test('function f(){return 0 && 1 || 2;}', 2)
         self._test('function f(){return 0 ?? 42;}', 0)
         self._test('function f(){return "life, the universe and everything" < 42;}', False)
@@ -296,7 +325,7 @@ class TestJSInterpreter(unittest.TestCase):
     def test_undefined(self):
         self._test('function f() { return undefined === undefined; }', True)
         self._test('function f() { return undefined; }', JS_Undefined)
-        self._test('function f() {return undefined ?? 42; }', 42)
+        self._test('function f() { return undefined ?? 42; }', 42)
         self._test('function f() { let v; return v; }', JS_Undefined)
         self._test('function f() { let v; return v**0; }', 1)
         self._test('function f() { let v; return [v>42, v<=42, v&&42, 42&&v]; }',

@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -64,6 +65,10 @@ _NaN = float('nan')
 _Infinity = float('inf')
 
 
+class JS_Undefined(object):
+    pass
+
+
 def _js_bit_op(op):
 
     def zeroise(x):
@@ -107,12 +112,69 @@ def _js_exp(a, b):
     return (a or 0) ** b
 
 
-def _js_eq_op(op):
+def _js_to_primitive(v):
+    return (
+        ','.join(map(_js_toString, v)) if isinstance(v, list)
+        else '[object Object]' if isinstance(v, dict)
+        else compat_str(v) if not isinstance(v, (
+            compat_numeric_types, compat_basestring, bool))
+        else v
+    )
+
+
+def _js_toString(v):
+    return (
+        'undefined' if v is JS_Undefined
+        else 'Infinity' if v == _Infinity
+        else 'NaN' if v is _NaN
+        else 'null' if v is None
+        else compat_str(v) if isinstance(v, compat_numeric_types)
+        else _js_to_primitive(v))
+
+
+_nullish = frozenset((None, JS_Undefined))
+
+
+def _js_eq(a, b):
+    # NaN != any
+    if _NaN in (a, b):
+        return False
+    # Object is Object
+    if isinstance(a, type(b)) and isinstance(b, (dict, list)):
+        return operator.is_(a, b)
+    # general case
+    if a == b:
+        return True
+    # null == undefined
+    a_b = set((a, b))
+    if a_b & _nullish:
+        return a_b <= _nullish
+    a, b = _js_to_primitive(a), _js_to_primitive(b)
+    if not isinstance(a, compat_basestring):
+        a, b = b, a
+    # Number to String: convert the string to a number
+    # Conversion failure results in ... false
+    if isinstance(a, compat_basestring):
+        return float_or_none(a) == b
+    return a == b
+
+
+def _js_neq(a, b):
+    return not _js_eq(a, b)
+
+
+def _js_id_op(op):
 
     @wraps_op(op)
     def wrapped(a, b):
-        if set((a, b)) <= set((None, JS_Undefined)):
-            return op(a, a)
+        if _NaN in (a, b):
+            return op(_NaN, None)
+        if not isinstance(a, (compat_basestring, compat_numeric_types)):
+            a, b = b, a
+        # strings are === if ==
+        # why 'a' is not 'a': https://stackoverflow.com/a/1504848
+        if isinstance(a, (compat_basestring, compat_numeric_types)):
+            return a == b if op(0, 0) else a != b
         return op(a, b)
 
     return wrapped
@@ -187,10 +249,10 @@ _OPERATORS = (
 )
 
 _COMP_OPERATORS = (
-    ('===', operator.is_),
-    ('!==', operator.is_not),
-    ('==', _js_eq_op(operator.eq)),
-    ('!=', _js_eq_op(operator.ne)),
+    ('===', _js_id_op(operator.is_)),
+    ('!==', _js_id_op(operator.is_not)),
+    ('==', _js_eq),
+    ('!=', _js_neq),
     ('<=', _js_comp_op(operator.le)),
     ('>=', _js_comp_op(operator.ge)),
     ('<', _js_comp_op(operator.lt)),
@@ -220,10 +282,6 @@ _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATO
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 _QUOTES = '\'"/'
-
-
-class JS_Undefined(object):
-    pass
 
 
 class JS_Break(ExtractorError):
