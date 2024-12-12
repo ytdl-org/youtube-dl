@@ -11,6 +11,7 @@ from functools import update_wrapper, wraps
 from .utils import (
     error_to_compat_str,
     ExtractorError,
+    float_or_none,
     js_to_json,
     remove_quotes,
     unified_timestamp,
@@ -81,35 +82,47 @@ def _js_bit_op(op):
     return wrapped
 
 
-def _js_arith_op(op):
+def _js_arith_op(op, div=False):
 
     @wraps_op(op)
     def wrapped(a, b):
         if JS_Undefined in (a, b):
             return _NaN
-        return op(a or 0, b or 0)
+        # null, "" --> 0
+        a, b = (float_or_none(
+            (x.strip() if isinstance(x, compat_basestring) else x) or 0,
+            default=_NaN) for x in (a, b))
+        if _NaN in (a, b):
+            return _NaN
+        try:
+            return op(a, b)
+        except ZeroDivisionError:
+            return _NaN if not (div and (a or b)) else _Infinity
 
     return wrapped
 
 
-def _js_div(a, b):
-    if JS_Undefined in (a, b) or not (a or b):
-        return _NaN
-    return operator.truediv(a or 0, b) if b else _Infinity
+_js_arith_add = _js_arith_op(operator.add)
 
 
-def _js_mod(a, b):
-    if JS_Undefined in (a, b) or not b:
-        return _NaN
-    return (a or 0) % b
+def _js_add(a, b):
+    if not (isinstance(a, compat_basestring) or isinstance(b, compat_basestring)):
+        return _js_arith_add(a, b)
+    if not isinstance(a, compat_basestring):
+        a = _js_toString(a)
+    elif not isinstance(b, compat_basestring):
+        b = _js_toString(b)
+    return operator.concat(a, b)
+
+
+_js_mod = _js_arith_op(operator.mod)
+__js_exp = _js_arith_op(operator.pow)
 
 
 def _js_exp(a, b):
     if not b:
         return 1  # even 0 ** 0 !!
-    elif JS_Undefined in (a, b):
-        return _NaN
-    return (a or 0) ** b
+    return __js_exp(a, b)
 
 
 def _js_to_primitive(v):
@@ -117,7 +130,7 @@ def _js_to_primitive(v):
         ','.join(map(_js_toString, v)) if isinstance(v, list)
         else '[object Object]' if isinstance(v, dict)
         else compat_str(v) if not isinstance(v, (
-            compat_numeric_types, compat_basestring, bool))
+            compat_numeric_types, compat_basestring))
         else v
     )
 
@@ -128,7 +141,9 @@ def _js_toString(v):
         else 'Infinity' if v == _Infinity
         else 'NaN' if v is _NaN
         else 'null' if v is None
-        else compat_str(v) if isinstance(v, compat_numeric_types)
+        # bool <= int: do this first
+        else ('false', 'true')[v] if isinstance(v, bool)
+        else '{0:.7f}'.format(v).rstrip('.0') if isinstance(v, compat_numeric_types)
         else _js_to_primitive(v))
 
 
@@ -240,11 +255,11 @@ def _js_typeof(expr):
 _OPERATORS = (
     ('>>', _js_bit_op(operator.rshift)),
     ('<<', _js_bit_op(operator.lshift)),
-    ('+', _js_arith_op(operator.add)),
+    ('+', _js_add),
     ('-', _js_arith_op(operator.sub)),
     ('*', _js_arith_op(operator.mul)),
     ('%', _js_mod),
-    ('/', _js_div),
+    ('/', _js_arith_op(operator.truediv, div=True)),
     ('**', _js_exp),
 )
 
@@ -873,7 +888,7 @@ class JSInterpreter(object):
             start, end = m.span()
             sign = m.group('pre_sign') or m.group('post_sign')
             ret = local_vars[var]
-            local_vars[var] += 1 if sign[0] == '+' else -1
+            local_vars[var] = _js_add(ret, 1 if sign[0] == '+' else -1)
             if m.group('pre_sign'):
                 ret = local_vars[var]
             expr = expr[:start] + self._dump(ret, local_vars) + expr[end:]
@@ -1023,7 +1038,7 @@ class JSInterpreter(object):
                 if obj is compat_str:
                     if member == 'fromCharCode':
                         assertion(argvals, 'takes one or more arguments')
-                        return ''.join(map(compat_chr, argvals))
+                        return ''.join(compat_chr(int(n)) for n in argvals)
                     raise self.Exception('Unsupported string method ' + member, expr=expr)
                 elif obj is float:
                     if member == 'pow':

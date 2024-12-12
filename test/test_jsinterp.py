@@ -41,16 +41,27 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return 42 + 7;}', 49)
         self._test('function f(){return 42 + undefined;}', NaN)
         self._test('function f(){return 42 + null;}', 42)
+        self._test('function f(){return 1 + "";}', '1')
+        self._test('function f(){return 42 + "7";}', '427')
+        self._test('function f(){return false + true;}', 1)
+        self._test('function f(){return "false" + true;}', 'falsetrue')
+        self._test('function f(){return '
+                   '1 + "2" + [3,4] + {k: 56} + null + undefined + Infinity;}',
+                   '123,4[object Object]nullundefinedInfinity')
 
     def test_sub(self):
         self._test('function f(){return 42 - 7;}', 35)
         self._test('function f(){return 42 - undefined;}', NaN)
         self._test('function f(){return 42 - null;}', 42)
+        self._test('function f(){return 42 - "7";}', 35)
+        self._test('function f(){return 42 - "spam";}', NaN)
 
     def test_mul(self):
         self._test('function f(){return 42 * 7;}', 294)
         self._test('function f(){return 42 * undefined;}', NaN)
         self._test('function f(){return 42 * null;}', 0)
+        self._test('function f(){return 42 * "7";}', 294)
+        self._test('function f(){return 42 * "eggs";}', NaN)
 
     def test_div(self):
         jsi = JSInterpreter('function f(a, b){return a / b;}')
@@ -58,17 +69,26 @@ class TestJSInterpreter(unittest.TestCase):
         self._test(jsi, NaN, args=(JS_Undefined, 1))
         self._test(jsi, float('inf'), args=(2, 0))
         self._test(jsi, 0, args=(0, 3))
+        self._test(jsi, 6, args=(42, 7))
+        self._test(jsi, 0, args=(42, float('inf')))
+        self._test(jsi, 6, args=("42", 7))
+        self._test(jsi, NaN, args=("spam", 7))
 
     def test_mod(self):
         self._test('function f(){return 42 % 7;}', 0)
         self._test('function f(){return 42 % 0;}', NaN)
         self._test('function f(){return 42 % undefined;}', NaN)
+        self._test('function f(){return 42 % "7";}', 0)
+        self._test('function f(){return 42 % "beans";}', NaN)
 
     def test_exp(self):
         self._test('function f(){return 42 ** 2;}', 1764)
         self._test('function f(){return 42 ** undefined;}', NaN)
         self._test('function f(){return 42 ** null;}', 1)
+        self._test('function f(){return undefined ** 0;}', 1)
         self._test('function f(){return undefined ** 42;}', NaN)
+        self._test('function f(){return 42 ** "2";}', 1764)
+        self._test('function f(){return 42 ** "spam";}', NaN)
 
     def test_calc(self):
         self._test('function f(a){return 2*a+1;}', 7, args=[3])
