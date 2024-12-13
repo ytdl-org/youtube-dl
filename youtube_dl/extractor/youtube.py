@@ -1665,37 +1665,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = self._search_regex(
+            # (y=NuD(),Mw(k),q=k.Z[y]||null)&&(q=narray[idx](q),k.set(y,q),k.V||NuD(''))}};
             # (R="nn"[+J.Z],mW(J),N=J.K[R]||null)&&(N=narray[idx](N),J.set(R,N))}};
-            # new: (b=String.fromCharCode(110),c=a.get(b))&&c=nfunc[idx](c)
-            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=nfunc[idx](c)
-            # or:  (PL(a),b=a.j.n||null)&&(b=nfunc[idx](b)
+            # or:  (b=String.fromCharCode(110),c=a.get(b))&&c=narray[idx](c)
+            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=narray[idx](c)
+            # or:  (PL(a),b=a.j.n||null)&&(b=narray[idx](b)
             # or:  (b="nn"[+a.D],vL(a),c=a.j[b]||null)&&(c=narray[idx](c),a.set(b,c),narray.length||nfunc("")
-            # old: (b=a.get("n"))&&(b=nfunc[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
+            # old: (b=a.get("n"))&&(b=narray[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
             # older: (b=a.get("n"))&&(b=nfunc(b)
             r'''(?x)
-                \((?:[\w$()\s]+,)*?\s*      # (
-                (?P<b>[a-zA-Z])\s*=\s*      # b=, R=
-                (?:
-                    (?:                     # expect ,c=a.get(b) (etc)
-                        String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
-                        "n+"\[\s*\+?s*[\w$.]+\s*]
-                    )\s*(?:,[\w$()\s]+(?=,))*|
-                       (?P<old>[\w$]+)      # a (old[er])
-                   )\s*
-                   (?(old)
-                                            # b.get("n")
-                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
-                       (?:\.\s*n|\[\s*"n"\s*]|\.\s*get\s*\(\s*"n"\s*\))
-                       |                    # ,c=a.get(b)
-                       ,\s*(?P<c>[a-zA-Z])\s*=\s*[a-zA-Z]\s*
-                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
-                       (?:\[\s*(?P=b)\s*]|\.\s*get\s*\(\s*(?P=b)\s*\))
-                   )
-                                            # interstitial junk
-                   \s*(?:\|\|\s*null\s*)?(?:\)\s*)?&&\s*(?:\(\s*)?
-               (?(c)(?P=c)|(?P=b))\s*=\s*   # [c|b]=
-                                            # nfunc|nfunc[idx]
-                   (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
+                # (expr, ...,
+                \((?:(?:\s*[\w$]+\s*=)?(?:[\w$"+\.\s(\[]+(?:[)\]]\s*)?),)*
+                  # b=...
+                  (?P<b>[\w$]+)\s*=\s*(?!(?P=b)[^\w$])[\w$]+\s*(?:(?:
+                    \.\s*[\w$]+ |
+                    \[\s*[\w$]+\s*\] |
+                    \.\s*get\s*\(\s*[\w$"]+\s*\)
+                  )\s*){,2}(?:\s*\|\|\s*null(?=\s*\)))?\s*
+                \)\s*&&\s*\(        # ...)&&(
+                # b = nfunc, b = narray[idx]
+                (?P=b)\s*=\s*(?P<nfunc>[\w$]+)\s*
+                    (?:\[\s*(?P<idx>[\w$]+)\s*\]\s*)?
+                    # (...)
+                    \(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
             default=(None, None))
         # thx bashonly: yt-dlp/yt-dlp/pull/10611
