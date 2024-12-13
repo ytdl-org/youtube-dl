@@ -79,6 +79,11 @@ _SIG_TESTS = [
         '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
         'MyOSJXtKI3m-uME_jv7-pT12gOFC02RFkGoqWpzE0Cs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
     ),
+    (
+        'https://www.youtube.com/s/player/2f1832d2/player_ias.vflset/en_US/base.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        '0QJ8wRAIgXmPlOPSBkkUs1bYFYlJCfe29xxAj7v1pDL0QwbdV96sCIEzpWqMGkFR20CFOg51Tp-7vj_EMu-m37KtXJ2OySqa0q',
+    ),
 ]
 
 _NSIG_TESTS = [
@@ -209,6 +214,10 @@ _NSIG_TESTS = [
     (
         'https://www.youtube.com/s/player/f8f53e1a/player_ias.vflset/en_US/base.js',
         'VTQOUOv0mCIeJ7i8kZB', 'kcfD8wy0sNLyNQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/2f1832d2/player_ias.vflset/en_US/base.js',
+        'YWt1qdbe8SAfkoPHW5d', 'RrRjWQOJmBiP',
     ),
 ]
 
