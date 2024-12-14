@@ -3,11 +3,13 @@
 from __future__ import unicode_literals
 
 import collections
+import hashlib
 import itertools
 import json
 import os.path
 import random
 import re
+import time
 import traceback
 
 from .common import InfoExtractor, SearchInfoExtractor
@@ -289,6 +291,33 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _YT_INITIAL_DATA_RE = r'(?:window\s*\[\s*["\']ytInitialData["\']\s*\]|ytInitialData)\s*=\s*({.+?})\s*;'
     _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
     _YT_INITIAL_BOUNDARY_RE = r'(?:var\s+meta|</script|\n)'
+
+    _SAPISID = None
+
+    def _generate_sapisidhash_header(self, origin='https://www.youtube.com'):
+        time_now = round(time.time())
+        if self._SAPISID is None:
+            yt_cookies = self._get_cookies('https://www.youtube.com')
+            # Sometimes SAPISID cookie isn't present but __Secure-3PAPISID is.
+            # See: https://github.com/yt-dlp/yt-dlp/issues/393
+            sapisid_cookie = dict_get(
+                yt_cookies, ('__Secure-3PAPISID', 'SAPISID'))
+            if sapisid_cookie and sapisid_cookie.value:
+                self._SAPISID = sapisid_cookie.value
+                self.write_debug('Extracted SAPISID cookie')
+                # SAPISID cookie is required if not already present
+                if not yt_cookies.get('SAPISID'):
+                    self.write_debug('Copying __Secure-3PAPISID cookie to SAPISID cookie')
+                    self._set_cookie(
+                        '.youtube.com', 'SAPISID', self._SAPISID, secure=True, expire_time=time_now + 3600)
+            else:
+                self._SAPISID = False
+        if not self._SAPISID:
+            return None
+        # SAPISIDHASH algorithm from https://stackoverflow.com/a/32065323
+        sapisidhash = hashlib.sha1(
+            '{0} {1} {2}'.format(time_now, self._SAPISID, origin).encode('utf-8')).hexdigest()
+        return 'SAPISIDHASH {0}_{1}'.format(time_now, sapisidhash)
 
     def _call_api(self, ep, query, video_id, fatal=True, headers=None):
         data = self._DEFAULT_API_DATA.copy()
@@ -1914,9 +1943,50 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
                 video_id, 'initial player response')
-        if not player_response:
+        if False and not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
+        if True or not player_response:
+            origin = 'https://www.youtube.com'
+            pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
+
+            player_url = self._extract_player_url(webpage)
+            ytcfg = self._extract_ytcfg(video_id, webpage)
+            sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
+            if sts:
+                pb_context['signatureTimestamp'] = sts
+
+            query = {
+                'playbackContext': {
+                    'contentPlaybackContext': pb_context,
+                    'contentCheckOk': True,
+                    'racyCheckOk': True,
+                },
+                'context': {
+                    'client': {
+                        'clientName': 'MWEB',
+                        'clientVersion': '2.20241202.07.00',
+                        'hl': 'en',
+                        'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
+                        'timeZone': 'UTC',
+                        'utcOffsetMinutes': 0,
+                    },
+                },
+                'videoId': video_id,
+            }
+            headers = {
+                'X-YouTube-Client-Name': '2',
+                'X-YouTube-Client-Version': '2.20241202.07.00',
+                'Origin': origin,
+                'Sec-Fetch-Mode': 'navigate',
+                'User-Agent': query['context']['client']['userAgent'],
+            }
+            auth = self._generate_sapisidhash_header(origin)
+            if auth is not None:
+                headers['Authorization'] = auth
+                headers['X-Origin'] = origin
+
+            player_response = self._call_api('player', query, video_id, fatal=False, headers=headers)
 
         def is_agegated(playability):
             if not isinstance(playability, dict):
@@ -2223,12 +2293,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         formats.append(f)
 
         playable_formats = [f for f in formats if not f.get('has_drm')]
-        if formats and not playable_formats:
-            # If there are no formats that definitely don't have DRM, all have DRM
-            self.report_drm(video_id)
-        formats[:] = playable_formats
-
-        if not formats:
+        if formats:
+            if not playable_formats:
+                # If there are no formats that definitely don't have DRM, all have DRM
+                self.report_drm(video_id)
+            formats[:] = playable_formats
+        else:
             if streaming_data.get('licenseInfos'):
                 raise ExtractorError(
                     'This video is DRM protected.', expected=True)
