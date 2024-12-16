@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class StreamableIE(InfoExtractor):
-    _VALID_URL = r'https?://streamable\.com/(?:[es]/)?(?P<id>\w+)'
+    _VALID_URL = r'https?://streamable\.com/(?:[est]/)?(?P<id>\w+)'
     _TESTS = [
         {
             'url': 'https://streamable.com/dnd1',
