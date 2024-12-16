@@ -414,7 +414,8 @@ class PeerTubeIE(InfoExtractor):
                             peertube2\.cpy\.re|
                             videos\.tcit\.fr|
                             peertube\.cpy\.re|
-                            canard\.tube
+                            canard\.tube|
+                            media\.fsfe\.org
                         )'''
     _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
     _API_BASE = 'https://%s/api/v1/videos/%s/%s'
