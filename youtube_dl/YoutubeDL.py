@@ -214,6 +214,7 @@ class YoutubeDL(object):
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
     write_all_thumbnails:  Write all thumbnail formats to files
+    thumbnailformat:   Thumbnail format ID
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatically generated subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
@@ -2681,8 +2682,18 @@ class YoutubeDL(object):
     def _write_thumbnails(self, info_dict, filename):
         if self.params.get('writethumbnail', False):
             thumbnails = info_dict.get('thumbnails')
+            thumbnailformat = self.params.get('thumbnailformat', False)
             if thumbnails:
-                thumbnails = [thumbnails[-1]]
+                if thumbnailformat:
+                    if thumbnailformat in [i.get('id') for i in thumbnails]:
+                        thumbnails = [i for i in thumbnails if i.get('id') == thumbnailformat]
+                    else:
+                        self.report_warning('Thumbnail ID unavailable, falling back to default.'
+                                            ' Check available thumbnail formats with the option --list-thumbnails'
+                                            )
+                        thumbnails = [thumbnails[-1]]
+                else:
+                    thumbnails = [thumbnails[-1]]
         elif self.params.get('write_all_thumbnails', False):
             thumbnails = info_dict.get('thumbnails')
         else:

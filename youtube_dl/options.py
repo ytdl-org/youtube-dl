@@ -782,6 +782,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writethumbnail', default=False,
         help='Write thumbnail image to disk')
     thumbnail.add_option(
+        '--thumbnail-format',
+        action='store', dest='thumbnailformat', metavar='ID', default=None,
+        help='Thumbnail format ID')
+    thumbnail.add_option(
         '--write-all-thumbnails',
         action='store_true', dest='write_all_thumbnails', default=False,
         help='Write all thumbnail image formats to disk')
