@@ -2418,8 +2418,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response,
             lambda x: x['captions']['playerCaptionsTracklistRenderer'], dict)
         if pctr:
-            def process_language(container, base_url, lang_code, query):
-                lang_subs = []
+
+            def process_language(container, base_url, lang_code, sub_name, query):
+                lang_subs = container.setdefault(lang_code, [])
                 for fmt in self._SUBTITLE_FORMATS:
                     query.update({
                         'fmt': fmt,
@@ -2427,30 +2428,50 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     lang_subs.append({
                         'ext': fmt,
                         'url': update_url_query(base_url, query),
+                        'name': sub_name,
                     })
-                container[lang_code] = lang_subs
 
-            subtitles = {}
-            for caption_track in (pctr.get('captionTracks') or []):
+            def get_lang_code(track):
+                return (remove_start(track.get('vssId') or '', '.').replace('.', '-')
+                        or track.get('languageCode'))
+
+            def get_text(x):
+                return try_get(x, (lambda x: x['simpleText'],
+                                   lambda x: x['runs'][0]['text']), compat_str)
+
+            subtitles, automatic_captions = {}, {}
+            for lang_code, caption_track in dict(
+                    (get_lang_code(sub), sub) for sub in (pctr.get('captionTracks') or [])).items():
                 base_url = caption_track.get('baseUrl')
                 if not base_url:
                     continue
+                lang_name = get_text(caption_track) or lang_code
                 if caption_track.get('kind') != 'asr':
-                    lang_code = caption_track.get('languageCode')
                     if not lang_code:
                         continue
                     process_language(
-                        subtitles, base_url, lang_code, {})
-                    continue
-                automatic_captions = {}
-                for translation_language in (pctr.get('translationLanguages') or []):
-                    translation_language_code = translation_language.get('languageCode')
-                    if not translation_language_code:
+                        subtitles, base_url, lang_code, lang_name, {})
+                    if not caption_track.get('isTranslatable'):
                         continue
-                    process_language(
-                        automatic_captions, base_url, translation_language_code,
-                        {'tlang': translation_language_code})
-                info['automatic_captions'] = automatic_captions
+                for trans_code, trans_name in dict(
+                        (lang.get('languageCode'), get_text(lang.get('languageName')))
+                        for lang in pctr.get('translationLanguages') or []).items():
+                    if not trans_code:
+                        continue
+                    if caption_track.get('kind') != 'asr':
+                        trans_code += '-' + lang_code
+                        trans_name += ' from ' + lang_name
+                    # Add "-orig" label to the original language so that it can be distinguished
+                    # The subs are returned without "-orig" as well for compatibility
+                    if lang_code == 'a-' + trans_code:
+                        process_language(
+                            automatic_captions, base_url, trans_code + '-orig', trans_name + ' (Original)', {})
+                    # Setting tlang=lang returns damaged subtitles.
+                    # Not using lang_code == f'a-{trans_code}' here for future-proofing
+                    orig_lang = parse_qs(base_url).get('lang', [None])[-1]
+                    process_language(automatic_captions, base_url, trans_code, trans_name,
+                                     {} if orig_lang == trans_code else {'tlang': trans_code})
+            info['automatic_captions'] = automatic_captions
             info['subtitles'] = subtitles
 
         parsed_url = compat_urllib_parse_urlparse(url)
@@ -3530,6 +3551,38 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
             'identity token', default=None)
 
+    def _process_clip(self, url, data):
+        renderer = try_get(
+            data,
+            lambda x: next(
+                (r for r in (s.get('engagementPanelSectionListRenderer')
+                             for s in x['engagementPanels'])
+                 if (r or {}).get('panelIdentifier') == 'engagement-panel-clip-view'),
+                None), dict)
+        if not renderer:
+            return
+        clip_commands = try_get(
+            renderer,
+            lambda x: x['content']['clipSectionRenderer']['contents'][0]['clipAttributionRenderer']['onScrubExit']['commandExecutorCommand']['commands'],
+            list) or []
+        clip_open = try_get(
+            clip_commands,
+            lambda x: next((c['openPopupAction'] for c in x if c.get('openPopupAction')), None),
+            dict)
+        clip_open_commands = try_get(
+            clip_open,
+            lambda x: x['popup']['notificationActionRenderer']['actionButton']['buttonRenderer']['command']['commandExecutorCommand']['commands'],
+            list) or []
+        clip_data = try_get(
+            clip_open_commands,
+            lambda x: next((c['loopCommand'] for c in x if c.get('loopCommand')), None),
+            dict)
+        if clip_data.get('postId') in url:
+            clip_times = (int_or_none(clip_data.get('startTimeMs')),
+                          int_or_none(clip_data.get('endTimeMs')))
+            if None not in clip_times:
+                self._downloader.params['_clip_args'] = '%gms,%gms' % clip_times
+
     def _real_extract(self, url):
         item_id = self._match_id(url)
         url = update_url(url, netloc='www.youtube.com')
@@ -3558,6 +3611,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             data, lambda x: x['currentVideoEndpoint']['watchEndpoint']['videoId'],
             compat_str) or video_id
         if video_id:
+            if item_id == 'clip':
+                self._process_clip(url, data)
             return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
         # Capture and output alerts
         alert = self._extract_alert(data)
