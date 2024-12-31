@@ -1951,7 +1951,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
 
             player_url = self._extract_player_url(webpage)
-            ytcfg = self._extract_ytcfg(video_id, webpage)
+            ytcfg = self._extract_ytcfg(video_id, webpage or '')
             sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
             if sts:
                 pb_context['signatureTimestamp'] = sts
