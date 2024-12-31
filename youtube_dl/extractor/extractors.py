@@ -1078,6 +1078,11 @@ from .rutube import (
     RutubePersonIE,
     RutubePlaylistIE,
 )
+from .ant1newsgr import (
+    Ant1NewsGrWatchIE,
+    Ant1NewsGrArticleIE,
+    Ant1NewsGrEmbedIE,
+)
 from .rutv import RUTVIE
 from .ruutu import RuutuIE
 from .ruv import RuvIE
