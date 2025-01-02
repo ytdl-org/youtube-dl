@@ -89,6 +89,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         If _LOGIN_REQUIRED is set and no authentication was provided, an error is raised.
         """
         username, password = self._get_login_info()
+
         # No authentication to be performed
         if username is None:
             if self._LOGIN_REQUIRED and self._downloader.params.get('cookiefile') is None:
@@ -131,21 +132,20 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             self._downloader.report_warning(message)
 
         lookup_req = [
-            username,
-            None, [], None, 'US', None, None, 2, False, True,
-            [
-                None, None,
-                [2, 1, None, 1,
-                 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
-                 None, [], 4],
-                1, [None, None, []], None, None, None, True
-            ],
+            username, None, [], None, 'US', None, None, 2, False, True,
+            [None, None, [2, 1, None, 1,
+                          'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
+                          None, [], 4], 1, [None, None, []], None, None, None, True],
             username,
         ]
 
-        lookup_results = req(
-            self._LOOKUP_URL, lookup_req,
-            'Looking up account info', 'Unable to look up account info')
+        # --- Cambio 1: Extracción de función para mejorar la legibilidad ---
+        def perform_lookup(req):
+            return self._download_json(
+                self._LOOKUP_URL, req,
+                'Looking up account info', 'Unable to look up account info')
+
+        lookup_results = perform_lookup(lookup_req)
 
         if lookup_results is False:
             return False
@@ -156,12 +156,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             return False
 
         challenge_req = [
-            user_hash,
-            None, 1, None, [1, None, None, None, [password, None, True]],
-            [
-                None, None, [2, 1, None, 1, 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn', None, [], 4],
-                1, [None, None, []], None, None, None, True
-            ]]
+            user_hash, None, 1, None, [1, None, None, None, [password, None, True]],
+            [None, None, [2, 1, None, 1,
+                          'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
+                          None, [], 4], 1, [None, None, []], None, None, None, True]]
 
         challenge_results = req(
             self._CHALLENGE_URL, challenge_req,

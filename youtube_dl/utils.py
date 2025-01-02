@@ -5990,113 +5990,62 @@ def parse_m3u8_attributes(attrib):
 def urshift(val, n):
     return val >> n if val >= 0 else (val + 0x100000000) >> n
 
-
 # Based on png2str() written by @gdkchan and improved by @yokrysty
 # Originally posted at https://github.com/ytdl-org/youtube-dl/issues/9706
 def decode_png(png_data):
     # Reference: https://www.w3.org/TR/PNG/
-    header = png_data[8:]
-
-    if png_data[:8] != b'\x89PNG\x0d\x0a\x1a\x0a' or header[4:8] != b'IHDR':
+    if png_data[:8] != b'\x89PNG\x0d\x0a\x1a\x0a':
         raise IOError('Not a valid PNG file.')
 
-    int_map = {1: '>B', 2: '>H', 4: '>I'}
-    unpack_integer = lambda x: compat_struct_unpack(int_map[len(x)], x)[0]
+    def unpack_integer(data):
+        return compat_struct_unpack(f'>{int_map[len(data)]}', data)[0]
 
+    int_map = {1: 'B', 2: 'H', 4: 'I'}
+    header = png_data[8:]
     chunks = []
 
     while header:
         length = unpack_integer(header[:4])
-        header = header[4:]
+        chunk_type, chunk_data, header = header[4:8], header[8:8 + length], header[8 + length + 4:]
+        chunks.append({'type': chunk_type, 'data': chunk_data})
 
-        chunk_type = header[:4]
-        header = header[4:]
+    if not (ihdr := next((c["data"] for c in chunks if c["type"] == b'IHDR'), None)):
+        raise IOError("Unable to read PNG header.")
 
-        chunk_data = header[:length]
-        header = header[length:]
-
-        header = header[4:]  # Skip CRC
-
-        chunks.append({
-            'type': chunk_type,
-            'length': length,
-            'data': chunk_data
-        })
-
-    ihdr = chunks[0]['data']
-
-    width = unpack_integer(ihdr[:4])
-    height = unpack_integer(ihdr[4:8])
-
-    idat = b''
-
-    for chunk in chunks:
-        if chunk['type'] == b'IDAT':
-            idat += chunk['data']
+    width, height = unpack_integer(ihdr[:4]), unpack_integer(ihdr[4:8])
+    idat = b''.join(c['data'] for c in chunks if c['type'] == b'IDAT')
 
     if not idat:
         raise IOError('Unable to read PNG data.')
 
     decompressed_data = bytearray(zlib.decompress(idat))
-
     stride = width * 3
-    pixels = []
-
-    def _get_pixel(idx):
-        x = idx % stride
-        y = idx // stride
-        return pixels[y][x]
+    pixels = [[] for _ in range(height)]
+    
+    def _get_pixel(x, y):
+        return pixels[y][x] if x >= 0 and y >= 0 else 0
 
     for y in range(height):
-        basePos = y * (1 + stride)
-        filter_type = decompressed_data[basePos]
-
-        current_row = []
-
-        pixels.append(current_row)
-
+        filter_type = decompressed_data[y * (1 + stride)]
         for x in range(stride):
-            color = decompressed_data[1 + basePos + x]
-            basex = y * stride + x
-            left = 0
-            up = 0
+            color = decompressed_data[1 + y * (1 + stride) + x]
+            left, up = _get_pixel(x - 3, y), _get_pixel(x, y - 1)
 
-            if x > 2:
-                left = _get_pixel(basex - 3)
-            if y > 0:
-                up = _get_pixel(basex - stride)
-
-            if filter_type == 1:  # Sub
+            if filter_type == 1:   # Sub
                 color = (color + left) & 0xff
-            elif filter_type == 2:  # Up
+            elif filter_type == 2: # Up
                 color = (color + up) & 0xff
-            elif filter_type == 3:  # Average
+            elif filter_type == 3: # Average
                 color = (color + ((left + up) >> 1)) & 0xff
-            elif filter_type == 4:  # Paeth
-                a = left
-                b = up
-                c = 0
-
-                if x > 2 and y > 0:
-                    c = _get_pixel(basex - stride - 3)
-
+            elif filter_type == 4: # Paeth
+                a, b, c = left, up, _get_pixel(x - 3, y - 1)
                 p = a + b - c
-
-                pa = abs(p - a)
-                pb = abs(p - b)
-                pc = abs(p - c)
-
-                if pa <= pb and pa <= pc:
-                    color = (color + a) & 0xff
-                elif pb <= pc:
-                    color = (color + b) & 0xff
-                else:
-                    color = (color + c) & 0xff
-
-            current_row.append(color)
+                pa, pb, pc = abs(p - a), abs(p - b), abs(p - c)
+                color = (color + (a if pa <= pb and pa <= pc else b if pb <= pc else c)) & 0xff
+            
+            pixels[y].append(color)
 
     return width, height, pixels
-
 
 def write_xattr(path, key, value):
     # This mess below finds the best xattr tool for the job
