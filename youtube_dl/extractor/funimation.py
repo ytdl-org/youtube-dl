@@ -11,7 +11,8 @@ from ..utils import (
     int_or_none,
     js_to_json,
     ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
+    urljoin
 )
 
 
@@ -155,4 +156,59 @@ class FunimationIE(InfoExtractor):
             'episode': episode,
             'season_id': title_data.get('seriesId'),
             'formats': formats,
+        }
+
+
+class FunimationShowPlaylistIE(FunimationIE):
+    IE_NAME = 'funimation:playlist'
+    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/(?:[^/]+/)?shows/(?P<id>[^/?#&]+)/?$'
+
+    _TESTS = [{
+        'url': 'https://www.funimation.com/shows/hacksign/',
+        'info_dict': {
+            'id': 90646,
+            'title': '.hack//SIGN'
+        },
+        'playlist_count': 28,
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.funimationnow.uk/shows/puzzle-dragons-x/',
+        'only_matching': True,
+    }, {
+        # with lang code
+        'url': 'https://www.funimation.com/en/shows/hacksign/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+        title_data = self._parse_json(self._search_regex(
+            r'TITLE_DATA\s*=\s*({[^}]+})',
+            webpage, 'title data', default=''),
+            display_id, js_to_json, fatal=False) or {}
+
+        items = self._download_json(
+            'https://prod-api-funimationnow.dadcdigital.com/api/funimation/episodes/?limit=99999&title_id=%s'
+            % title_data.get('id'), display_id).get('items')
+
+        vod_items = list(map(lambda k:
+                         (k.get('mostRecentSvod') or k.get('mostRecentAvod'))
+                         .get('item'), items))
+        vod_items = sorted(vod_items, key=lambda k: k.get('episodeOrder'))
+        entries = []
+        for vod_item in vod_items:
+            entries.append(
+                self.url_result(urljoin(url, vod_item.get('episodeSlug')),
+                                'Funimation', vod_item.get('episodeId'),
+                                vod_item.get('episodeSlug')))
+
+        return {
+            '_type': 'playlist',
+            'id': title_data.get('id'),
+            'title': title_data.get('title'),
+            'entries': entries,
         }
