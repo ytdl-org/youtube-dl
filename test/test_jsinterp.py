@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -11,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import re
 
-from youtube_dl.compat import compat_str
+from youtube_dl.compat import compat_str as str
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
 
 NaN = object()
@@ -19,7 +20,7 @@ NaN = object()
 
 class TestJSInterpreter(unittest.TestCase):
     def _test(self, jsi_or_code, expected, func='f', args=()):
-        if isinstance(jsi_or_code, compat_str):
+        if isinstance(jsi_or_code, str):
             jsi_or_code = JSInterpreter(jsi_or_code)
         got = jsi_or_code.call_function(func, *args)
         if expected is NaN:
@@ -40,16 +41,27 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return 42 + 7;}', 49)
         self._test('function f(){return 42 + undefined;}', NaN)
         self._test('function f(){return 42 + null;}', 42)
+        self._test('function f(){return 1 + "";}', '1')
+        self._test('function f(){return 42 + "7";}', '427')
+        self._test('function f(){return false + true;}', 1)
+        self._test('function f(){return "false" + true;}', 'falsetrue')
+        self._test('function f(){return '
+                   '1 + "2" + [3,4] + {k: 56} + null + undefined + Infinity;}',
+                   '123,4[object Object]nullundefinedInfinity')
 
     def test_sub(self):
         self._test('function f(){return 42 - 7;}', 35)
         self._test('function f(){return 42 - undefined;}', NaN)
         self._test('function f(){return 42 - null;}', 42)
+        self._test('function f(){return 42 - "7";}', 35)
+        self._test('function f(){return 42 - "spam";}', NaN)
 
     def test_mul(self):
         self._test('function f(){return 42 * 7;}', 294)
         self._test('function f(){return 42 * undefined;}', NaN)
         self._test('function f(){return 42 * null;}', 0)
+        self._test('function f(){return 42 * "7";}', 294)
+        self._test('function f(){return 42 * "eggs";}', NaN)
 
     def test_div(self):
         jsi = JSInterpreter('function f(a, b){return a / b;}')
@@ -57,17 +69,26 @@ class TestJSInterpreter(unittest.TestCase):
         self._test(jsi, NaN, args=(JS_Undefined, 1))
         self._test(jsi, float('inf'), args=(2, 0))
         self._test(jsi, 0, args=(0, 3))
+        self._test(jsi, 6, args=(42, 7))
+        self._test(jsi, 0, args=(42, float('inf')))
+        self._test(jsi, 6, args=("42", 7))
+        self._test(jsi, NaN, args=("spam", 7))
 
     def test_mod(self):
         self._test('function f(){return 42 % 7;}', 0)
         self._test('function f(){return 42 % 0;}', NaN)
         self._test('function f(){return 42 % undefined;}', NaN)
+        self._test('function f(){return 42 % "7";}', 0)
+        self._test('function f(){return 42 % "beans";}', NaN)
 
     def test_exp(self):
         self._test('function f(){return 42 ** 2;}', 1764)
         self._test('function f(){return 42 ** undefined;}', NaN)
         self._test('function f(){return 42 ** null;}', 1)
+        self._test('function f(){return undefined ** 0;}', 1)
         self._test('function f(){return undefined ** 42;}', NaN)
+        self._test('function f(){return 42 ** "2";}', 1764)
+        self._test('function f(){return 42 ** "spam";}', NaN)
 
     def test_calc(self):
         self._test('function f(a){return 2*a+1;}', 7, args=[3])
@@ -89,7 +110,35 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return 19 & 21;}', 17)
         self._test('function f(){return 11 >> 2;}', 2)
         self._test('function f(){return []? 2+3: 4;}', 5)
+        # equality
+        self._test('function f(){return 1 == 1}', True)
+        self._test('function f(){return 1 == 1.0}', True)
+        self._test('function f(){return 1 == "1"}', True)
         self._test('function f(){return 1 == 2}', False)
+        self._test('function f(){return 1 != "1"}', False)
+        self._test('function f(){return 1 != 2}', True)
+        self._test('function f(){var x = {a: 1}; var y = x; return x == y}', True)
+        self._test('function f(){var x = {a: 1}; return x == {a: 1}}', False)
+        self._test('function f(){return NaN == NaN}', False)
+        self._test('function f(){return null == undefined}', True)
+        self._test('function f(){return "spam, eggs" == "spam, eggs"}', True)
+        # strict equality
+        self._test('function f(){return 1 === 1}', True)
+        self._test('function f(){return 1 === 1.0}', True)
+        self._test('function f(){return 1 === "1"}', False)
+        self._test('function f(){return 1 === 2}', False)
+        self._test('function f(){var x = {a: 1}; var y = x; return x === y}', True)
+        self._test('function f(){var x = {a: 1}; return x === {a: 1}}', False)
+        self._test('function f(){return NaN === NaN}', False)
+        self._test('function f(){return null === undefined}', False)
+        self._test('function f(){return null === null}', True)
+        self._test('function f(){return undefined === undefined}', True)
+        self._test('function f(){return "uninterned" === "uninterned"}', True)
+        self._test('function f(){return 1 === 1}', True)
+        self._test('function f(){return 1 === "1"}', False)
+        self._test('function f(){return 1 !== 1}', False)
+        self._test('function f(){return 1 !== "1"}', True)
+        # expressions
         self._test('function f(){return 0 && 1 || 2;}', 2)
         self._test('function f(){return 0 ?? 42;}', 0)
         self._test('function f(){return "life, the universe and everything" < 42;}', False)
@@ -111,7 +160,6 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){var x = 20; x += 30 + 1; return x;}', 51)
         self._test('function f(){var x = 20; x -= 30 + 1; return x;}', -11)
 
-    @unittest.skip('Not yet fully implemented')
     def test_comments(self):
         self._test('''
             function f() {
@@ -129,6 +177,15 @@ class TestJSInterpreter(unittest.TestCase):
                 return y;
             }
         ''', 3)
+
+        self._test('''
+            function f() {
+                var x = ( /* 1 + */ 2 +
+                          /* 30 * 40 */
+                          50);
+                return x;
+            }
+        ''', 52)
 
     def test_precedence(self):
         self._test('''
@@ -266,7 +323,20 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { return (l=[0,1,2,3], function(a, b){return a+b})((l[1], l[2]), l[3]) }', 5)
 
     def test_void(self):
-        self._test('function f() { return void 42; }', None)
+        self._test('function f() { return void 42; }', JS_Undefined)
+
+    def test_typeof(self):
+        self._test('function f() { return typeof undefined; }', 'undefined')
+        self._test('function f() { return typeof NaN; }', 'number')
+        self._test('function f() { return typeof Infinity; }', 'number')
+        self._test('function f() { return typeof true; }', 'boolean')
+        self._test('function f() { return typeof null; }', 'object')
+        self._test('function f() { return typeof "a string"; }', 'string')
+        self._test('function f() { return typeof 42; }', 'number')
+        self._test('function f() { return typeof 42.42; }', 'number')
+        self._test('function f() { var g = function(){}; return typeof g; }', 'function')
+        self._test('function f() { return typeof {key: "value"}; }', 'object')
+        # not yet implemented: Symbol, BigInt
 
     def test_return_function(self):
         jsi = JSInterpreter('''
@@ -283,7 +353,7 @@ class TestJSInterpreter(unittest.TestCase):
     def test_undefined(self):
         self._test('function f() { return undefined === undefined; }', True)
         self._test('function f() { return undefined; }', JS_Undefined)
-        self._test('function f() {return undefined ?? 42; }', 42)
+        self._test('function f() { return undefined ?? 42; }', 42)
         self._test('function f() { let v; return v; }', JS_Undefined)
         self._test('function f() { let v; return v**0; }', 1)
         self._test('function f() { let v; return [v>42, v<=42, v&&42, 42&&v]; }',
@@ -323,6 +393,16 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { let a = {m1: 42, m2: 0 }; return [a["m1"], a.m2]; }', [42, 0])
         self._test('function f() { let a; return a?.qq; }', JS_Undefined)
         self._test('function f() { let a = {m1: 42, m2: 0 }; return a?.qq; }', JS_Undefined)
+
+    def test_indexing(self):
+        self._test('function f() { return [1, 2, 3, 4][3]}', 4)
+        self._test('function f() { return [1, [2, [3, [4]]]][1][1][1][0]}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o[3]}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o["3"]}', 4)
+        self._test('function f() { return [1, [2, {3: [4]}]][1][1]["3"][0]}', 4)
+        self._test('function f() { return [1, 2, 3, 4].length}', 4)
+        self._test('function f() { var o = {1: 2, 3: 4}; return o.length}', JS_Undefined)
+        self._test('function f() { var o = {1: 2, 3: 4}; o["length"] = 42; return o.length}', 42)
 
     def test_regex(self):
         self._test('function f() { let a=/,,[/,913,/](,)}/; }', None)
@@ -411,6 +491,13 @@ class TestJSInterpreter(unittest.TestCase):
             self._test(jsi, 't-e-s-t', args=[test_input, '-'])
             self._test(jsi, '', args=[[], '-'])
 
+        self._test('function f(){return '
+                   '[1, 1.0, "abc", {a: 1}, null, undefined, Infinity, NaN].join()}',
+                   '1,1,abc,[object Object],,,Infinity,NaN')
+        self._test('function f(){return '
+                   '[1, 1.0, "abc", {a: 1}, null, undefined, Infinity, NaN].join("~")}',
+                   '1~1~abc~[object Object]~~~Infinity~NaN')
+
     def test_split(self):
         test_result = list('test')
         tests = [
@@ -424,6 +511,18 @@ class TestJSInterpreter(unittest.TestCase):
             self._test(jsi, test_result, args=['t-e-s-t', '-'])
             self._test(jsi, [''], args=['', '-'])
             self._test(jsi, [], args=['', ''])
+        # RegExp split
+        self._test('function f(){return "test".split(/(?:)/)}',
+                   ['t', 'e', 's', 't'])
+        self._test('function f(){return "t-e-s-t".split(/[es-]+/)}',
+                   ['t', 't'])
+        # from MDN: surrogate pairs aren't handled: case 1 fails
+        # self._test('function f(){return "😄😄".split(/(?:)/)}',
+        #            ['\ud83d', '\ude04', '\ud83d', '\ude04'])
+        # case 2 beats Py3.2: it gets the case 1 result
+        if sys.version_info >= (2, 6) and not ((3, 0) <= sys.version_info < (3, 3)):
+            self._test('function f(){return "😄😄".split(/(?:)/u)}',
+                       ['😄', '😄'])
 
     def test_slice(self):
         self._test('function f(){return [0, 1, 2, 3, 4, 5, 6, 7, 8].slice()}', [0, 1, 2, 3, 4, 5, 6, 7, 8])
@@ -452,6 +551,40 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return "012345678".slice(1, -1)}', '1234567')
         self._test('function f(){return "012345678".slice(-1, 1)}', '')
         self._test('function f(){return "012345678".slice(-3, -1)}', '67')
+
+    def test_pop(self):
+        # pop
+        self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.pop(), a]}',
+                   [8, [0, 1, 2, 3, 4, 5, 6, 7]])
+        self._test('function f(){return [].pop()}', JS_Undefined)
+        # push
+        self._test('function f(){var a = [0, 1, 2]; return [a.push(3, 4), a]}',
+                   [5, [0, 1, 2, 3, 4]])
+        self._test('function f(){var a = [0, 1, 2]; return [a.push(), a]}',
+                   [3, [0, 1, 2]])
+
+    def test_shift(self):
+        # shift
+        self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.shift(), a]}',
+                   [0, [1, 2, 3, 4, 5, 6, 7, 8]])
+        self._test('function f(){return [].shift()}', JS_Undefined)
+        # unshift
+        self._test('function f(){var a = [0, 1, 2]; return [a.unshift(3, 4), a]}',
+                   [5, [3, 4, 0, 1, 2]])
+        self._test('function f(){var a = [0, 1, 2]; return [a.unshift(), a]}',
+                   [3, [0, 1, 2]])
+
+    def test_forEach(self):
+        self._test('function f(){var ret = []; var l = [4, 2]; '
+                   'var log = function(e,i,a){ret.push([e,i,a]);}; '
+                   'l.forEach(log); '
+                   'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
+                   [2, 4, 1, [4, 2]])
+        self._test('function f(){var ret = []; var l = [4, 2]; '
+                   'var log = function(e,i,a){this.push([e,i,a]);}; '
+                   'l.forEach(log, ret); '
+                   'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
+                   [2, 4, 1, [4, 2]])
 
 
 if __name__ == '__main__':

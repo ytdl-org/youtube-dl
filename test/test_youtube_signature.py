@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 from __future__ import unicode_literals
 
@@ -12,6 +13,7 @@ import re
 import string
 
 from youtube_dl.compat import (
+    compat_contextlib_suppress,
     compat_open as open,
     compat_str,
     compat_urlretrieve,
@@ -50,23 +52,38 @@ _SIG_TESTS = [
     (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflBb0OQx.js',
         84,
-        '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ0STUVWXYZ!"#$%&\'()*+,@./:;<=>'
+        '123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQ0STUVWXYZ!"#$%&\'()*+,@./:;<=>',
     ),
     (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vfl9FYC6l.js',
         83,
-        '123456789abcdefghijklmnopqr0tuvwxyzABCDETGHIJKLMNOPQRS>UVWXYZ!"#$%&\'()*+,-./:;<=F'
+        '123456789abcdefghijklmnopqr0tuvwxyzABCDETGHIJKLMNOPQRS>UVWXYZ!"#$%&\'()*+,-./:;<=F',
     ),
     (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflCGk6yw/html5player.js',
         '4646B5181C6C3020DF1D9C7FCFEA.AD80ABF70C39BD369CCCAE780AFBB98FA6B6CB42766249D9488C288',
-        '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B'
+        '82C8849D94266724DC6B6AF89BBFA087EACCD963.B93C07FBA084ACAEFCF7C9D1FD0203C6C1815B6B',
     ),
     (
         'https://s.ytimg.com/yts/jsbin/html5player-en_US-vflKjOTVq/html5player.js',
         '312AA52209E3623129A412D56A40F11CB0AF14AE.3EE09501CB14E3BCDC3B2AE808BF3F1D14E7FBF12',
         '112AA5220913623229A412D56A40F11CB0AF14AE.3EE0950FCB14EEBCDC3B2AE808BF331D14E7FBF3',
-    )
+    ),
+    (
+        'https://www.youtube.com/s/player/6ed0d907/player_ias.vflset/en_US/base.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        'AOq0QJ8wRAIgXmPlOPSBkkUs1bYFYlJCfe29xx8j7v1pDL2QwbdV96sCIEzpWqMGkFR20CFOg51Tp-7vj_EMu-m37KtXJoOySqa0',
+    ),
+    (
+        'https://www.youtube.com/s/player/3bb1f723/player_ias.vflset/en_US/base.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        'MyOSJXtKI3m-uME_jv7-pT12gOFC02RFkGoqWpzE0Cs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+    ),
+    (
+        'https://www.youtube.com/s/player/2f1832d2/player_ias.vflset/en_US/base.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        '0QJ8wRAIgXmPlOPSBkkUs1bYFYlJCfe29xxAj7v1pDL0QwbdV96sCIEzpWqMGkFR20CFOg51Tp-7vj_EMu-m37KtXJ2OySqa0q',
+    ),
 ]
 
 _NSIG_TESTS = [
@@ -143,6 +160,10 @@ _NSIG_TESTS = [
         'B2j7f_UPT4rfje85Lu_e', 'm5DmNymaGQ5RdQ',
     ),
     (
+        'https://www.youtube.com/s/player/7a062b77/player_ias.vflset/en_US/base.js',
+        'NRcE3y3mVtm_cV-W', 'VbsCYUATvqlt5w',
+    ),
+    (
         'https://www.youtube.com/s/player/dac945fd/player_ias.vflset/en_US/base.js',
         'o8BkRxXhuYsBCWi6RplPdP', '3Lx32v_hmzTm6A',
     ),
@@ -153,6 +174,10 @@ _NSIG_TESTS = [
     (
         'https://www.youtube.com/s/player/cfa9e7cb/player_ias.vflset/en_US/base.js',
         'qO0NiMtYQ7TeJnfFG2', 'k9cuJDHNS5O7kQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/8c7583ff/player_ias.vflset/en_US/base.js',
+        '1wWCVpRR96eAmMI87L', 'KSkWAVv1ZQxC3A',
     ),
     (
         'https://www.youtube.com/s/player/b7910ca8/player_ias.vflset/en_US/base.js',
@@ -181,6 +206,18 @@ _NSIG_TESTS = [
     (
         'https://www.youtube.com/s/player/b12cc44b/player_ias.vflset/en_US/base.js',
         'keLa5R2U00sR9SQK', 'N1OGyujjEwMnLw',
+    ),
+    (
+        'https://www.youtube.com/s/player/3bb1f723/player_ias.vflset/en_US/base.js',
+        'gK15nzVyaXE9RsMP3z', 'ZFFWFLPWx9DEgQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/f8f53e1a/player_ias.vflset/en_US/base.js',
+        'VTQOUOv0mCIeJ7i8kZB', 'kcfD8wy0sNLyNQ',
+    ),
+    (
+        'https://www.youtube.com/s/player/2f1832d2/player_ias.vflset/en_US/base.js',
+        'YWt1qdbe8SAfkoPHW5d', 'RrRjWQOJmBiP',
     ),
 ]
 
@@ -216,11 +253,9 @@ class TestSignature(unittest.TestCase):
             os.mkdir(self.TESTDATA_DIR)
 
     def tearDown(self):
-        try:
+        with compat_contextlib_suppress(OSError):
             for f in os.listdir(self.TESTDATA_DIR):
                 os.remove(f)
-        except OSError:
-            pass
 
 
 def t_factory(name, sig_func, url_pattern):
@@ -254,11 +289,12 @@ def signature(jscode, sig_input):
 
 def n_sig(jscode, sig_input):
     funcname = YoutubeIE(FakeYDL())._extract_n_function_name(jscode)
-    return JSInterpreter(jscode).call_function(funcname, sig_input)
+    return JSInterpreter(jscode).call_function(
+        funcname, sig_input, _ytdl_do_not_return=sig_input)
 
 
 make_sig_test = t_factory(
-    'signature', signature, re.compile(r'.*-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\.[a-z]+$'))
+    'signature', signature, re.compile(r'.*(?:-|/player/)(?P<id>[a-zA-Z0-9_-]+)(?:/.+\.js|(?:/watch_as3|/html5player)?\.[a-z]+)$'))
 for test_spec in _SIG_TESTS:
     make_sig_test(*test_spec)
 

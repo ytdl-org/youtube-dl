@@ -3,11 +3,13 @@
 from __future__ import unicode_literals
 
 import collections
+import hashlib
 import itertools
 import json
 import os.path
 import random
 import re
+import time
 import traceback
 
 from .common import InfoExtractor, SearchInfoExtractor
@@ -289,6 +291,33 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _YT_INITIAL_DATA_RE = r'(?:window\s*\[\s*["\']ytInitialData["\']\s*\]|ytInitialData)\s*=\s*({.+?})\s*;'
     _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
     _YT_INITIAL_BOUNDARY_RE = r'(?:var\s+meta|</script|\n)'
+
+    _SAPISID = None
+
+    def _generate_sapisidhash_header(self, origin='https://www.youtube.com'):
+        time_now = round(time.time())
+        if self._SAPISID is None:
+            yt_cookies = self._get_cookies('https://www.youtube.com')
+            # Sometimes SAPISID cookie isn't present but __Secure-3PAPISID is.
+            # See: https://github.com/yt-dlp/yt-dlp/issues/393
+            sapisid_cookie = dict_get(
+                yt_cookies, ('__Secure-3PAPISID', 'SAPISID'))
+            if sapisid_cookie and sapisid_cookie.value:
+                self._SAPISID = sapisid_cookie.value
+                self.write_debug('Extracted SAPISID cookie')
+                # SAPISID cookie is required if not already present
+                if not yt_cookies.get('SAPISID'):
+                    self.write_debug('Copying __Secure-3PAPISID cookie to SAPISID cookie')
+                    self._set_cookie(
+                        '.youtube.com', 'SAPISID', self._SAPISID, secure=True, expire_time=time_now + 3600)
+            else:
+                self._SAPISID = False
+        if not self._SAPISID:
+            return None
+        # SAPISIDHASH algorithm from https://stackoverflow.com/a/32065323
+        sapisidhash = hashlib.sha1(
+            '{0} {1} {2}'.format(time_now, self._SAPISID, origin).encode('utf-8')).hexdigest()
+        return 'SAPISIDHASH {0}_{1}'.format(time_now, sapisidhash)
 
     def _call_api(self, ep, query, video_id, fatal=True, headers=None):
         data = self._DEFAULT_API_DATA.copy()
@@ -1579,20 +1608,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         self.to_screen('Extracted signature function:\n' + code)
 
     def _parse_sig_js(self, jscode):
+        # Examples where `sig` is funcname:
+        # sig=function(a){a=a.split(""); ... ;return a.join("")};
+        # ;c&&(c=sig(decodeURIComponent(c)),a.set(b,encodeURIComponent(c)));return a};
+        # {var l=f,m=h.sp,n=sig(decodeURIComponent(h.s));l.set(m,encodeURIComponent(n))}
+        # sig=function(J){J=J.split(""); ... ;return J.join("")};
+        # ;N&&(N=sig(decodeURIComponent(N)),J.set(R,encodeURIComponent(N)));return J};
+        # {var H=u,k=f.sp,v=sig(decodeURIComponent(f.s));H.set(k,encodeURIComponent(v))}
         funcname = self._search_regex(
-            (r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\bm=(?P<sig>[a-zA-Z0-9$]{2,})\(decodeURIComponent\(h\.s\)\)',
-             r'\bc&&\(c=(?P<sig>[a-zA-Z0-9$]{2,})\(decodeURIComponent\(c\)\)',
-             r'(?:\b|[^a-zA-Z0-9$])(?P<sig>[a-zA-Z0-9$]{2,})\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)(?:;[a-zA-Z0-9$]{2}\.[a-zA-Z0-9$]{2}\(a,\d+\))?',
-             r'(?P<sig>[a-zA-Z0-9$]+)\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)',
+            (r'\b(?P<var>[\w$]+)&&\((?P=var)=(?P<sig>[\w$]{2,})\(decodeURIComponent\((?P=var)\)\)',
+             r'(?P<sig>[\w$]+)\s*=\s*function\(\s*(?P<arg>[\w$]+)\s*\)\s*{\s*(?P=arg)\s*=\s*(?P=arg)\.split\(\s*""\s*\)\s*;\s*[^}]+;\s*return\s+(?P=arg)\.join\(\s*""\s*\)',
+             r'(?:\b|[^\w$])(?P<sig>[\w$]{2,})\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)(?:;[\w$]{2}\.[\w$]{2}\(a,\d+\))?',
+             # Old patterns
+             r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[\w$]+)\(',
+             r'\b[\w]+\s*&&\s*[\w]+\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[\w$]+)\(',
+             r'\bm=(?P<sig>[\w$]{2,})\(decodeURIComponent\(h\.s\)\)',
              # Obsolete patterns
-             r'("|\')signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
+             r'("|\')signature\1\s*,\s*(?P<sig>[\w$]+)\(',
+             r'\.sig\|\|(?P<sig>[\w$]+)\(',
+             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[\w$]+)\(',
+             r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[\w$]+)\(',
+             r'\bc\s*&&\s*[\w]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[\w$]+)\('),
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
@@ -1658,36 +1694,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = self._search_regex(
-            # new: (b=String.fromCharCode(110),c=a.get(b))&&c=nfunc[idx](c)
-            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=nfunc[idx](c)
-            # or:  (PL(a),b=a.j.n||null)&&(b=nfunc[idx](b)
+            # (y=NuD(),Mw(k),q=k.Z[y]||null)&&(q=narray[idx](q),k.set(y,q),k.V||NuD(''))}};
+            # (R="nn"[+J.Z],mW(J),N=J.K[R]||null)&&(N=narray[idx](N),J.set(R,N))}};
+            # or:  (b=String.fromCharCode(110),c=a.get(b))&&c=narray[idx](c)
+            # or:  (b="nn"[+a.D],c=a.get(b))&&(c=narray[idx](c)
+            # or:  (PL(a),b=a.j.n||null)&&(b=narray[idx](b)
             # or:  (b="nn"[+a.D],vL(a),c=a.j[b]||null)&&(c=narray[idx](c),a.set(b,c),narray.length||nfunc("")
-            # old: (b=a.get("n"))&&(b=nfunc[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
+            # old: (b=a.get("n"))&&(b=narray[idx](b)(?P<c>[a-z])\s*=\s*[a-z]\s*
             # older: (b=a.get("n"))&&(b=nfunc(b)
             r'''(?x)
-                \((?:[\w$()\s]+,)*?\s*      # (
-                (?P<b>[a-z])\s*=\s*         # b=
-                (?:
-                    (?:                     # expect ,c=a.get(b) (etc)
-                        String\s*\.\s*fromCharCode\s*\(\s*110\s*\)|
-                        "n+"\[\s*\+?s*[\w$.]+\s*]
-                    )\s*(?:,[\w$()\s]+(?=,))*|
-                       (?P<old>[\w$]+)      # a (old[er])
-                   )\s*
-                   (?(old)
-                                            # b.get("n")
-                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
-                       (?:\.\s*n|\[\s*"n"\s*]|\.\s*get\s*\(\s*"n"\s*\))
-                       |                    # ,c=a.get(b)
-                       ,\s*(?P<c>[a-z])\s*=\s*[a-z]\s*
-                       (?:\.\s*[\w$]+\s*|\[\s*[\w$]+\s*]\s*)*?
-                       (?:\[\s*(?P=b)\s*]|\.\s*get\s*\(\s*(?P=b)\s*\))
-                   )
-                                            # interstitial junk
-                   \s*(?:\|\|\s*null\s*)?(?:\)\s*)?&&\s*(?:\(\s*)?
-               (?(c)(?P=c)|(?P=b))\s*=\s*   # [c|b]=
-                                            # nfunc|nfunc[idx]
-                   (?P<nfunc>[a-zA-Z_$][\w$]*)(?:\s*\[(?P<idx>\d+)\])?\s*\(\s*[\w$]+\s*\)
+                # (expr, ...,
+                \((?:(?:\s*[\w$]+\s*=)?(?:[\w$"+\.\s(\[]+(?:[)\]]\s*)?),)*
+                  # b=...
+                  (?P<b>[\w$]+)\s*=\s*(?!(?P=b)[^\w$])[\w$]+\s*(?:(?:
+                    \.\s*[\w$]+ |
+                    \[\s*[\w$]+\s*\] |
+                    \.\s*get\s*\(\s*[\w$"]+\s*\)
+                  )\s*){,2}(?:\s*\|\|\s*null(?=\s*\)))?\s*
+                \)\s*&&\s*\(        # ...)&&(
+                # b = nfunc, b = narray[idx]
+                (?P=b)\s*=\s*(?P<nfunc>[\w$]+)\s*
+                    (?:\[\s*(?P<idx>[\w$]+)\s*\]\s*)?
+                    # (...)
+                    \(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
             default=(None, None))
         # thx bashonly: yt-dlp/yt-dlp/pull/10611
@@ -1697,15 +1726,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'''(?xs)
                     (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
                     (?P<name>(?!\d)[a-zA-Z\d_$]+)\s*=\s*function\((?!\d)[a-zA-Z\d_$]+\)
-                    \s*\{(?:(?!};).)+?["']enhanced_except_
+                    \s*\{(?:(?!};).)+?(?:
+                        ["']enhanced_except_ |
+                        return\s*(?P<q>"|')[a-zA-Z\d-]+_w8_(?P=q)\s*\+\s*[\w$]+
+                    )
                 ''', jscode, 'Initial JS player n function name', group='name')
         if not idx:
             return func_name
 
-        return self._parse_json(self._search_regex(
-            r'var\s+{0}\s*=\s*(\[.+?\])\s*[,;]'.format(re.escape(func_name)), jscode,
-            'Initial JS player n function list ({0}.{1})'.format(func_name, idx)),
-            func_name, transform_source=js_to_json)[int(idx)]
+        return self._search_json(
+            r'var\s+{0}\s*='.format(re.escape(func_name)), jscode,
+            'Initial JS player n function list ({0}.{1})'.format(func_name, idx),
+            func_name, contains_pattern=r'\[[\s\S]+\]', end_pattern='[,;]',
+            transform_source=js_to_json)[int(idx)]
 
     def _extract_n_function_code(self, video_id, player_url):
         player_id = self._extract_player_info(player_url)
@@ -1728,13 +1761,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         def extract_nsig(s):
             try:
-                ret = func([s])
+                ret = func([s], kwargs={'_ytdl_do_not_return': s})
             except JSInterpreter.Exception:
                 raise
             except Exception as e:
                 raise JSInterpreter.Exception(traceback.format_exc(), cause=e)
 
-            if ret.startswith('enhanced_except_'):
+            if ret.startswith('enhanced_except_') or ret.endswith(s):
                 raise JSInterpreter.Exception('Signature function returned an exception')
             return ret
 
@@ -1910,9 +1943,50 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
                 video_id, 'initial player response')
-        if not player_response:
+        if False and not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
+        if True or not player_response:
+            origin = 'https://www.youtube.com'
+            pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
+
+            player_url = self._extract_player_url(webpage)
+            ytcfg = self._extract_ytcfg(video_id, webpage or '')
+            sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
+            if sts:
+                pb_context['signatureTimestamp'] = sts
+
+            query = {
+                'playbackContext': {
+                    'contentPlaybackContext': pb_context,
+                    'contentCheckOk': True,
+                    'racyCheckOk': True,
+                },
+                'context': {
+                    'client': {
+                        'clientName': 'MWEB',
+                        'clientVersion': '2.20241202.07.00',
+                        'hl': 'en',
+                        'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
+                        'timeZone': 'UTC',
+                        'utcOffsetMinutes': 0,
+                    },
+                },
+                'videoId': video_id,
+            }
+            headers = {
+                'X-YouTube-Client-Name': '2',
+                'X-YouTube-Client-Version': '2.20241202.07.00',
+                'Origin': origin,
+                'Sec-Fetch-Mode': 'navigate',
+                'User-Agent': query['context']['client']['userAgent'],
+            }
+            auth = self._generate_sapisidhash_header(origin)
+            if auth is not None:
+                headers['Authorization'] = auth
+                headers['X-Origin'] = origin
+
+            player_response = self._call_api('player', query, video_id, fatal=False, headers=headers)
 
         def is_agegated(playability):
             if not isinstance(playability, dict):
@@ -2219,12 +2293,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         formats.append(f)
 
         playable_formats = [f for f in formats if not f.get('has_drm')]
-        if formats and not playable_formats:
-            # If there are no formats that definitely don't have DRM, all have DRM
-            self.report_drm(video_id)
-        formats[:] = playable_formats
-
-        if not formats:
+        if formats:
+            if not playable_formats:
+                # If there are no formats that definitely don't have DRM, all have DRM
+                self.report_drm(video_id)
+            formats[:] = playable_formats
+        else:
             if streaming_data.get('licenseInfos'):
                 raise ExtractorError(
                     'This video is DRM protected.', expected=True)
