@@ -2415,9 +2415,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'is_live': is_live,
         }
 
-        pctr = try_get(
+        pctr = traverse_obj(
             player_response,
-            lambda x: x['captions']['playerCaptionsTracklistRenderer'], dict)
+            ('captions', 'playerCaptionsTracklistRenderer', T(dict)))
         if pctr:
             def process_language(container, base_url, lang_code, query):
                 lang_subs = []
@@ -2431,28 +2431,30 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     })
                 container[lang_code] = lang_subs
 
-            subtitles = {}
-            for caption_track in (pctr.get('captionTracks') or []):
-                base_url = caption_track.get('baseUrl')
-                if not base_url:
-                    continue
-                if caption_track.get('kind') != 'asr':
-                    lang_code = caption_track.get('languageCode')
-                    if not lang_code:
+            def process_subtitles():
+                subtitles = {}
+                for caption_track in traverse_obj(pctr, (
+                        'captionTracks', lambda _, v: v.get('baseUrl'))):
+                    if not base_url:
                         continue
-                    process_language(
-                        subtitles, base_url, lang_code, {})
-                    continue
-                automatic_captions = {}
-                for translation_language in (pctr.get('translationLanguages') or []):
-                    translation_language_code = translation_language.get('languageCode')
-                    if not translation_language_code:
+                    if caption_track.get('kind') != 'asr':
+                        lang_code = caption_track.get('languageCode')
+                        if not lang_code:
+                            continue
+                        process_language(
+                            subtitles, base_url, lang_code, {})
                         continue
-                    process_language(
-                        automatic_captions, base_url, translation_language_code,
-                        {'tlang': translation_language_code})
-                info['automatic_captions'] = automatic_captions
-            info['subtitles'] = subtitles
+                    automatic_captions = {}
+                    for translation_language in traverse_obj(pctr, (
+                            'translationLanguages', lambda _, v: v.get('languageCode'))):
+                        translation_language_code = translation_language['languageCode']
+                        process_language(
+                            automatic_captions, base_url, translation_language_code,
+                            {'tlang': translation_language_code})
+                    info['automatic_captions'] = automatic_captions
+                info['subtitles'] = subtitles
+
+            process_subtitles()
 
         parsed_url = compat_urllib_parse_urlparse(url)
         for component in (parsed_url.fragment, parsed_url.query):
