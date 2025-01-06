@@ -9,6 +9,7 @@ import json
 import os.path
 import random
 import re
+import string
 import time
 import traceback
 
@@ -67,6 +68,7 @@ from ..utils import (
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
     """Provide base functions for Youtube extractors"""
+
     _LOGIN_URL = 'https://accounts.google.com/ServiceLogin'
     _TWOFACTOR_URL = 'https://accounts.google.com/signin/challenge'
 
@@ -138,7 +140,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 [2, 1, None, 1,
                  'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn',
                  None, [], 4],
-                1, [None, None, []], None, None, None, True
+                1, [None, None, []], None, None, None, True,
             ],
             username,
         ]
@@ -160,7 +162,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             None, 1, None, [1, None, None, None, [password, None, True]],
             [
                 None, None, [2, 1, None, 1, 'https://accounts.google.com/ServiceLogin?passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Fnext%3D%252F%26action_handle_signin%3Dtrue%26hl%3Den%26app%3Ddesktop%26feature%3Dsign_in_button&hl=en&service=youtube&uilel=3&requestPath=%2FServiceLogin&Page=PasswordSeparationSignIn', None, [], 4],
-                1, [None, None, []], None, None, None, True
+                1, [None, None, []], None, None, None, True,
             ]]
 
         challenge_results = req(
@@ -213,7 +215,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                     user_hash, None, 2, None,
                     [
                         9, None, None, None, None, None, None, None,
-                        [None, tfa_code, True, 2]
+                        [None, tfa_code, True, 2],
                     ]]
 
                 tfa_results = req(
@@ -284,7 +286,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'client': {
                 'clientName': 'WEB',
                 'clientVersion': '2.20201021.03.00',
-            }
+            },
         },
     }
 
@@ -385,7 +387,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'client': {
                     'clientName': 'WEB',
                     'clientVersion': '2.20201021.03.00',
-                }
+                },
             },
             'query': query,
         }
@@ -462,7 +464,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             #       (HTML, videodetails, metadata, renderers)
             'name': ('content', 'author', (('ownerChannelName', None), 'title'), ['text']),
             'url': ('href', 'ownerProfileUrl', 'vanityChannelUrl',
-                    ['navigationEndpoint', 'browseEndpoint', 'canonicalBaseUrl'])
+                    ['navigationEndpoint', 'browseEndpoint', 'canonicalBaseUrl']),
         }
         if any((videodetails, metadata, renderers)):
             result = (
@@ -671,7 +673,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/8KVIDEO',
                 'description': '',
                 'uploader': '8KVIDEO',
-                'title': 'UHDTV TEST 8K VIDEO.mp4'
+                'title': 'UHDTV TEST 8K VIDEO.mp4',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -711,7 +713,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/@theamazingatheist',
                 'title': 'Burning Everyone\'s Koran',
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms \r\n\r\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
-            }
+            },
         },
         # Age-gated videos
         {
@@ -839,7 +841,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'expected_warnings': [
                 'DASH manifest missing',
-            ]
+            ],
         },
         # Olympics (https://github.com/ytdl-org/youtube-dl/issues/4431)
         {
@@ -1820,8 +1822,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # cpn generation algorithm is reverse engineered from base.js.
         # In fact it works even with dummy cpn.
-        CPN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
-        cpn = ''.join(CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(0, 16))
+        CPN_ALPHABET = string.ascii_letters + string.digits + '-_'
+        cpn = ''.join(CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(16))
 
         # more consistent results setting it to right before the end
         qs = parse_qs(playback_url)
@@ -1881,8 +1883,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         mobj = re.match(cls._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             raise ExtractorError('Invalid URL: %s' % url)
-        video_id = mobj.group(2)
-        return video_id
+        return mobj.group(2)
 
     def _extract_chapters_from_json(self, data, video_id, duration):
         chapters_list = try_get(
@@ -2035,7 +2036,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             headers = {
                 'X-YouTube-Client-Name': '85',
                 'X-YouTube-Client-Version': '2.0',
-                'Origin': 'https://www.youtube.com'
+                'Origin': 'https://www.youtube.com',
             }
 
             video_info = self._call_api('player', query, video_id, fatal=False, headers=headers)
@@ -2064,8 +2065,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return ''.join([r['text'] for r in runs if isinstance(r.get('text'), compat_str)])
 
         search_meta = (
-            lambda x: self._html_search_meta(x, webpage, default=None)) \
-            if webpage else lambda x: None
+            (lambda x: self._html_search_meta(x, webpage, default=None))
+            if webpage else lambda _: None)
 
         video_details = player_response.get('videoDetails') or {}
         microformat = try_get(
@@ -2137,7 +2138,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def build_fragments(f):
             return LazyList({
                 'url': update_url_query(f['url'], {
-                    'range': '{0}-{1}'.format(range_start, min(range_start + CHUNK_SIZE - 1, f['filesize']))
+                    'range': '{0}-{1}'.format(range_start, min(range_start + CHUNK_SIZE - 1, f['filesize'])),
                 })
             } for range_start in range(0, f['filesize'], CHUNK_SIZE))
 
@@ -2236,7 +2237,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'protocol': 'http_dash_segments',
                     'fragments': build_fragments(dct),
                 } if dct['filesize'] else {
-                    'downloader_options': {'http_chunk_size': CHUNK_SIZE}  # No longer useful?
+                    'downloader_options': {'http_chunk_size': CHUNK_SIZE},  # No longer useful?
                 })
 
             formats.append(dct)
@@ -2454,7 +2455,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             info['subtitles'] = subtitles
 
         parsed_url = compat_urllib_parse_urlparse(url)
-        for component in [parsed_url.fragment, parsed_url.query]:
+        for component in (parsed_url.fragment, parsed_url.query):
             query = compat_parse_qs(component)
             for k, v in query.items():
                 for d_k, s_ks in [('start', ('start', 't')), ('end', ('end',))]:
@@ -2684,7 +2685,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': 'Super Cooper Shorts - Shorts',
             'uploader': 'Super Cooper Shorts',
             'uploader_id': '@SuperCooperShorts',
-        }
+        },
     }, {
         # Channel that does not have a Shorts tab. Test should just download videos on Home tab instead
         'url': 'https://www.youtube.com/@emergencyawesome/shorts',
@@ -2738,7 +2739,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'description': 'md5:609399d937ea957b0f53cbffb747a14c',
             'uploader': 'ThirstForScience',
             'uploader_id': '@ThirstForScience',
-        }
+        },
     }, {
         'url': 'https://www.youtube.com/c/ChristophLaimer/playlists',
         'only_matching': True,
@@ -3037,7 +3038,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'uploader': '3Blue1Brown',
             'uploader_id': '@3blue1brown',
             'channel_id': 'UCYO_jab_esuFRV4b17AJtAw',
-        }
+        },
     }]
 
     @classmethod
@@ -3335,7 +3336,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'client': {
                 'clientName': 'WEB',
                 'clientVersion': client_version,
-            }
+            },
         }
         visitor_data = try_get(context, lambda x: x['client']['visitorData'], compat_str)
 
@@ -3354,7 +3355,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 headers['x-goog-visitor-id'] = visitor_data
             data['continuation'] = continuation['continuation']
             data['clickTracking'] = {
-                'clickTrackingParams': continuation['itct']
+                'clickTrackingParams': continuation['itct'],
             }
             count = 0
             retries = 3
@@ -3613,7 +3614,7 @@ class YoutubePlaylistIE(InfoExtractor):
             'uploader': 'milan',
             'uploader_id': '@milan5503',
             'channel_id': 'UCEI1-PVPcYXjB73Hfelbmaw',
-        }
+        },
     }, {
         'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
         'playlist_mincount': 455,
@@ -3623,7 +3624,7 @@ class YoutubePlaylistIE(InfoExtractor):
             'uploader': 'LBK',
             'uploader_id': '@music_king',
             'channel_id': 'UC21nz3_MesPLqtDqwdvnoxA',
-        }
+        },
     }, {
         'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
         'only_matching': True,
@@ -3734,7 +3735,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'youtube-dl test video',
             'title': 'youtube-dl test video',
-        }
+        },
     }]
 
     def _get_n_results(self, query, n):
@@ -3754,7 +3755,7 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
         'info_dict': {
             'id': 'youtube-dl test video',
             'title': 'youtube-dl test video',
-        }
+        },
     }]
 
 
@@ -3769,7 +3770,7 @@ class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
             'id': 'youtube-dl test video',
             'title': 'youtube-dl test video',
         },
-        'params': {'playlistend': 5}
+        'params': {'playlistend': 5},
     }, {
         'url': 'https://www.youtube.com/results?q=test&sp=EgQIBBgB',
         'only_matching': True,
@@ -3785,6 +3786,7 @@ class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
 class YoutubeFeedsInfoExtractor(YoutubeTabIE):
     """
     Base class for feed extractors
+
     Subclasses must define the _FEED_NAME property.
     """
     _LOGIN_REQUIRED = True
