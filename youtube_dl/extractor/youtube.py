@@ -2435,6 +2435,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 subtitles = {}
                 for caption_track in traverse_obj(pctr, (
                         'captionTracks', lambda _, v: v.get('baseUrl'))):
+                    base_url = self._yt_urljoin(caption_track['baseUrl'])
                     if not base_url:
                         continue
                     if caption_track.get('kind') != 'asr':
