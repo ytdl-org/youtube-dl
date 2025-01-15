@@ -3601,10 +3601,23 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     def _real_extract(self, url):
         item_id = self._match_id(url)
         url = update_url(url, netloc='www.youtube.com')
-        # Handle both video/playlist URLs
         qs = parse_qs(url)
-        video_id = qs.get('v', [None])[0]
-        playlist_id = qs.get('list', [None])[0]
+
+        def qs_get(key, default=None):
+            return qs.get(key, [default])[-1]
+
+        # Go around for /feeds/videos.xml?playlist_id={pl_id}
+        if item_id == 'feeds' and '/feeds/videos.xml?' in url:
+            playlist_id = qs_get('playlist_id')
+            if playlist_id:
+                return self.url_result(
+                    update_url_query('https://www.youtube.com/playlist', {
+                        'list': playlist_id,
+                    }), ie=self.ie_key(), video_id=playlist_id)
+
+        # Handle both video/playlist URLs
+        video_id = qs_get('v')
+        playlist_id = qs_get('list')
         if video_id and playlist_id:
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
