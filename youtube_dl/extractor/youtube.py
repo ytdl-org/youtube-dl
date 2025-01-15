@@ -31,7 +31,9 @@ from ..utils import (
     dict_get,
     error_to_compat_str,
     ExtractorError,
+    filter_dict,
     float_or_none,
+    get_first,
     extract_attributes,
     get_element_by_attribute,
     int_or_none,
@@ -81,6 +83,34 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _LOGIN_REQUIRED = False
 
     _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
+
+    _INNERTUBE_CLIENTS = {
+        # mweb has 'ultralow' formats
+        # See: https://github.com/yt-dlp/yt-dlp/pull/557
+        'mweb': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'MWEB',
+                    'clientVersion': '2.20241202.07.00',
+                    # mweb previously did not require PO Token with this UA
+                    'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 2,
+            'REQUIRE_PO_TOKEN': True,
+            'SUPPORTS_COOKIES': True,
+        },
+        'tv': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'TVHTML5',
+                    'clientVersion': '7.20241201.18.00',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
+            'SUPPORTS_COOKIES': True,
+        },
+    }
 
     def _login(self):
         """
@@ -321,19 +351,24 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             '{0} {1} {2}'.format(time_now, self._SAPISID, origin).encode('utf-8')).hexdigest()
         return 'SAPISIDHASH {0}_{1}'.format(time_now, sapisidhash)
 
-    def _call_api(self, ep, query, video_id, fatal=True, headers=None):
+    def _call_api(self, ep, query, video_id, fatal=True, headers=None,
+                  note='Downloading API JSON'):
         data = self._DEFAULT_API_DATA.copy()
         data.update(query)
         real_headers = {'content-type': 'application/json'}
         if headers:
             real_headers.update(headers)
 
+        # was: 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'
+        api_key = self.get_param('youtube_innertube_key')
         return self._download_json(
             'https://www.youtube.com/youtubei/v1/%s' % ep, video_id=video_id,
-            note='Downloading API JSON', errnote='Unable to download API page',
+            note=note, errnote='Unable to download API page',
             data=json.dumps(data).encode('utf8'), fatal=fatal,
-            headers=real_headers,
-            query={'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'})
+            headers=real_headers, query=filter_dict({
+                'key': api_key,
+                'prettyPrint': 'false',
+            }))
 
     def _extract_yt_initial_data(self, video_id, webpage):
         return self._parse_json(
@@ -341,6 +376,22 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 (r'%s\s*%s' % (self._YT_INITIAL_DATA_RE, self._YT_INITIAL_BOUNDARY_RE),
                  self._YT_INITIAL_DATA_RE), webpage, 'yt initial data'),
             video_id)
+
+    def _extract_visitor_data(self, *args):
+        """
+        Extract visitorData from an API response or ytcfg
+
+        Appears to be used to track session state
+        """
+        visitor_data = self.get_param('youtube_visitor_data')
+        if visitor_data:
+            return visitor_data
+
+        return get_first(
+            args, (('VISITOR_DATA',
+                    ('INNERTUBE_CONTEXT', 'client', 'visitorData'),
+                    ('responseContext', 'visitorData')),
+                   T(compat_str)))
 
     def _extract_ytcfg(self, video_id, webpage):
         return self._parse_json(
@@ -1957,6 +2008,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if sts:
                 pb_context['signatureTimestamp'] = sts
 
+            client = traverse_obj(self._INNERTUBE_CLIENTS, (
+                lambda _, v: not v.get('REQUIRE_PO_TOKEN')),
+                get_all=False)
+
             query = {
                 'playbackContext': {
                     'contentPlaybackContext': pb_context,
@@ -1964,30 +2019,39 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'racyCheckOk': True,
                 },
                 'context': {
-                    'client': {
-                        'clientName': 'MWEB',
-                        'clientVersion': '2.20241202.07.00',
-                        'hl': 'en',
-                        'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
-                        'timeZone': 'UTC',
-                        'utcOffsetMinutes': 0,
-                    },
+                    'client': merge_dicts(
+                        traverse_obj(client, ('INNERTUBE_CONTEXT', 'client')), {
+                            'hl': 'en',
+                            'timeZone': 'UTC',
+                            'utcOffsetMinutes': 0,
+                        }),
                 },
                 'videoId': video_id,
             }
-            headers = {
-                'X-YouTube-Client-Name': '2',
-                'X-YouTube-Client-Version': '2.20241202.07.00',
-                'Origin': origin,
+
+            headers = merge_dicts({
                 'Sec-Fetch-Mode': 'navigate',
-                'User-Agent': query['context']['client']['userAgent'],
-            }
+                'Origin': origin,
+                # 'X-Goog-Visitor-Id': self._extract_visitor_data(ytcfg) or '',
+            }, traverse_obj(client, {
+                'X-YouTube-Client-Name': 'INNERTUBE_CONTEXT_CLIENT_NAME',
+                'X-YouTube-Client-Version': (
+                    'INNERTUBE_CONTEXT', 'client', 'clientVersion'),
+                'User-Agent': (
+                    'INNERTUBE_CONTEXT', 'client', 'userAgent'),
+            }))
+
             auth = self._generate_sapisidhash_header(origin)
             if auth is not None:
                 headers['Authorization'] = auth
                 headers['X-Origin'] = origin
 
-            player_response = self._call_api('player', query, video_id, fatal=False, headers=headers)
+            player_response = self._call_api(
+                'player', query, video_id, fatal=False, headers=headers,
+                note=join_nonempty(
+                    'Downloading', traverse_obj(query, (
+                        'context', 'client', 'clientName')),
+                    'API JSON', delim=' '))
 
         def is_agegated(playability):
             if not isinstance(playability, dict):
