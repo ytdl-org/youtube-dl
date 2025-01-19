@@ -85,6 +85,22 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
 
     _INNERTUBE_CLIENTS = {
+        'ios': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'IOS',
+                    'clientVersion': '19.45.4',
+                    'deviceMake': 'Apple',
+                    'deviceModel': 'iPhone16,2',
+                    'userAgent': 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)',
+                    'osName': 'iPhone',
+                    'osVersion': '18.1.0.22B83',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 5,
+            'REQUIRE_JS_PLAYER': False,
+            'REQUIRE_PO_TOKEN': True,
+        },
         # mweb has 'ultralow' formats
         # See: https://github.com/yt-dlp/yt-dlp/pull/557
         'mweb': {
@@ -108,6 +124,17 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
+            'SUPPORTS_COOKIES': True,
+        },
+        'web': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'WEB',
+                    'clientVersion': '2.20241126.01.00',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
+            'REQUIRE_PO_TOKEN': True,
             'SUPPORTS_COOKIES': True,
         },
     }
@@ -1995,6 +2022,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
                 video_id, 'initial player response')
+        is_live = traverse_obj(player_response, ('videoDetails', 'isLive'))
+
         if False and not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
@@ -2008,50 +2037,65 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if sts:
                 pb_context['signatureTimestamp'] = sts
 
-            client = traverse_obj(self._INNERTUBE_CLIENTS, (
-                lambda _, v: not v.get('REQUIRE_PO_TOKEN')),
-                get_all=False)
+            client_names = traverse_obj(self._INNERTUBE_CLIENTS, (
+                T(dict.items), lambda _, k_v: not k_v[1].get('REQUIRE_PO_TOKEN'),
+                0))[:1]
 
-            query = {
-                'playbackContext': {
-                    'contentPlaybackContext': pb_context,
-                    'contentCheckOk': True,
-                    'racyCheckOk': True,
-                },
-                'context': {
-                    'client': merge_dicts(
-                        traverse_obj(client, ('INNERTUBE_CONTEXT', 'client')), {
-                            'hl': 'en',
-                            'timeZone': 'UTC',
-                            'utcOffsetMinutes': 0,
-                        }),
-                },
-                'videoId': video_id,
-            }
+            if is_live and 'ios' not in client_names:
+                client_names.append('ios')
 
-            headers = merge_dicts({
+            headers = {
                 'Sec-Fetch-Mode': 'navigate',
                 'Origin': origin,
                 # 'X-Goog-Visitor-Id': self._extract_visitor_data(ytcfg) or '',
-            }, traverse_obj(client, {
-                'X-YouTube-Client-Name': 'INNERTUBE_CONTEXT_CLIENT_NAME',
-                'X-YouTube-Client-Version': (
-                    'INNERTUBE_CONTEXT', 'client', 'clientVersion'),
-                'User-Agent': (
-                    'INNERTUBE_CONTEXT', 'client', 'userAgent'),
-            }))
-
+            }
             auth = self._generate_sapisidhash_header(origin)
             if auth is not None:
                 headers['Authorization'] = auth
                 headers['X-Origin'] = origin
 
-            player_response = self._call_api(
-                'player', query, video_id, fatal=False, headers=headers,
-                note=join_nonempty(
-                    'Downloading', traverse_obj(query, (
-                        'context', 'client', 'clientName')),
-                    'API JSON', delim=' '))
+            for client in traverse_obj(self._INNERTUBE_CLIENTS, (client_names, T(dict))):
+
+                query = {
+                    'playbackContext': {
+                        'contentPlaybackContext': pb_context,
+                        'contentCheckOk': True,
+                        'racyCheckOk': True,
+                    },
+                    'context': {
+                        'client': merge_dicts(
+                            traverse_obj(client, ('INNERTUBE_CONTEXT', 'client')), {
+                                'hl': 'en',
+                                'timeZone': 'UTC',
+                                'utcOffsetMinutes': 0,
+                            }),
+                    },
+                    'videoId': video_id,
+                }
+
+                api_headers = merge_dicts(headers, traverse_obj(client, {
+                    'X-YouTube-Client-Name': 'INNERTUBE_CONTEXT_CLIENT_NAME',
+                    'X-YouTube-Client-Version': (
+                        'INNERTUBE_CONTEXT', 'client', 'clientVersion'),
+                    'User-Agent': (
+                        'INNERTUBE_CONTEXT', 'client', 'userAgent'),
+                }))
+
+                api_player_response = self._call_api(
+                    'player', query, video_id, fatal=False, headers=api_headers,
+                    note=join_nonempty(
+                        'Downloading', traverse_obj(query, (
+                            'context', 'client', 'clientName')),
+                        'API JSON', delim=' '))
+
+                hls = [
+                    traverse_obj(
+                        resp, ('streamingData', 'hlsManifestUrl', T(url_or_none)))
+                    for resp in (player_response, api_player_response)]
+                if not hls[0] and hls[1]:
+                    player_response['streamingData']['hlsManifestUrl'] = hls[1]
+                else:
+                    player_response.update(api_player_response or {})
 
         def is_agegated(playability):
             if not isinstance(playability, dict):
@@ -2194,6 +2238,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         itag_qualities = {}
         q = qualities(['tiny', 'small', 'medium', 'large', 'hd720', 'hd1080', 'hd1440', 'hd2160', 'hd2880', 'highres'])
         CHUNK_SIZE = 10 << 20
+        is_live = video_details.get('isLive')
 
         streaming_data = player_response.get('streamingData') or {}
         streaming_formats = streaming_data.get('formats') or []
@@ -2338,7 +2383,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         hls_manifest_url = streaming_data.get('hlsManifestUrl')
         if hls_manifest_url:
             for f in self._extract_m3u8_formats(
-                    hls_manifest_url, video_id, 'mp4', fatal=False):
+                    hls_manifest_url, video_id, 'mp4',
+                    entry_protocol='m3u8_native', live=is_live, fatal=False):
                 if process_manifest_format(
                         f, 'hls', None, self._search_regex(
                             r'/itag/(\d+)', f['url'], 'itag', default=None)):
@@ -2443,8 +2489,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     '{0}: Some possibly damaged formats will be deprioritized'.format(video_id), only_once=True)
                 # Strictly de-prioritize damaged formats
                 f['preference'] = -10
-
-        is_live = video_details.get('isLive')
 
         owner_profile_url = self._yt_urljoin(self._extract_author_var(
             webpage, 'url', videodetails=video_details, metadata=microformat))
