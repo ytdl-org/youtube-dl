@@ -2095,7 +2095,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if not hls[0] and hls[1]:
                     player_response['streamingData']['hlsManifestUrl'] = hls[1]
                 else:
+                    video_details = merge_dicts(*traverse_obj(
+                        (player_response, api_player_response),
+                        (Ellipsis, 'videoDetails', T(dict))))
                     player_response.update(api_player_response or {})
+                    player_response['videoDetails'] = video_details
 
         def is_agegated(playability):
             if not isinstance(playability, dict):
