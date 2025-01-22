@@ -1,0 +1,147 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: |
+          VERSION: yyyy.mm.dd[.rev] or rev
+          (default: auto-generated)
+        required: false
+        default: ""
+        type: string
+      prerelease:
+        description: Pre-release
+        default: false
+        type: boolean
+
+jobs:
+  prepare:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.setup_variables.outputs.version }}
+      head_sha: ${{ steps.get_target.outputs.head_sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+            python-version: "3.10"
+
+      - name: Setup variables
+        id: setup_variables
+        run: |
+          revision="${{ (inputs.prerelease || !vars.PUSH_VERSION_COMMIT) && '$(date -u +"%H%M%S")' || '' }}"
+          version="$(
+            python devscripts/update_version.py \
+            ${{ inputs.version || '"${revision}"' }} )"
+          echo "::group::Output variables"
+          cat << EOF | tee -a "$GITHUB_OUTPUT"
+          version=${version}
+          EOF
+          echo "::endgroup::"
+
+      - name: Update documentation
+        env:
+          version: ${{ steps.setup_variables.outputs.version }}
+          target_repo: ${{ steps.setup_variables.outputs.target_repo }}
+        if: |
+          !inputs.prerelease
+        run: |
+          python devscripts/changelog.py --update
+          make README.md
+          make issuetemplates
+          make supportedsites
+
+      - name: Push to release
+        id: push_release
+        env:
+          version: ${{ steps.setup_variables.outputs.version }}
+          creator: ${{ github.event.sender.login }}
+        if: |
+          !inputs.prerelease
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -u
+          git commit -m "Release ${version}" \
+            -m "Created by: ${creator}" \
+            -m ":ci skip all"
+          git push origin --force master:release
+
+      - name: Get target commitish
+        id: get_target
+        run: |
+          echo "head_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Update master
+        env:
+          target_repo: ${{ steps.setup_variables.outputs.target_repo }}
+        if: |
+          vars.PUSH_VERSION_COMMIT != '' && !inputs.prerelease
+        run: |
+          git push origin ${{ github.event.ref }}
+
+  build:
+    needs: prepare
+    uses: ./.github/workflows/build.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+    permissions:
+      contents: read
+
+  publish:
+    needs: [prepare, build]
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifact
+          pattern: build-*
+          merge-multiple: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Generate release notes
+        run: |
+          cat >> ./RELEASE_NOTES << EOF
+          <details><summary><h3>Changelog</h3></summary>
+
+          $(python devscripts/changelog.py)
+
+          </details>
+          EOF
+          cat > ./PRERELEASE_NOTES << EOF
+          **This is a pre-release build**
+          ---
+
+          $(cat ./RELEASE_NOTES)
+          EOF
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          version: ${{ needs.prepare.outputs.version }}
+          head_sha: ${{ needs.prepare.outputs.head_sha }}
+        run: |
+          gh release create \
+            --notes-file ${{ inputs.prerelease && 'PRERELEASE_NOTES' || 'RELEASE_NOTES' }} \
+            --target ${{ env.head_sha }} \
+            --title "youtube-dl ${version}" \
+            ${{ inputs.prerelease && '--prerelease' || '' }} \
+            "${version}" \
+            artifact/*
