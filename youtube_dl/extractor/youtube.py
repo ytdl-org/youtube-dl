@@ -142,6 +142,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _login(self):
         """
         Attempt to log in to YouTube.
+
         True is returned if successful or skipped.
         False is returned if login failed.
 
@@ -2040,6 +2041,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             client_names = traverse_obj(self._INNERTUBE_CLIENTS, (
                 T(dict.items), lambda _, k_v: not k_v[1].get('REQUIRE_PO_TOKEN'),
                 0))[:1]
+            if 'web' not in client_names:
+                # webpage links won't download: ignore links and playability
+                player_response = filter_dict(
+                    player_response or {},
+                    lambda k, _: k not in ('streamingData', 'playabilityStatus'))
 
             if is_live and 'ios' not in client_names:
                 client_names.append('ios')
@@ -2047,7 +2053,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             headers = {
                 'Sec-Fetch-Mode': 'navigate',
                 'Origin': origin,
-                # 'X-Goog-Visitor-Id': self._extract_visitor_data(ytcfg) or '',
+                'X-Goog-Visitor-Id': self._extract_visitor_data(ytcfg) or '',
             }
             auth = self._generate_sapisidhash_header(origin)
             if auth is not None:
@@ -2059,9 +2065,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 query = {
                     'playbackContext': {
                         'contentPlaybackContext': pb_context,
-                        'contentCheckOk': True,
-                        'racyCheckOk': True,
                     },
+                    'contentCheckOk': True,
+                    'racyCheckOk': True,
                     'context': {
                         'client': merge_dicts(
                             traverse_obj(client, ('INNERTUBE_CONTEXT', 'client')), {
@@ -2088,11 +2094,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             'context', 'client', 'clientName')),
                         'API JSON', delim=' '))
 
-                hls = [
-                    traverse_obj(
-                        resp, ('streamingData', 'hlsManifestUrl', T(url_or_none)))
-                    for resp in (player_response, api_player_response)]
-                if not hls[0] and hls[1]:
+                hls = traverse_obj(
+                    (player_response, api_player_response),
+                    (Ellipsis, 'streamingData', 'hlsManifestUrl', T(url_or_none)))
+                if len(hls) == 2 and not hls[0] and hls[1]:
                     player_response['streamingData']['hlsManifestUrl'] = hls[1]
                 else:
                     video_details = merge_dicts(*traverse_obj(
@@ -3467,7 +3472,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not continuation:
                 break
             if visitor_data:
-                headers['x-goog-visitor-id'] = visitor_data
+                headers['X-Goog-Visitor-Id'] = visitor_data
             data['continuation'] = continuation['continuation']
             data['clickTracking'] = {
                 'clickTrackingParams': continuation['itct'],
