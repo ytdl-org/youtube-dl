@@ -38,7 +38,7 @@ This command will update youtube-dl if you have already installed it. See the [p
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
 
-    brew install youtube-dl
+    brew install yt-dlp
 
 Or with [MacPorts](https://www.macports.org/):
 
