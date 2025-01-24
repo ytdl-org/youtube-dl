@@ -7,30 +7,35 @@ import operator
 import re
 
 from .common import InfoExtractor
+
 from ..compat import (
     compat_HTTPError,
-    compat_str,
-    compat_urllib_request,
 )
 from .openload import PhantomJSwrapper
 from ..utils import (
+    clean_html,
     determine_ext,
+    extract_attributes,
     ExtractorError,
+    get_element_by_class,
+    get_element_by_id,
     int_or_none,
     merge_dicts,
-    NO_DEFAULT,
-    orderedSet,
+    parse_count,
     remove_quotes,
-    str_to_int,
+    remove_start,
+    T,
+    traverse_obj,
     update_url_query,
-    urlencode_postdata,
     url_or_none,
+    urlencode_postdata,
+    urljoin,
 )
 
 
 class PornHubBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'pornhub'
-    _PORNHUB_HOST_RE = r'(?:(?P<host>pornhub(?:premium)?\.(?:com|net|org))|pornhubthbh7ap3u\.onion)'
+    _PORNHUB_HOST_RE = r'(?:(?P<host>pornhub(?:premium)?\.(?:com|net|org))|pornhubvybmsymdol4iibwgwtkpwmeyd6luq2gxajgjzfjvotyt5zhyd\.onion)'
 
     def _download_webpage_handle(self, *args, **kwargs):
         def dl(*args, **kwargs):
@@ -47,10 +52,7 @@ class PornHubBaseIE(InfoExtractor):
                 r'<body\b[^>]+\bonload=["\']go\(\)',
                 r'document\.cookie\s*=\s*["\']RNKEY=',
                 r'document\.location\.reload\(true\)')):
-            url_or_request = args[0]
-            url = (url_or_request.get_full_url()
-                   if isinstance(url_or_request, compat_urllib_request.Request)
-                   else url_or_request)
+            url = urlh.geturl()
             phantom = PhantomJSwrapper(self, required_version='2.0')
             phantom.get(url, html=webpage)
             webpage, urlh = dl(*args, **kwargs)
@@ -60,11 +62,17 @@ class PornHubBaseIE(InfoExtractor):
     def _real_initialize(self):
         self._logged_in = False
 
+    def _set_age_cookies(self, host):
+        self._set_cookie(host, 'age_verified', '1')
+        self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
+        self._set_cookie(host, 'accessAgeDisclaimerUK', '1')
+        self._set_cookie(host, 'accessPH', '1')
+
     def _login(self, host):
         if self._logged_in:
             return
 
-        site = host.split('.')[0]
+        site = host.split('.', 1)[0]
 
         # Both sites pornhub and pornhubpremium have separate accounts
         # so there should be an option to provide credentials for both.
@@ -81,9 +89,9 @@ class PornHubBaseIE(InfoExtractor):
             login_url, None, 'Downloading %s login page' % site)
 
         def is_logged(webpage):
-            return any(re.search(p, webpage) for p in (
-                r'class=["\']signOut',
-                r'>Sign\s+[Oo]ut\s*<'))
+            return bool(
+                get_element_by_id('profileMenuDropdown', webpage)
+                or get_element_by_class('ph-icon-logout', webpage))
 
         if is_logged(login_page):
             self._logged_in = True
@@ -92,12 +100,12 @@ class PornHubBaseIE(InfoExtractor):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
-            'username': username,
+            'email': username,
             'password': password,
         })
 
         response = self._download_json(
-            'https://www.%s/front/authenticate' % host, None,
+            'https://www.%s/front/authenticate' % host, 'login',
             'Logging in to %s' % site,
             data=urlencode_postdata(login_form),
             headers={
@@ -119,17 +127,12 @@ class PornHubBaseIE(InfoExtractor):
 
 
 class PornHubIE(PornHubBaseIE):
-    IE_DESC = 'PornHub and Thumbzilla'
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            (?:[^/]+\.)?
-                            %s
-                            /(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
-                            (?:www\.)?thumbzilla\.com/video/
-                        )
-                        (?P<id>[\da-z]+)
-                    ''' % PornHubBaseIE._PORNHUB_HOST_RE
+    IE_DESC = 'PornHub'  # Thumbzilla -> Redtube.com, Modelhub -> uviu.com
+    _PORNHUB_PATH_RE = r'/(?:(?:view_video\.php%s)\?(?:.+&)?viewkey=%s)(?P<id>[\da-z]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?%s%s' % (
+        PornHubBaseIE._PORNHUB_HOST_RE, _PORNHUB_PATH_RE % ('|video/show', '|embed/'))
+    _PORNHUB_PATH_RE = _PORNHUB_PATH_RE % ('', '')
+    _EMBED_REGEX = [r'<iframe\s[^>]*?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub(?:premium)?\.(?:com|net|org)/embed/[\da-z]+)']
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': 'a6391306d050e4547f62b3f485dd9ba9',
@@ -138,6 +141,7 @@ class PornHubIE(PornHubBaseIE):
             'ext': 'mp4',
             'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
             'uploader': 'Babes',
+            'uploader_id': '/users/babes-com',
             'upload_date': '20130628',
             'timestamp': 1372447216,
             'duration': 361,
@@ -148,6 +152,10 @@ class PornHubIE(PornHubBaseIE):
             'age_limit': 18,
             'tags': list,
             'categories': list,
+            'cast': list,
+        },
+        'params': {
+            'format': '[format_id!^=hls]',
         },
     }, {
         # non-ASCII title
@@ -189,14 +197,27 @@ class PornHubIE(PornHubBaseIE):
             'categories': list,
             'subtitles': {
                 'en': [{
-                    "ext": 'srt'
-                }]
+                    'ext': 'srt',
+                }],
             },
         },
         'params': {
             'skip_download': True,
         },
         'skip': 'This video has been disabled',
+    }, {
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=ph601dc30bae19a',
+        'info_dict': {
+            'id': 'ph601dc30bae19a',
+            'ext': 'mp4',
+            'timestamp': 1612564932,
+            'age_limit': 18,
+            'uploader': 'Projekt Melody',
+            'uploader_id': 'projekt-melody',
+            'upload_date': '20210205',
+            'title': '"Welcome to My Pussy Mansion" - CB Stream (02/03/21)',
+            'thumbnail': r're:https?://.+',
+        },
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
@@ -215,9 +236,6 @@ class PornHubIE(PornHubBaseIE):
     }, {
         # private video
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph56fd731fce6b7',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
         'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/video/show?viewkey=648719015',
@@ -244,28 +262,36 @@ class PornHubIE(PornHubBaseIE):
         'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5a9813bfa7156',
         'only_matching': True,
     }, {
-        'url': 'http://pornhubthbh7ap3u.onion/view_video.php?viewkey=ph5a9813bfa7156',
+        'url': 'http://pornhubvybmsymdol4iibwgwtkpwmeyd6luq2gxajgjzfjvotyt5zhyd.onion/view_video.php?viewkey=ph5a9813bfa7156',
         'only_matching': True,
     }]
 
-    @staticmethod
-    def _extract_urls(webpage):
-        return re.findall(
-            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub(?:premium)?\.(?:com|net|org)/embed/[\da-z]+)',
-            webpage)
+    @classmethod
+    def _extract_urls(cls, webpage):
+        def yield_urls():
+            for p in cls._EMBED_REGEX:
+                for from_ in re.finditer(p, webpage):
+                    yield from_.group('url')
+
+        return list(yield_urls())
 
     def _extract_count(self, pattern, webpage, name):
-        return str_to_int(self._search_regex(
+        return parse_count(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        for _ in range(2):
+            mobj = self._match_valid_url(url)
+            video_id = mobj.group('id') if mobj else self._generic_id(url)
+            _, urlh = self._download_webpage_handle(url, video_id)
+            if url == urlh.geturl():
+                break
+            url = urlh.geturl()
+
         host = mobj.group('host') or 'pornhub.com'
-        video_id = mobj.group('id')
 
         self._login(host)
-
-        self._set_cookie(host, 'age_verified', '1')
+        self._set_age_cookies(host)
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
@@ -276,7 +302,7 @@ class PornHubIE(PornHubBaseIE):
         webpage = dl_webpage('pc')
 
         error_msg = self._html_search_regex(
-            (r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
+            (r'(?s)<div[^>]+class=("|\')(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
              r'(?s)<section[^>]+class=["\']noVideo["\'][^>]*>(?P<error>.+?)</section>'),
             webpage, 'error message', default=None, group='error')
         if error_msg:
@@ -285,9 +311,9 @@ class PornHubIE(PornHubBaseIE):
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
 
-        if any(re.search(p, webpage) for p in (
-                r'class=["\']geoBlocked["\']',
-                r'>\s*This content is unavailable in your country')):
+        if bool(get_element_by_class('geoBlocked', webpage)
+                or self._search_regex(
+                    r'>\s*This content is (unavailable) in your country', webpage, 'geo-restriction', default=False)):
             self.raise_geo_restricted()
 
         # video_title from flashvars contains whitespace instead of non-ASCII (see
@@ -304,36 +330,34 @@ class PornHubIE(PornHubBaseIE):
         video_urls_set = set()
         subtitles = {}
 
-        flashvars = self._parse_json(
-            self._search_regex(
-                r'var\s+flashvars_\d+\s*=\s*({.+?});', webpage, 'flashvars', default='{}'),
-            video_id)
-        if flashvars:
-            subtitle_url = url_or_none(flashvars.get('closedCaptionsFile'))
-            if subtitle_url:
-                subtitles.setdefault('en', []).append({
-                    'url': subtitle_url,
-                    'ext': 'srt',
-                })
-            thumbnail = flashvars.get('image_url')
-            duration = int_or_none(flashvars.get('video_duration'))
-            media_definitions = flashvars.get('mediaDefinitions')
-            if isinstance(media_definitions, list):
-                for definition in media_definitions:
-                    if not isinstance(definition, dict):
-                        continue
-                    video_url = definition.get('videoUrl')
-                    if not video_url or not isinstance(video_url, compat_str):
-                        continue
-                    if video_url in video_urls_set:
-                        continue
-                    video_urls_set.add(video_url)
-                    video_urls.append(
-                        (video_url, int_or_none(definition.get('quality'))))
-        else:
-            thumbnail, duration = [None] * 2
+        def add_video_url(video_url, quality=None):
+            v_url = url_or_none(video_url)
+            if not v_url:
+                return
+            if v_url in video_urls_set:
+                return
+            video_urls.append((v_url, quality))
+            video_urls_set.add(v_url)
 
-        def extract_js_vars(webpage, pattern, default=NO_DEFAULT):
+        flashvars = self._search_json(r'var\s+flashvars_\d+\s*=', webpage, 'flashvars', video_id)
+        flashvars = traverse_obj(flashvars, {
+            'closedCaptionsFile': ('closedCaptionsFile', T(url_or_none)),
+            'image_url': ('image_url', T(url_or_none)),
+            'video_duration': ('video_duration', T(int_or_none)),
+            'mediaDefinitions': ('mediaDefinitions', lambda _, v: v['videoUrl']),
+        }) or {}
+        subtitle_url = flashvars.get('closedCaptionsFile')
+        if subtitle_url:
+            subtitles.setdefault('en', []).append({
+                'url': subtitle_url,
+                'ext': 'srt',
+            })
+        thumbnail = flashvars.get('image_url')
+        duration = flashvars.get('video_duration')
+        for definition in flashvars.get('mediaDefinitions') or []:
+            add_video_url(definition['videoUrl'], int_or_none(definition.get('quality')))
+
+        def extract_js_vars(webpage, pattern, default=None):
             assignments = self._search_regex(
                 pattern, webpage, 'encoded url', default=default)
             if not assignments:
@@ -363,51 +387,33 @@ class PornHubIE(PornHubBaseIE):
                 js_vars[vname] = parse_js_value(value)
             return js_vars
 
-        def add_video_url(video_url):
-            v_url = url_or_none(video_url)
-            if not v_url:
-                return
-            if v_url in video_urls_set:
-                return
-            video_urls.append((v_url, None))
-            video_urls_set.add(v_url)
-
         def parse_quality_items(quality_items):
             q_items = self._parse_json(quality_items, video_id, fatal=False)
-            if not isinstance(q_items, list):
-                return
-            for item in q_items:
-                if isinstance(item, dict):
-                    add_video_url(item.get('url'))
+            for v_url in traverse_obj(q_items, (Ellipsis, 'url')):
+                add_video_url(v_url)
 
         if not video_urls:
             FORMAT_PREFIXES = ('media', 'quality', 'qualityItems')
             js_vars = extract_js_vars(
-                webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
-                default=None)
-            if js_vars:
-                for key, format_url in js_vars.items():
-                    if key.startswith(FORMAT_PREFIXES[-1]):
-                        parse_quality_items(format_url)
-                    elif any(key.startswith(p) for p in FORMAT_PREFIXES[:2]):
-                        add_video_url(format_url)
-            if not video_urls and re.search(
-                    r'<[^>]+\bid=["\']lockedPlayer', webpage):
+                webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES))
+            for key, format_url in js_vars.items():
+                if key.startswith(FORMAT_PREFIXES[-1]):
+                    parse_quality_items(format_url)
+                elif any(key.startswith(p) for p in FORMAT_PREFIXES[:2]):
+                    add_video_url(format_url)
+            if not video_urls and get_element_by_id('lockedPlayer', webpage):
                 raise ExtractorError(
                     'Video %s is locked' % video_id, expected=True)
 
         if not video_urls:
             js_vars = extract_js_vars(
                 dl_webpage('tv'), r'(var.+?mediastring.+?)</script>')
-            add_video_url(js_vars['mediastring'])
+            add_video_url(traverse_obj(js_vars, 'mediastring'))
 
         for mobj in re.finditer(
                 r'<a[^>]+\bclass=["\']downloadBtn\b[^>]+\bhref=(["\'])(?P<url>(?:(?!\1).)+)\1',
                 webpage):
-            video_url = mobj.group('url')
-            if video_url not in video_urls_set:
-                video_urls.append((video_url, None))
-                video_urls_set.add(video_url)
+            add_video_url(mobj.group('url'))
 
         upload_date = None
         formats = []
@@ -433,6 +439,13 @@ class PornHubIE(PornHubBaseIE):
                 'height': height,
             })
 
+        if not video_urls:
+            # import here to avoid mutually recursive dependency
+            from .generic import GenericIE
+            ret = GenericIE.generic_url_result(url, video_id=video_id, video_title=title, force_videoid=True)
+            ret['_type'] = 'url_transparent'
+            return ret
+
         for video_url, height in video_urls:
             if not upload_date:
                 upload_date = self._search_regex(
@@ -440,52 +453,55 @@ class PornHubIE(PornHubBaseIE):
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
             if '/video/get_media' in video_url:
+                # self._set_cookie(host, 'platform', 'tv')
                 medias = self._download_json(video_url, video_id, fatal=False)
-                if isinstance(medias, list):
-                    for media in medias:
-                        if not isinstance(media, dict):
-                            continue
-                        video_url = url_or_none(media.get('videoUrl'))
-                        if not video_url:
-                            continue
-                        height = int_or_none(media.get('quality'))
-                        add_format(video_url, height)
+                for media in traverse_obj(medias, lambda _, v: v['videoUrl']):
+                    video_url = url_or_none(media['videoUrl'])
+                    if not video_url:
+                        continue
+                    height = int_or_none(media.get('quality'))
+                    add_format(video_url, height)
                 continue
             add_format(video_url)
+
         self._sort_formats(
             formats, field_preference=('height', 'width', 'fps', 'format_id'))
 
+        model_profile = self._search_json(
+            r'var\s+MODEL_PROFILE\s*=', webpage, 'model profile', video_id, fatal=False)
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
-            webpage, 'uploader', default=None)
+            webpage, 'uploader', default=None) or model_profile.get('username')
 
         def extract_vote_count(kind, name):
             return self._extract_count(
-                (r'<span[^>]+\bclass="votes%s"[^>]*>([\d,\.]+)</span>' % kind,
+                (r'<span[^>]+\bclass="votes%s"[^>]*>(\d[\d,\.]*[kKmM]?)</span>' % kind,
                  r'<span[^>]+\bclass=["\']votes%s["\'][^>]*\bdata-rating=["\'](\d+)' % kind),
                 webpage, name)
 
         view_count = self._extract_count(
-            r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
+            r'<span class="count">(\d[\d,\.]*[kKmM]?)</span> [Vv]iews', webpage, 'view')
         like_count = extract_vote_count('Up', 'like')
         dislike_count = extract_vote_count('Down', 'dislike')
         comment_count = self._extract_count(
-            r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
+            r'All Comments\s*<span>\((\d[\d,\.]*[kKmM]?)\)', webpage, 'comment')
 
         def extract_list(meta_key):
             div = self._search_regex(
                 r'(?s)<div[^>]+\bclass=["\'].*?\b%sWrapper[^>]*>(.+?)</div>'
                 % meta_key, webpage, meta_key, default=None)
             if div:
-                return re.findall(r'<a[^>]+\bhref=[^>]+>([^<]+)', div)
+                return [clean_html(x) for x in re.findall(r'(?s)<a[^>]+\bhref=[^>]+>.+?</a>', div)]
 
         info = self._search_json_ld(webpage, video_id, default={})
         # description provided in JSON-LD is irrelevant
-        info['description'] = None
+        for k in ('url', 'description'):
+            info.pop(k, None)
 
-        return merge_dicts({
+        return merge_dicts(info, {
             'id': video_id,
             'uploader': video_uploader,
+            'uploader_id': remove_start(model_profile.get('modelProfileLink'), '/model/'),
             'upload_date': upload_date,
             'title': title,
             'thumbnail': thumbnail,
@@ -498,8 +514,9 @@ class PornHubIE(PornHubBaseIE):
             'age_limit': 18,
             'tags': extract_list('tags'),
             'categories': extract_list('categories'),
+            'cast': extract_list('pornstars'),
             'subtitles': subtitles,
-        }, info)
+        })
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
@@ -512,63 +529,26 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
         # drop-down menu that uses similar pattern for videos (see
         # https://github.com/ytdl-org/youtube-dl/issues/11594).
         container = self._search_regex(
-            r'(?s)(<div[^>]+class=["\']container.+)', webpage,
+            r'(?s)(<div\s[^>]*class=["\']container.+)', webpage,
             'container', default=webpage)
+
+        def entries():
+            seen_ids = set()
+            for m in re.finditer(r'<\w+\s[^>]*(?<!-)\bhref\s*=\s*.("|\'|\b)%s\1[^>]*>' % (PornHubIE._PORNHUB_PATH_RE,), container):
+                video_id = m.group('id')
+                if video_id:
+                    if video_id in seen_ids:
+                        continue
+                    seen_ids.add(video_id)
+                elt = extract_attributes(m.group(0))
+                video_url = urljoin(host, elt.get('href'))
+                yield video_url, video_id, elt.get('title')
 
         return [
             self.url_result(
-                'http://www.%s/%s' % (host, video_url),
-                PornHubIE.ie_key(), video_title=title)
-            for video_url, title in orderedSet(re.findall(
-                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"[^>]*\s+title="([^"]+)"',
-                container))
+                video_url, PornHubIE.ie_key(), video_title=title, video_id=video_id)
+            for video_url, video_id, title in entries()
         ]
-
-
-class PornHubUserIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?%s/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)' % PornHubBaseIE._PORNHUB_HOST_RE
-    _TESTS = [{
-        'url': 'https://www.pornhub.com/model/zoe_ph',
-        'playlist_mincount': 118,
-    }, {
-        'url': 'https://www.pornhub.com/pornstar/liz-vicious',
-        'info_dict': {
-            'id': 'liz-vicious',
-        },
-        'playlist_mincount': 118,
-    }, {
-        'url': 'https://www.pornhub.com/users/russianveet69',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.pornhub.com/channels/povd',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
-        'only_matching': True,
-    }, {
-        # Unavailable via /videos page, but available with direct pagination
-        # on pornstar page (see [1]), requires premium
-        # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
-        'url': 'https://www.pornhubpremium.com/pornstar/sienna-west',
-        'only_matching': True,
-    }, {
-        # Same as before, multi page
-        'url': 'https://www.pornhubpremium.com/pornstar/lily-labeau',
-        'only_matching': True,
-    }, {
-        'url': 'https://pornhubthbh7ap3u.onion/model/zoe_ph',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group('id')
-        videos_url = '%s/videos' % mobj.group('url')
-        page = self._extract_page(url)
-        if page:
-            videos_url = update_url_query(videos_url, {'page': page})
-        return self.url_result(
-            videos_url, ie=PornHubPagedVideoListIE.ie_key(), video_id=user_id)
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
@@ -617,23 +597,77 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
             page_entries = self._extract_entries(webpage, host)
             if not page_entries:
                 break
-            for e in page_entries:
-                yield e
+            for from_ in page_entries:
+                yield from_
             if not self._has_more(webpage):
                 break
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = self._match_valid_url(url)
         host = mobj.group('host')
         item_id = mobj.group('id')
 
         self._login(host)
+        self._set_age_cookies(host)
 
         return self.playlist_result(self._entries(url, host, item_id), item_id)
 
 
+class PornHubUserIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?%s/(?P<id>(?:(?:user|channel)s|model|pornstar)/[^/?#&]+))(?:[?#&]|/(?!videos)|$)' % PornHubBaseIE._PORNHUB_HOST_RE
+    _TESTS = [{
+        'url': 'https://www.pornhub.com/model/zoe_ph',
+        'info_dict': {
+            'id': 'zoe_ph',
+        },
+        'playlist_mincount': 118,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious',
+        'info_dict': {
+            'id': 'liz-vicious',
+        },
+        'playlist_mincount': 118,
+    }, {
+        'url': 'https://www.pornhub.com/users/russianveet69',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/channels/povd',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
+        'only_matching': True,
+    }, {
+        # Unavailable via /videos page, but available with direct pagination
+        # on pornstar page (see [1]), requires premium
+        # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
+        'url': 'https://www.pornhubpremium.com/pornstar/sienna-west',
+        'only_matching': True,
+    }, {
+        # Same as before, multi page
+        'url': 'https://www.pornhubpremium.com/pornstar/lily-labeau',
+        'only_matching': True,
+    }, {
+        'url': 'https://pornhubvybmsymdol4iibwgwtkpwmeyd6luq2gxajgjzfjvotyt5zhyd.onion/model/zoe_ph',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = self._match_valid_url(url)
+        user_id, host = mobj.group('id', 'host')
+        videos_url = '%s/videos' % mobj.group('url')
+        page = self._extract_page(url)
+        if page:
+            videos_url = update_url_query(videos_url, {'page': page})
+
+        self._login(host)
+
+        return self.playlist_result(self._entries(videos_url, host, user_id), user_id.split('/')[-1])
+        # return self.url_result(
+        #     videos_url, ie=PornHubPagedVideoListIE.ie_key(), video_id=user_id)
+
+
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?%s/(?P<id>(?:[^/]+/)*[^/?#&]+)' % PornHubBaseIE._PORNHUB_HOST_RE
+    _VALID_URL = r'https?://(?:[^/]+\.)?%s/(?!playlist/|gif/)(?P<id>(?:[^/]+/)*[^/?#&]+)' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
@@ -642,16 +676,20 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos',
-        'info_dict': {
-            'id': 'pornstar/jenny-blighe/videos',
-        },
-        'playlist_mincount': 149,
+        'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos?page=3',
+        'url': 'https://www.pornhub.com/pornstar/kylie-quinn/videos',
         'info_dict': {
-            'id': 'pornstar/jenny-blighe/videos',
+            'id': 'pornstar/kylie-quinn/videos',
         },
-        'playlist_mincount': 40,
+        'playlist_mincount': 80,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/kylie-quinn/videos?page=2',
+        'info_dict': {
+            'id': 'pornstar/kylie-quinn/videos',
+        },
+        # specific page: process just that page
+        'playlist_count': 40,
     }, {
         # default sorting as Top Rated Videos
         'url': 'https://www.pornhub.com/channels/povd/videos',
@@ -727,27 +765,14 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
         'url': 'https://www.pornhub.com/video/incategories/60fps-1/hd-porn',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/playlist/44121572',
-        'info_dict': {
-            'id': 'playlist/44121572',
-        },
-        'playlist_mincount': 132,
-    }, {
-        'url': 'https://www.pornhub.com/playlist/4667351',
-        'only_matching': True,
-    }, {
-        'url': 'https://de.pornhub.com/playlist/4667351',
-        'only_matching': True,
-    }, {
-        'url': 'https://pornhubthbh7ap3u.onion/model/zoe_ph/videos',
+        'url': 'https://pornhubvybmsymdol4iibwgwtkpwmeyd6luq2gxajgjzfjvotyt5zhyd.onion/model/zoe_ph/videos',
         'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
-        return (False
-                if PornHubIE.suitable(url) or PornHubUserIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
-                else super(PornHubPagedVideoListIE, cls).suitable(url))
+        return (not any(ph.suitable(url) for ph in (PornHubIE, PornHubUserIE, PornHubUserVideosUploadIE))
+                and super(PornHubPagedVideoListIE, cls).suitable(url))
 
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
@@ -762,6 +787,62 @@ class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
         'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
         'only_matching': True,
     }, {
-        'url': 'http://pornhubthbh7ap3u.onion/pornstar/jenny-blighe/videos/upload',
+        'url': 'http://pornhubvybmsymdol4iibwgwtkpwmeyd6luq2gxajgjzfjvotyt5zhyd.onion/pornstar/jenny-blighe/videos/upload',
         'only_matching': True,
     }]
+
+
+class PornHubPlaylistIE(PornHubPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?%s/playlist/(?P<id>[^/?#&]+))' % PornHubBaseIE._PORNHUB_HOST_RE
+    _TESTS = [{
+        'url': 'https://www.pornhub.com/playlist/44121572',
+        'info_dict': {
+            'id': '44121572',
+        },
+        'playlist_mincount': 55,
+    }, {
+        'url': 'https://www.pornhub.com/playlist/4667351',
+        'only_matching': True,
+    }, {
+        'url': 'https://de.pornhub.com/playlist/4667351',
+        'only_matching': True,
+    }, {
+        'url': 'https://de.pornhub.com/playlist/4667351?page=2',
+        'only_matching': True,
+    }]
+
+    def _entries(self, url, host, item_id):
+        webpage = self._download_webpage(url, item_id, 'Downloading page 1')
+        playlist_id = self._search_regex(r'var\s+playlistId\s*=\s*"([^"]+)"', webpage, 'playlist_id')
+        video_count = int_or_none(
+            self._search_regex(r'var\s+itemsCount\s*=\s*([0-9]+)\s*\|\|', webpage, 'video_count'))
+        token = self._search_regex(r'var\s+token\s*=\s*"([^"]+)"', webpage, 'token')
+        page_count = (video_count - 36 + 39) // 40 + 1
+        page_entries = self._extract_entries(webpage, host)
+
+        def download_page(page_num):
+            note = 'Downloading page {0}'.format(page_num)
+            page_url = 'https://www.{0}/playlist/viewChunked'.format(host)
+            return self._download_webpage(page_url, item_id, note, query={
+                'id': playlist_id,
+                'page': page_num,
+                'token': token,
+            })
+
+        for page_num in range(1, page_count + 1):
+            if page_num > 1:
+                webpage = download_page(page_num)
+                page_entries = self._extract_entries(webpage, host)
+            if not page_entries:
+                break
+            for from_ in page_entries:
+                yield from_
+
+    def _real_extract(self, url):
+        mobj = self._match_valid_url(url)
+        host, item_id = mobj.group('host', 'id')
+
+        self._login(host)
+        self._set_age_cookies(host)
+
+        return self.playlist_result(self._entries(mobj.group('url'), host, item_id), item_id)
