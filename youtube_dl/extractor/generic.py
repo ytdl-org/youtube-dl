@@ -3701,7 +3701,7 @@ class GenericIE(InfoExtractor):
                 return self.url_result(embed_url)
 
         if not found:
-            raise UnsupportedError(url)
+            raise UnsupportedError(f"The URL '{url}' might not be supported by youtube-dl.")
 
         entries = []
         for video_url in orderedSet(found):
