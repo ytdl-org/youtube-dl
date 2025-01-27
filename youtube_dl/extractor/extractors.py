@@ -1590,6 +1590,7 @@ from .wsj import (
     WSJArticleIE,
 )
 from .wwe import WWEIE
+from .w24at import W24atIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
 from .xfileshare import XFileShareIE
