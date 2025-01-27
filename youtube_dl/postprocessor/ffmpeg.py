@@ -276,7 +276,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 acodec = 'copy'
                 extension = 'm4a'
                 more_opts = ['-bsf:a', 'aac_adtstoasc']
-            elif filecodec in ['aac', 'flac', 'mp3', 'vorbis', 'opus']:
+            elif (
+                filecodec in ['aac', 'flac', 'vorbis', 'opus'] or
+                (filecodec == 'mp3' and self._preferredquality is None)
+            ):
                 # Lossless if possible
                 acodec = 'copy'
                 extension = filecodec
