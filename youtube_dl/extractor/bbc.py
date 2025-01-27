@@ -1033,6 +1033,8 @@ class BBCIE(BBCCoUkIE):
             }
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
+        programme_id = self._search_regex(
+            r'/reel/video/(?P<id>%s)/' % self._ID_REGEX, url, 'Reel pid', default=None)
         initial_data = self._parse_json(self._html_search_regex(
             r'<script[^>]+id=(["\'])initial-data\1[^>]+data-json=(["\'])(?P<json>(?:(?!\2).)+)',
             webpage, 'initial data', default='{}', group='json'), playlist_id, fatal=False)
@@ -1044,12 +1046,13 @@ class BBCIE(BBCCoUkIE):
             version_id = clip_data.get('versionID')
             if version_id:
                 title = smp_data['title']
+                # also try for higher resolutions
+                self._MEDIA_SETS.insert(0, 'iptv-all')
                 formats, subtitles = self._download_media_selector(version_id)
                 self._sort_formats(formats)
                 image_url = smp_data.get('holdingImageURL')
                 display_date = init_data.get('displayDate')
                 topic_title = init_data.get('topicTitle')
-
                 return {
                     'id': version_id,
                     'title': title,
