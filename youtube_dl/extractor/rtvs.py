@@ -1,25 +1,38 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+
 from ..utils import (
+    extract_attributes,
+    merge_dicts,
+    mimetype2ext,
+    parse_duration,
+    parse_qs,
+    T,
+    traverse_obj,
+    unified_timestamp,
     url_or_none,
-    determine_ext
 )
 
 
 class RTVSIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtvs\.sk/(?:radio|televizia)/archiv/\d+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:rtvs|stvr)\.sk/(?:radio|televizia)/archiv(?:/\d+)?/(?P<id>\d+)'
     _TESTS = [{
         # radio archive
         'url': 'http://www.rtvs.sk/radio/archiv/11224/414872',
         'md5': '134d5d6debdeddf8a5d761cbc9edacb8',
         'info_dict': {
             'id': '414872',
+            'display_id': '135331',
             'ext': 'mp3',
-            'title': 'Ostrov pokladov 1 časť.mp3'
+            'title': 'Ostrov pokladov 1 časť.mp3',
+            'duration': 2854,
+            'thumbnail': (
+                r're:https?://www\.(?:(?P<stvr>stvr)|rtvs)\.sk'
+                '/media/a501/image/file/2/0000'
+                r'/(?(stvr)rtvs-00009383\.png|b1R8\.rtvs\.jpg)$'
+            ),
         },
         'params': {
             'skip_download': True,
@@ -32,77 +45,99 @@ class RTVSIE(InfoExtractor):
             'id': '63118',
             'ext': 'mp4',
             'title': 'Amaro Džives - Náš deň',
-            'description':
-            'Galavečer pri príležitosti Medzinárodného dňa Rómov.'
+            'description': r're:Cenu Romipen odovzdá .{292} Medzinárodný deň Rómov a prezentovať rómsku kultúru\.$',
+            'timestamp': 1428523500,
+            'upload_date': '20150408',
+            'thumbnail': (
+                r're:https://www\.(?:stvr|rtvs)\.sk'
+                '/media/a501/image/file/2/0031'
+                r'/L7Qm\.amaro_dzives_png\.jpg$'),
+            'duration': 4986,
         },
         'params': {
             'skip_download': True,
+        }
+    }, {
+        # tv archive
+        'url': 'https://www.rtvs.sk/televizia/archiv/18083?utm_source=web&utm_medium=rozcestnik&utm_campaign=Robin',
+        'info_dict': {
+            'id': '18083',
+            'display_id': '457086',
+            'ext': 'mp4',
+            'title': 'Robin - Vodiace psy /2.časť/',
+            'description': r're:Richard so svojím psom Robinom .{49} úlohu vodiace psíky\.$',
+            'timestamp': 1711875000,
+            'upload_date': '20240331',
+            'duration': 931,
+            'thumbnail': r're:https://www\.(:rtvs|stvr)\.sk/media/a501/image/file/2/0916/robin\.jpg$',
+        }
+    }, {
+        # new domain
+        'url': 'https://www.stvr.sk/televizia/archiv/15135/512191',
+        'info_dict': {
+            'id': '512191',
+            'ext': 'mp4',
+            'title': 'Retro noviny',
+            'description': r're:Kolekciu spravodajských šotov .{62} uvádza Milan Antonič, archivár STV\.',
+            'timestamp': 1737797700,
+            'upload_date': '20250125',
+            'duration': 1686,
+            'thumbnail': 'https://www.stvr.sk/media/a501/image/file/2/0519/NSF4.retro_noviny_jpg.jpg',
         }
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        if url.find('/radio/') != -1:
-            a2 = url.split('/')[-1]
-            a1 = url.split('/')[-2]
-            embed = self._download_webpage(
-                "https://www.rtvs.sk/embed/radio/archive/%s/%s" % (a1, a2),
-                video_id)
-            audio_id = re.search('audio5f.json?id=(?P<id>[^\"]+)', embed)
-            audio_id = audio_id.group('id')
-            info = self._download_json(
-                "https://www.rtvs.sk/json/audio5f.json?id=%s" % audio_id,
-                audio_id)
+        webpage = self._download_webpage(url, video_id)
+        info = self._search_json_ld(webpage, video_id, expected_type='VideoObject', default={})
+        iframe_url = info and self._search_regex(
+            r'"embedUrl"\s*:\s*"(https?://[^"]+)"', webpage, 'Iframe URL', default=None)
+        if not iframe_url:
+            iframe = self._search_regex(
+                r'''(<iframe\s[^>]*(?<!-)\bid\s*=\s*['"]?player_(?:(?!_)\w)+_\d+[^>]+>)''',
+                webpage, 'Iframe')
+            iframe = extract_attributes(iframe)
 
-            formats = []
-            formats.append({
-                'url': info['playlist'][0]['sources'][0]['src'],
-                'format_id':  None,
-                'height': 0
+            iframe_url = iframe['src']
+
+        webpage = self._download_webpage(iframe_url, video_id, 'Downloading iframe')
+        json_url = self._search_regex(r'var\s+url\s*=\s*"([^"]+)"\s*\+\s*ruurl', webpage, 'json URL')
+        data = self._download_json('https:{0}b=mozilla&p=win&v=97&f=0&d=1'.format(json_url), video_id)
+
+        if traverse_obj(data, 'clip', expected_type=dict):
+            data['playlist'] = [data['clip']]
+
+        formats = []
+        _require = lambda k: (lambda x: x if x.get(k) else None)
+        for item in traverse_obj(data, (
+                'playlist', 0, 'sources', Ellipsis, {
+                    'src': ('src', T(url_or_none)),
+                    'type': 'type',
+                }, T(_require('src')))):
+            item_type = item.get('type')
+            if item_type == 'application/x-mpegurl':
+                formats.extend(self._extract_m3u8_formats(
+                    item['src'], video_id, ext='mp4',
+                    entry_protocol='m3u8_native', fatal=False))
+            elif item_type == 'application/dash+xml':
+                formats.extend(self._extract_mpd_formats(
+                    item['src'], video_id, fatal=False))
+            else:
+                formats.append({
+                    'url': item['src'],
+                    'ext': mimetype2ext(item_type),
                 })
-            info = info['playlist'][0]
-            return {
-                'id': audio_id,
-                'title': info.get('title'),
-                'thumbnail': info.get('image'),
-                'formats': formats
-            }
-        else:
-            info = self._download_json(
-                "https://www.rtvs.sk/json/archive5f.json?id=%s" % video_id,
-                video_id)
-            info = info.get('clip')
+        self._sort_formats(formats)
 
-            formats = []
-            for format_id, format_list in info.items():
-                if not isinstance(format_list, list):
-                    format_list = [format_list]
-                for format_dict in format_list:
-                    if not isinstance(format_dict, dict):
-                        continue
-                    format_url = url_or_none(format_dict.get('src'))
-                    format_type = format_dict.get('type')
-                    ext = determine_ext(format_url)
-                    if (format_type == 'application/x-mpegURL'
-                            or format_id == 'HLS' or ext == 'm3u8'):
-                        formats.extend(self._extract_m3u8_formats(
-                            format_url, video_id, 'mp4',
-                            entry_protocol='m3u8_native', m3u8_id='hls',
-                            fatal=False))
-                    elif (format_type == 'application/dash+xml'
-                          or format_id == 'DASH' or ext == 'mpd'):
-                        pass
-                    else:
-                        formats.append({
-                            'url': format_url,
-                        })
-            formats = sorted(formats, key=lambda i: i['tbr'])
-            dt = info.get('datetime_create')
-            return {
-                'id': video_id,
-                'title': info.get('title') + '-' + dt[:10],
-                'thumbnail': info.get('image'),
-                'description': info.get('description'),
-                'formats': formats
-            }
+        return merge_dicts({
+            'id': video_id,
+            'display_id': traverse_obj(parse_qs(json_url), ('id', -1)),
+            'formats': formats,
+        }, info or traverse_obj(data, ('playlist', 0, {
+            'title': 'title',
+            'description': ('description', T(lambda s: s.strip())),
+            'duration': ('length', T(parse_duration)),
+            'thumbnail': ('image', T(url_or_none)),
+            'timestamp': ('datetime_create', T(unified_timestamp)),
+        })))
