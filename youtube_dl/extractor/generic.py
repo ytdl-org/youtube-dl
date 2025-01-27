@@ -132,6 +132,7 @@ from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
 from .medialaan import MedialaanIE
 from .simplecast import SimplecastIE
+from .panopto import PanoptoIE
 
 
 class GenericIE(InfoExtractor):
@@ -2340,6 +2341,15 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': ['uploader id'],
         },
+        {
+            # Panopto embeds
+            'url': 'https://www.monash.edu/learning-teaching/teachhq/learning-technologies/panopto/how-to/insert-a-quiz-into-a-panopto-video',
+            'info_dict': {
+                'title': 'Insert a quiz into a Panopto video',
+                'id': 'insert-a-quiz-into-a-panopto-video'
+            },
+            'playlist_count': 1
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -3518,6 +3528,9 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
 
+        panopto_entries = PanoptoIE._extract_from_webpage(url, webpage)
+        if panopto_entries:
+            return self.playlist_result(panopto_entries, video_id, video_title)
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
         if entries:
