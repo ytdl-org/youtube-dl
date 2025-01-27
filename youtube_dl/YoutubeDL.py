@@ -183,6 +183,7 @@ class YoutubeDL(object):
     quiet:             Do not print messages to stdout.
     no_warnings:       Do not print out anything for warnings.
     forceurl:          Force printing final URL.
+    forcemanifesturl:  Force printing manifest URL.
     forcetitle:        Force printing title.
     forceid:           Force printing ID.
     forcethumbnail:    Force printing thumbnail URL.
@@ -1931,6 +1932,12 @@ class YoutubeDL(object):
             else:
                 # For RTMP URLs, also include the playpath
                 self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+        if self.params.get('forcemanifesturl', False) and not incomplete:
+            if info_dict.get('requested_formats') is not None:
+                for f in info_dict['requested_formats']:
+                    self.to_stdout(f['manifest_url'])
+            else:
+                self.to_stdout(info_dict['manifest_url'])
         print_optional('thumbnail')
         print_optional('description')
         if self.params.get('forcefilename', False) and filename is not None:
