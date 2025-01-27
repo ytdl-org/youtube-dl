@@ -679,7 +679,12 @@ from .mediasite import (
     MediasiteNamedCatalogIE,
 )
 from .medici import MediciIE
-from .megaphone import MegaphoneIE
+from .megaphone import (
+    MegaphoneIE,
+    MegaphoneEpisodeIE,
+    MegaphonePlaylistIE,
+    MegaphoneChannelIE,
+)
 from .meipai import MeipaiIE
 from .melonvod import MelonVODIE
 from .meta import METAIE
