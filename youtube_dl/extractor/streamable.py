@@ -51,6 +51,10 @@ class StreamableIE(InfoExtractor):
         {
             'url': 'https://streamable.com/s/okkqk/drxjds',
             'only_matching': True,
+        },
+        {
+            'url': 'https://streamable.com/t/dnd1',
+            'only_matching': True,
         }
     ]
 
