@@ -41,7 +41,7 @@ class NPOIE(InfoExtractor):
         return self._download_json(
             'https://npo.nl/start/api/domain/player-token?productId=%s' % video_id,
             video_id,
-            note='Downloading token')['token']
+            note='Downloading token')['jwt']
 
     def _real_extract(self, url):
         # Remove /afspelen and/or any trailing `/`s
