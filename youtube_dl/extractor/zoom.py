@@ -128,10 +128,14 @@ class ZoomIE(InfoExtractor):
         if url_type == 'share':
             webpage = self._get_real_webpage(url, base_url, video_id, 'share')
             meeting_id = self._get_page_data(webpage, video_id)['meetingId']
-            redirect_path = self._download_json(
+            share_info = self._download_json(
                 '{0}nws/recording/1.0/play/share-info/{1}'.format(base_url, meeting_id),
-                video_id, note='Downloading share info JSON')['result']['redirectUrl']
-            url = urljoin(base_url, redirect_path)
+                video_id, note='Downloading share info JSON', fatal=False)
+            url = traverse_obj(share_info, (
+                'result', 'redirectUrl', T(lambda u: urljoin(base_url, u))))
+            if not url:
+                raise ExtractorError(traverse_obj(
+                    share_info, 'errorMessage') or 'No video found from share link')
             query['continueMode'] = 'true'
 
         webpage = self._get_real_webpage(url, base_url, video_id, 'play')
