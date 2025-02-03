@@ -10,9 +10,10 @@ from .compat import (
 # https://github.com/unicode-org/icu/blob/main/icu4c/source/data/unidata/CaseFolding.txt
 # In case newly foldable Unicode characters are defined, paste the new version
 # of the text inside the ''' marks.
-# The text is expected to have only blank lines andlines with 1st character #,
+# The text is expected to have only blank lines and lines with 1st character #,
 # all ignored, and fold definitions like this:
-# `from_hex_code; space_separated_to_hex_code_list; comment`
+# `from_hex_code; status; space_separated_to_hex_code_list; comment`
+# Only `status` C/F are used.
 
 _map_str = '''
 # CaseFolding-15.0.0.txt
@@ -1657,11 +1658,6 @@ _map = dict(
 del _map_str
 
 
-def casefold(s):
+def _casefold(s):
     assert isinstance(s, compat_str)
     return ''.join((_map.get(c, c) for c in s))
-
-
-__all__ = [
-    'casefold',
-]

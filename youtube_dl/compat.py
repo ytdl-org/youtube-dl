@@ -44,7 +44,7 @@ try:
     compat_str.casefold
     compat_casefold = lambda s: s.casefold()
 except AttributeError:
-    from .casefold import casefold as compat_casefold
+    from .casefold import _casefold as compat_casefold
 
 try:
     import collections.abc as compat_collections_abc
