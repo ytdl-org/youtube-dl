@@ -459,6 +459,10 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return undefined >> 5}', 0)
         self._test('function f(){return 42 << NaN}', 42)
         self._test('function f(){return 42 << Infinity}', 42)
+        self._test('function f(){return 0.0 << null}', 0)
+        self._test('function f(){return NaN << 42}', 0)
+        self._test('function f(){return "21.9" << 1}', 42)
+        self._test('function f(){return 21 << 4294967297}', 42)
 
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)

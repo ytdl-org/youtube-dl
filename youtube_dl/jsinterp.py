@@ -24,6 +24,8 @@ from .compat import (
     compat_collections_chain_map as ChainMap,
     compat_contextlib_suppress,
     compat_filter as filter,
+    compat_int,
+    compat_integer_types,
     compat_itertools_zip_longest as zip_longest,
     compat_map as map,
     compat_numeric_types,
@@ -70,14 +72,27 @@ class JS_Undefined(object):
     pass
 
 
-def _js_bit_op(op):
+def _js_bit_op(op, is_shift=False):
 
-    def zeroise(x):
-        return 0 if x in (None, JS_Undefined, _NaN, _Infinity) else x
+    def zeroise(x, is_shift_arg=False):
+        if isinstance(x, compat_integer_types):
+            return (x % 32) if is_shift_arg else (x & 0xffffffff)
+        try:
+            x = float(x)
+            if is_shift_arg:
+                x = int(x % 32)
+            elif x < 0:
+                x = -compat_int(-x % 0xffffffff)
+            else:
+                x = compat_int(x % 0xffffffff)
+        except (ValueError, TypeError):
+            # also here for int(NaN), including float('inf') % 32
+            x = 0
+        return x
 
     @wraps_op(op)
     def wrapped(a, b):
-        return op(zeroise(a), zeroise(b)) & 0xffffffff
+        return op(zeroise(a), zeroise(b, is_shift)) & 0xffffffff
 
     return wrapped
 
@@ -253,8 +268,8 @@ def _js_typeof(expr):
 # avoid dict to maintain order
 # definition None => Defined in JSInterpreter._operator
 _OPERATORS = (
-    ('>>', _js_bit_op(operator.rshift)),
-    ('<<', _js_bit_op(operator.lshift)),
+    ('>>', _js_bit_op(operator.rshift, True)),
+    ('<<', _js_bit_op(operator.lshift, True)),
     ('+', _js_add),
     ('-', _js_arith_op(operator.sub)),
     ('*', _js_arith_op(operator.mul)),
