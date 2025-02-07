@@ -59,6 +59,11 @@ class EpornerIE(InfoExtractor):
 
         video_id = self._match_id(urlh.geturl())
 
+        deleted = self._html_search_regex(r'<strong>Video has been deleted</strong>', webpage, 'deleted', default=False, fatal=False, group=0)
+        if deleted:
+            raise ExtractorError(
+                'Video %s has been deleted' % video_id, expected=True)
+
         hash = self._search_regex(
             r'hash\s*[:=]\s*["\']([\da-f]{32})', webpage, 'hash')
 
