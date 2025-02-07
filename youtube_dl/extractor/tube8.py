@@ -8,20 +8,22 @@ from time import sleep
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
+    ExtractorError,
     get_element_by_class,
     get_element_by_id,
     int_or_none,
+    merge_dicts,
     parse_qs,
     strip_or_none,
     T,
-    traverse_obj,    
+    traverse_obj,
     url_or_none,
     urljoin,
 )
 
 
 class Tube8IE(InfoExtractor):
-    _VALID_URL = r'https?:\/\/(?:www\.)?tube8\.com\/+porn-video+\/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tube8\.com/porn-video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.tube8.com/porn-video/189530841/',
         'md5': '532408f59e89a32027d873af6289c85a',
@@ -29,14 +31,15 @@ class Tube8IE(InfoExtractor):
             'id': '189530841',
             'ext': 'mp4',
             'title': 'Found dildo. She let it cum in her tight ass to keep the secret',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': 'Cowgirl:479',
             'uploader': 'MaryKrylova',
+            'thumbnail': r're:https?://.*\.jpg$',
             'age_limit': 18,
         }
     }]
 
-    _EMBED_REGEX =  r'<iframe [^>]*\bsrc=["\'](?P<url>(?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)*\d+)'
-    
+    _EMBED_REGEX = r'<iframe [^>]*\bsrc=["\'](?P<url>(?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)*\d+)'
+
     @classmethod
     def _extract_urls(cls, webpage):
         return [m.group('url') for m in re.finditer(cls._EMBED_REGEX, webpage)]
@@ -44,6 +47,12 @@ class Tube8IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_regex(
+            r'<title(?:\s[^>]*)?>([^<]+)(?:\|\s*Tube8\s*)?</title>',
+            webpage, 'title', default=None)
+        if title == 'Removed Video':
+            raise ExtractorError('Video has been removed', expected=True)
 
         age_verify_msg = self._search_regex(
             r'(your elected officials in \w+(?:\s+\w+){,2} are requiring us to verify your age before allowing you access to our website)',
@@ -57,8 +66,10 @@ class Tube8IE(InfoExtractor):
         info = self._search_json_ld(webpage, video_id, expected_type='VideoObject', default={})
         for k in ('url', 'description'):
             info.pop(k, None)
-            
-        info['uploader'] = clean_html(get_element_by_class('submitByLink', webpage))
+
+        info['title'] = (
+            traverse_obj(playervars, ('video_title', T(strip_or_none)))
+            or info.get('title') or title or self._og_search_title(webpage))
 
         # Borrowed from youporn extractor
         def get_fmt(x):
@@ -70,41 +81,44 @@ class Tube8IE(InfoExtractor):
         defs_by_format = dict(traverse_obj(playervars, (
             'mediaDefinitions', lambda _, v: v.get('format'), T(get_fmt))))
 
-        info['title'] = strip_or_none(playervars.get('video_title')) or info.get('title') or playervars['video_title']
-        if not info.get('thumbnail'):
-            info['thumbnail'] = traverse_obj(playervars, ('image_url', T(url_or_none)))
-
-        # Borrowed from youporn extractor
         def get_format_data(f):
             if f not in defs_by_format:
                 return []
             return self._download_json(
                 defs_by_format[f]['videoUrl'], video_id, '{0}-formats'.format(f))
 
-        formats = []
-        for mp4_url in traverse_obj(
-                get_format_data('mp4'),
-                (lambda _, v: not isinstance(v['defaultQuality'], bool), 'videoUrl'),
-                (Ellipsis, 'videoUrl'),
-                expected_type=url_or_none):
-            height, tbr = map(int_or_none, self._search_regex(r'(?i)(?P<height>\d{3,4})p_(?P<bitrate>\d+)k_\d+', mp4_url, 'media details', group=('height', 'bitrate'), fatal=False))
-            fmt_id = '%dp' % height if height else 'mp4'
-            formats.append({
-                'format_id': fmt_id,
-                'url': mp4_url,
-                'ext': 'mp4',
-                'height': height,
-                'tbr': tbr,
-            })
+        formats = traverse_obj(get_format_data('mp4'), (
+            lambda _, v: v.get('videoUrl'), {
+                'url': ('videoUrl', T(url_or_none)),
+                'height': ('quality', T(int_or_none)),
+            }))
 
-        self._sort_formats(formats)
+        info['formats'] = []
+        for fmt in formats:
+            if not fmt.get('url'):
+                continue
+            height, fmt['tbr'] = map(int_or_none, self._search_regex(
+                r'(?i)(?P<height>\d{3,4})p_(?P<bitrate>\d+)k_\d+', fmt['url'],
+                'media details', group=('height', 'bitrate'),
+                default=(None, None)))
+            if fmt.get('height') is None:
+                fmt['height'] = height
+            else:
+                height = fmt['height']
+            fmt['format_id'] = '%dp' % height if height else 'mp4'
+            info['formats'].append(fmt)
 
-        info.update({
+        self._sort_formats(info['formats'])
+
+        return merge_dicts({
             'id': video_id,
-            'formats': formats,
-            'age_limit': 18,
-        })
-        return info
+            'uploader': clean_html(get_element_by_class('submitByLink', webpage)),
+            'age_limit': self._rta_search(webpage),
+        }, info, traverse_obj(playervars, {
+            'thumbnail': ('image_url', T(url_or_none)),
+            'duration': ('video_duration', T(int_or_none)),
+            'description': 'actionTags',
+        }))
 
 
 # Currently only user channels
@@ -113,7 +127,7 @@ class Tube8ListIE(InfoExtractor):
     _PAGE_RETRY_COUNT = 0  # ie, no retry
     _PAGE_RETRY_DELAY = 2  # seconds
 
-    _VALID_URL = r'https?:\/\/(?:www\.)?tube8\.com\.?\/+user-videos\/+(?P<id>\d+)\/+(?P<author>[^\/]+)\/?.*'
+    _VALID_URL = r'https?://(?:www\.)?tube8\.com/user-videos/(?P<id>\d+)/(?P<author>[^/#?]+)'
     _TESTS = [{
         'url': 'https://www.tube8.com/user-videos/195075441/MaryKrylova/',
         'info_dict': {
@@ -125,7 +139,7 @@ class Tube8ListIE(InfoExtractor):
         'info_dict': {
             'id': '195048331',
         },
-        'playlist_mincount': 86,
+        'playlist_mincount': 80,
     }]
 
     # Borrowed from youporn extractor
@@ -136,7 +150,7 @@ class Tube8ListIE(InfoExtractor):
     # Borrowed from youporn extractor
     def _get_next_url(self, url, pl_id, html):
         return urljoin(url, self._search_regex(
-            r'''<a\s[^>]*?\bhref\s*=\s*("|')(?P<url>(?:(?!\1)[^>])+)\1''',
+            r'''<a\s[^>]*?(?<!-)\bhref\s*=\s*("|')(?P<url>(?:(?!\1)[^>])+)\1''',
             get_element_by_id('next', html) or '', 'next page',
             group='url', default=None))
 
@@ -145,13 +159,13 @@ class Tube8ListIE(InfoExtractor):
 
         # separates page sections
         PLAYLIST_SECTION_RE = (
-            r'''<div\s[^>]*\bclass\s*=\s*('|")(?:[\w$-]+\s+|\s)*?title-bar(?:\s+[\w$-]+|\s)*\1[^>]*>'''
+            r'''<div\s[^>]*(?<!-)\bclass\s*=\s*('|")(?:[\w$-]+\s+|\s)*?title-bar(?:\s+[\w$-]+|\s)*\1[^>]*>'''
         )
         # contains video link
         VIDEO_URL_RE = r'''(?x)
-            <div\s[^>]*\bdata-video-id\s*=\s*('|")\d+\1[^>]*>\s*
+            <div\s[^>]*(?<!-)\bdata-video-id\s*=\s*('|")\d+\1[^>]*>\s*
             (?:<div\b[\s\S]+?</div>\s*)*
-            <a\s[^>]*\bhref\s*=\s*('|")(?P<url>(?:(?!\2)[^>])+)\2
+            <a\s[^>]*(?<!-)\bhref\s*=\s*('|")(?P<url>(?:(?!\2)[^>])+)\2
         '''
 
         def yield_pages(url, html=html, page_num=page_num):
@@ -235,12 +249,9 @@ class Tube8ListIE(InfoExtractor):
         m_dict = self._match_valid_url(url).groupdict()
         pl_id, page_type, sort = (m_dict.get(k) for k in ('id', 'type', 'sort'))
 
-        qs = parse_qs(url)
-        for q, v in qs.items():
-            if v:
-                qs[q] = v[-1]
-            else:
-                del qs[q]
+        qs = dict(traverse_obj(parse_qs(url), (
+            T(dict.items), lambda _, k_v: k_v[1],
+            T(lambda k_v: (k_v[0], k_v[0][-1])))))
 
         base_id = pl_id or 'Tube8'
         title = self._get_title_from_slug(base_id)
