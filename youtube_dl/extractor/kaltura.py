@@ -23,7 +23,7 @@ class KalturaIE(InfoExtractor):
                 (?:
                     kaltura:(?P<partner_id>\d+):(?P<id>[0-9a-z_]+)|
                     https?://
-                        (:?(?:www|cdnapi(?:sec)?)\.)?kaltura\.com(?::\d+)?/
+                        (?:(?:www|cdnapi(?:sec)?)\.)?kaltura\.com(?::\d+)?/
                         (?:
                             (?:
                                 # flash player
