@@ -1172,6 +1172,7 @@ from .soundgasm import (
 from .southpark import (
     SouthParkIE,
     SouthParkDeIE,
+    SouthParkDeEnIE,
     SouthParkDkIE,
     SouthParkEsIE,
     SouthParkNlIE
