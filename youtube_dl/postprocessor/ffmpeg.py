@@ -4,7 +4,8 @@ import os
 import subprocess
 import time
 import re
-
+from pathlib import Path
+from typing import Any
 
 from .common import AudioConversionError, PostProcessor
 
@@ -651,3 +652,26 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 }
 
         return sub_filenames, info
+
+
+class ConvertAACToMP3PP(FFmpegPostProcessor):
+    """
+    Custom post processor that converts .aac files to .mp3 files
+    """
+    def run(self, info: dict[str, Any]) -> tuple[list[str], dict[str, Any]]:
+        if info['ext'] == 'aac':
+            aac_path = Path(info['filepath'])
+            mp3_path = aac_path.with_suffix('.mp3')
+
+            self._downloader.to_screen('[ffmpeg] Converting .aac to .mp3')
+            options: list[str] = [
+                '-codec:a', 'libmp3lame',
+                '-qscale:a', '0',
+            ]
+            self.run_ffmpeg(str(aac_path), str(mp3_path), options)
+            aac_path.unlink()
+
+            info['filepath'] = str(mp3_path)
+            info['ext'] = 'mp3'
+
+        return [], info
