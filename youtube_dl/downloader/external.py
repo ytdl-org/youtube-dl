@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import logging
 import os
 import re
 import subprocess
@@ -496,20 +497,31 @@ class FFmpegFD(ExternalFD):
         # as a context manager (newer Python 3.x and compat)
         # Fixes "Resource Warning" in test/test_downloader_external.py
         # [1] https://devpress.csdn.net/python/62fde12d7e66823466192e48.html
-        with compat_subprocess_Popen(args, stdin=subprocess.PIPE, env=env) as proc:
+        _proc = compat_subprocess_Popen(
+            args,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            universal_newlines=True,
+            bufsize=1,
+            env=env,
+        )
+        ffmpeg_logger = logging.getLogger('ffmpeg')
+        with _proc as proc:
             try:
+                for line in iter(proc.stdout.readline, ''):
+                    ffmpeg_logger.debug(line.strip())
+
+                proc.stdout.close()
                 retval = proc.wait()
             except BaseException as e:
-                # subprocess.run would send the SIGKILL signal to ffmpeg and the
-                # mp4 file couldn't be played, but if we ask ffmpeg to quit it
-                # produces a file that is playable (this is mostly useful for live
-                # streams). Note that Windows is not affected and produces playable
-                # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
-                if isinstance(e, KeyboardInterrupt) and sys.platform != 'win32':
-                    process_communicate_or_kill(proc, b'q')
+                if isinstance(e, KeyError) and (sys.platform != 'win32'):
+                    process_communicate_or_kill(proc, 'q')
                 else:
                     proc.kill()
                 raise
+
         return retval
 
 
