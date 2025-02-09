@@ -819,6 +819,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopostoverwrites', default=False,
         help='Do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option(
+        '--aac-to-mp3',
+        action='store_true', dest='aacToMp3', default=False,
+        help='Convert AAC files to MP3',
+    )
+    postproc.add_option(
         '--embed-subs',
         action='store_true', dest='embedsubtitles', default=False,
         help='Embed subtitles in the video (only for mp4, webm and mkv videos)')

@@ -287,6 +287,10 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegEmbedSubtitle',
         })
+    if opts.aacToMp3:
+        postprocessors.append({
+            'key': 'ConvertAACToMP3PP',
+        })
     if opts.embedthumbnail:
         already_have_thumbnail = opts.writethumbnail or opts.write_all_thumbnails
         postprocessors.append({
