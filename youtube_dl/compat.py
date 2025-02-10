@@ -44,7 +44,7 @@ try:
     compat_str.casefold
     compat_casefold = lambda s: s.casefold()
 except AttributeError:
-    from .casefold import casefold as compat_casefold
+    from .casefold import _casefold as compat_casefold
 
 try:
     import collections.abc as compat_collections_abc
@@ -3116,17 +3116,21 @@ else:
     compat_kwargs = lambda kwargs: kwargs
 
 
+# compat_numeric_types
 try:
     compat_numeric_types = (int, float, long, complex)
 except NameError:  # Python 3
     compat_numeric_types = (int, float, complex)
 
 
+# compat_integer_types
 try:
     compat_integer_types = (int, long)
 except NameError:  # Python 3
     compat_integer_types = (int, )
 
+# compat_int
+compat_int = compat_integer_types[-1]
 
 if sys.version_info < (2, 7):
     def compat_socket_create_connection(address, timeout, source_address=None):
@@ -3532,6 +3536,7 @@ __all__ = [
     'compat_http_client',
     'compat_http_server',
     'compat_input',
+    'compat_int',
     'compat_integer_types',
     'compat_itertools_count',
     'compat_itertools_zip_longest',
