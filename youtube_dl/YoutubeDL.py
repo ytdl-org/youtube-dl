@@ -249,8 +249,6 @@ class YoutubeDL(object):
     geo_verification_proxy:  URL of the proxy to use for IP address verification
                        on geo-restricted sites.
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
-    bidi_workaround:   Work around buggy terminals without bidirectional text
-                       support, using fridibi
     debug_printtraffic:Print out sent and received HTTP traffic
     include_ads:       Download ads as well
     default_search:    Prepend this string if an input url is not valid.
@@ -412,33 +410,6 @@ class YoutubeDL(object):
         check_deprecated('autonumber', '--auto-number', '-o "%(autonumber)s-%(title)s.%(ext)s"')
         check_deprecated('usetitle', '--title', '-o "%(title)s-%(id)s.%(ext)s"')
 
-        if params.get('bidi_workaround', False):
-            try:
-                import pty
-                master, slave = pty.openpty()
-                width = compat_get_terminal_size().columns
-                if width is None:
-                    width_args = []
-                else:
-                    width_args = ['-w', str(width)]
-                sp_kwargs = dict(
-                    stdin=subprocess.PIPE,
-                    stdout=slave,
-                    stderr=self._err_file)
-                try:
-                    self._output_process = subprocess.Popen(
-                        ['bidiv'] + width_args, **sp_kwargs
-                    )
-                except OSError:
-                    self._output_process = subprocess.Popen(
-                        ['fribidi', '-c', 'UTF-8'] + width_args, **sp_kwargs)
-                self._output_channel = os.fdopen(master, 'rb')
-            except OSError as ose:
-                if ose.errno == errno.ENOENT:
-                    self.report_warning('Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
-                else:
-                    raise
-
         if (sys.platform != 'win32'
                 and sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
                 and not params.get('restrictfilenames', False)):
@@ -523,19 +494,6 @@ class YoutubeDL(object):
         """Add the progress hook (currently only for the file downloader)"""
         self._progress_hooks.append(ph)
 
-    def _bidi_workaround(self, message):
-        if not hasattr(self, '_output_channel'):
-            return message
-
-        assert hasattr(self, '_output_process')
-        assert isinstance(message, compat_str)
-        line_count = message.count('\n') + 1
-        self._output_process.stdin.write((message + '\n').encode('utf-8'))
-        self._output_process.stdin.flush()
-        res = ''.join(self._output_channel.readline().decode('utf-8')
-                      for _ in range(line_count))
-        return res[:-len('\n')]
-
     def to_screen(self, message, skip_eol=False):
         """Print message to stdout if not in quiet mode."""
         return self.to_stdout(message, skip_eol, check_quiet=True)
@@ -548,7 +506,6 @@ class YoutubeDL(object):
         if self.params.get('logger'):
             self.params['logger'].debug(message)
         elif not check_quiet or not self.params.get('quiet', False):
-            message = self._bidi_workaround(message)
             terminator = ['\n', ''][skip_eol]
             output = message + terminator
 
@@ -560,7 +517,6 @@ class YoutubeDL(object):
         if self.params.get('logger'):
             self.params['logger'].error(message)
         else:
-            message = self._bidi_workaround(message)
             output = message + '\n'
             self._write_string(output, self._err_file)
 

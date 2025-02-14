@@ -403,7 +403,6 @@ def _real_main(argv=None):
         'prefer_insecure': opts.prefer_insecure,
         'proxy': opts.proxy,
         'socket_timeout': opts.socket_timeout,
-        'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,

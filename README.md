@@ -350,9 +350,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --add-header FIELD:VALUE             Specify a custom HTTP header and its
                                          value, separated by a colon ':'. You
                                          can use this option multiple times
-    --bidi-workaround                    Work around terminals that lack
-                                         bidirectional text support. Requires
-                                         bidiv or fribidi executable in PATH
     --sleep-interval SECONDS             Number of seconds to sleep before each
                                          download when used alone or a lower
                                          bound of a range for randomized sleep

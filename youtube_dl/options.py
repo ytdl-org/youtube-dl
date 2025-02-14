@@ -558,10 +558,6 @@ def parseOpts(overrideArguments=None):
               'data from a Cookie header will be sent to all domains, not just the one intended')
     )
     workarounds.add_option(
-        '--bidi-workaround',
-        dest='bidi_workaround', action='store_true',
-        help='Work around terminals that lack bidirectional text support. Requires bidiv or fribidi executable in PATH')
-    workarounds.add_option(
         '--sleep-interval', '--min-sleep-interval', metavar='SECONDS',
         dest='sleep_interval', type=float,
         help=(
