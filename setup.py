@@ -33,8 +33,13 @@ py2exe_options = {
 }
 
 # Get the version from youtube_dl/version.py without importing the package
-exec(compile(open('youtube_dl/version.py').read(),
-             'youtube_dl/version.py', 'exec'))
+exec(
+    compile(
+        open('youtube_dl/version.py').read(),
+        'youtube_dl/version.py',
+        'exec',
+    )
+)
 
 DESCRIPTION = 'YouTube video downloader'
 LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites'
@@ -125,9 +130,6 @@ setup(
         'Environment :: Console',
         'License :: Public Domain',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
