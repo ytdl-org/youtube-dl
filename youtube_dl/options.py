@@ -599,6 +599,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='geturl', default=False,
         help='Simulate, quiet but print URL')
     verbosity.add_option(
+        '--get-manifest-url',
+        action='store_true', dest='getmanifesturl', default=False,
+        help='Simulate, quiet but print manifest URL')
+    verbosity.add_option(
         '-e', '--get-title',
         action='store_true', dest='gettitle', default=False,
         help='Simulate, quiet but print title')
