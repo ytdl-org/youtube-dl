@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
-
 from .common import InfoExtractor
-
+from datetime import datetime
+import pytz
 
 class StretchInternetIE(InfoExtractor):
     _VALID_URL = r'https?://portal\.stretchinternet\.com/[^/]+/(?:portal|full)\.htm\?.*?\beventId=(?P<id>\d+)'
@@ -23,6 +23,7 @@ class StretchInternetIE(InfoExtractor):
         media_url = self._download_json(
             'https://core.stretchlive.com/trinity/event/tcg/' + video_id,
             video_id)[0]['media'][0]['url']
+        
         event = self._download_json(
             'https://neo-client.stretchinternet.com/portal-ws/getEvent.json',
             video_id, query={'eventID': video_id, 'token': 'asdf'})['event']
@@ -30,8 +31,19 @@ class StretchInternetIE(InfoExtractor):
         return {
             'id': video_id,
             'title': event['title'],
-            # TODO: parse US timezone abbreviations
-            # 'timestamp': event.get('dateTimeString'),
+            'timestamp': self._parse_date(event.get('dateTimeString')),
             'url': 'https://' + media_url,
             'uploader_id': event.get('ownerID'),
         }
+
+    def _parse_date(self, date_string):
+        if date_string:
+            # Assume date_string is in the format 'YYYY-MM-DDTHH:MM:SS-05:00'
+            try:
+                dt = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S%z')
+                # Convert the datetime to UTC (if it's not already)
+                dt_utc = dt.astimezone(pytz.UTC)
+                return int(dt_utc.timestamp())
+            except ValueError:
+                self._downloader.report_warning(f"Could not parse date string: {date_string}")
+        return None
