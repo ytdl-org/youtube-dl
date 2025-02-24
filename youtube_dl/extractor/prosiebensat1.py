@@ -390,6 +390,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
+        r'clip[iI][dD]["\']:(\d+)',
         r'clip[iI][dD]\s*=\s*["\'](\d+)',
         r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
         r'proMamsId&quot;\s*:\s*&quot;(\d+)',
