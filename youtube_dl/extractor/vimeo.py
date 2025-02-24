@@ -1027,6 +1027,14 @@ class VimeoGroupsIE(VimeoChannelIE):
             'title': 'Katty Kay',
         },
         'playlist_mincount': 27,
+        'skip': 'login required',
+    }, {
+        'url': 'https://vimeo.com/groups/meetup',
+        'info_dict': {
+            'id': 'meetup',
+            'title': 'Vimeo Meetup!',
+        },
+        'playlist_mincount': 90,
     }]
     _BASE_URL_TEMPL = 'https://vimeo.com/groups/%s'
 
