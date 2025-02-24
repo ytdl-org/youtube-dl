@@ -1,16 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import calendar
-import datetime
 import re
 
 from .common import InfoExtractor
+
+from ..compat import compat_str
 from ..utils import (
     clean_html,
-    extract_timezone,
     int_or_none,
     parse_duration,
+    parse_iso8601,
     parse_resolution,
     try_get,
     url_or_none,
@@ -25,7 +25,7 @@ class CCMAIE(InfoExtractor):
         'info_dict': {
             'id': '5630208',
             'ext': 'mp4',
-            'title': 'L\'espot de La Marató de TV3',
+            'title': "L'espot de La Marató 2016: Ictus i les lesions medul·lars i cerebrals traumàtiques",
             'description': 'md5:f12987f320e2f6e988e9908e4fe97765',
             'timestamp': 1478608140,
             'upload_date': '20161108',
@@ -39,8 +39,8 @@ class CCMAIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'El Consell de Savis analitza el derbi',
             'description': 'md5:e2a3648145f3241cb9c6b4b624033e53',
-            'upload_date': '20170512',
-            'timestamp': 1494622500,
+            'upload_date': '20161217',
+            'timestamp': 1482011700,
             'vcodec': 'none',
             'categories': ['Esports'],
         }
@@ -50,13 +50,28 @@ class CCMAIE(InfoExtractor):
         'info_dict': {
             'id': '6031387',
             'ext': 'mp4',
-            'title': 'Crims - Josep Talleda, l\'"Espereu-me" (capítol 1)',
+            'title': 'Josep Talleda, l\'"Espereu-me" (part 1)',
             'description': 'md5:7cbdafb640da9d0d2c0f62bad1e74e60',
-            'timestamp': 1582577700,
+            'timestamp': 1582577919,
             'upload_date': '20200224',
-            'subtitles': 'mincount:4',
+            'subtitles': 'mincount:1',
             'age_limit': 16,
             'series': 'Crims',
+        }
+    }, {
+        'url': 'https://www.ccma.cat/tv3/sx3/la-tria-final/video/6178889/',
+        'md5': '835aecbda55ba7b70d147081cf4b61f2',
+        'info_dict': {
+            'id': '6178889',
+            'ext': 'mp4',
+            'title': 'La tria final (T1 - Capítol 4)',
+            'description': 'md5:7a66ef9802af0e44ce54304bb9b61eba',
+            'timestamp': 1665687816,
+            'episode_number': 4,
+            'upload_date': '20221013',
+            'categories': ['Ficció'],
+            'age_limit': 12,
+            'series': 'Guardians de la nit: Kimetsu no Yaiba',
         }
     }]
 
@@ -95,15 +110,7 @@ class CCMAIE(InfoExtractor):
         durada = informacio.get('durada') or {}
         duration = int_or_none(durada.get('milisegons'), 1000) or parse_duration(durada.get('text'))
         tematica = try_get(informacio, lambda x: x['tematica']['text'])
-
-        timestamp = None
-        data_utc = try_get(informacio, lambda x: x['data_emissio']['utc'])
-        try:
-            timezone, data_utc = extract_timezone(data_utc)
-            timestamp = calendar.timegm((datetime.datetime.strptime(
-                data_utc, '%Y-%d-%mT%H:%M:%S') - timezone).timetuple())
-        except TypeError:
-            pass
+        timestamp = parse_iso8601(try_get(informacio, lambda x: x['data_emissio']['utc']), compat_str)
 
         subtitles = {}
         subtitols = media.get('subtitols') or []
