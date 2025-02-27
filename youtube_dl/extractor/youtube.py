@@ -27,6 +27,7 @@ from ..compat import (
 )
 from ..jsinterp import JSInterpreter
 from ..utils import (
+    bug_reports_message,
     clean_html,
     dict_get,
     error_to_compat_str,
@@ -65,6 +66,7 @@ from ..utils import (
     url_or_none,
     urlencode_postdata,
     urljoin,
+    variadic,
 )
 
 
@@ -459,6 +461,26 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'view_count': view_count,
             'uploader': uploader,
         }
+
+    @staticmethod
+    def _extract_thumbnails(data, *path_list, **kw_final_key):
+        """
+        Extract thumbnails from thumbnails dict
+        @param path_list: path list to level that contains 'thumbnails' key
+        """
+        final_key = kw_final_key.get('final_key', 'thumbnails')
+
+        return traverse_obj(data, ((
+            tuple(variadic(path) + (final_key, Ellipsis)
+                  for path in path_list or [()])), {
+            'url': ('url', T(url_or_none),
+                    # Sometimes youtube gives a wrong thumbnail URL. See:
+                    # https://github.com/yt-dlp/yt-dlp/issues/233
+                    # https://github.com/ytdl-org/youtube-dl/issues/28023
+                    T(lambda u: update_url(u, query=None) if u and 'maxresdefault' in u else u)),
+            'height': ('height', T(int_or_none)),
+            'width': ('width', T(int_or_none)),
+        }, T(lambda t: t if t.get('url') else None)))
 
     def _search_results(self, query, params):
         data = {
@@ -3183,8 +3205,12 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             expected_type=txt_or_none)
 
     def _grid_entries(self, grid_renderer):
-        for item in grid_renderer['items']:
-            if not isinstance(item, dict):
+        for item in traverse_obj(grid_renderer, ('items', Ellipsis, T(dict))):
+            lockup_view_model = traverse_obj(item, ('lockupViewModel', T(dict)))
+            if lockup_view_model:
+                entry = self._extract_lockup_view_model(lockup_view_model)
+                if entry:
+                    yield entry
                 continue
             renderer = self._extract_grid_item_renderer(item)
             if not isinstance(renderer, dict):
@@ -3267,6 +3293,25 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not video_id:
                 continue
             yield self._extract_video(renderer)
+
+    def _extract_lockup_view_model(self, view_model):
+        content_id = view_model.get('contentId')
+        if not content_id:
+            return
+        content_type = view_model.get('contentType')
+        if content_type not in ('LOCKUP_CONTENT_TYPE_PLAYLIST', 'LOCKUP_CONTENT_TYPE_PODCAST'):
+            self.report_warning(
+                'Unsupported lockup view model content type "{0}"{1}'.format(content_type, bug_reports_message()), only_once=True)
+            return
+        return merge_dicts(self.url_result(
+            update_url_query('https://www.youtube.com/playlist', {'list': content_id}),
+            ie=YoutubeTabIE, video_id=content_id), {
+                'title': traverse_obj(view_model, (
+                    'metadata', 'lockupMetadataViewModel', 'title', 'content', T(compat_str))),
+                'thumbnails': self._extract_thumbnails(view_model, (
+                    'contentImage', 'collectionThumbnailViewModel', 'primaryThumbnail',
+                    'thumbnailViewModel', 'image'), final_key='sources'),
+        })
 
     def _video_entry(self, video_renderer):
         video_id = video_renderer.get('videoId')
