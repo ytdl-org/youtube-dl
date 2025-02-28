@@ -784,7 +784,7 @@ If you have used pip, a simple `sudo pip install -U youtube-dl` is sufficient to
 
 If you have installed youtube-dl using a package manager like *apt-get* or *yum*, use the standard system update mechanism to update. Note that distribution packages are often outdated. As a rule of thumb, youtube-dl releases at least once a month, and often weekly or even daily. Simply go to https://yt-dl.org to find out the current version. Unfortunately, there is nothing we youtube-dl developers can do if your distribution serves a really outdated version. You can (and should) complain to your distribution in their bugtracker or support forum.
 
-As a last resort, you can also uninstall the version installed by your package manager and follow our manual installation instructions. For that, remove the distribution's package, with a line like
+As a last resort, you can also uninstall the version installed by your package manager and follow our manual installation instructions. For that, remove the distribution's package, with a line like:
 
     sudo apt-get remove -y youtube-dl
 
@@ -880,7 +880,7 @@ If this is not the case (no CAPTCHA suggested to solve by the service) then you 
 
 ### SyntaxError: Non-ASCII character
 
-The error
+The error:
 
     File "youtube-dl", line 2
     SyntaxError: Non-ASCII character '\x93' ...
@@ -990,7 +990,7 @@ youtube-dl is an open-source project manned by too few volunteers, so we'd rathe
 
 Most users do not need to build youtube-dl and can [download the builds](https://ytdl-org.github.io/youtube-dl/download.html) or get them from their distribution.
 
-To run youtube-dl as a developer, you don't need to build anything either. Simply execute
+To run youtube-dl as a developer, you don't need to build anything either. Simply execute:
 
     python -m youtube_dl
 
@@ -1023,7 +1023,7 @@ After you have ensured this site is distributing its content legally, you can fo
 
         git clone git@github.com:YOUR_GITHUB_USERNAME/youtube-dl.git
 
-3. Start a new git branch with
+3. Start a new git branch with:
 
         cd youtube-dl
         git checkout -b yourextractor
