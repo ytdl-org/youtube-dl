@@ -3305,7 +3305,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             return
         return merge_dicts(self.url_result(
             update_url_query('https://www.youtube.com/playlist', {'list': content_id}),
-            ie=YoutubeTabIE, video_id=content_id), {
+            ie=YoutubeTabIE.ie_key(), video_id=content_id), {
                 'title': traverse_obj(view_model, (
                     'metadata', 'lockupMetadataViewModel', 'title', 'content', T(compat_str))),
                 'thumbnails': self._extract_thumbnails(view_model, (
