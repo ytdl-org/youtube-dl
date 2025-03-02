@@ -3561,6 +3561,13 @@ try:
 except ImportError:
     compat_ncompress = None
 
+# compat_zstandard
+# PyPi zstandard package implements 'zstd' Content-Encoding (RFC 8878 7.2)
+try:
+    import zstandard as compat_zstandard
+except ImportError:
+    compat_zstandard = None
+
 
 legacy = [
     'compat_HTMLParseError',
@@ -3658,4 +3665,5 @@ __all__ = [
     'compat_xml_etree_register_namespace',
     'compat_xpath',
     'compat_zip',
+    'compat_zstandard',
 ]
