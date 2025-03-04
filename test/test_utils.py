@@ -1603,11 +1603,14 @@ Line 1
 
     def test_get_element_by_class(self):
         html = '''
-            <span class="foo bar">nice</span>
+            <span class="foo bar baz-bam">nice</span>
         '''
 
         self.assertEqual(get_element_by_class('foo', html), 'nice')
+        self.assertEqual(get_element_by_class('bar', html), 'nice')
         self.assertEqual(get_element_by_class('no-such-class', html), None)
+        self.assertEqual(get_element_by_class('baz', html), None)
+        self.assertEqual(get_element_by_class('bam', html), None)
 
     def test_get_element_by_attribute(self):
         html = '''
@@ -1626,10 +1629,13 @@ Line 1
 
     def test_get_elements_by_class(self):
         html = '''
-            <span class="foo bar">nice</span><span class="foo bar">also nice</span>
+            <span class="foo bar baz-bam">nice</span><span class="foo bar">also nice</span>
         '''
 
         self.assertEqual(get_elements_by_class('foo', html), ['nice', 'also nice'])
+        self.assertEqual(get_elements_by_class('bar', html), ['nice', 'also nice'])
+        self.assertEqual(get_elements_by_class('baz', html), [])
+        self.assertEqual(get_elements_by_class('bam', html), [])
         self.assertEqual(get_elements_by_class('no-such-class', html), [])
 
     def test_get_elements_by_attribute(self):
