@@ -26,7 +26,7 @@ class MinotoIE(InfoExtractor):
                 continue
             container = fmt.get('container')
             if container == 'hls':
-                formats.extend(fmt_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                formats.extend([fmt_url, video_id, 'mp4'], m3u8_id='hls', fatal=False)
             else:
                 fmt_profile = fmt.get('profile') or {}
                 formats.append({
