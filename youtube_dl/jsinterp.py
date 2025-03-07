@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import calendar
 import itertools
 import json
 import operator
 import re
+import time
 
 from functools import update_wrapper, wraps
 
@@ -12,8 +14,10 @@ from .utils import (
     error_to_compat_str,
     ExtractorError,
     float_or_none,
+    int_or_none,
     js_to_json,
     remove_quotes,
+    str_or_none,
     unified_timestamp,
     variadic,
     write_string,
@@ -475,6 +479,73 @@ class JSInterpreter(object):
                 flags |= cls.RE_FLAGS[ch]
             return flags, expr[idx + 1:]
 
+    class JS_Date(object):
+        _t = None
+
+        @staticmethod
+        def __ymd_etc(*args, **kw_is_utc):
+            # args: year, monthIndex, day, hours, minutes, seconds, milliseconds
+            is_utc = kw_is_utc.get('is_utc', False)
+
+            args = list(args[:7])
+            args += [0] * (9 - len(args))
+            args[1] += 1  # month 0..11 -> 1..12
+            ms = args[6]
+            for i in range(6, 9):
+                args[i] = -1  # don't know
+            if is_utc:
+                args[-1] = 1
+            # TODO: [MDN] When a segment overflows or underflows its expected
+            # range, it usually "carries over to" or "borrows from" the higher segment.
+            try:
+                mktime = calendar.timegm if is_utc else time.mktime
+                return mktime(time.struct_time(args)) * 1000 + ms
+            except (OverflowError, ValueError):
+                return None
+
+        @classmethod
+        def UTC(cls, *args):
+            t = cls.__ymd_etc(*args, is_utc=True)
+            return _NaN if t is None else t
+
+        @staticmethod
+        def parse(date_str, **kw_is_raw):
+            is_raw = kw_is_raw.get('is_raw', False)
+
+            t = unified_timestamp(str_or_none(date_str), False)
+            return int(t * 1000) if t is not None else t if is_raw else _NaN
+
+        @staticmethod
+        def now(**kw_is_raw):
+            is_raw = kw_is_raw.get('is_raw', False)
+
+            t = time.time()
+            return int(t * 1000) if t is not None else t if is_raw else _NaN
+
+        def __init__(self, *args):
+            if not args:
+                args = [self.now(is_raw=True)]
+            if len(args) == 1:
+                if isinstance(args[0], JSInterpreter.JS_Date):
+                    self._t = int_or_none(args[0].valueOf(), default=None)
+                else:
+                    arg_type = _js_typeof(args[0])
+                    if arg_type == 'string':
+                        self._t = self.parse(args[0], is_raw=True)
+                    elif arg_type == 'number':
+                        self._t = int(args[0])
+            else:
+                self._t = self.__ymd_etc(*args)
+
+        def toString(self):
+            try:
+                return time.strftime('%a %b %0d %Y %H:%M:%S %Z%z', self._t).rstrip()
+            except TypeError:
+                return "Invalid Date"
+
+        def valueOf(self):
+            return _NaN if self._t is None else self._t
+
     @classmethod
     def __op_chars(cls):
         op_chars = set(';,[')
@@ -715,7 +786,7 @@ class JSInterpreter(object):
 
         new_kw, _, obj = expr.partition('new ')
         if not new_kw:
-            for klass, konstr in (('Date', lambda x: int(unified_timestamp(x, False) * 1000)),
+            for klass, konstr in (('Date', lambda *x: self.JS_Date(*x).valueOf()),
                                   ('RegExp', self.JS_RegExp),
                                   ('Error', self.Exception)):
                 if not obj.startswith(klass + '('):
@@ -1034,6 +1105,7 @@ class JSInterpreter(object):
                     'String': compat_str,
                     'Math': float,
                     'Array': list,
+                    'Date': self.JS_Date,
                 }
                 obj = local_vars.get(variable)
                 if obj in (JS_Undefined, None):
@@ -1086,6 +1158,8 @@ class JSInterpreter(object):
                         assertion(len(argvals) == 2, 'takes two arguments')
                         return argvals[0] ** argvals[1]
                     raise self.Exception('Unsupported Math method ' + member, expr=expr)
+                elif obj is self.JS_Date:
+                    return getattr(obj, member)(*argvals)
 
                 if member == 'split':
                     assertion(len(argvals) <= 2, 'takes at most two arguments')
