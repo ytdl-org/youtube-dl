@@ -122,7 +122,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'TVHTML5',
-                    'clientVersion': '7.20241201.18.00',
+                    'clientVersion': '7.20250120.19.00',
+                    'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
