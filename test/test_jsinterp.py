@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
 import re
+import time
 
 from youtube_dl.compat import compat_str as str
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
@@ -208,6 +209,27 @@ class TestJSInterpreter(unittest.TestCase):
         self._test(jsi, 86000, args=['12/31/1969 18:01:26 MDT'])
         # epoch 0
         self._test(jsi, 0, args=['1 January 1970 00:00:00 UTC'])
+        # undefined
+        self._test(jsi, NaN, args=[JS_Undefined])
+        # y,m,d, ... - may fail with older dates lacking DST data
+        jsi = JSInterpreter('function f() { return new Date(%s); }'
+                            % ('2024, 5, 29, 2, 52, 12, 42',))
+        self._test(jsi, 1719625932042)
+        # no arg
+        self.assertAlmostEqual(JSInterpreter(
+            'function f() { return new Date() - 0; }').call_function('f'),
+            time.time() * 1000, delta=100)
+        # Date.now()
+        self.assertAlmostEqual(JSInterpreter(
+            'function f() { return Date.now(); }').call_function('f'),
+            time.time() * 1000, delta=100)
+        # Date.parse()
+        jsi = JSInterpreter('function f(dt) { return Date.parse(dt); }')
+        self._test(jsi, 0, args=['1 January 1970 00:00:00 UTC'])
+        # Date.UTC()
+        jsi = JSInterpreter('function f() { return Date.UTC(%s); }'
+                            % ('1970, 0, 1, 0, 0, 0, 0',))
+        self._test(jsi, 0)
 
     def test_call(self):
         jsi = JSInterpreter('''
