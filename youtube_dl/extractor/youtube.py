@@ -1607,9 +1607,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 webpage or '', 'player URL', fatal=False)
             if player_url:
                 ytcfgs = ytcfgs + ({'PLAYER_JS_URL': player_url},)
-        return traverse_obj(
+        player_url = traverse_obj(
             ytcfgs, (Ellipsis, 'PLAYER_JS_URL'), (Ellipsis, 'WEB_PLAYER_CONTEXT_CONFIGS', Ellipsis, 'jsUrl'),
             get_all=False, expected_type=lambda u: urljoin('https://www.youtube.com', u))
+        nplayer_url, is_tce = re.subn(r'(?<=/player_ias)_tce(?=\.vflset/)', '', player_url or '')
+        if is_tce:
+            # TODO: Add proper support for the 'tce' variant players
+            # See https://github.com/yt-dlp/yt-dlp/issues/12398
+            self.write_debug('Modifying tce player URL: {0}'.format(player_url))
+            return nplayer_url
+        return player_url
 
     def _download_player_url(self, video_id, fatal=False):
         res = self._download_webpage(
