@@ -3473,11 +3473,12 @@ except ImportError:
         def new_child(self, m=None, **kwargs):
             m = m or {}
             m.update(kwargs)
-            return compat_collections_chain_map(m, *self.maps)
+            # support inheritance !
+            return type(self)(m, *self.maps)
 
         @property
         def parents(self):
-            return compat_collections_chain_map(*(self.maps[1:]))
+            return type(self)(*(self.maps[1:]))
 
 
 # compat_re_Pattern, compat_re_Match
