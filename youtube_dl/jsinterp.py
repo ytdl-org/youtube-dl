@@ -408,6 +408,7 @@ class JSInterpreter(object):
     class Exception(ExtractorError):
         def __init__(self, msg, *args, **kwargs):
             expr = kwargs.pop('expr', None)
+            msg = str_or_none(msg, default='"None"')
             if expr is not None:
                 msg = '{0} in: {1!r:.100}'.format(msg.rstrip(), expr)
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
@@ -435,6 +436,7 @@ class JSInterpreter(object):
                 flags, _ = self.regex_flags(flags)
             # First, avoid https://github.com/python/cpython/issues/74534
             self.__self = None
+            pattern_txt = str_or_none(pattern_txt) or '(?:)'
             self.__pattern_txt = pattern_txt.replace('[[', r'[\[')
             self.__flags = flags
 
