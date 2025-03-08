@@ -215,7 +215,7 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertAlmostEqual(JSInterpreter(
             'function f() { return new Date(%s); }'
             % ('2024, 5, 29, 2, 52, 12, 42',)).call_function('f'),
-            1719625932042, places=0)
+            1719625932042 + time.timezone * 1000, places=0)
         # no arg
         self.assertAlmostEqual(JSInterpreter(
             'function f() { return new Date() - 0; }').call_function('f'),
