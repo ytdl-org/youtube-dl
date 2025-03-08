@@ -212,9 +212,10 @@ class TestJSInterpreter(unittest.TestCase):
         # undefined
         self._test(jsi, NaN, args=[JS_Undefined])
         # y,m,d, ... - may fail with older dates lacking DST data
-        jsi = JSInterpreter('function f() { return new Date(%s); }'
-                            % ('2024, 5, 29, 2, 52, 12, 42',))
-        self._test(jsi, 1719625932042)
+        self.assertAlmostEqual(JSInterpreter(
+            'function f() { return new Date(%s); }'
+            % ('2024, 5, 29, 2, 52, 12, 42',)).call_function('f'),
+            1719625932042, places=0)
         # no arg
         self.assertAlmostEqual(JSInterpreter(
             'function f() { return new Date() - 0; }').call_function('f'),
@@ -485,6 +486,14 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return NaN << 42}', 0)
         self._test('function f(){return "21.9" << 1}', 42)
         self._test('function f(){return 21 << 4294967297}', 42)
+        self._test('function f(){return true << "5";}', 32)
+        self._test('function f(){return true << true;}', 2)
+        self._test('function f(){return "19" & "21.9";}', 17)
+        self._test('function f(){return "19" & false;}', 0)
+        self._test('function f(){return "11.0" >> "2.1";}', 2)
+        self._test('function f(){return 5 ^ 9;}', 12)
+        self._test('function f(){return 0.0 << NaN}', 0)
+        self._test('function f(){return null << undefined}', 0)
 
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)
