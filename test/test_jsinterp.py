@@ -501,6 +501,7 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return 0.0 << NaN}', 0)
         self._test('function f(){return null << undefined}', 0)
 
+
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)
         self._test('function f(){return 2    -    - -2    ;}', 0)
