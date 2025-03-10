@@ -122,7 +122,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'TVHTML5',
-                    'clientVersion': '7.20241201.18.00',
+                    'clientVersion': '7.20250120.19.00',
+                    'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
@@ -1851,12 +1852,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         if func_code:
             return jsi, player_id, func_code
+        return self._extract_n_function_code_jsi(video_id, jsi, player_id)
 
-        func_name = self._extract_n_function_name(jscode)
+    def _extract_n_function_code_jsi(self, video_id, jsi, player_id=None):
+
+        var_ay = self._search_regex(
+            r'(?:[;\s]|^)\s*(var\s*[\w$]+\s*=\s*"[^"]+"\s*\.\s*split\("\{"\))(?=\s*[,;])',
+            jsi.code, 'useful values', default='')
+
+        func_name = self._extract_n_function_name(jsi.code)
 
         func_code = jsi.extract_function_code(func_name)
+        if var_ay:
+            func_code = (func_code[0], ';\n'.join((var_ay, func_code[1])))
 
-        self.cache.store('youtube-nsig', player_id, func_code)
+        if player_id:
+            self.cache.store('youtube-nsig', player_id, func_code)
         return jsi, player_id, func_code
 
     def _extract_n_function_from_code(self, jsi, func_code):
