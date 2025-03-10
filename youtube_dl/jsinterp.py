@@ -154,6 +154,7 @@ def _js_to_primitive(v):
     )
 
 
+# more exact: yt-dlp/yt-dlp#12110
 def _js_toString(v):
     return (
         'undefined' if v is JS_Undefined
@@ -162,7 +163,7 @@ def _js_toString(v):
         else 'null' if v is None
         # bool <= int: do this first
         else ('false', 'true')[v] if isinstance(v, bool)
-        else '{0:.7f}'.format(v).rstrip('.0') if isinstance(v, compat_numeric_types)
+        else re.sub(r'(?<=\d)\.?0*$', '', '{0:.7f}'.format(v)) if isinstance(v, compat_numeric_types)
         else _js_to_primitive(v))
 
 
