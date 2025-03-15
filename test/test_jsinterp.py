@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
 import re
+import time
 
 from youtube_dl.compat import compat_str as str
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
@@ -208,6 +209,34 @@ class TestJSInterpreter(unittest.TestCase):
         self._test(jsi, 86000, args=['12/31/1969 18:01:26 MDT'])
         # epoch 0
         self._test(jsi, 0, args=['1 January 1970 00:00:00 UTC'])
+        # undefined
+        self._test(jsi, NaN, args=[JS_Undefined])
+        # y,m,d, ... - may fail with older dates lacking DST data
+        jsi = JSInterpreter(
+            'function f() { return new Date(%s); }'
+            % ('2024, 5, 29, 2, 52, 12, 42',))
+        self._test(jsi, (
+            1719625932042                           # UK value
+            + (
+                + 3600                              # back to GMT
+                + (time.altzone if time.daylight    # host's DST
+                   else time.timezone)
+            ) * 1000))
+        # no arg
+        self.assertAlmostEqual(JSInterpreter(
+            'function f() { return new Date() - 0; }').call_function('f'),
+            time.time() * 1000, delta=100)
+        # Date.now()
+        self.assertAlmostEqual(JSInterpreter(
+            'function f() { return Date.now(); }').call_function('f'),
+            time.time() * 1000, delta=100)
+        # Date.parse()
+        jsi = JSInterpreter('function f(dt) { return Date.parse(dt); }')
+        self._test(jsi, 0, args=['1 January 1970 00:00:00 UTC'])
+        # Date.UTC()
+        jsi = JSInterpreter('function f() { return Date.UTC(%s); }'
+                            % ('1970, 0, 1, 0, 0, 0, 0',))
+        self._test(jsi, 0)
 
     def test_call(self):
         jsi = JSInterpreter('''
@@ -463,6 +492,14 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return NaN << 42}', 0)
         self._test('function f(){return "21.9" << 1}', 42)
         self._test('function f(){return 21 << 4294967297}', 42)
+        self._test('function f(){return true << "5";}', 32)
+        self._test('function f(){return true << true;}', 2)
+        self._test('function f(){return "19" & "21.9";}', 17)
+        self._test('function f(){return "19" & false;}', 0)
+        self._test('function f(){return "11.0" >> "2.1";}', 2)
+        self._test('function f(){return 5 ^ 9;}', 12)
+        self._test('function f(){return 0.0 << NaN}', 0)
+        self._test('function f(){return null << undefined}', 0)
 
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)

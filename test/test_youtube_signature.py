@@ -223,6 +223,18 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/9c6dfc4a/player_ias.vflset/en_US/base.js',
         'jbu7ylIosQHyJyJV', 'uwI0ESiynAmhNg',
     ),
+    (
+        'https://www.youtube.com/s/player/f6e09c70/player_ias.vflset/en_US/base.js',
+        'W9HJZKktxuYoDTqW', 'jHbbkcaxm54',
+    ),
+    (
+        'https://www.youtube.com/s/player/f6e09c70/player_ias_tce.vflset/en_US/base.js',
+        'W9HJZKktxuYoDTqW', 'jHbbkcaxm54',
+    ),
+    (
+        'https://www.youtube.com/s/player/91201489/player_ias_tce.vflset/en_US/base.js',
+        'W9HJZKktxuYoDTqW', 'U48vOZHaeYS6vO',
+    ),
 ]
 
 
@@ -284,7 +296,7 @@ def t_factory(name, sig_func, url_pattern):
 
 
 def signature(jscode, sig_input):
-    func = YoutubeIE(FakeYDL())._parse_sig_js(jscode)
+    func = YoutubeIE(FakeYDL({'cachedir': False}))._parse_sig_js(jscode)
     src_sig = (
         compat_str(string.printable[:sig_input])
         if isinstance(sig_input, int) else sig_input)
@@ -292,9 +304,10 @@ def signature(jscode, sig_input):
 
 
 def n_sig(jscode, sig_input):
-    funcname = YoutubeIE(FakeYDL())._extract_n_function_name(jscode)
-    return JSInterpreter(jscode).call_function(
-        funcname, sig_input, _ytdl_do_not_return=sig_input)
+    ie = YoutubeIE(FakeYDL({'cachedir': False}))
+    jsi = JSInterpreter(jscode)
+    jsi, _, func_code = ie._extract_n_function_code_jsi(sig_input, jsi)
+    return ie._extract_n_function_from_code(jsi, func_code)(sig_input)
 
 
 make_sig_test = t_factory(
