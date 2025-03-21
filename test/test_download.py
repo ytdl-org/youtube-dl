@@ -69,10 +69,10 @@ def _file_md5(fn):
         return hashlib.md5(f.read()).hexdigest()
 
 
-defs = gettestcases()
+ie_testcases = gettestcases()
 
 
-class TestDownload(unittest.TestCase):
+class BaseDownloadTCase(unittest.TestCase):
     # Parallel testing in nosetests. See
     # http://nose.readthedocs.org/en/latest/doc_tests/test_multiprocess/multiprocess.html
     _multiprocess_shared_ = True
@@ -91,8 +91,9 @@ class TestDownload(unittest.TestCase):
                                strclass(self.__class__),
                                ' [%s]' % add_ie if add_ie else '')
 
-    def setUp(self):
-        self.defs = defs
+
+TestDownload = unittest.TestSuite()
+
 
 # Dynamically generate tests
 
@@ -275,20 +276,42 @@ def generator(test_case, tname):
     return test_template
 
 
+cache = {}
+
 # And add them to TestDownload
-for n, test_case in enumerate(defs):
-    tname = 'test_' + str(test_case['name'])
-    i = 1
-    while hasattr(TestDownload, tname):
-        tname = 'test_%s_%d' % (test_case['name'], i)
+for test_case in ie_testcases:
+    # Get or create a sub-test for the extractor file
+    module_name = test_case.get('module_name', 'unknown').rsplit('.', 1)[-1]  # type: str
+    extractor_file_name = str('test_%s' % module_name)
+    extractor_file_suite = getattr(TestDownload, extractor_file_name, None)
+    if extractor_file_suite is None:
+        extractor_file_suite = type(extractor_file_name, (unittest.TestSuite,), {})()
+        setattr(TestDownload, extractor_file_name, extractor_file_suite)
+        TestDownload.addTest(extractor_file_suite)
+
+    # Get or create a sub-test for the info extractor
+    # This class contains the actual tests
+    extractor_class_name = str('test_%s' % test_case['name'])
+    ExtractorClass = getattr(extractor_file_suite, extractor_class_name, None)
+    if ExtractorClass is None:
+        ExtractorClass = type(extractor_class_name, (BaseDownloadTCase,), {})
+        setattr(extractor_file_suite, extractor_class_name, ExtractorClass)
+
+    i = 0
+    tname = 'test_%d' % i
+    while hasattr(ExtractorClass, tname):
+        tname = 'test_%d' % i
         i += 1
     test_method = generator(test_case, tname)
     test_method.__name__ = str(tname)
     ie_list = test_case.get('add_ie')
     test_method.add_ie = ie_list and ','.join(ie_list)
-    setattr(TestDownload, test_method.__name__, test_method)
-    del test_method
+
+    setattr(ExtractorClass, test_method.__name__, test_method)
+    extractor_file_suite.addTest(ExtractorClass(test_method.__name__))
+
+    del test_method, test_case
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(argv=['TestDownload'])
