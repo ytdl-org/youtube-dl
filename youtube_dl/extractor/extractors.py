@@ -247,6 +247,7 @@ from .cnn import (
     CNNBlogsIE,
     CNNArticleIE,
 )
+from .cnnturk import CNNTurkIE
 from .coub import CoubIE
 from .comedycentral import (
     ComedyCentralIE,
