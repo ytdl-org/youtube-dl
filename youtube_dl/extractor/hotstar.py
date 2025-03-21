@@ -33,6 +33,7 @@ class HotStarBaseIE(InfoExtractor):
         auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
         h = {'hotstarauth': auth}
         h.update(headers)
+
         return self._download_json(
             'https://api.hotstar.com/' + path,
             video_id, headers=h, query=query, data=data)
@@ -59,7 +60,8 @@ class HotStarBaseIE(InfoExtractor):
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 if e.cause.code == 402:
-                    self.raise_login_required()
+                    raise ExtractorError('This video is only available for registered users. You may want to use --cookies.', expected=True)
+
                 message = self._parse_json(e.cause.read().decode(), video_id)['message']
                 if message in ('Content not available in region', 'Country is not supported'):
                     raise self.raise_geo_restricted(message)
@@ -134,6 +136,13 @@ class HotStarIE(HotStarBaseIE):
         headers = {'Referer': url}
         formats = []
         geo_restricted = False
+
+        for cookie in self._downloader.cookiejar:
+            if "hotstar" in cookie.domain:
+                if cookie.name == "userUP":
+                    self._USER_TOKEN = cookie.value
+                elif cookie.name == "device-id":
+                    self._DEVICE_ID = cookie.value
 
         if not self._USER_TOKEN:
             self._DEVICE_ID = compat_str(uuid.uuid4())
