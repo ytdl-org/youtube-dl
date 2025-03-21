@@ -641,6 +641,18 @@ class YoutubeDL(object):
             raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
+    def __can_use_color_codes(self, output_file=None):
+        """Decide if we should use color codes for the given output channel."""
+        # Try to keep criteria ordered by computational effort, easiest first.
+        if compat_os_name == 'nt':
+            return False
+        if self.params.get('no_color'):
+            return False
+        if output_file is not None:
+            if not output_file.isatty():
+                return False
+        return True
+
     def report_warning(self, message, only_once=False, _cache={}):
         '''
         Print the message to stderr, it will be prefixed with 'WARNING:'
@@ -653,17 +665,18 @@ class YoutubeDL(object):
             if m_cnt > 0:
                 return
 
-        if self.params.get('logger') is not None:
-            self.params['logger'].warning(message)
-        else:
-            if self.params.get('no_warnings'):
-                return
-            if not self.params.get('no_color') and self._err_file.isatty() and compat_os_name != 'nt':
-                _msg_header = '\033[0;33mWARNING:\033[0m'
-            else:
-                _msg_header = 'WARNING:'
-            warning_message = '%s %s' % (_msg_header, message)
-            self.to_stderr(warning_message)
+        custom_logger = self.params.get('logger')
+        if custom_logger is not None:
+            custom_logger.warning(message)
+            return
+
+        if self.params.get('no_warnings'):
+            return
+
+        prefix = 'WARNING:'
+        if self.__can_use_color_codes(output_file=self._err_file):
+            prefix = '\033[0;33m' + prefix + '\033[0m'
+        self.to_stderr(prefix + ' ' + message)
 
     def report_error(self, message, *args, **kwargs):
         '''
