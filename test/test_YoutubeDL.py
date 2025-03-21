@@ -475,6 +475,18 @@ class TestFormatSelection(unittest.TestCase):
         ydl.process_ie_result(info_dict.copy())
         self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'video+audio')
 
+    def test_format_selection_non_audio_video(self):
+        formats = [
+            {'format_id': 'audio', 'url': TEST_URL, 'ext': 'm4a', 'vcodec': 'none'},
+            {'format_id': 'chapter', 'ext': 'mhtml', 'acodec': 'none', 'vcodec': 'none', 'url': 'about:invalid'},
+            {'format_id': 'video', 'url': TEST_URL, 'ext': 'mp4', 'acodec': 'none'},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'bestvideo+bestaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'video+audio')
+
     def test_invalid_format_specs(self):
         def assert_syntax_error(format_spec):
             ydl = YDL({'format': format_spec})
