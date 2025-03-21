@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class StreamableIE(InfoExtractor):
-    _VALID_URL = r'https?://streamable\.com/(?:[es]/)?(?P<id>\w+)'
+    _VALID_URL = r'https?://streamable\.com/(?:[est]/)?(?P<id>\w+)'
     _TESTS = [
         {
             'url': 'https://streamable.com/dnd1',
@@ -50,6 +50,10 @@ class StreamableIE(InfoExtractor):
         },
         {
             'url': 'https://streamable.com/s/okkqk/drxjds',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://streamable.com/t/dnd1',
             'only_matching': True,
         }
     ]
