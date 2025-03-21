@@ -451,6 +451,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             renderer,
             (lambda x: x['ownerText']['runs'][0]['text'],
              lambda x: x['shortBylineText']['runs'][0]['text']), compat_str)
+        published_time = try_get(
+            renderer, lambda x: x['publishedTimeText']['simpleText'], compat_str) or ''
         return {
             '_type': 'url',
             'ie_key': YoutubeIE.ie_key(),
@@ -461,6 +463,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'duration': duration,
             'view_count': view_count,
             'uploader': uploader,
+            'published_time': published_time,
         }
 
     @staticmethod
