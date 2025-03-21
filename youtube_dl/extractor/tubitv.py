@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -13,38 +14,29 @@ from ..utils import (
 
 
 class TubiTvIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tubitv\.com/(?:video|movies|tv-shows)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?tubitv\.com/(?:video|movies|tv-shows|live)/(?P<id>[0-9]+)'
     _LOGIN_URL = 'http://tubitv.com/login'
     _NETRC_MACHINE = 'tubitv'
     _GEO_COUNTRIES = ['US']
     _TESTS = [{
-        'url': 'http://tubitv.com/video/283829/the_comedian_at_the_friday',
-        'md5': '43ac06be9326f41912dc64ccf7a80320',
+        'url': 'https://tubitv.com/movies/229877/carnival-of-souls',
+        'md5': '275a9f78428cfd6428520989408bcfe9',
         'info_dict': {
-            'id': '283829',
+            'id': '229877',
             'ext': 'mp4',
-            'title': 'The Comedian at The Friday',
-            'description': 'A stand up comedian is forced to look at the decisions in his life while on a one week trip to the west coast.',
-            'uploader_id': 'bc168bee0d18dd1cb3b86c68706ab434',
+            'title': 'Carnival of Souls',
+            'description': 'After a traumatic accident, a woman becomes drawn to a mysterious abandoned carnival.',
+            'uploader_id': 'da2522b1c94be4a578da6ba674925159',
         },
     }, {
-        'url': 'http://tubitv.com/tv-shows/321886/s01_e01_on_nom_stories',
-        'only_matching': True,
-    }, {
-        'url': 'http://tubitv.com/movies/383676/tracker',
-        'only_matching': True,
-    }, {
-        'url': 'https://tubitv.com/movies/560057/penitentiary?start=true',
+        'url': 'https://tubitv.com/live/715943/wb-tv-watchlist',
         'info_dict': {
-            'id': '560057',
+            'id': '715943',
             'ext': 'mp4',
-            'title': 'Penitentiary',
-            'description': 'md5:8d2fc793a93cc1575ff426fdcb8dd3f9',
-            'uploader_id': 'd8fed30d4f24fcb22ec294421b9defc2',
-            'release_year': 1979,
-        },
-        'params': {
-            'skip_download': True,
+            'title': 'WB TV Watchlist',
+            'description': compat_str,
+            'uploader_id': 'a12923a141282c8b62e593bac425db99',
+            'is_live': True,
         },
     }]
 
@@ -76,7 +68,7 @@ class TubiTvIE(InfoExtractor):
         title = video_data['title']
 
         formats = self._extract_m3u8_formats(
-            self._proto_relative_url(video_data['url']),
+            self._proto_relative_url(traverse_obj(video_data, 'url', ('video_resources', 0, 'manifest', 'url'))),
             video_id, 'mp4', 'm3u8_native')
         self._sort_formats(formats)
 
@@ -97,6 +89,8 @@ class TubiTvIE(InfoExtractor):
                 'url': self._proto_relative_url(sub_url),
             })
 
+        is_live = ('live' in video_data.get('tags') or []) or None
+
         return {
             'id': video_id,
             'title': title,
@@ -107,4 +101,5 @@ class TubiTvIE(InfoExtractor):
             'duration': int_or_none(video_data.get('duration')),
             'uploader_id': video_data.get('publisher_id'),
             'release_year': int_or_none(video_data.get('year')),
+            'is_live': is_live,
         }
