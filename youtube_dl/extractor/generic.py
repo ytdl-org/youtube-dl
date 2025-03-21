@@ -31,10 +31,14 @@ from ..utils import (
     parse_resolution,
     sanitized_Request,
     smuggle_url,
+    strip_or_none,
+    T,
+    traverse_obj,
     unescapeHTML,
     unified_timestamp,
     unsmuggle_url,
     UnsupportedError,
+    update_url_query,
     url_or_none,
     urljoin,
     xpath_attr,
@@ -2237,6 +2241,7 @@ class GenericIE(InfoExtractor):
                 'display_id': 'kelis-4th-of-july',
                 'ext': 'mp4',
                 'title': 'Kelis - 4th Of July',
+                'description': 'Kelis - 4th Of July',
                 'thumbnail': r're:https://(?:www\.)?kvs-demo.com/contents/videos_screenshots/0/105/preview.jpg',
             },
         }, {
@@ -2246,7 +2251,7 @@ class GenericIE(InfoExtractor):
                 'id': '105',
                 'display_id': 'kelis-4th-of-july',
                 'ext': 'mp4',
-                'title': 'Kelis - 4th Of July / Embed Player',
+                'title': r're:Kelis - 4th Of July(?: / Embed Player)?$',
                 'thumbnail': r're:https://(?:www\.)?kvs-demo.com/contents/videos_screenshots/0/105/preview.jpg',
             },
             'params': {
@@ -2297,6 +2302,32 @@ class GenericIE(InfoExtractor):
                 'title': 'Syren De Mer  onlyfans_05-07-2020Have_a_happy_safe_holiday5f014e68a220979bdb8cd_source / Embed плеер',
                 'thumbnail': r're:https?://www\.camhub\.world/contents/videos_screenshots/389000/389508/preview\.mp4\.jpg',
             },
+            'skip': 'needs Referer ?',
+        }, {
+            # KVS Player v10
+            'url': 'https://www.cambro.tv/588174/marleny-1/',
+            'md5': '759d2050590986c6fc341da0592c4d8e',
+            'info_dict': {
+                'id': '588174',
+                'display_id': 'marleny-1',
+                'ext': 'mp4',
+                'title': 'marleny 1',
+                'description': 'la maestra de tic toc',
+                'thumbnail': r're:https?://www\.cambro\.tv/contents/videos_screenshots/588000/588174/preview\.jpg',
+                'age_limit': 18,
+            },
+        }, {
+            # KVS Player v10 embed, NSFW
+            'url': 'https://www.cambro.tv/embed/436185',
+            'md5': '24338dc8b182900a2c9eda075a0a46c0',
+            'info_dict': {
+                'id': '436185',
+                'display_id': 'jaeandbailey-chaturbate-webcam-porn-videos',
+                'ext': 'mp4',
+                'title': 'jaeandbailey Chaturbate webcam porn videos',
+                'thumbnail': r're:https?://www\.cambro\.tv/contents/videos_screenshots/436000/436185/preview\.jpg',
+                'age_limit': 18,
+            },
         }, {
             'url': 'https://mrdeepfakes.com/video/5/selena-gomez-pov-deep-fakes',
             'md5': 'fec4ad5ec150f655e0c74c696a4a2ff4',
@@ -2309,14 +2340,16 @@ class GenericIE(InfoExtractor):
                 'height': 720,
                 'age_limit': 18,
             },
+            # 'skip': 'Geo-blocked in some mjurisdictions',
         }, {
+            # KVS Player v2
             'url': 'https://shooshtime.com/videos/284002/just-out-of-the-shower-joi/',
             'md5': 'e2f0a4c329f7986280b7328e24036d60',
             'info_dict': {
                 'id': '284002',
                 'display_id': 'just-out-of-the-shower-joi',
                 'ext': 'mp4',
-                'title': 'Just Out Of The Shower JOI - Shooshtime',
+                'title': r're:Just Out Of The Shower JOI(?: - Shooshtime)?$',
                 'height': 720,
                 'age_limit': 18,
             },
@@ -2482,9 +2515,12 @@ class GenericIE(InfoExtractor):
             return '/'.join(urlparts) + '?' + url_query
 
         flashvars = self._search_regex(
-            r'(?s)<script\b[^>]*>.*?var\s+flashvars\s*=\s*(\{.+?\});.*?</script>',
-            webpage, 'flashvars')
-        flashvars = self._parse_json(flashvars, video_id, transform_source=js_to_json)
+            r'''(?<![=!+*-])=\s*kt_player\s*\(\s*'kt_player'\s*,\s*[^)]+,\s*([\w$]+)\s*\)''',
+            webpage, 'flashvars name', default='flashvars')
+        flashvars = self._search_json(
+            r'<script(?:\s[^>]*)?>[\s\S]*?var\s+%s\s*=' % (flashvars,),
+            webpage, 'flashvars', video_id, end_pattern=r';[\s\S]*?</script>',
+            transform_source=js_to_json)
 
         # extract the part after the last / as the display_id from the
         # canonical URL.
@@ -2493,12 +2529,7 @@ class GenericIE(InfoExtractor):
             r'|<link rel="canonical" href="https?://[^"]+/(.+?)/?"\s*/?>)',
             webpage, 'display_id', fatal=False
         )
-        title = self._html_search_regex(r'<(?:h1|title)>(?:Video: )?(.+?)</(?:h1|title)>', webpage, 'title')
-
-        thumbnail = flashvars['preview_url']
-        if thumbnail.startswith('//'):
-            protocol, _, _ = url.partition('/')
-            thumbnail = protocol + thumbnail
+        title = flashvars.get('video_title') or self._html_search_regex(r'<(?:h1|title)>(?:Video: )?(.+?)</(?:h1|title)>', webpage, 'title')
 
         url_keys = list(filter(re.compile(r'^video_(?:url|alt_url\d*)$').match, flashvars.keys()))
         formats = []
@@ -2506,9 +2537,13 @@ class GenericIE(InfoExtractor):
             if '/get_file/' not in flashvars[key]:
                 continue
             format_id = flashvars.get(key + '_text', key)
+            f_url = urljoin(url, getrealurl(flashvars[key], flashvars['license_code']))
+            rnd = flashvars.get('rnd', key)
+            if rnd:
+                f_url = update_url_query(f_url, {'rnd': rnd})
             formats.append(merge_dicts(
                 parse_resolution(format_id) or parse_resolution(flashvars[key]), {
-                    'url': urljoin(url, getrealurl(flashvars[key], flashvars['license_code'])),
+                    'url': f_url,
                     'format_id': format_id,
                     'ext': 'mp4',
                     'http_headers': {'Referer': url},
@@ -2518,13 +2553,31 @@ class GenericIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        return {
+        csv2list = (T(lambda s: s.split(',')), Ellipsis, T(strip_or_none))
+        info = traverse_obj(flashvars, {
+            'tags': ('video_tags',) + csv2list,
+            'categories': ('video_categories',) + csv2list,
+            'thumbnails': (
+                T(dict.items), lambda _, k_v: k_v[0].startswith('preview_url'), {
+                    'url': (1, T(lambda u: urljoin(url, u))),
+                    'preference': (0, T(lambda k: 100 - len(k))),
+                }),
+        })
+        info = merge_dicts(info, {
             'id': flashvars['video_id'],
             'display_id': display_id,
             'title': title,
-            'thumbnail': thumbnail,
             'formats': formats,
-        }
+        })
+
+        # check-porn test for embed pages
+        if 'age_limit' not in info and traverse_obj(info, (
+                ('title', (('tags', 'categories'), Ellipsis) or []),
+                T(lambda t: bool(re.search(r'(?i)(?:^|\s+)porn(?:$|\s+)', t)) or None)),
+                get_all=False):
+            info['age_limit'] = 18
+
+        return info
 
     def _real_extract(self, url):
         if url.startswith('//'):
@@ -3598,7 +3651,7 @@ class GenericIE(InfoExtractor):
              ), webpage, 'KVS player', group='ver', default=False)
         if found:
             self.report_extraction('%s: KVS Player' % (video_id, ))
-            if found.split('.')[0] not in ('4', '5', '6'):
+            if found.split('.')[0] not in ('2', '4', '5', '6', '10'):
                 self.report_warning('Untested major version (%s) in player engine - download may fail.' % (found, ))
             return merge_dicts(
                 self._extract_kvs(url, webpage, video_id),
