@@ -518,9 +518,9 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
         return [
             self.url_result(
                 'http://www.%s/%s' % (host, video_url),
-                PornHubIE.ie_key(), video_title=title)
-            for video_url, title in orderedSet(re.findall(
-                r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"[^>]*\s+title="([^"]+)"',
+                PornHubIE.ie_key(), video_title=title, video_id=id)
+            for video_url, id, title in orderedSet(re.findall(
+                r'href="/?(view_video\.php\?.*\bviewkey=([\da-z]+)[^"]*)"[^>]*\s+title="([^"]+)"',
                 container))
         ]
 
