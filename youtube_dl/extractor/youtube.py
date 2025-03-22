@@ -91,12 +91,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'IOS',
-                    'clientVersion': '19.45.4',
+                    'clientVersion': '20.10.4',
                     'deviceMake': 'Apple',
                     'deviceModel': 'iPhone16,2',
-                    'userAgent': 'com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)',
+                    'userAgent': 'com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)',
                     'osName': 'iPhone',
-                    'osVersion': '18.1.0.22B83',
+                    'osVersion': '18.3.2.22D82',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 5,
@@ -109,7 +109,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'MWEB',
-                    'clientVersion': '2.20241202.07.00',
+                    'clientVersion': '2.20250311.03.00',
                     # mweb previously did not require PO Token with this UA
                     'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
                 },
@@ -122,7 +122,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'TVHTML5',
-                    'clientVersion': '7.20250120.19.00',
+                    'clientVersion': '7.20250312.16.00',
                     'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
                 },
             },
@@ -133,7 +133,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'WEB',
-                    'clientVersion': '2.20241126.01.00',
+                    'clientVersion': '2.20250312.04.00',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
@@ -692,7 +692,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         'invidious': '|'.join(_INVIDIOUS_SITES),
     }
     _PLAYER_INFO_RE = (
-        r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})/player',
+        r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})//(?:tv-)?player',
         r'/(?P<id>[a-zA-Z0-9_-]{8,})/player(?:_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?|-plasma-ias-(?:phone|tablet)-[a-z]{2}_[A-Z]{2}\.vflset)/base\.js$',
         r'\b(?P<id>vfl[a-zA-Z0-9_-]+)\b.*?\.js$',
     )
@@ -1857,7 +1857,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_n_function_code_jsi(self, video_id, jsi, player_id=None):
 
         var_ay = self._search_regex(
-            r'(?:[;\s]|^)\s*(var\s*[\w$]+\s*=\s*"[^"]+"\s*\.\s*split\("\{"\))(?=\s*[,;])',
+            r'(?:[;\s]|^)\s*(var\s*[\w$]+\s*=\s*"(?:\\"|[^"])+"\s*\.\s*split\("\W+"\))(?=\s*[,;])',
             jsi.code, 'useful values', default='')
 
         func_name = self._extract_n_function_name(jsi.code)
