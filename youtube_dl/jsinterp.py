@@ -1208,9 +1208,10 @@ class JSInterpreter(object):
                 elif member == 'join':
                     assertion(isinstance(obj, list), 'must be applied on a list')
                     assertion(len(argvals) <= 1, 'takes at most one argument')
-                    return (',' if len(argvals) == 0 else argvals[0]).join(
-                        ('' if x in (None, JS_Undefined) else _js_toString(x))
-                        for x in obj)
+                    return (',' if len(argvals) == 0 or argvals[0] in (None, JS_Undefined)
+                            else argvals[0]).join(
+                                ('' if x in (None, JS_Undefined) else _js_toString(x))
+                                for x in obj)
                 elif member == 'reverse':
                     assertion(not argvals, 'does not take any arguments')
                     obj.reverse()
