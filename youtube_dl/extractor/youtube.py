@@ -2596,6 +2596,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             subtitles, base_url, lang_code, {})
                         continue
                     automatic_captions = {}
+                    process_language(
+                        automatic_captions, base_url, lang_code, {})
                     for translation_language in traverse_obj(pctr, (
                             Ellipsis, 'translationLanguages', lambda _, v: v.get('languageCode'))):
                         translation_language_code = translation_language['languageCode']
