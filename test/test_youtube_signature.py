@@ -302,8 +302,8 @@ class TestSignature(unittest.TestCase):
 def t_factory(name, sig_func, url_pattern):
     def make_tfunc(url, sig_input, expected_sig):
         m = url_pattern.match(url)
-        assert m, '%r should follow URL format' % url
-        test_id = m.group('id')
+        assert m, '{0!r} should follow URL format'.format(url)
+        test_id = re.sub(r'[/.-]', '_', m.group('id') or m.group('compat_id'))
 
         def test_func(self):
             basename = 'player-{0}-{1}.js'.format(name, test_id)
@@ -336,12 +336,16 @@ def n_sig(jscode, sig_input):
 
 
 make_sig_test = t_factory(
-    'signature', signature, re.compile(r'.*(?:-|/player/)(?P<id>[a-zA-Z0-9_-]+)(?:/.+\.js|(?:/watch_as3|/html5player)?\.[a-z]+)$'))
+    'signature', signature,
+    re.compile(r'''(?x)
+        .+/(?P<h5>html5)?player(?(h5)(?:-en_US)?-|/)(?P<id>[a-zA-Z0-9/._-]+)
+        (?(h5)/(?:watch_as3|html5player))?\.js$
+    '''))
 for test_spec in _SIG_TESTS:
     make_sig_test(*test_spec)
 
 make_nsig_test = t_factory(
-    'nsig', n_sig, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
+    'nsig', n_sig, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_/.-]+)\.js$'))
 for test_spec in _NSIG_TESTS:
     make_nsig_test(*test_spec)
 
