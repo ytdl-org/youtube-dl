@@ -2136,7 +2136,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     video_details = merge_dicts(*traverse_obj(
                         (player_response, api_player_response),
                         (Ellipsis, 'videoDetails', T(dict))))
-                    player_response.update(api_player_response or {})
+                    player_response.update(filter_dict(
+                        api_player_response or {}, cndn=lambda k, _: k != 'captions'))
                     player_response['videoDetails'] = video_details
 
         def is_agegated(playability):
@@ -2566,8 +2567,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
         pctr = traverse_obj(
-            player_response,
-            ('captions', 'playerCaptionsTracklistRenderer', T(dict)))
+            (player_response, api_player_response),
+            (Ellipsis, 'captions', 'playerCaptionsTracklistRenderer', T(dict)))
         if pctr:
             def process_language(container, base_url, lang_code, query):
                 lang_subs = []
@@ -2584,20 +2585,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             def process_subtitles():
                 subtitles = {}
                 for caption_track in traverse_obj(pctr, (
-                        'captionTracks', lambda _, v: v.get('baseUrl'))):
+                        Ellipsis, 'captionTracks', lambda _, v: (
+                            v.get('baseUrl') and v.get('languageCode')))):
                     base_url = self._yt_urljoin(caption_track['baseUrl'])
                     if not base_url:
                         continue
+                    lang_code = caption_track['languageCode']
                     if caption_track.get('kind') != 'asr':
-                        lang_code = caption_track.get('languageCode')
-                        if not lang_code:
-                            continue
                         process_language(
                             subtitles, base_url, lang_code, {})
                         continue
                     automatic_captions = {}
                     for translation_language in traverse_obj(pctr, (
-                            'translationLanguages', lambda _, v: v.get('languageCode'))):
+                            Ellipsis, 'translationLanguages', lambda _, v: v.get('languageCode'))):
                         translation_language_code = translation_language['languageCode']
                         process_language(
                             automatic_captions, base_url, translation_language_code,
