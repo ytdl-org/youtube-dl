@@ -678,7 +678,7 @@ class JSInterpreter(object):
             return len(obj)
         try:
             return obj[int(idx)] if isinstance(obj, list) else obj[compat_str(idx)]
-        except (TypeError, KeyError, IndexError) as e:
+        except (TypeError, KeyError, IndexError, ValueError) as e:
             # allow_undefined is None gives correct behaviour
             if allow_undefined or (
                     allow_undefined is None and not isinstance(e, TypeError)):
@@ -1038,6 +1038,10 @@ class JSInterpreter(object):
                     left_val = self._index(left_val, idx)
             if isinstance(idx, float):
                 idx = int(idx)
+            if isinstance(left_val, list) and len(left_val) <= int_or_none(idx, default=-1):
+                # JS Array is a sparsely assignable list
+                # TODO: handle extreme sparsity without memory bloat, eg using auxiliary dict
+                left_val.extend((idx - len(left_val) + 1) * [JS_Undefined])
             left_val[idx] = self._operator(
                 m.group('op'), self._index(left_val, idx) if m.group('op') else None,
                 m.group('expr'), expr, local_vars, allow_recursion)
