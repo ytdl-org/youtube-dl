@@ -280,8 +280,9 @@ class TestPlayerInfo(unittest.TestCase):
             ('https://s.ytimg.com/yts/jsbin/html5player-en_US-vflXGBaUN.js', 'vflXGBaUN'),
             ('https://s.ytimg.com/yts/jsbin/html5player-en_US-vflKjOTVq/html5player.js', 'vflKjOTVq'),
         )
+        ie = YoutubeIE(FakeYDL({'cachedir': False}))
         for player_url, expected_player_id in PLAYER_URLS:
-            player_id = YoutubeIE._extract_player_info(player_url)
+            player_id = ie._extract_player_info(player_url)
             self.assertEqual(player_id, expected_player_id)
 
 
