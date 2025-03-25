@@ -84,6 +84,16 @@ _SIG_TESTS = [
         '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
         '0QJ8wRAIgXmPlOPSBkkUs1bYFYlJCfe29xxAj7v1pDL0QwbdV96sCIEzpWqMGkFR20CFOg51Tp-7vj_EMu-m37KtXJ2OySqa0q',
     ),
+    (
+        'https://www.youtube.com/s/player/643afba4/tv-player-ias.vflset/tv-player-ias.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        'AAOAOq0QJ8wRAIgXmPlOPSBkkUs1bYFYlJCfe29xx8j7vgpDL0QwbdV06sCIEzpWqMGkFR20CFOS21Tp-7vj_EMu-m37KtXJoOy1',
+    ),
+    (
+        'https://www.youtube.com/s/player/363db69b/player_ias.vflset/en_US/base.js',
+        '2aq0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpzEICs69VdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+        '0aqSyOoJXtK73m-uME_jv7-pT15gOFC02RFkGMqWpz2ICs6EVdbwQ0LDp1v7j8xx92efCJlYFYb1sUkkBSPOlPmXgIARw8JQ0qOAOAA',
+    ),
 ]
 
 _NSIG_TESTS = [
@@ -153,7 +163,7 @@ _NSIG_TESTS = [
     ),
     (
         'https://www.youtube.com/s/player/c57c113c/player_ias.vflset/en_US/base.js',
-        '-Txvy6bT5R6LqgnQNx', 'dcklJCnRUHbgSg',
+        'M92UUMHa8PdvPd3wyM', '3hPqLJsiNZx7yA',
     ),
     (
         'https://www.youtube.com/s/player/5a3b6271/player_ias.vflset/en_US/base.js',
@@ -173,7 +183,7 @@ _NSIG_TESTS = [
     ),
     (
         'https://www.youtube.com/s/player/cfa9e7cb/player_ias.vflset/en_US/base.js',
-        'qO0NiMtYQ7TeJnfFG2', 'k9cuJDHNS5O7kQ',
+        'aCi3iElgd2kq0bxVbQ', 'QX1y8jGb2IbZ0w',
     ),
     (
         'https://www.youtube.com/s/player/8c7583ff/player_ias.vflset/en_US/base.js',
@@ -232,10 +242,6 @@ _NSIG_TESTS = [
         'W9HJZKktxuYoDTqW', 'jHbbkcaxm54',
     ),
     (
-        'https://www.youtube.com/s/player/643afba4/player_ias.vflset/en_US/base.js',
-        'W9HJZKktxuYoDTqW', 'larxUlagTRAcSw',
-    ),
-    (
         'https://www.youtube.com/s/player/e7567ecf/player_ias_tce.vflset/en_US/base.js',
         'Sy4aDGc0VpYRR9ew_', '5UPOT1VhoZxNLQ',
     ),
@@ -259,6 +265,14 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/643afba4/tv-player-ias.vflset/tv-player-ias.js',
         'ir9-V6cdbCiyKxhr', '2PL7ZDYAALMfmA',
     ),
+    (
+        'https://www.youtube.com/s/player/643afba4/player_ias.vflset/en_US/base.js',
+        'W9HJZKktxuYoDTqW', 'larxUlagTRAcSw',
+    ),
+    (
+        'https://www.youtube.com/s/player/363db69b/player_ias.vflset/en_US/base.js',
+        'eWYu5d5YeY_4LyEDc', 'XJQqf-N7Xra3gg',
+    ),
 ]
 
 
@@ -271,6 +285,8 @@ class TestPlayerInfo(unittest.TestCase):
             ('https://www.youtube.com/s/player/64dddad9/player-plasma-ias-phone-en_US.vflset/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player-plasma-ias-phone-de_DE.vflset/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player-plasma-ias-tablet-en_US.vflset/base.js', '64dddad9'),
+            ('https://www.youtube.com/s/player/e7567ecf/player_ias_tce.vflset/en_US/base.js', 'e7567ecf'),
+            ('https://www.youtube.com/s/player/643afba4/tv-player-ias.vflset/tv-player-ias.js', '643afba4'),
             # obsolete
             ('https://www.youtube.com/yts/jsbin/player_ias-vfle4-e03/en_US/base.js', 'vfle4-e03'),
             ('https://www.youtube.com/yts/jsbin/player_ias-vfl49f_g4/en_US/base.js', 'vfl49f_g4'),
