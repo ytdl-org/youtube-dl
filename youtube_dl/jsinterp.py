@@ -1368,19 +1368,21 @@ class JSInterpreter(object):
         code, _ = self._separate_at_paren(func_m.group('code'))  # refine the match
         return self.build_arglist(func_m.group('args')), code
 
-    def extract_function(self, funcname):
+    def extract_function(self, funcname, *global_stack):
         return function_with_repr(
-            self.extract_function_from_code(*self.extract_function_code(funcname)),
+            self.extract_function_from_code(*itertools.chain(
+                self.extract_function_code(funcname), global_stack)),
             'F<%s>' % (funcname,))
 
     def extract_function_from_code(self, argnames, code, *global_stack):
         local_vars = {}
 
+        start = None
         while True:
-            mobj = re.search(r'function\((?P<args>[^)]*)\)\s*{', code)
+            mobj = re.search(r'function\((?P<args>[^)]*)\)\s*{', code[start:])
             if mobj is None:
                 break
-            start, body_start = mobj.span()
+            start, body_start = ((start or 0) + x for x in mobj.span())
             body, remaining = self._separate_at_paren(code[body_start - 1:])
             name = self._named_object(local_vars, self.extract_function_from_code(
                 [x.strip() for x in mobj.group('args').split(',')],

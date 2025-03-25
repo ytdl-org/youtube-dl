@@ -1709,6 +1709,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 '    return %s\n') % (signature_id_tuple, expr_code)
         self.to_screen('Extracted signature function:\n' + code)
 
+    def _extract_sig_fn(self, jsi, funcname):
+        var_ay = self._search_regex(
+            r'''(?:\*/|\{|\n|^)\s*(?:'[^']+'\s*;\s*)(var\s*[\w$]+\s*=\s*('|")(?:\\\2|(?!\2).)+\2\s*\.\s*split\(('|")\W+\3\))(?=\s*[,;])''',
+            jsi.code, 'useful values', default='')
+
+        sig_fn = jsi.extract_function_code(funcname)
+
+        if var_ay:
+            sig_fn = (sig_fn[0], ';\n'.join((var_ay, sig_fn[1])))
+
+        return sig_fn
+
     def _parse_sig_js(self, jscode):
         # Examples where `sig` is funcname:
         # sig=function(a){a=a.split(""); ... ;return a.join("")};
@@ -1734,8 +1746,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
-        initial_function = jsi.extract_function(funcname)
-        return lambda s: initial_function([s])
+
+        initial_function = self._extract_sig_fn(jsi, funcname)
+
+        func = jsi.extract_function_from_code(*initial_function)
+
+        return lambda s: func([s])
 
     def _cached(self, func, *cache_id):
         def inner(*args, **kwargs):
@@ -1854,15 +1870,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_code_jsi(self, video_id, jsi, player_id=None):
 
-        var_ay = self._search_regex(
-            r'(?:[;\s]|^)\s*(var\s*[\w$]+\s*=\s*"(?:\\"|[^"])+"\s*\.\s*split\("\W+"\))(?=\s*[,;])',
-            jsi.code, 'useful values', default='')
-
         func_name = self._extract_n_function_name(jsi.code)
 
-        func_code = jsi.extract_function_code(func_name)
-        if var_ay:
-            func_code = (func_code[0], ';\n'.join((var_ay, func_code[1])))
+        func_code = self._extract_sig_fn(jsi, func_name)
 
         if player_id:
             self.cache.store('youtube-nsig', player_id, func_code)
