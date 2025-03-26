@@ -917,6 +917,11 @@ from .palcomp3 import (
     PalcoMP3VideoIE,
 )
 from .pandoratv import PandoraTVIE
+from .panopto import (
+    PanoptoIE,
+    PanoptoListIE,
+    PanoptoPlaylistIE,
+ )
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
