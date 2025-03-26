@@ -669,6 +669,10 @@ from .markiza import (
     MarkizaPageIE,
 )
 from .massengeschmacktv import MassengeschmackTVIE
+from .masterclass import (
+    MasterClassIE,
+    MasterClassCourseIE,
+)
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .medaltv import MedalTVIE
