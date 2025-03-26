@@ -451,7 +451,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         # 4. http://atomicparsley.sourceforge.net/mpeg-4files.html
 
         add('title', ('track', 'title'))
-        add('date', 'upload_date')
+        add('date', ('release_year', 'upload_date'))
         add(('description', 'comment'), 'description')
         add('purl', 'webpage_url')
         add('track', 'track_number')
