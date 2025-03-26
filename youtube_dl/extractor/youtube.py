@@ -1711,8 +1711,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_sig_fn(self, jsi, funcname):
         var_ay = self._search_regex(
-            r'''(?:\*/|\{|\n|^)\s*(?:'[^']+'\s*;\s*)(var\s*[\w$]+\s*=\s*('|")(?:\\\2|(?!\2).)+\2\s*\.\s*split\(('|")\W+\3\))(?=\s*[,;])''',
-            jsi.code, 'useful values', default='')
+            r'''(?x)
+                (?:\*/|\{|\n|^)\s*(?:'[^']+'\s*;\s*)
+                    (var\s*[\w$]+\s*=\s*(?:
+                        ('|")(?:\\\2|(?!\2).)+\2\s*\.\s*split\(\s*('|")\W+\3\s*\)|
+                        \[\s*(?:('|")(?:\\\4|(?!\4).)*\4\s*(?:(?=\])|,\s*))+\]
+                    ))(?=\s*[,;])
+            ''', jsi.code, 'useful values', default='')
 
         sig_fn = jsi.extract_function_code(funcname)
 
