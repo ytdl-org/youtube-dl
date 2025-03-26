@@ -5,10 +5,14 @@ import time
 import uuid
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_HTTPError,
+    compat_str
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
+    try_get
 )
 
 
@@ -96,6 +100,18 @@ class SonyLIVIE(InfoExtractor):
         episode = metadata.get('episodeTitle')
         if episode and title != episode:
             title += ' - ' + episode
+        subtitles = {}
+        for subtitle in (content.get('subtitle') or []):
+            base_url = try_get(subtitle, lambda x: x['subtitleUrl'], compat_str)
+            if not base_url:
+                continue
+            lang_code = subtitle.get('subtitleLanguageName')
+            if not lang_code:
+                continue
+            subtitles[lang_code] = [{
+                'ext': 'vtt',
+                'url': base_url,
+            }]
 
         return {
             'id': video_id,
@@ -109,4 +125,5 @@ class SonyLIVIE(InfoExtractor):
             'episode': episode,
             'episode_number': int_or_none(metadata.get('episodeNumber')),
             'release_year': int_or_none(metadata.get('year')),
+            'subtitles': subtitles
         }
