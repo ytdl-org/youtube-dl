@@ -338,7 +338,7 @@ class YouPornListBase(InfoExtractor):
                 tries_left -= 1
                 for from_ in yield_entries(page_data[1]):
                     # may get the same page twice instead of empty page
-                    # or (site bug) intead of actual next page
+                    # or (site bug) instead of actual next page
                     if not first_url:
                         first_url = from_['url']
                         if first_url == last_first_url:
