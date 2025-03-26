@@ -10,7 +10,7 @@ import youtube_dl
 from utils import read_file, write_file
 
 
-ZSH_COMPLETION_FILE = "youtube-dl.zsh"
+ZSH_COMPLETION_FILE = "_youtube-dl"
 ZSH_COMPLETION_TEMPLATE = "devscripts/zsh-completion.in"
 
 
