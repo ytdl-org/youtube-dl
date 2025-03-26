@@ -1079,7 +1079,10 @@ from .rutube import (
     RutubePlaylistIE,
 )
 from .rutv import RUTVIE
-from .ruutu import RuutuIE
+from .ruutu import (
+    RuutuIE,
+    HSfiIE,
+)
 from .ruv import RuvIE
 from .s4c import (
     S4CIE,
