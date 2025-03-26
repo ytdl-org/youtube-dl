@@ -112,7 +112,7 @@ class ORFRadioIE(ORFRadioBase):
 
     _VALID_URL = (
         r'https?://sound\.orf\.at/radio/(?P<station>{0})/sendung/(?P<id>\d+)(?:/(?P<show>\w+))?'.format(_STATION_RE),
-        r'https?://(?P<station>{0})\.orf\.at/player/(?P<date>\d{{8}})/(?P<id>\d+)'.format(_STATION_RE),
+        r'https?://(?P<station>{0})\.orf\.at/(?:player|programm)/(?P<date>\d{{8}})/(?P<id>\d+)'.format(_STATION_RE),
     )
 
     _TESTS = [{
@@ -150,6 +150,10 @@ class ORFRadioIE(ORFRadioBase):
             'duration': 1500,
         },
         'skip': 'Shows from ORF Sound are only available for 30 days.'
+    }, {
+        # yt-dlp/yt-dlp#11014
+        'url': 'https://oe1.orf.at/programm/20240916/769302/Playgrounds',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
