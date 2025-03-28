@@ -1327,7 +1327,10 @@ from .trovo import (
 )
 from .trunews import TruNewsIE
 from .trutv import TruTVIE
-from .tube8 import Tube8IE
+from .tube8 import (
+    Tube8IE,
+    Tube8ListIE,
+)
 from .tubitv import TubiTvIE
 from .tumblr import TumblrIE
 from .tunein import (
