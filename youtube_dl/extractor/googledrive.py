@@ -70,6 +70,7 @@ class GoogleDriveIE(InfoExtractor):
         '45': 'webm',
         '46': 'webm',
         '59': 'mp4',
+        '50': 'm4a',
     }
     _BASE_URL_CAPTIONS = 'https://drive.google.com/timedtext'
     _CAPTIONS_ENTRY_TAG = {
