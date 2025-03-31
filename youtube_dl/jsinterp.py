@@ -686,6 +686,8 @@ class JSInterpreter(object):
             raise self.Exception('Cannot get index {idx!r:.100}'.format(**locals()), expr=repr(obj), cause=e)
 
     def _dump(self, obj, namespace):
+        if obj is JS_Undefined:
+            return 'undefined'
         try:
             return json.dumps(obj)
         except TypeError:
