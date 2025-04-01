@@ -692,9 +692,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         'invidious': '|'.join(_INVIDIOUS_SITES),
     }
     _PLAYER_INFO_RE = (
-        r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})//(?:tv-)?player',
-        r'/(?P<id>[a-zA-Z0-9_-]{8,})/player(?:_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?|-plasma-ias-(?:phone|tablet)-[a-z]{2}_[A-Z]{2}\.vflset)/base\.js$',
-        r'\b(?P<id>vfl[a-zA-Z0-9_-]+)\b.*?\.js$',
+        r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})/(?:tv-)?player',
+        r'/(?P<id>[a-zA-Z0-9_-]{8,})/player(?:_ias(?:_tce)?\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?|-plasma-ias-(?:phone|tablet)-[a-z]{2}_[A-Z]{2}\.vflset)/base\.js$',
+        r'\b(?P<id>vfl[a-zA-Z0-9_-]{6,})\b.*?\.js$',
     )
     _SUBTITLE_FORMATS = ('json3', 'srv1', 'srv2', 'srv3', 'ttml', 'vtt')
 
@@ -1626,15 +1626,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         """ Return a string representation of a signature """
         return '.'.join(compat_str(len(part)) for part in example_sig.split('.'))
 
-    @classmethod
-    def _extract_player_info(cls, player_url):
-        for player_re in cls._PLAYER_INFO_RE:
-            id_m = re.search(player_re, player_url)
-            if id_m:
-                break
-        else:
-            raise ExtractorError('Cannot identify player %r' % player_url)
-        return id_m.group('id')
+    def _extract_player_info(self, player_url):
+        try:
+            return self._search_regex(
+                self._PLAYER_INFO_RE, player_url, 'player info', group='id')
+        except ExtractorError as e:
+            raise ExtractorError(
+                'Cannot identify player %r' % (player_url,), cause=e)
 
     def _load_player(self, video_id, player_url, fatal=True, player_id=None):
         if not player_id:
@@ -1711,6 +1709,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 '    return %s\n') % (signature_id_tuple, expr_code)
         self.to_screen('Extracted signature function:\n' + code)
 
+    def _extract_sig_fn(self, jsi, funcname):
+        var_ay = self._search_regex(
+            r'''(?x)
+                (?:\*/|\{|\n|^)\s*(?:'[^']+'\s*;\s*)
+                    (var\s*[\w$]+\s*=\s*(?:
+                        ('|")(?:\\\2|(?!\2).)+\2\s*\.\s*split\(\s*('|")\W+\3\s*\)|
+                        \[\s*(?:('|")(?:\\\4|(?!\4).)*\4\s*(?:(?=\])|,\s*))+\]
+                    ))(?=\s*[,;])
+            ''', jsi.code, 'useful values', default='')
+
+        sig_fn = jsi.extract_function_code(funcname)
+
+        if var_ay:
+            sig_fn = (sig_fn[0], ';\n'.join((var_ay, sig_fn[1])))
+
+        return sig_fn
+
     def _parse_sig_js(self, jscode):
         # Examples where `sig` is funcname:
         # sig=function(a){a=a.split(""); ... ;return a.join("")};
@@ -1736,8 +1751,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
-        initial_function = jsi.extract_function(funcname)
-        return lambda s: initial_function([s])
+
+        initial_function = self._extract_sig_fn(jsi, funcname)
+
+        func = jsi.extract_function_from_code(*initial_function)
+
+        return lambda s: func([s])
 
     def _cached(self, func, *cache_id):
         def inner(*args, **kwargs):
@@ -1856,15 +1875,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_code_jsi(self, video_id, jsi, player_id=None):
 
-        var_ay = self._search_regex(
-            r'(?:[;\s]|^)\s*(var\s*[\w$]+\s*=\s*"(?:\\"|[^"])+"\s*\.\s*split\("\W+"\))(?=\s*[,;])',
-            jsi.code, 'useful values', default='')
-
         func_name = self._extract_n_function_name(jsi.code)
 
-        func_code = jsi.extract_function_code(func_name)
-        if var_ay:
-            func_code = (func_code[0], ';\n'.join((var_ay, func_code[1])))
+        func_code = self._extract_sig_fn(jsi, func_name)
 
         if player_id:
             self.cache.store('youtube-nsig', player_id, func_code)
@@ -2136,7 +2149,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     video_details = merge_dicts(*traverse_obj(
                         (player_response, api_player_response),
                         (Ellipsis, 'videoDetails', T(dict))))
-                    player_response.update(api_player_response or {})
+                    player_response.update(filter_dict(
+                        api_player_response or {}, cndn=lambda k, _: k != 'captions'))
                     player_response['videoDetails'] = video_details
 
         def is_agegated(playability):
@@ -2566,8 +2580,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
         pctr = traverse_obj(
-            player_response,
-            ('captions', 'playerCaptionsTracklistRenderer', T(dict)))
+            (player_response, api_player_response),
+            (Ellipsis, 'captions', 'playerCaptionsTracklistRenderer', T(dict)))
         if pctr:
             def process_language(container, base_url, lang_code, query):
                 lang_subs = []
@@ -2584,20 +2598,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             def process_subtitles():
                 subtitles = {}
                 for caption_track in traverse_obj(pctr, (
-                        'captionTracks', lambda _, v: v.get('baseUrl'))):
+                        Ellipsis, 'captionTracks', lambda _, v: (
+                            v.get('baseUrl') and v.get('languageCode')))):
                     base_url = self._yt_urljoin(caption_track['baseUrl'])
                     if not base_url:
                         continue
+                    lang_code = caption_track['languageCode']
                     if caption_track.get('kind') != 'asr':
-                        lang_code = caption_track.get('languageCode')
-                        if not lang_code:
-                            continue
                         process_language(
                             subtitles, base_url, lang_code, {})
                         continue
                     automatic_captions = {}
+                    process_language(
+                        automatic_captions, base_url, lang_code, {})
                     for translation_language in traverse_obj(pctr, (
-                            'translationLanguages', lambda _, v: v.get('languageCode'))):
+                            Ellipsis, 'translationLanguages', lambda _, v: v.get('languageCode'))):
                         translation_language_code = translation_language['languageCode']
                         process_language(
                             automatic_captions, base_url, translation_language_code,

@@ -422,6 +422,8 @@ class InfoExtractor(object):
     _GEO_COUNTRIES = None
     _GEO_IP_BLOCKS = None
     _WORKING = True
+    # supply this in public subclasses: used in supported sites list, etc
+    # IE_DESC = 'short description of IE'
 
     def __init__(self, downloader=None):
         """Constructor. Receives an optional downloader."""

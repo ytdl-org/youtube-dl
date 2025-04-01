@@ -678,7 +678,7 @@ class JSInterpreter(object):
             return len(obj)
         try:
             return obj[int(idx)] if isinstance(obj, list) else obj[compat_str(idx)]
-        except (TypeError, KeyError, IndexError) as e:
+        except (TypeError, KeyError, IndexError, ValueError) as e:
             # allow_undefined is None gives correct behaviour
             if allow_undefined or (
                     allow_undefined is None and not isinstance(e, TypeError)):
@@ -686,6 +686,8 @@ class JSInterpreter(object):
             raise self.Exception('Cannot get index {idx!r:.100}'.format(**locals()), expr=repr(obj), cause=e)
 
     def _dump(self, obj, namespace):
+        if obj is JS_Undefined:
+            return 'undefined'
         try:
             return json.dumps(obj)
         except TypeError:
@@ -1038,6 +1040,10 @@ class JSInterpreter(object):
                     left_val = self._index(left_val, idx)
             if isinstance(idx, float):
                 idx = int(idx)
+            if isinstance(left_val, list) and len(left_val) <= int_or_none(idx, default=-1):
+                # JS Array is a sparsely assignable list
+                # TODO: handle extreme sparsity without memory bloat, eg using auxiliary dict
+                left_val.extend((idx - len(left_val) + 1) * [JS_Undefined])
             left_val[idx] = self._operator(
                 m.group('op'), self._index(left_val, idx) if m.group('op') else None,
                 m.group('expr'), expr, local_vars, allow_recursion)
@@ -1204,9 +1210,10 @@ class JSInterpreter(object):
                 elif member == 'join':
                     assertion(isinstance(obj, list), 'must be applied on a list')
                     assertion(len(argvals) <= 1, 'takes at most one argument')
-                    return (',' if len(argvals) == 0 else argvals[0]).join(
-                        ('' if x in (None, JS_Undefined) else _js_toString(x))
-                        for x in obj)
+                    return (',' if len(argvals) == 0 or argvals[0] in (None, JS_Undefined)
+                            else argvals[0]).join(
+                                ('' if x in (None, JS_Undefined) else _js_toString(x))
+                                for x in obj)
                 elif member == 'reverse':
                     assertion(not argvals, 'does not take any arguments')
                     obj.reverse()
@@ -1364,19 +1371,21 @@ class JSInterpreter(object):
         code, _ = self._separate_at_paren(func_m.group('code'))  # refine the match
         return self.build_arglist(func_m.group('args')), code
 
-    def extract_function(self, funcname):
+    def extract_function(self, funcname, *global_stack):
         return function_with_repr(
-            self.extract_function_from_code(*self.extract_function_code(funcname)),
+            self.extract_function_from_code(*itertools.chain(
+                self.extract_function_code(funcname), global_stack)),
             'F<%s>' % (funcname,))
 
     def extract_function_from_code(self, argnames, code, *global_stack):
         local_vars = {}
 
+        start = None
         while True:
-            mobj = re.search(r'function\((?P<args>[^)]*)\)\s*{', code)
+            mobj = re.search(r'function\((?P<args>[^)]*)\)\s*{', code[start:])
             if mobj is None:
                 break
-            start, body_start = mobj.span()
+            start, body_start = ((start or 0) + x for x in mobj.span())
             body, remaining = self._separate_at_paren(code[body_start - 1:])
             name = self._named_object(local_vars, self.extract_function_from_code(
                 [x.strip() for x in mobj.group('args').split(',')],
