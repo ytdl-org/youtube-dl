@@ -1652,7 +1652,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         assert os.path.basename(func_id) == func_id
 
         self.write_debug('Extracting signature function {0}'.format(func_id))
-        cache_spec, code = self.cache.load('youtube-sigfuncs', func_id), None
+        cache_spec, code = self.cache.load('youtube-sigfuncs', func_id, min_ver='2025.04.07'), None
 
         if not cache_spec:
             code = self._load_player(video_id, player_url, player_id)
@@ -1813,6 +1813,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return ret
 
     def _extract_n_function_name(self, jscode):
+        func_name, idx = None, None
+        # these special cases are redundant and probably obsolete (2025-04):
+        # they make the tests run ~10% faster without fallback warnings
+        r"""
         func_name, idx = self._search_regex(
             # (y=NuD(),Mw(k),q=k.Z[y]||null)&&(q=narray[idx](q),k.set(y,q),k.V||NuD(''))}};
             # (R="nn"[+J.Z],mW(J),N=J.K[R]||null)&&(N=narray[idx](N),J.set(R,N))}};
@@ -1839,9 +1843,28 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     \(\s*[\w$]+\s*\)
             ''', jscode, 'Initial JS player n function name', group=('nfunc', 'idx'),
             default=(None, None))
+        """
+
+        if not func_name:
+            # nfunc=function(x){...}|function nfunc(x); ...
+            # ... var y=[nfunc]|y[idx]=nfunc);
+            # obvious REs hang, so use a two-stage tactic
+            for m in re.finditer(r'''(?x)
+                    [\n;]var\s(?:(?:(?!,).)+,|\s)*?(?!\d)[\w$]+(?:\[(?P<idx>\d+)\])?\s*=\s*
+                        (?(idx)|\[\s*)(?P<nfunc>(?!\d)[\w$]+)(?(idx)|\s*\])
+                    \s*?[;\n]
+                    ''', jscode):
+                func_name = self._search_regex(
+                    r'[;,]\s*(function\s+)?({0})(?(1)|\s*=\s*function)\s*\((?!\d)[\w$]+\)\s*\{1}(?!\s*return\s)'.format(
+                        re.escape(m.group('nfunc')), '{'),
+                    jscode, 'Initial JS player n function name (2)', group=2, default=None)
+                if func_name:
+                    idx = m.group('idx')
+                    break
+
         # thx bashonly: yt-dlp/yt-dlp/pull/10611
         if not func_name:
-            self.report_warning('Falling back to generic n function search')
+            self.report_warning('Falling back to generic n function search', only_once=True)
             return self._search_regex(
                 r'''(?xs)
                     (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
@@ -1855,14 +1878,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return func_name
 
         return self._search_json(
-            r'var\s+{0}\s*='.format(re.escape(func_name)), jscode,
+            r'(?<![\w-])var\s(?:(?:(?!,).)+,|\s)*?{0}\s*='.format(re.escape(func_name)), jscode,
             'Initial JS player n function list ({0}.{1})'.format(func_name, idx),
-            func_name, contains_pattern=r'\[[\s\S]+\]', end_pattern='[,;]',
+            func_name, contains_pattern=r'\[.+\]', end_pattern='[,;]',
             transform_source=js_to_json)[int(idx)]
 
     def _extract_n_function_code(self, video_id, player_url):
         player_id = self._extract_player_info(player_url)
-        func_code = self.cache.load('youtube-nsig', player_id)
+        func_code = self.cache.load('youtube-nsig', player_id, min_ver='2025.04.07')
         jscode = func_code or self._load_player(video_id, player_url)
         jsi = JSInterpreter(jscode)
 
