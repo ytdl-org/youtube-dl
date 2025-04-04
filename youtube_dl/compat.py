@@ -3120,6 +3120,21 @@ else:
 compat_os_path_expanduser = compat_expanduser
 
 
+# compat_os_makedirs
+try:
+    os.makedirs('.', exist_ok=True)
+    compat_os_makedirs = os.makedirs
+except TypeError:  # < Py3.2
+    from errno import EEXIST as _errno_EEXIST
+
+    def compat_os_makedirs(name, mode=0o777, exist_ok=False):
+        try:
+            return os.makedirs(name, mode=mode)
+        except OSError as ose:
+            if not (exist_ok and ose.errno == _errno_EEXIST):
+                raise
+
+
 # compat_os_path_realpath
 if compat_os_name == 'nt' and sys.version_info < (3, 8):
     # os.path.realpath on Windows does not follow symbolic links
@@ -3637,6 +3652,7 @@ __all__ = [
     'compat_numeric_types',
     'compat_open',
     'compat_ord',
+    'compat_os_makedirs',
     'compat_os_name',
     'compat_os_path_expanduser',
     'compat_os_path_realpath',
