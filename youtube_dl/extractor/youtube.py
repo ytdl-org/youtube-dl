@@ -3453,23 +3453,15 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         next_continuation = cls._extract_next_continuation_data(renderer)
         if next_continuation:
             return next_continuation
-        contents = []
-        for key in ('contents', 'items'):
-            contents.extend(try_get(renderer, lambda x: x[key], list) or [])
-        for content in contents:
-            if not isinstance(content, dict):
-                continue
-            continuation_ep = try_get(
-                content, lambda x: x['continuationItemRenderer']['continuationEndpoint'],
-                dict)
-            if not continuation_ep:
-                continue
-            continuation = try_get(
-                continuation_ep, lambda x: x['continuationCommand']['token'], compat_str)
+        for command in traverse_obj(renderer, (
+                ('contents', 'items', 'rows'), Ellipsis, 'continuationItemRenderer',
+                ('continuationEndpoint', ('button', 'buttonRenderer', 'command')),
+                (('commandExecutorCommand', 'commands', Ellipsis), None), T(dict))):
+            continuation = traverse_obj(command, ('continuationCommand', 'token', T(compat_str)))
             if not continuation:
                 continue
-            ctp = continuation_ep.get('clickTrackingParams')
-            return YoutubeTabIE._build_continuation_query(continuation, ctp)
+            ctp = command.get('clickTrackingParams')
+            return cls._build_continuation_query(continuation, ctp)
 
     def _entries(self, tab, item_id, webpage):
         tab_content = try_get(tab, lambda x: x['content'], dict)
@@ -3582,8 +3574,12 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     # Downloading page may result in intermittent 5xx HTTP error
                     # that is usually worked around with a retry
                     response = self._download_json(
-                        'https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                        'https://www.youtube.com/youtubei/v1/browse',
                         None, 'Downloading page %d%s' % (page_num, ' (retry #%d)' % count if count else ''),
+                        query={
+                            # 'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                            'prettyPrint': 'false',
+                        },
                         headers=headers, data=json.dumps(data).encode('utf8'))
                     break
                 except ExtractorError as e:
