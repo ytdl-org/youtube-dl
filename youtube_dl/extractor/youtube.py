@@ -3339,6 +3339,20 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     'thumbnailViewModel', 'image'), final_key='sources'),
         })
 
+    def _extract_shorts_lockup_view_model(self, view_model):
+        content_id = traverse_obj(view_model, (
+            'onTap', 'innertubeCommand', 'reelWatchEndpoint', 'videoId',
+            T(lambda v: v if YoutubeIE.suitable(v) else None)))
+        if not content_id:
+            return
+        return merge_dicts(self.url_result(
+            content_id, ie=YoutubeIE.ie_key(), video_id=content_id), {
+                'title': traverse_obj(view_model, (
+                    'overlayMetadata', 'primaryText', 'content', T(compat_str))),
+                'thumbnails': self._extract_thumbnails(
+                    view_model, 'thumbnail', final_key='sources'),
+        })
+
     def _video_entry(self, video_renderer):
         video_id = video_renderer.get('videoId')
         if video_id:
@@ -3385,15 +3399,20 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield entry
 
     def _rich_grid_entries(self, contents):
-        for content in contents:
-            content = traverse_obj(
-                content, ('richItemRenderer', 'content'),
-                expected_type=dict) or {}
+        for content in traverse_obj(
+                contents, (Ellipsis, 'richItemRenderer', 'content'),
+                expected_type=dict):
             video_renderer = traverse_obj(
                 content, 'videoRenderer', 'reelItemRenderer',
                 expected_type=dict)
             if video_renderer:
                 entry = self._video_entry(video_renderer)
+                if entry:
+                    yield entry
+            # shorts item
+            shorts_lockup_view_model = content.get('shortsLockupViewModel')
+            if shorts_lockup_view_model:
+                entry = self._extract_shorts_lockup_view_model(shorts_lockup_view_model)
                 if entry:
                     yield entry
             # playlist
@@ -3499,6 +3518,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         entry = self._video_entry(renderer)
                         if entry:
                             yield entry
+                    renderer = isr_content.get('richGridRenderer')
+                    if renderer:
+                        for from_ in self._rich_grid_entries(
+                                traverse_obj(renderer, ('contents', Ellipsis, T(dict)))):
+                            yield from_
+                        continuation = self._extract_continuation(renderer)
+                        continue
 
                 if not continuation:
                     continuation = self._extract_continuation(is_renderer)
@@ -3508,8 +3534,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             rich_grid_renderer = tab_content.get('richGridRenderer')
             if not rich_grid_renderer:
                 return
-            for entry in self._rich_grid_entries(rich_grid_renderer.get('contents') or []):
-                yield entry
+            for from_ in self._rich_grid_entries(
+                    traverse_obj(rich_grid_renderer, ('contents', Ellipsis, T(dict)))):
+                yield from_
 
             continuation = self._extract_continuation(rich_grid_renderer)
 
