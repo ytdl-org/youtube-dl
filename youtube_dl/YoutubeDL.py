@@ -540,10 +540,14 @@ class YoutubeDL(object):
         """Print message to stdout if not in quiet mode."""
         return self.to_stdout(message, skip_eol, check_quiet=True)
 
-    def _write_string(self, s, out=None):
+    def _write_string(self, s, out=None, only_once=False, _cache=set()):
+        if only_once and s in _cache:
+            return
         write_string(s, out=out, encoding=self.params.get('encoding'))
+        if only_once:
+            _cache.add(s)
 
-    def to_stdout(self, message, skip_eol=False, check_quiet=False):
+    def to_stdout(self, message, skip_eol=False, check_quiet=False, only_once=False):
         """Print message to stdout if not in quiet mode."""
         if self.params.get('logger'):
             self.params['logger'].debug(message)
@@ -552,9 +556,9 @@ class YoutubeDL(object):
             terminator = ['\n', ''][skip_eol]
             output = message + terminator
 
-            self._write_string(output, self._screen_file)
+            self._write_string(output, self._screen_file, only_once=only_once)
 
-    def to_stderr(self, message):
+    def to_stderr(self, message, only_once=False):
         """Print message to stderr."""
         assert isinstance(message, compat_str)
         if self.params.get('logger'):
@@ -562,7 +566,7 @@ class YoutubeDL(object):
         else:
             message = self._bidi_workaround(message)
             output = message + '\n'
-            self._write_string(output, self._err_file)
+            self._write_string(output, self._err_file, only_once=only_once)
 
     def to_console_title(self, message):
         if not self.params.get('consoletitle', False):
@@ -641,18 +645,11 @@ class YoutubeDL(object):
             raise DownloadError(message, exc_info)
         self._download_retcode = 1
 
-    def report_warning(self, message, only_once=False, _cache={}):
+    def report_warning(self, message, only_once=False):
         '''
         Print the message to stderr, it will be prefixed with 'WARNING:'
         If stderr is a tty file the 'WARNING:' will be colored
         '''
-        if only_once:
-            m_hash = hash((self, message))
-            m_cnt = _cache.setdefault(m_hash, 0)
-            _cache[m_hash] = m_cnt + 1
-            if m_cnt > 0:
-                return
-
         if self.params.get('logger') is not None:
             self.params['logger'].warning(message)
         else:
@@ -663,7 +660,7 @@ class YoutubeDL(object):
             else:
                 _msg_header = 'WARNING:'
             warning_message = '%s %s' % (_msg_header, message)
-            self.to_stderr(warning_message)
+            self.to_stderr(warning_message, only_once=only_once)
 
     def report_error(self, message, *args, **kwargs):
         '''
@@ -676,6 +673,16 @@ class YoutubeDL(object):
             _msg_header = 'ERROR:'
         kwargs['message'] = '%s %s' % (_msg_header, message)
         self.trouble(*args, **kwargs)
+
+    def write_debug(self, message, only_once=False):
+        '''Log debug message or Print message to stderr'''
+        if not self.params.get('verbose', False):
+            return
+        message = '[debug] {0}'.format(message)
+        if self.params.get('logger'):
+            self.params['logger'].debug(message)
+        else:
+            self.to_stderr(message, only_once)
 
     def report_unscoped_cookies(self, *args, **kwargs):
         # message=None, tb=False, is_error=False
@@ -2514,7 +2521,7 @@ class YoutubeDL(object):
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
-        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))
+        writeln_debug = lambda *s: self.write_debug(''.join(s))
         writeln_debug('youtube-dl version ', __version__)
         if _LAZY_LOADER:
             writeln_debug('Lazy loading extractors enabled')

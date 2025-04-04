@@ -976,19 +976,9 @@ class InfoExtractor(object):
         """Print msg to screen, prefixing it with '[ie_name]'"""
         self._downloader.to_screen(self.__ie_msg(msg))
 
-    def write_debug(self, msg, only_once=False, _cache=[]):
+    def write_debug(self, msg, only_once=False):
         '''Log debug message or Print message to stderr'''
-        if not self.get_param('verbose', False):
-            return
-        message = '[debug] ' + self.__ie_msg(msg)
-        logger = self.get_param('logger')
-        if logger:
-            logger.debug(message)
-        else:
-            if only_once and hash(message) in _cache:
-                return
-            self._downloader.to_stderr(message)
-            _cache.append(hash(message))
+        self._downloader.write_debug(self.__ie_msg(msg), only_once=only_once)
 
     # name, default=None, *args, **kwargs
     def get_param(self, name, *args, **kwargs):
