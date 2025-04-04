@@ -353,7 +353,7 @@ class LocalNameSpace(ChainMap):
         raise NotImplementedError('Deleting is not supported')
 
     def __repr__(self):
-        return 'LocalNameSpace%s' % (self.maps, )
+        return 'LocalNameSpace({0!r})'.format(self.maps)
 
 
 class Debugger(object):
@@ -374,6 +374,9 @@ class Debugger(object):
 
     @classmethod
     def wrap_interpreter(cls, f):
+        if not cls.ENABLED:
+            return f
+
         @wraps(f)
         def interpret_statement(self, stmt, local_vars, allow_recursion, *args, **kwargs):
             if cls.ENABLED and stmt.strip():
@@ -414,7 +417,17 @@ class JSInterpreter(object):
                 msg = '{0} in: {1!r:.100}'.format(msg.rstrip(), expr)
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
 
-    class JS_RegExp(object):
+    class JS_Object(object):
+        def __getitem__(self, key):
+            if hasattr(self, key):
+                return getattr(self, key)
+            raise KeyError(key)
+
+        def dump(self):
+            """Serialise the instance"""
+            raise NotImplementedError
+
+    class JS_RegExp(JS_Object):
         RE_FLAGS = {
             # special knowledge: Python's re flags are bitmask values, current max 128
             # invent new bitmask values well above that for literal parsing
@@ -435,16 +448,24 @@ class JSInterpreter(object):
         def __init__(self, pattern_txt, flags=0):
             if isinstance(flags, compat_str):
                 flags, _ = self.regex_flags(flags)
-            # First, avoid https://github.com/python/cpython/issues/74534
             self.__self = None
             pattern_txt = str_or_none(pattern_txt) or '(?:)'
-            self.__pattern_txt = pattern_txt.replace('[[', r'[\[')
+            # escape unintended embedded flags
+            pattern_txt = re.sub(
+                r'(\(\?)([aiLmsux]*)(-[imsx]+:|(?<!\?)\))',
+                lambda m: ''.join(
+                    (re.escape(m.group(1)), m.group(2), re.escape(m.group(3)))
+                    if m.group(3) == ')'
+                    else ('(?:', m.group(2), m.group(3))),
+                pattern_txt)
+            # Avoid https://github.com/python/cpython/issues/74534
+            self.source = pattern_txt.replace('[[', r'[\[')
             self.__flags = flags
 
         def __instantiate(self):
             if self.__self:
                 return
-            self.__self = re.compile(self.__pattern_txt, self.__flags)
+            self.__self = re.compile(self.source, self.__flags)
             # Thx: https://stackoverflow.com/questions/44773522/setattr-on-python2-sre-sre-pattern
             for name in dir(self.__self):
                 # Only these? Obviously __class__, __init__.
@@ -452,16 +473,15 @@ class JSInterpreter(object):
                 # that can't be setattr'd but also can't need to be copied.
                 if name in ('__class__', '__init__', '__weakref__'):
                     continue
-                setattr(self, name, getattr(self.__self, name))
+                if name == 'flags':
+                    setattr(self, name, getattr(self.__self, name, self.__flags))
+                else:
+                    setattr(self, name, getattr(self.__self, name))
 
         def __getattr__(self, name):
             self.__instantiate()
-            # make Py 2.6 conform to its lying documentation
-            if name == 'flags':
-                self.flags = self.__flags
-                return self.flags
-            elif name == 'pattern':
-                self.pattern = self.__pattern_txt
+            if name == 'pattern':
+                self.pattern = self.source
                 return self.pattern
             elif hasattr(self.__self, name):
                 v = getattr(self.__self, name)
@@ -469,6 +489,26 @@ class JSInterpreter(object):
                 return v
             elif name in ('groupindex', 'groups'):
                 return 0 if name == 'groupindex' else {}
+            else:
+                flag_attrs = (  # order by 2nd elt
+                    ('hasIndices', 'd'),
+                    ('global', 'g'),
+                    ('ignoreCase', 'i'),
+                    ('multiline', 'm'),
+                    ('dotAll', 's'),
+                    ('unicode', 'u'),
+                    ('unicodeSets', 'v'),
+                    ('sticky', 'y'),
+                )
+                for k, c in flag_attrs:
+                    if name == k:
+                        return bool(self.RE_FLAGS[c] & self.__flags)
+                else:
+                    if name == 'flags':
+                        return ''.join(
+                            (c if self.RE_FLAGS[c] & self.__flags else '')
+                            for _, c in flag_attrs)
+
             raise AttributeError('{0} has no attribute named {1}'.format(self, name))
 
         @classmethod
@@ -482,7 +522,16 @@ class JSInterpreter(object):
                 flags |= cls.RE_FLAGS[ch]
             return flags, expr[idx + 1:]
 
-    class JS_Date(object):
+        def dump(self):
+            return '(/{0}/{1})'.format(
+                re.sub(r'(?<!\\)/', r'\/', self.source),
+                self.flags)
+
+        @staticmethod
+        def escape(string_):
+            return re.escape(string_)
+
+    class JS_Date(JS_Object):
         _t = None
 
         @staticmethod
@@ -548,6 +597,9 @@ class JSInterpreter(object):
 
         def valueOf(self):
             return _NaN if self._t is None else self._t
+
+        def dump(self):
+            return '(new Date({0}))'.format(self.toString())
 
     @classmethod
     def __op_chars(cls):
@@ -1109,13 +1161,15 @@ class JSInterpreter(object):
             def eval_method(variable, member):
                 if (variable, member) == ('console', 'debug'):
                     if Debugger.ENABLED:
-                        Debugger.write(self.interpret_expression('[{}]'.format(arg_str), local_vars, allow_recursion))
+                        Debugger.write(self.interpret_expression('[{0}]'.format(arg_str), local_vars, allow_recursion))
                     return
                 types = {
                     'String': compat_str,
                     'Math': float,
                     'Array': list,
                     'Date': self.JS_Date,
+                    'RegExp': self.JS_RegExp,
+                    # 'Error': self.Exception,  # has no std static methods
                 }
                 obj = local_vars.get(variable)
                 if obj in (JS_Undefined, None):
@@ -1277,7 +1331,8 @@ class JSInterpreter(object):
                     assertion(len(argvals) == 2, 'takes exactly two arguments')
                     # TODO: argvals[1] callable, other Py vs JS edge cases
                     if isinstance(argvals[0], self.JS_RegExp):
-                        count = 0 if argvals[0].flags & self.JS_RegExp.RE_FLAGS['g'] else 1
+                        # access JS member with Py reserved name
+                        count = 0 if self._index(argvals[0], 'global') else 1
                         assertion(member != 'replaceAll' or count == 0,
                                   'replaceAll must be called with a global RegExp')
                         return argvals[0].sub(argvals[1], obj, count=count)
