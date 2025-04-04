@@ -283,17 +283,6 @@ _OPERATORS = (
     ('**', _js_exp),
 )
 
-_COMP_OPERATORS = (
-    ('===', _js_id_op(operator.is_)),
-    ('!==', _js_id_op(operator.is_not)),
-    ('==', _js_eq),
-    ('!=', _js_neq),
-    ('<=', _js_comp_op(operator.le)),
-    ('>=', _js_comp_op(operator.ge)),
-    ('<', _js_comp_op(operator.lt)),
-    ('>', _js_comp_op(operator.gt)),
-)
-
 _LOG_OPERATORS = (
     ('|', _js_bit_op(operator.or_)),
     ('^', _js_bit_op(operator.xor)),
@@ -313,6 +302,17 @@ _UNARY_OPERATORS_X = (
 )
 
 _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS))
+
+_COMP_OPERATORS = (
+    ('===', _js_id_op(operator.is_)),
+    ('!==', _js_id_op(operator.is_not)),
+    ('==', _js_eq),
+    ('!=', _js_neq),
+    ('<=', _js_comp_op(operator.le)),
+    ('>=', _js_comp_op(operator.ge)),
+    ('<', _js_comp_op(operator.lt)),
+    ('>', _js_comp_op(operator.gt)),
+)
 
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
