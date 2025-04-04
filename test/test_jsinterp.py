@@ -371,6 +371,13 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { a=5; return (a -= 1, a+=3, a); }', 7)
         self._test('function f() { return (l=[0,1,2,3], function(a, b){return a+b})((l[1], l[2]), l[3]) }', 5)
 
+    def test_not(self):
+        self._test('function f() { return ! undefined; }', True)
+        self._test('function f() { return !0; }', True)
+        self._test('function f() { return !!0; }', False)
+        self._test('function f() { return ![]; }', False)
+        self._test('function f() { return !0 !== false; }', True)
+
     def test_void(self):
         self._test('function f() { return void 42; }', JS_Undefined)
 
