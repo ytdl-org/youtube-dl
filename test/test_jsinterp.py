@@ -455,6 +455,7 @@ class TestJSInterpreter(unittest.TestCase):
 
     def test_regex(self):
         self._test('function f() { let a=/,,[/,913,/](,)}/; }', None)
+        self._test('function f() { let a=/,,[/,913,/](,)}/; return a.source;  }', ',,[/,913,/](,)}')
 
         jsi = JSInterpreter('''
             function x() { let a=/,,[/,913,/](,)}/; "".replace(a, ""); return a; }
