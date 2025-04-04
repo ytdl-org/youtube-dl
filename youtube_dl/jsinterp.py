@@ -303,8 +303,6 @@ _UNARY_OPERATORS_X = (
     ('!', _js_unary_op(lambda x: _js_ternary(x, if_true=False, if_false=True))),
 )
 
-_OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS))
-
 _COMP_OPERATORS = (
     ('===', _js_id_op(operator.is_)),
     ('!==', _js_id_op(operator.is_not)),
@@ -316,9 +314,12 @@ _COMP_OPERATORS = (
     ('>', _js_comp_op(operator.gt)),
 )
 
+_OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS + _SC_OPERATORS))
+
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 _QUOTES = '\'"/'
+_NESTED_BRACKETS = r'[^[\]]+(?:\[[^[\]]+(?:\[[^\]]+\])?\])?'
 
 
 class JS_Break(ExtractorError):
@@ -1088,15 +1089,18 @@ class JSInterpreter(object):
 
         m = re.match(r'''(?x)
             (?P<assign>
-                (?P<out>{_NAME_RE})(?:\[(?P<out_idx>(?:.+?\]\s*\[)*.+?)\])?\s*
+                (?P<out>{_NAME_RE})(?P<out_idx>(?:\[{_NESTED_BRACKETS}\])+)?\s*
                 (?P<op>{_OPERATOR_RE})?
                 =(?!=)(?P<expr>.*)$
             )|(?P<return>
                 (?!if|return|true|false|null|undefined|NaN|Infinity)(?P<name>{_NAME_RE})$
-            )|(?P<indexing>
-                (?P<in>{_NAME_RE})\[(?P<in_idx>(?:.+?\]\s*\[)*.+?)\]$
             )|(?P<attribute>
-                (?P<var>{_NAME_RE})(?:(?P<nullish>\?)?\.(?P<member>[^(]+)|\[(?P<member2>[^\]]+)\])\s*
+                (?P<var>{_NAME_RE})(?:
+                    (?P<nullish>\?)?\.(?P<member>[^(]+)|
+                    \[(?P<member2>{_NESTED_BRACKETS})\]
+                )\s*
+            )|(?P<indexing>
+                (?P<in>{_NAME_RE})(?P<in_idx>\[.+\])$
             )|(?P<function>
                 (?P<fname>{_NAME_RE})\((?P<args>.*)\)$
             )'''.format(**globals()), expr)
@@ -1111,10 +1115,11 @@ class JSInterpreter(object):
             elif left_val in (None, JS_Undefined):
                 raise self.Exception('Cannot index undefined variable ' + m.group('out'), expr=expr)
 
-            indexes = re.split(r'\]\s*\[', m.group('out_idx'))
-            for i, idx in enumerate(indexes, 1):
+            indexes = md['out_idx']
+            while indexes:
+                idx, indexes = self._separate_at_paren(indexes)
                 idx = self.interpret_expression(idx, local_vars, allow_recursion)
-                if i < len(indexes):
+                if indexes:
                     left_val = self._index(left_val, idx)
             if isinstance(idx, float):
                 idx = int(idx)
@@ -1159,7 +1164,9 @@ class JSInterpreter(object):
 
         if md.get('indexing'):
             val = local_vars[m.group('in')]
-            for idx in re.split(r'\]\s*\[', m.group('in_idx')):
+            indexes = m.group('in_idx')
+            while indexes:
+                idx, indexes = self._separate_at_paren(indexes)
                 idx = self.interpret_expression(idx, local_vars, allow_recursion)
                 val = self._index(val, idx)
             return val, should_return
@@ -1204,7 +1211,7 @@ class JSInterpreter(object):
                 if obj is JS_Undefined:
                     try:
                         if variable not in self._objects:
-                            self._objects[variable] = self.extract_object(variable)
+                            self._objects[variable] = self.extract_object(variable, local_vars)
                         obj = self._objects[variable]
                     except self.Exception:
                         if not nullish:
@@ -1215,7 +1222,7 @@ class JSInterpreter(object):
 
                 # Member access
                 if arg_str is None:
-                    return self._index(obj, member)
+                    return self._index(obj, member, nullish)
 
                 # Function call
                 argvals = [
@@ -1400,7 +1407,7 @@ class JSInterpreter(object):
         for v in self._separate(list_txt):
             yield self.interpret_expression(v, local_vars, allow_recursion)
 
-    def extract_object(self, objname):
+    def extract_object(self, objname, *global_stack):
         _FUNC_NAME_RE = r'''(?:{n}|"{n}"|'{n}')'''.format(n=_NAME_RE)
         obj = {}
         fields = next(filter(None, (
@@ -1421,7 +1428,8 @@ class JSInterpreter(object):
                 fields):
             argnames = self.build_arglist(f.group('args'))
             name = remove_quotes(f.group('key'))
-            obj[name] = function_with_repr(self.build_function(argnames, f.group('code')), 'F<{0}>'.format(name))
+            obj[name] = function_with_repr(
+                self.build_function(argnames, f.group('code'), *global_stack), 'F<{0}>'.format(name))
 
         return obj
 

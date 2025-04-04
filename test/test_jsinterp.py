@@ -180,6 +180,7 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){var x = 20; x = 30 + 1; return x;}', 31)
         self._test('function f(){var x = 20; x += 30 + 1; return x;}', 51)
         self._test('function f(){var x = 20; x -= 30 + 1; return x;}', -11)
+        self._test('function f(){var x = 2; var y = ["a", "b"]; y[x%y["length"]]="z"; return y}', ['z', 'b'])
 
     def test_comments(self):
         self._test('''
@@ -552,6 +553,8 @@ class TestJSInterpreter(unittest.TestCase):
         test_result = list('test')
         tests = [
             'function f(a, b){return a.split(b)}',
+            'function f(a, b){return a["split"](b)}',
+            'function f(a, b){let x = ["split"]; return a[x[0]](b)}',
             'function f(a, b){return String.prototype.split.call(a, b)}',
             'function f(a, b){return String.prototype.split.apply(a, [b])}',
         ]
@@ -602,6 +605,9 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return "012345678".slice(-1, 1)}', '')
         self._test('function f(){return "012345678".slice(-3, -1)}', '67')
 
+    def test_splice(self):
+        self._test('function f(){var T = ["0", "1", "2"]; T["splice"](2, 1, "0")[0]; return T }', ['0', '1', '0'])
+
     def test_pop(self):
         # pop
         self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.pop(), a]}',
@@ -635,6 +641,16 @@ class TestJSInterpreter(unittest.TestCase):
                    'l.forEach(log, ret); '
                    'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
                    [2, 4, 1, [4, 2]])
+
+    def test_extract_function(self):
+        jsi = JSInterpreter('function a(b) { return b + 1; }')
+        func = jsi.extract_function('a')
+        self.assertEqual(func([2]), 3)
+
+    def test_extract_function_with_global_stack(self):
+        jsi = JSInterpreter('function c(d) { return d + e + f + g; }')
+        func = jsi.extract_function('c', {'e': 10}, {'f': 100, 'g': 1000})
+        self.assertEqual(func([1]), 1111)
 
 
 if __name__ == '__main__':
