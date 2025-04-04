@@ -240,7 +240,7 @@ def _js_ternary(cndn, if_true=True, if_false=False):
 def _js_unary_op(op):
 
     @wraps_op(op)
-    def wrapped(_, a):
+    def wrapped(a, _):
         return op(a)
 
     return wrapped
@@ -299,6 +299,8 @@ _SC_OPERATORS = (
 _UNARY_OPERATORS_X = (
     ('void', _js_unary_op(lambda _: JS_Undefined)),
     ('typeof', _js_unary_op(_js_typeof)),
+    # avoid functools.partial here since Py2 update_wrapper(partial) -> no __module__
+    ('!', _js_unary_op(lambda x: _js_ternary(x, if_true=False, if_false=True))),
 )
 
 _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS))
@@ -776,7 +778,7 @@ class JSInterpreter(object):
         elif op == '?':
             right_expr = _js_ternary(left_val, *self._separate(right_expr, ':', 1))
 
-        right_val = self.interpret_expression(right_expr, local_vars, allow_recursion)
+        right_val = self.interpret_expression(right_expr, local_vars, allow_recursion) if right_expr else left_val
         opfunc = op and next((v for k, v in self._all_operators() if k == op), None)
         if not opfunc:
             return right_val
@@ -879,11 +881,12 @@ class JSInterpreter(object):
             else:
                 raise self.Exception('Unsupported object {obj:.100}'.format(**locals()), expr=expr)
 
+        # apply unary operators (see new above)
         for op, _ in _UNARY_OPERATORS_X:
             if not expr.startswith(op):
                 continue
             operand = expr[len(op):]
-            if not operand or operand[0] != ' ':
+            if not operand or (op.isalpha() and operand[0] != ' '):
                 continue
             separated = self._separate_at_op(operand, max_split=1)
             if separated:
