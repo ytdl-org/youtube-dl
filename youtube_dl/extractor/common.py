@@ -3295,7 +3295,11 @@ class InfoExtractor(object):
         """ Merge subtitle dictionaries, language by language. """
 
         # ..., * , target=None
-        target = kwargs.get('target') or dict(subtitle_dict1)
+        target = kwargs.get('target')
+        if target is None:
+            target = dict(subtitle_dict1)
+        else:
+            subtitle_dicts = (subtitle_dict1,) + subtitle_dicts
 
         for subtitle_dict in subtitle_dicts:
             for lang in subtitle_dict:
