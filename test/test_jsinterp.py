@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
@@ -145,6 +146,25 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return "life, the universe and everything" < 42;}', False)
         # https://github.com/ytdl-org/youtube-dl/issues/32815
         self._test('function f(){return 0  - 7 * - 6;}', 42)
+
+    def test_bitwise_operators_typecast(self):
+        # madness
+        self._test('function f(){return null << 5}', 0)
+        self._test('function f(){return undefined >> 5}', 0)
+        self._test('function f(){return 42 << NaN}', 42)
+        self._test('function f(){return 42 << Infinity}', 42)
+        self._test('function f(){return 0.0 << null}', 0)
+        self._test('function f(){return NaN << 42}', 0)
+        self._test('function f(){return "21.9" << 1}', 42)
+        self._test('function f(){return true << "5";}', 32)
+        self._test('function f(){return true << true;}', 2)
+        self._test('function f(){return "19" & "21.9";}', 17)
+        self._test('function f(){return "19" & false;}', 0)
+        self._test('function f(){return "11.0" >> "2.1";}', 2)
+        self._test('function f(){return 5 ^ 9;}', 12)
+        self._test('function f(){return 0.0 << NaN}', 0)
+        self._test('function f(){return null << undefined}', 0)
+        self._test('function f(){return 21 << 4294967297}', 42)
 
     def test_array_access(self):
         self._test('function f(){var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2.0] = 7; return x;}', [5, 2, 7])
@@ -481,25 +501,6 @@ class TestJSInterpreter(unittest.TestCase):
     def test_bitwise_operators_overflow(self):
         self._test('function f(){return -524999584 << 5}', 379882496)
         self._test('function f(){return 1236566549 << 5}', 915423904)
-
-    def test_bitwise_operators_typecast(self):
-        # madness
-        self._test('function f(){return null << 5}', 0)
-        self._test('function f(){return undefined >> 5}', 0)
-        self._test('function f(){return 42 << NaN}', 42)
-        self._test('function f(){return 42 << Infinity}', 42)
-        self._test('function f(){return 0.0 << null}', 0)
-        self._test('function f(){return NaN << 42}', 0)
-        self._test('function f(){return "21.9" << 1}', 42)
-        self._test('function f(){return 21 << 4294967297}', 42)
-        self._test('function f(){return true << "5";}', 32)
-        self._test('function f(){return true << true;}', 2)
-        self._test('function f(){return "19" & "21.9";}', 17)
-        self._test('function f(){return "19" & false;}', 0)
-        self._test('function f(){return "11.0" >> "2.1";}', 2)
-        self._test('function f(){return 5 ^ 9;}', 12)
-        self._test('function f(){return 0.0 << NaN}', 0)
-        self._test('function f(){return null << undefined}', 0)
 
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)
