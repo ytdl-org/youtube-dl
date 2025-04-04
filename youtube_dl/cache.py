@@ -42,11 +42,11 @@ class Cache(object):
     def _to_screen(self, *args, **kwargs):
         self._ydl.to_screen(*args, **kwargs)
 
-    def _get_params(self, k, default=None):
+    def _get_param(self, k, default=None):
         return self._ydl.params.get(k, default)
 
     def _get_root_dir(self):
-        res = self._get_params('cachedir')
+        res = self._get_param('cachedir')
         if res is None:
             cache_root = compat_getenv('XDG_CACHE_HOME', '~/.cache')
             res = os.path.join(cache_root, self._YTDL_DIR)
@@ -61,7 +61,7 @@ class Cache(object):
 
     @property
     def enabled(self):
-        return self._get_params('cachedir') is not False
+        return self._get_param('cachedir') is not False
 
     def store(self, section, key, data, dtype='json'):
         assert dtype in ('json',)

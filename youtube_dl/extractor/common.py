@@ -505,7 +505,7 @@ class InfoExtractor(object):
         if not self._x_forwarded_for_ip:
 
             # Geo bypass mechanism is explicitly disabled by user
-            if not self._downloader.params.get('geo_bypass', True):
+            if not self.get_param('geo_bypass', True):
                 return
 
             if not geo_bypass_context:
@@ -527,7 +527,7 @@ class InfoExtractor(object):
 
             # Explicit IP block specified by user, use it right away
             # regardless of whether extractor is geo bypassable or not
-            ip_block = self._downloader.params.get('geo_bypass_ip_block', None)
+            ip_block = self.get_param('geo_bypass_ip_block', None)
 
             # Otherwise use random IP block from geo bypass context but only
             # if extractor is known as geo bypassable
@@ -538,8 +538,8 @@ class InfoExtractor(object):
 
             if ip_block:
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(ip_block)
-                if self._downloader.params.get('verbose', False):
-                    self._downloader.to_screen(
+                if self.get_param('verbose', False):
+                    self.to_screen(
                         '[debug] Using fake IP %s as X-Forwarded-For.'
                         % self._x_forwarded_for_ip)
                 return
@@ -548,7 +548,7 @@ class InfoExtractor(object):
 
             # Explicit country code specified by user, use it right away
             # regardless of whether extractor is geo bypassable or not
-            country = self._downloader.params.get('geo_bypass_country', None)
+            country = self.get_param('geo_bypass_country', None)
 
             # Otherwise use random country code from geo bypass context but
             # only if extractor is known as geo bypassable
@@ -559,8 +559,8 @@ class InfoExtractor(object):
 
             if country:
                 self._x_forwarded_for_ip = GeoUtils.random_ipv4(country)
-                if self._downloader.params.get('verbose', False):
-                    self._downloader.to_screen(
+                if self.get_param('verbose', False):
+                    self.to_screen(
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
                         % (self._x_forwarded_for_ip, country.upper()))
 
@@ -586,9 +586,9 @@ class InfoExtractor(object):
             raise ExtractorError('An extractor error has occurred.', cause=e)
 
     def __maybe_fake_ip_and_retry(self, countries):
-        if (not self._downloader.params.get('geo_bypass_country', None)
+        if (not self.get_param('geo_bypass_country', None)
                 and self._GEO_BYPASS
-                and self._downloader.params.get('geo_bypass', True)
+                and self.get_param('geo_bypass', True)
                 and not self._x_forwarded_for_ip
                 and countries):
             country_code = random.choice(countries)
@@ -698,7 +698,7 @@ class InfoExtractor(object):
             if fatal:
                 raise ExtractorError(errmsg, sys.exc_info()[2], cause=err)
             else:
-                self._downloader.report_warning(errmsg)
+                self.report_warning(errmsg)
                 return False
 
     def _download_webpage_handle(self, url_or_request, video_id, note=None, errnote=None, fatal=True, encoding=None, data=None, headers={}, query={}, expected_status=None):
@@ -770,11 +770,11 @@ class InfoExtractor(object):
             webpage_bytes = prefix + webpage_bytes
         if not encoding:
             encoding = self._guess_encoding_from_content(content_type, webpage_bytes)
-        if self._downloader.params.get('dump_intermediate_pages', False):
+        if self.get_param('dump_intermediate_pages', False):
             self.to_screen('Dumping request to ' + urlh.geturl())
             dump = base64.b64encode(webpage_bytes).decode('ascii')
-            self._downloader.to_screen(dump)
-        if self._downloader.params.get('write_pages', False):
+            self.to_screen(dump)
+        if self.get_param('write_pages', False):
             basen = '%s_%s' % (video_id, urlh.geturl())
             if len(basen) > 240:
                 h = '___' + hashlib.md5(basen.encode('utf-8')).hexdigest()
@@ -1074,7 +1074,7 @@ class InfoExtractor(object):
                 if mobj:
                     break
 
-        if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
+        if not self.get_param('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name
@@ -1092,7 +1092,7 @@ class InfoExtractor(object):
         elif fatal:
             raise RegexNotFoundError('Unable to extract %s' % _name)
         else:
-            self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
+            self.report_warning('unable to extract %s' % _name + bug_reports_message())
             return None
 
     def _search_json(self, start_pattern, string, name, video_id, **kwargs):
@@ -1162,7 +1162,7 @@ class InfoExtractor(object):
         username = None
         password = None
 
-        if self._downloader.params.get('usenetrc', False):
+        if self.get_param('usenetrc', False):
             try:
                 netrc_machine = netrc_machine or self._NETRC_MACHINE
                 info = netrc.netrc().authenticators(netrc_machine)
@@ -1173,7 +1173,7 @@ class InfoExtractor(object):
                     raise netrc.NetrcParseError(
                         'No authenticators for %s' % netrc_machine)
             except (AttributeError, IOError, netrc.NetrcParseError) as err:
-                self._downloader.report_warning(
+                self.report_warning(
                     'parsing .netrc: %s' % error_to_compat_str(err))
 
         return username, password
@@ -1210,10 +1210,10 @@ class InfoExtractor(object):
         """
         if self._downloader is None:
             return None
-        downloader_params = self._downloader.params
 
-        if downloader_params.get('twofactor') is not None:
-            return downloader_params['twofactor']
+        twofactor = self.get_param('twofactor')
+        if twofactor is not None:
+            return twofactor
 
         return compat_getpass('Type %s and press [Return]: ' % note)
 
@@ -1348,7 +1348,7 @@ class InfoExtractor(object):
         elif fatal:
             raise RegexNotFoundError('Unable to extract JSON-LD')
         else:
-            self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
+            self.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
             return {}
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
@@ -1579,7 +1579,7 @@ class InfoExtractor(object):
 
             if f.get('vcodec') == 'none':  # audio only
                 preference -= 50
-                if self._downloader.params.get('prefer_free_formats'):
+                if self.get_param('prefer_free_formats'):
                     ORDER = ['aac', 'mp3', 'm4a', 'webm', 'ogg', 'opus']
                 else:
                     ORDER = ['webm', 'opus', 'ogg', 'mp3', 'aac', 'm4a']
@@ -1591,7 +1591,7 @@ class InfoExtractor(object):
             else:
                 if f.get('acodec') == 'none':  # video only
                     preference -= 40
-                if self._downloader.params.get('prefer_free_formats'):
+                if self.get_param('prefer_free_formats'):
                     ORDER = ['flv', 'mp4', 'webm']
                 else:
                     ORDER = ['webm', 'flv', 'mp4']
@@ -1657,7 +1657,7 @@ class InfoExtractor(object):
         """ Either "http:" or "https:", depending on the user's preferences """
         return (
             'http:'
-            if self._downloader.params.get('prefer_insecure', False)
+            if self.get_param('prefer_insecure', False)
             else 'https:')
 
     def _proto_relative_url(self, url, scheme=None):
@@ -3189,7 +3189,7 @@ class InfoExtractor(object):
             if fatal:
                 raise ExtractorError(msg)
             else:
-                self._downloader.report_warning(msg)
+                self.report_warning(msg)
         return res
 
     def _float(self, v, name, fatal=False, **kwargs):
@@ -3199,7 +3199,7 @@ class InfoExtractor(object):
             if fatal:
                 raise ExtractorError(msg)
             else:
-                self._downloader.report_warning(msg)
+                self.report_warning(msg)
         return res
 
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
@@ -3208,12 +3208,12 @@ class InfoExtractor(object):
             0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)
-        self._downloader.cookiejar.set_cookie(cookie)
+        self.cookiejar.set_cookie(cookie)
 
     def _get_cookies(self, url):
         """ Return a compat_cookies_SimpleCookie with the cookies for the url """
         req = sanitized_Request(url)
-        self._downloader.cookiejar.add_cookie_header(req)
+        self.cookiejar.add_cookie_header(req)
         return compat_cookies_SimpleCookie(req.get_header('Cookie'))
 
     def _apply_first_set_cookie_header(self, url_handle, cookie):
@@ -3273,8 +3273,8 @@ class InfoExtractor(object):
         return not any_restricted
 
     def extract_subtitles(self, *args, **kwargs):
-        if (self._downloader.params.get('writesubtitles', False)
-                or self._downloader.params.get('listsubtitles')):
+        if (self.get_param('writesubtitles', False)
+                or self.get_param('listsubtitles')):
             return self._get_subtitles(*args, **kwargs)
         return {}
 
@@ -3303,8 +3303,8 @@ class InfoExtractor(object):
         return target
 
     def extract_automatic_captions(self, *args, **kwargs):
-        if (self._downloader.params.get('writeautomaticsub', False)
-                or self._downloader.params.get('listsubtitles')):
+        if (self.get_param('writeautomaticsub', False)
+                or self.get_param('listsubtitles')):
             return self._get_automatic_captions(*args, **kwargs)
         return {}
 
@@ -3312,9 +3312,9 @@ class InfoExtractor(object):
         raise NotImplementedError('This method must be implemented by subclasses')
 
     def mark_watched(self, *args, **kwargs):
-        if (self._downloader.params.get('mark_watched', False)
+        if (self.get_param('mark_watched', False)
                 and (self._get_login_info()[0] is not None
-                     or self._downloader.params.get('cookiefile') is not None)):
+                     or self.get_param('cookiefile') is not None)):
             self._mark_watched(*args, **kwargs)
 
     def _mark_watched(self, *args, **kwargs):
@@ -3322,7 +3322,7 @@ class InfoExtractor(object):
 
     def geo_verification_headers(self):
         headers = {}
-        geo_verification_proxy = self._downloader.params.get('geo_verification_proxy')
+        geo_verification_proxy = self.get_param('geo_verification_proxy')
         if geo_verification_proxy:
             headers['Ytdl-request-proxy'] = geo_verification_proxy
         return headers
