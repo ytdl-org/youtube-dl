@@ -342,14 +342,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         if not self._login():
             return
 
-    _DEFAULT_API_DATA = {
-        'context': {
-            'client': {
-                'clientName': 'WEB',
-                'clientVersion': '2.20201021.03.00',
-            },
-        },
-    }
+    _DEFAULT_API_DATA = {'context': _INNERTUBE_CLIENTS['web']['INNERTUBE_CONTEXT']}
 
     _YT_INITIAL_DATA_RE = r'(?:window\s*\[\s*["\']ytInitialData["\']\s*\]|ytInitialData)\s*=\s*({.+?})\s*;'
     _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
@@ -497,11 +490,15 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             data['params'] = params
         for page_num in itertools.count(1):
             search = self._download_json(
-                'https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                'https://www.youtube.com/youtubei/v1/search',
                 video_id='query "%s"' % query,
                 note='Downloading page %s' % page_num,
                 errnote='Unable to download API page', fatal=False,
                 data=json.dumps(data).encode('utf8'),
+                query={
+                    # 'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                    'prettyPrint': 'false',
+                },
                 headers={'content-type': 'application/json'})
             if not search:
                 break
