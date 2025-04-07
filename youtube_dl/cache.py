@@ -12,10 +12,10 @@ from .compat import (
     compat_getenv,
     compat_open as open,
     compat_os_makedirs,
-    compat_urllib_parse,
 )
 from .utils import (
     error_to_compat_str,
+    escape_rfc3986,
     expand_path,
     is_outdated_version,
     traverse_obj,
@@ -55,8 +55,7 @@ class Cache(object):
     def _get_cache_fn(self, section, key, dtype):
         assert re.match(r'^[\w.-]+$', section), \
             'invalid section %r' % section
-        key = compat_urllib_parse.quote(
-            key, safe='').replace('%', ',')  # encode non-ascii characters
+        key = escape_rfc3986(key, safe='').replace('%', ',')  # encode non-ascii characters
         return os.path.join(
             self._get_root_dir(), section, '%s.%s' % (key, dtype))
 
