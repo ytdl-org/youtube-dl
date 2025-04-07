@@ -2498,8 +2498,7 @@ try:
     from urllib.parse import urlencode as compat_urllib_parse_urlencode
     from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
-    _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
-                else re.compile(r'([\x00-\x7f]+)'))
+    _asciire = getattr(compat_urllib_parse, '_asciire', None) or re.compile(r'([\x00-\x7f]+)')
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
@@ -2567,24 +2566,21 @@ except ImportError:  # Python 2
     # Possible solutions are to either port it from python 3 with all
     # the friends or manually ensure input query contains only byte strings.
     # We will stick with latter thus recursively encoding the whole query.
-    def compat_urllib_parse_urlencode(query, doseq=0, encoding='utf-8'):
+    def compat_urllib_parse_urlencode(query, doseq=0, safe='', encoding='utf-8', errors='strict'):
+
         def encode_elem(e):
             if isinstance(e, dict):
                 e = encode_dict(e)
             elif isinstance(e, (list, tuple,)):
-                list_e = encode_list(e)
-                e = tuple(list_e) if isinstance(e, tuple) else list_e
+                e = type(e)(encode_elem(el) for el in e)
             elif isinstance(e, compat_str):
-                e = e.encode(encoding)
+                e = e.encode(encoding, errors)
             return e
 
         def encode_dict(d):
-            return dict((encode_elem(k), encode_elem(v)) for k, v in d.items())
+            return tuple((encode_elem(k), encode_elem(v)) for k, v in d.items())
 
-        def encode_list(l):
-            return [encode_elem(e) for e in l]
-
-        return compat_urllib_parse._urlencode(encode_elem(query), doseq=doseq)
+        return compat_urllib_parse._urlencode(encode_elem(query), doseq=doseq).decode('ascii')
 
     # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
     # Python 2's version is apparently totally broken
@@ -2638,6 +2634,57 @@ except ImportError:  # Python 2
             ('urlencode', compat_urllib_parse_urlencode),
             ('parse_qs', compat_parse_qs)):
         setattr(compat_urllib_parse, name, fix)
+
+    try:
+        all(chr(i) in b'' for i in range(256))
+    except TypeError:
+        # not all chr(i) are str: patch Python2 quote
+
+        _safemaps = getattr(compat_urllib_parse, '_safemaps', {})
+        _always_safe = frozenset(compat_urllib_parse.always_safe)
+
+        def _quote(s, safe='/'):
+            """quote('abc def') -> 'abc%20def'"""
+
+            if not s and s is not None:  # fast path
+                return s
+            safe = frozenset(safe)
+            cachekey = (safe, _always_safe)
+            try:
+                safe_map = _safemaps[cachekey]
+            except KeyError:
+                safe = _always_safe | safe
+                safe_map = {}
+                for i in range(256):
+                    c = chr(i)
+                    safe_map[c] = (
+                        c if (i < 128 and c in safe)
+                        else b'%{0:02X}'.format(i))
+                _safemaps[cachekey] = safe_map
+
+            if safe.issuperset(s):
+                return s
+            return ''.join(safe_map[c] for c in s)
+
+        # linked code
+        def _quote_plus(s, safe=''):
+            return (
+                _quote(s, safe + b' ').replace(b' ', b'+') if b' ' in s
+                else _quote(s, safe))
+
+        # linked code
+        def _urlcleanup():
+            if compat_urllib_parse._urlopener:
+                compat_urllib_parse._urlopener.cleanup()
+            _safemaps.clear()
+            compat_urllib_parse.ftpcache.clear()
+
+        for name, fix in (
+                ('quote', _quote),
+                ('quote_plus', _quote_plus),
+                ('urlcleanup', _urlcleanup)):
+            setattr(compat_urllib_parse, '_' + name, getattr(compat_urllib_parse, name))
+            setattr(compat_urllib_parse, name, fix)
 
 compat_urllib_parse_parse_qs = compat_parse_qs
 
