@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
@@ -146,6 +147,25 @@ class TestJSInterpreter(unittest.TestCase):
         # https://github.com/ytdl-org/youtube-dl/issues/32815
         self._test('function f(){return 0  - 7 * - 6;}', 42)
 
+    def test_bitwise_operators_typecast(self):
+        # madness
+        self._test('function f(){return null << 5}', 0)
+        self._test('function f(){return undefined >> 5}', 0)
+        self._test('function f(){return 42 << NaN}', 42)
+        self._test('function f(){return 42 << Infinity}', 42)
+        self._test('function f(){return 0.0 << null}', 0)
+        self._test('function f(){return NaN << 42}', 0)
+        self._test('function f(){return "21.9" << 1}', 42)
+        self._test('function f(){return true << "5";}', 32)
+        self._test('function f(){return true << true;}', 2)
+        self._test('function f(){return "19" & "21.9";}', 17)
+        self._test('function f(){return "19" & false;}', 0)
+        self._test('function f(){return "11.0" >> "2.1";}', 2)
+        self._test('function f(){return 5 ^ 9;}', 12)
+        self._test('function f(){return 0.0 << NaN}', 0)
+        self._test('function f(){return null << undefined}', 0)
+        self._test('function f(){return 21 << 4294967297}', 42)
+
     def test_array_access(self):
         self._test('function f(){var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2.0] = 7; return x;}', [5, 2, 7])
 
@@ -160,6 +180,7 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){var x = 20; x = 30 + 1; return x;}', 31)
         self._test('function f(){var x = 20; x += 30 + 1; return x;}', 51)
         self._test('function f(){var x = 20; x -= 30 + 1; return x;}', -11)
+        self._test('function f(){var x = 2; var y = ["a", "b"]; y[x%y["length"]]="z"; return y}', ['z', 'b'])
 
     def test_comments(self):
         self._test('''
@@ -351,6 +372,13 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f() { a=5; return (a -= 1, a+=3, a); }', 7)
         self._test('function f() { return (l=[0,1,2,3], function(a, b){return a+b})((l[1], l[2]), l[3]) }', 5)
 
+    def test_not(self):
+        self._test('function f() { return ! undefined; }', True)
+        self._test('function f() { return !0; }', True)
+        self._test('function f() { return !!0; }', False)
+        self._test('function f() { return ![]; }', False)
+        self._test('function f() { return !0 !== false; }', True)
+
     def test_void(self):
         self._test('function f() { return void 42; }', JS_Undefined)
 
@@ -435,6 +463,7 @@ class TestJSInterpreter(unittest.TestCase):
 
     def test_regex(self):
         self._test('function f() { let a=/,,[/,913,/](,)}/; }', None)
+        self._test('function f() { let a=/,,[/,913,/](,)}/; return a.source;  }', ',,[/,913,/](,)}')
 
         jsi = JSInterpreter('''
             function x() { let a=/,,[/,913,/](,)}/; "".replace(a, ""); return a; }
@@ -482,25 +511,6 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return -524999584 << 5}', 379882496)
         self._test('function f(){return 1236566549 << 5}', 915423904)
 
-    def test_bitwise_operators_typecast(self):
-        # madness
-        self._test('function f(){return null << 5}', 0)
-        self._test('function f(){return undefined >> 5}', 0)
-        self._test('function f(){return 42 << NaN}', 42)
-        self._test('function f(){return 42 << Infinity}', 42)
-        self._test('function f(){return 0.0 << null}', 0)
-        self._test('function f(){return NaN << 42}', 0)
-        self._test('function f(){return "21.9" << 1}', 42)
-        self._test('function f(){return 21 << 4294967297}', 42)
-        self._test('function f(){return true << "5";}', 32)
-        self._test('function f(){return true << true;}', 2)
-        self._test('function f(){return "19" & "21.9";}', 17)
-        self._test('function f(){return "19" & false;}', 0)
-        self._test('function f(){return "11.0" >> "2.1";}', 2)
-        self._test('function f(){return 5 ^ 9;}', 12)
-        self._test('function f(){return 0.0 << NaN}', 0)
-        self._test('function f(){return null << undefined}', 0)
-
     def test_negative(self):
         self._test('function f(){return 2    *    -2.0    ;}', -4)
         self._test('function f(){return 2    -    - -2    ;}', 0)
@@ -543,6 +553,8 @@ class TestJSInterpreter(unittest.TestCase):
         test_result = list('test')
         tests = [
             'function f(a, b){return a.split(b)}',
+            'function f(a, b){return a["split"](b)}',
+            'function f(a, b){let x = ["split"]; return a[x[0]](b)}',
             'function f(a, b){return String.prototype.split.call(a, b)}',
             'function f(a, b){return String.prototype.split.apply(a, [b])}',
         ]
@@ -593,6 +605,9 @@ class TestJSInterpreter(unittest.TestCase):
         self._test('function f(){return "012345678".slice(-1, 1)}', '')
         self._test('function f(){return "012345678".slice(-3, -1)}', '67')
 
+    def test_splice(self):
+        self._test('function f(){var T = ["0", "1", "2"]; T["splice"](2, 1, "0")[0]; return T }', ['0', '1', '0'])
+
     def test_pop(self):
         # pop
         self._test('function f(){var a = [0, 1, 2, 3, 4, 5, 6, 7, 8]; return [a.pop(), a]}',
@@ -626,6 +641,16 @@ class TestJSInterpreter(unittest.TestCase):
                    'l.forEach(log, ret); '
                    'return [ret.length, ret[0][0], ret[1][1], ret[0][2]]}',
                    [2, 4, 1, [4, 2]])
+
+    def test_extract_function(self):
+        jsi = JSInterpreter('function a(b) { return b + 1; }')
+        func = jsi.extract_function('a')
+        self.assertEqual(func([2]), 3)
+
+    def test_extract_function_with_global_stack(self):
+        jsi = JSInterpreter('function c(d) { return d + e + f + g; }')
+        func = jsi.extract_function('c', {'e': 10}, {'f': 100, 'g': 1000})
+        self.assertEqual(func([1]), 1111)
 
 
 if __name__ == '__main__':
