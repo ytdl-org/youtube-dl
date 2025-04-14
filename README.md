@@ -310,6 +310,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-filename                       Simulate, quiet but print output
                                          filename
     --get-format                         Simulate, quiet but print output format
+    -O, --print TEMPLATE                 Simulate, quiet but print the given fields.
+                                         Either a field name or similar formatting
+                                         as the output template can be used
     -j, --dump-json                      Simulate, quiet but print JSON
                                          information. See the "OUTPUT TEMPLATE"
                                          for a description of available keys.
@@ -619,6 +622,12 @@ Available for the media that is a track or a part of a music album:
  - `album_artist` (string): List of all artists appeared on the album
  - `disc_number` (numeric): Number of the disc or other physical medium the track belongs to
  - `release_year` (numeric): Year (YYYY) when the album was released
+
+Available only when used in `--print`:
+
+ - `urls` (string): The URLs of all requested formats, one in each line
+ - `duration_string` (string): Length of the video (HH:mm:ss)
+ - `filename` (string): Name of the video file. Note that the actual filename may be different due to post-processing. Use `--exec echo` to get the name after all postprocessing is complete
 
 Each aforementioned sequence when referenced in an output template will be replaced by the actual value corresponding to the sequence name. Note that some of the sequences are not guaranteed to be present since they depend on the metadata obtained by a particular extractor. Such sequences will be replaced with placeholder value provided with `--output-na-placeholder` (`NA` by default).
 

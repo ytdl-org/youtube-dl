@@ -1919,25 +1919,49 @@ class YoutubeDL(object):
         return subs
 
     def __forced_printings(self, info_dict, filename, incomplete):
+        FIELD_ALIASES = {}
+
         def print_mandatory(field):
+            actual_field = FIELD_ALIASES.get(field, field)
             if (self.params.get('force%s' % field, False)
-                    and (not incomplete or info_dict.get(field) is not None)):
-                self.to_stdout(info_dict[field])
+                    and (not incomplete or info_dict.get(actual_field) is not None)):
+                self.to_stdout(info_dict[actual_field])
 
         def print_optional(field):
             if (self.params.get('force%s' % field, False)
                     and info_dict.get(field) is not None):
                 self.to_stdout(info_dict[field])
 
+        info_dict = info_dict.copy()
+        info_dict['duration_string'] = (  # %(duration>%H-%M-%S)s is wrong if duration > 24hrs
+            formatSeconds(info_dict['duration'])
+            if info_dict.get('duration', None) is not None
+            else None)
+        if info_dict.get('resolution') is None:
+            info_dict['resolution'] = self.format_resolution(info_dict, default=None)
+        if filename is not None:
+            info_dict['filename'] = filename
+        if info_dict.get('requested_formats') is not None:
+            # For RTMP URLs, also include the playpath
+            info_dict['urls'] = '\n'.join(f['url'] + f.get('play_path', '') for f in info_dict['requested_formats'])
+        elif 'url' in info_dict:
+            info_dict['urls'] = info_dict['url'] + info_dict.get('play_path', '')
+        if 'urls' in info_dict:
+            FIELD_ALIASES['url'] = 'urls'
+
+        for tmpl in self.params.get('forceprint', []):
+            if re.match(r'\w+$', tmpl):
+                tmpl = '%({0})s'.format(tmpl)
+            try:
+                out_txt = tmpl % info_dict
+            except KeyError:
+                self.report_warning('Skipping invalid print string "%s"' % (tmpl, ))
+                continue
+            self.to_stdout(out_txt)
+
         print_mandatory('title')
         print_mandatory('id')
-        if self.params.get('forceurl', False) and not incomplete:
-            if info_dict.get('requested_formats') is not None:
-                for f in info_dict['requested_formats']:
-                    self.to_stdout(f['url'] + f.get('play_path', ''))
-            else:
-                # For RTMP URLs, also include the playpath
-                self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+        print_mandatory('url')
         print_optional('thumbnail')
         print_optional('description')
         if self.params.get('forcefilename', False) and filename is not None:
@@ -1945,6 +1969,7 @@ class YoutubeDL(object):
         if self.params.get('forceduration', False) and info_dict.get('duration') is not None:
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
+
         if self.params.get('forcejson', False):
             self.to_stdout(json.dumps(self.sanitize_info(info_dict)))
 
