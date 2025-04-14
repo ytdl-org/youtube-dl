@@ -1769,7 +1769,9 @@ class YoutubeDL(object):
                 format['format_id'] = compat_str(i)
             else:
                 # Sanitize format_id from characters used in format selector expression
-                format['format_id'] = re.sub(r'[\s,/+\[\]()]', '_', format['format_id'])
+                # In fact, replace anything that's not allowed as a value in format selection,
+                # or (eg) excluding a format_id can crash. See method _build_format_filter()
+                format['format_id'] = re.sub(r'[^a-zA-Z0-9._-]', '_', format['format_id'])
             format_id = format['format_id']
             if format_id not in formats_dict:
                 formats_dict[format_id] = []
