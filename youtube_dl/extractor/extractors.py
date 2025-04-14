@@ -368,6 +368,7 @@ from .espn import (
     FiveThirtyEightIE,
 )
 from .esri import EsriVideoIE
+from .ettoday import EttodayIE
 from .europa import EuropaIE
 from .expotv import ExpoTVIE
 from .expressen import ExpressenIE
