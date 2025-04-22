@@ -4305,14 +4305,13 @@ class WebDriverJSWrapper(object):
             if not check_executable('geckodriver', ['--version']):
                 self._raise_exception('geckodriver not found in PATH')
             o = wd.FirefoxOptions()
-            o.headless = True
-            s = wd.firefox.service.Service(log_path=os.path.devnull)
-            self._webdriver = wd.Firefox(options=o, service=s)
+            o.add_argument('-headless')
+            self._webdriver = wd.Firefox(options=o)
         elif webdriver_type == 'chrome':  # chromedriver
             if not check_executable('chromedriver', ['--version']):
                 self._raise_exception('chromedriver not found in PATH')
             o = wd.ChromeOptions()
-            o.headless = True
+            o.add_argument('--headless')
             """
             If you are using the snap version of the chromium, chromedriver is included in the snap package.
             You should use that driver.
@@ -4326,7 +4325,7 @@ class WebDriverJSWrapper(object):
             if not check_executable('msedgedriver', ['--version']):
                 self._raise_exception('msedgedriver not found in PATH')
             o = wd.EdgeOptions()
-            o.headless = True
+            o.add_argument('--headless')
             self._webdriver = wd.Edge(options=o)
         elif webdriver_type == 'safari':  # safaridriver
             if not check_executable('safaridriver', ['--version']):
