@@ -1196,7 +1196,8 @@ Don't capture id attribute name here since you can't use it for anything anyway.
 Correct:
 
 ```python
-r'(?:id|ID)=(?P<id>\d+)'
+r'(?i)\b id \s* = \s* ["\']?(?P<id>\d+)\b["\']?'
+
 ```
 
 Incorrect:
