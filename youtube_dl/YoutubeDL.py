@@ -855,6 +855,10 @@ class YoutubeDL(object):
         force_generic_extractor -- force using the generic extractor
         """
 
+         # New debug line: helps users trace which URL is being processed
+        # if self.params.get('verbose'):
+        #     self.to_screen('[debug] Starting extraction for URL: %s' % url)
+
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
 
