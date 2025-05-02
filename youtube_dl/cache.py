@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import errno
 import json
 import os
 import re
@@ -8,7 +9,6 @@ import shutil
 import traceback
 
 from .compat import (
-    compat_contextlib_suppress,
     compat_getenv,
     compat_open as open,
     compat_os_makedirs,
@@ -78,6 +78,22 @@ class Cache(object):
             tb = traceback.format_exc()
             self._report_warning('Writing cache to {fn!r} failed: {tb}'.format(fn=fn, tb=tb))
 
+    def clear(self, section, key, dtype='json'):
+
+        if not self.enabled:
+            return
+
+        fn = self._get_cache_fn(section, key, dtype)
+        self._write_debug('Clearing {section}.{key} from cache'.format(section=section, key=key))
+        try:
+            os.remove(fn)
+        except Exception as e:
+            if getattr(e, 'errno') == errno.ENOENT:
+                # file not found
+                return
+            tb = traceback.format_exc()
+            self._report_warning('Clearing cache from {fn!r} failed: {tb}'.format(fn=fn, tb=tb))
+
     def _validate(self, data, min_ver):
         version = traverse_obj(data, self._VERSION_KEY)
         if not version:  # Backward compatibility
@@ -94,17 +110,21 @@ class Cache(object):
             return default
 
         cache_fn = self._get_cache_fn(section, key, dtype)
-        with compat_contextlib_suppress(IOError):  # If no cache available
+        try:
+            with open(cache_fn, encoding='utf-8') as cachef:
+                self._write_debug('Loading {section}.{key} from cache'.format(section=section, key=key), only_once=True)
+                return self._validate(json.load(cachef), min_ver)
+        except (ValueError, KeyError):
             try:
-                with open(cache_fn, encoding='utf-8') as cachef:
-                    self._write_debug('Loading {section}.{key} from cache'.format(section=section, key=key), only_once=True)
-                    return self._validate(json.load(cachef), min_ver)
-            except (ValueError, KeyError):
-                try:
-                    file_size = os.path.getsize(cache_fn)
-                except (OSError, IOError) as oe:
-                    file_size = error_to_compat_str(oe)
-                self._report_warning('Cache retrieval from %s failed (%s)' % (cache_fn, file_size))
+                file_size = 'size: %d' % os.path.getsize(cache_fn)
+            except (OSError, IOError) as oe:
+                file_size = error_to_compat_str(oe)
+            self._report_warning('Cache retrieval from %s failed (%s)' % (cache_fn, file_size))
+        except Exception as e:
+            if getattr(e, 'errno') == errno.ENOENT:
+                # no cache available
+                return
+            self._report_warning('Cache retrieval from %s failed' % (cache_fn,))
 
         return default
 
