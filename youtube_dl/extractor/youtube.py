@@ -1878,6 +1878,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = None, None
+
+        def generic_n_function_search(func_name=None):
+            return self._search_regex(
+                r'''(?xs)
+                    (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
+                    (?P<name>%s)\s*=\s*function\((?!\d)[a-zA-Z\d_$]+\)
+                    \s*\{(?:(?!};).)+?(?:
+                        ["']enhanced_except_ |
+                        return\s*(?P<q>"|')[a-zA-Z\d-]+_w8_(?P=q)\s*\+\s*[\w$]+
+                    )
+                ''' % (func_name or r'(?!\d)[a-zA-Z\d_$]+',), jscode,
+                'Initial JS player n function name', group='name',
+                default=None if func_name else NO_DEFAULT)
+
         # these special cases are redundant and probably obsolete (2025-04):
         # they make the tests run ~10% faster without fallback warnings
         r"""
@@ -1918,26 +1932,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         (?(idx)|\[\s*)(?P<nfunc>(?!\d)[\w$]+)(?(idx)|\s*\])
                     \s*?[;\n]
                     ''', jscode):
-                func_name = self._search_regex(
+                fn = self._search_regex(
                     r'[;,]\s*(function\s+)?({0})(?(1)|\s*=\s*function)\s*\((?!\d)[\w$]+\)\s*\{1}(?!\s*return\s)'.format(
                         re.escape(m.group('nfunc')), '{'),
                     jscode, 'Initial JS player n function name (2)', group=2, default=None)
-                if func_name:
+                if fn:
+                    func_name = fn
                     idx = m.group('idx')
-                    break
+                    if generic_n_function_search(func_name):
+                        # don't look any further
+                        break
 
         # thx bashonly: yt-dlp/yt-dlp/pull/10611
         if not func_name:
             self.report_warning('Falling back to generic n function search', only_once=True)
-            return self._search_regex(
-                r'''(?xs)
-                    (?:(?<=[^\w$])|^)       # instead of \b, which ignores $
-                    (?P<name>(?!\d)[a-zA-Z\d_$]+)\s*=\s*function\((?!\d)[a-zA-Z\d_$]+\)
-                    \s*\{(?:(?!};).)+?(?:
-                        ["']enhanced_except_ |
-                        return\s*(?P<q>"|')[a-zA-Z\d-]+_w8_(?P=q)\s*\+\s*[\w$]+
-                    )
-                ''', jscode, 'Initial JS player n function name', group='name')
+            return generic_n_function_search()
+
         if not idx:
             return func_name
 
