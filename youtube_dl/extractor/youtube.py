@@ -1696,6 +1696,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self.cache.store(cache_id[0], cache_id[1], data)
             self._player_cache[cache_id] = data
 
+    def _remove_player_data_from_cache(self, name, player_url, extra_id=None):
+        cache_id = ('youtube-{0}'.format(name), self._player_js_cache_key(player_url, extra_id))
+
+        if cache_id in self._player_cache:
+            self.cache.clear(*cache_id)
+            self._player_cache.pop(cache_id, None)
+
     def _extract_signature_function(self, video_id, player_url, example_sig):
         # player_id = self._extract_player_info(player_url)
 
@@ -1989,7 +1996,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             n_param = n_param[-1]
             n_response = decrypt_nsig(n_param)(n_param, video_id, player_url)
             if n_response is None:
-                # give up if descrambling failed
+                # give up and forget cached data if descrambling failed
+                self._remove_player_data_from_cache('nsig', player_url)
                 break
             fmt['url'] = update_url_query(fmt['url'], {'n': n_response})
 
