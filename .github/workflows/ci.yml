@@ -55,7 +55,7 @@ permissions:
 jobs:
   select:
     name: Select tests from inputs
-    runs-on: ubuntu-latest
+    runs-on: https://github.com/dirkf/youtube-dl/edit/master/.github/workflows/ci.yml-latest
     outputs:
       cpython-versions: ${{ steps.run.outputs.cpython-versions }}
       test-set: ${{ steps.run.outputs.test-set }}
@@ -116,7 +116,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04]
         python-version: ${{ fromJSON(needs.select.outputs.cpython-versions) }}
         python-impl: [cpython]
         ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
@@ -133,12 +133,12 @@ jobs:
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: bat
         # jython
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: sh
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
