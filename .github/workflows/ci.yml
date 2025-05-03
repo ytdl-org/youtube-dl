@@ -240,7 +240,9 @@ jobs:
       # install 2.7
       shell: bash
       run: |
-        sudo apt-get install -y python2 python-is-python2
+        curl -L "http://launchpadlibrarian.net/474693132/python-is-python2_2.7.17-4_all.deb" -o python-is-python2.deb
+        sudo apt-get install -y python2
+        sudo dpkg -i python-is-python2.deb
         echo "PYTHONHOME=/usr" >> "$GITHUB_ENV"
     #-------- Python 2.6 --
     - name: Set up Python 2.6 environment
