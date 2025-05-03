@@ -55,7 +55,7 @@ permissions:
 jobs:
   select:
     name: Select tests from inputs
-    runs-on: https://github.com/dirkf/youtube-dl/edit/master/.github/workflows/ci.yml-latest
+    runs-on: ubuntu-latest
     outputs:
       cpython-versions: ${{ steps.run.outputs.cpython-versions }}
       test-set: ${{ steps.run.outputs.test-set }}
