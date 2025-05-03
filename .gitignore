@@ -1,3 +1,4 @@
+__pycache__/
 *.pyc
 *.pyo
 *.class
@@ -5,6 +6,7 @@
 *.DS_Store
 wine-py2exe/
 py2exe.log
+.pytest_cache/
 *.kate-swp
 build/
 dist/

@@ -30,17 +30,20 @@ class YandexMusicBaseIE(InfoExtractor):
     @staticmethod
     def _raise_captcha():
         raise ExtractorError(
-            'YandexMusic has considered youtube-dl requests automated and '
-            'asks you to solve a CAPTCHA. You can either wait for some '
-            'time until unblocked and optionally use --sleep-interval '
-            'in future or alternatively you can go to https://music.yandex.ru/ '
-            'solve CAPTCHA, then export cookies and pass cookie file to '
-            'youtube-dl with --cookies',
+            'YandexMusic has considered youtube-dl requests automated '
+            'and asks you to solve a CAPTCHA. You can wait for some time '
+            'until unblocked and optionally use --sleep-interval in future; '
+            'otherwise solve the CAPTCHA at https://music.yandex.ru/, '
+            'then export cookies and pass the cookie file to youtube-dl '
+            'with --cookies.',
             expected=True)
 
     def _download_webpage_handle(self, *args, **kwargs):
         webpage = super(YandexMusicBaseIE, self)._download_webpage_handle(*args, **kwargs)
-        if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
+        blocked_ip_msg = (
+            'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;'
+            'вашего IP-адреса, похожи на&nbsp;автоматические.')
+        if blocked_ip_msg in (webpage or [''])[0]:
             self._raise_captcha()
         return webpage
 
