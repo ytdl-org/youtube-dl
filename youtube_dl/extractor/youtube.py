@@ -1710,8 +1710,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         extra_id = self._signature_cache_id(example_sig)
         self.write_debug('Extracting signature function {0}-{1}'.format(player_url, extra_id))
         cache_spec, code = self._load_player_data_from_cache(
-            'sigfuncs', player_url, extra_id=extra_id, min_ver='2025.04.07'
-        ), None
+            'sigfuncs', player_url, extra_id=extra_id), None
 
         if not cache_spec:
             code = self._load_player(video_id, player_url)
