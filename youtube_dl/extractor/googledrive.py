@@ -187,23 +187,29 @@ class GoogleDriveIE(InfoExtractor):
                     resolutions[mobj.group('format_id')] = (
                         int(mobj.group('width')), int(mobj.group('height')))
 
-            for fmt_stream in fmt_stream_map:
-                fmt_stream_split = fmt_stream.split('|')
-                if len(fmt_stream_split) < 2:
-                    continue
-                format_id, format_url = fmt_stream_split[:2]
-                f = {
-                    'url': lowercase_escape(format_url),
-                    'format_id': format_id,
-                    'ext': self._FORMATS_EXT[format_id],
-                }
-                resolution = resolutions.get(format_id)
-                if resolution:
-                    f.update({
-                        'width': resolution[0],
-                        'height': resolution[1],
-                    })
-                formats.append(f)
+          for fmt_stream in fmt_stream_map:
+    fmt_stream_split = fmt_stream.split('|')
+    if len(fmt_stream_split) < 2:
+        continue
+    format_id, format_url = fmt_stream_split[:2]
+    # Try to get the extension from the known formats
+    ext = self._FORMATS_EXT.get(format_id)
+    # Fallback: Determine extension from the URL (defaulting to 'mp4' if not found)
+    if not ext:
+        ext = determine_ext(format_url, 'mp4').lower()
+    f = {
+        'url': lowercase_escape(format_url),
+        'format_id': format_id,
+        'ext': ext,
+    }
+    resolution = resolutions.get(format_id)
+    if resolution:
+        f.update({
+            'width': resolution[0],
+            'height': resolution[1],
+        })
+    formats.append(f)
+
 
         source_url = update_url_query(
             'https://drive.google.com/uc', {
