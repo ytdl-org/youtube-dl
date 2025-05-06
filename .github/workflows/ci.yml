@@ -151,7 +151,10 @@ jobs:
         # apt in runner, if needed, may not be up-to-date
         sudo apt-get update
     - name: Checkout
-      uses: actions/checkout@v3
+      # v4+ of the action respect show-progress
+      uses: actions/checkout@master
+      with:
+        show-progress: false
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
@@ -470,7 +473,10 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout
+      uses: actions/checkout@master
+      with:
+        show-progress: false
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
