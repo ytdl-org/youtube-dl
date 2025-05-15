@@ -322,6 +322,54 @@ class FranceTVIE(InfoExtractor):
         return self._extract_video(video_id, hostname=hostname)
 
 
+class FranceTVEmbedIE(FranceTVBaseIE):
+    _VALID_URL = r'''(?x)
+        https?://embed\.francetv\.fr(?:/*\?.*?\b(?P<ue>ue)=|/)
+        (?P<id>[\da-f]{32})(?:(?(ue)&|/?[?#]).*)?$
+    '''
+    _TESTS = [{
+        'url': 'http://embed.francetv.fr/?ue=7fd581a2ccf59d2fc5719c5c13cf6961',
+        'add_ie': [FranceTVIE.ie_key()],
+        'info_dict': {
+            'id': 'NI_983319',
+            'ext': 'mp4',
+            'title': 'Le Pen Reims',
+            'upload_date': '20170505',
+            'timestamp': 1493981780,
+            'duration': 16,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'Gone',
+    }, {
+        'url': 'https://embed.francetv.fr/ecc238d6df70c0e9d76972fe1890a0e5',
+        'add_ie': [FranceTVIE.ie_key()],
+        'info_dict': {
+            'id': '41495932-eaa9-11ef-a8a1-57a09c50f7ce',
+            'ext': 'mp4',
+            'title': 'Pouvoir d’achat : les Français de plus en plus endettés - Émission du jeudi 13 février 2025',
+            'timestamp': 1739484973,
+            'upload_date': '20250213',
+            'duration': 111,
+            'thumbnail': r're:https?://[\w.]+\.fr(?:/[\w-]+)+\.jpg$',
+        },
+        'params': {
+            'format': 'best/bestvideo',
+            'skip_download': 'm3u8',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        video = self._download_json(
+            'https://api-embed.webservices.francetelevisions.fr/v2/key/%s' % (video_id,),
+            video_id)
+
+        return self._make_url_result(video['video_id'], video.get('url_source'))
+
+
 class FranceTVSiteIE(FranceTVBaseIE):
     IE_NAME = 'francetv:site'
     _VALID_URL = r'https?://(?:(?:www\.)?france\.tv|mobile\.france\.tv)/(?:[^/]+/)*(?P<id>[^/]+)\.html'
