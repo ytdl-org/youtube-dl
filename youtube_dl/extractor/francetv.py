@@ -33,7 +33,8 @@ from ..utils import (
 )
 
 try:
-    callable(format_field)
+    if not callable(format_field):
+        raise NameError
 except NameError:
     from ..utils import IDENTITY, NO_DEFAULT, variadic
 
@@ -324,7 +325,7 @@ class FranceTVIE(InfoExtractor):
 
 class FranceTVEmbedIE(FranceTVBaseIE):
     _VALID_URL = r'''(?x)
-        https?://embed\.francetv\.fr(?:/*\?.*?\b(?P<ue>ue)=|/)
+        https?://embed\.francetv\.fr(?:/?\?(?:.*&)?(?P<ue>ue)=|/)
         (?P<id>[\da-f]{32})(?:(?(ue)&|/?[?#]).*)?$
     '''
     _TESTS = [{
@@ -372,7 +373,7 @@ class FranceTVEmbedIE(FranceTVBaseIE):
 
 class FranceTVSiteIE(FranceTVBaseIE):
     IE_NAME = 'francetv:site'
-    _VALID_URL = r'https?://(?:(?:www\.)?france\.tv|mobile\.france\.tv)/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:(?:www|mobile)\.)?france\.tv)/(?:[^/]+/)*(?P<id>[^/]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.france.tv/france-2/13h15-le-dimanche/140921-les-mysteres-de-jesus.html',
