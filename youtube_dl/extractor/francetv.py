@@ -442,24 +442,6 @@ class FranceTVSiteIE(FranceTVBaseIE):
         ],
         'skip': 'Geo-restricted to FR',
     }, {
-        # geo-restricted
-        'url': 'https://la1ere.franceinfo.fr/martinique/programme-video/diffusion/4774522-origine-kongo.html',
-        'add_ie': [FranceTVIE.ie_key()],
-        'info_dict': {
-            'id': '97790f3a-b23a-4004-bd9c-b89fde6f95bf',
-            'ext': 'mp4',
-            'title': 'Origine : Kongo',
-            'timestamp': 1679680110,
-            'upload_date': '20230424',
-            'duration': 3146,
-            'thumbnail': r're:https?:/(?:/[\w.-]+)+\.jpg$',
-        },
-        'expected_warnings': [
-            'hlsnative has detected features it does not support',
-            'Failed to download (?:MPD manifest|m3u8 information)',
-        ],
-        'skip': 'Geo-restricted to FR',
-    }, {
         # geo-restricted livestream (workflow == 'token-akamai')
         'url': 'https://www.france.tv/france-4/direct.html',
         'info_dict': {
