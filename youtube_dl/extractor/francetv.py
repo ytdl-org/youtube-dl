@@ -373,7 +373,7 @@ class FranceTVEmbedIE(FranceTVBaseIE):
 
 class FranceTVSiteIE(FranceTVBaseIE):
     IE_NAME = 'francetv:site'
-    _VALID_URL = r'https?://(?:(?:www|mobile)\.)?france\.tv)/(?:[^/]+/)*(?P<id>[^/]+)\.html'
+    _VALID_URL = r'https?://(?:(?:www|mobile)\.)?france\.tv/(?:[^/]+/)*(?P<id>[^/]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.france.tv/france-2/13h15-le-dimanche/140921-les-mysteres-de-jesus.html',
