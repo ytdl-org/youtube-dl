@@ -96,16 +96,30 @@ class BNNVaraIE(NPOIE):
     IE_NAME = 'bnnvara'
     IE_DESC = 'bnnvara.nl'
     _VALID_URL = r'https?://(?:www\.)?bnnvara\.nl/videos/[0-9]*'
-    _TESTS = [{
-        'url': 'https://www.bnnvara.nl/videos/27455',
-        'md5': '392dd367877739e49b9e0a9a550b178a',
-        'info_dict': {
-            'id': 'VARA_101369808',
-            'thumbnail': 'https://media.vara.nl/files/thumbnails/321291_custom_zembla__wie_is_de_mol_680x383.jpg',
-            'title': 'Zembla - Wie is de mol?',
-            'ext': 'mp4',
-        }
-    }]
+    _TESTS = [
+        {
+            # 2025-05-19: This media is no longer available, see if it can be replaced with a different one
+            #             where the GraphQL response has a pomsProductId
+            'url': 'https://www.bnnvara.nl/videos/27455',
+            'md5': '392dd367877739e49b9e0a9a550b178a',
+            'info_dict': {
+                'id': 'VARA_101369808',
+                'thumbnail': 'https://media.vara.nl/files/thumbnails/321291_custom_zembla__wie_is_de_mol_680x383.jpg',
+                'title': 'Zembla - Wie is de mol?',
+                'ext': 'mp4',
+            },
+        },
+        {
+            'url': 'https://www.bnnvara.nl/videos/252209',
+            'md5': 'f2d2a01d7de8fb490e177c9f71bbabc9',
+            'info_dict': {
+                'id': '252209',
+                'thumbnail': 'https://media.bnnvara.nl/vara/images/thumbnails/20130502-dwdd-gesprek3_0.jpg',
+                'title': 'Die Suid-Afrikaanse Droom: Nick en Simon - 2-5-2013',
+                'ext': 'mp4',
+            }
+        },
+    ]
 
     def _real_extract(self, url):
         url = url.rstrip('/')
@@ -191,12 +205,16 @@ class BNNVaraIE(NPOIE):
                                         'Content-Type': 'application/json',
                                     })
 
-        product_id = traverse_obj(media, ('data', 'player', 'pomsProductId'))
-        formats = self._extract_formats_by_product_id(product_id, video_id) if product_id else []
+        mp4_url = traverse_obj(media, ('data', 'player', 'sources', 0, 'url'))
+        if mp4_url:
+            formats = [{'url': mp4_url}]
+        else:
+            product_id = traverse_obj(media, ('data', 'player', 'pomsProductId'))
+            formats = self._extract_formats_by_product_id(product_id, video_id) if product_id else []
         self._sort_formats(formats)
 
         return {
-            'id': product_id,
+            'id': video_id,
             'title': traverse_obj(media, ('data', 'player', 'title')),
             'formats': formats,
             'thumbnail': traverse_obj(media, ('data', 'player', 'image', 'url')),
@@ -214,7 +232,7 @@ class ONIE(NPOIE):
             'id': 'heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel',
             'title': 'heeft-preppen-zin-betwijfel-dat-je-daar-echt-iets-aan-zult-hebben-bij-oorlog-lydia-daniel',
             'ext': 'mp4',
-        }
+        },
     }]
 
     def _real_extract(self, url):
