@@ -327,7 +327,7 @@ class NTRSubsiteIE(NPOIE):
     def _real_extract(self, url):
         video_id = url.rstrip('/').split('/')[-1]
 
-        page, _ = self._download_webpage_handle(url, video_id)
+        page = self._download_webpage(url, video_id)
         results = re.findall(r'data-mid="(.+_.+)"', page)
         formats = []
         for result in results:
