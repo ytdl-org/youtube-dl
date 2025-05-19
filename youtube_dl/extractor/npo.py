@@ -240,11 +240,11 @@ class ZAPPIE(NPOIE):
     _VALID_URL = r'https?://(?:www\.)?zapp.nl/.*'
 
     _TESTS = [{
-        'url': 'https://www.zapp.nl/programmas/zappsport/gemist/POMS_AT_811523',
-        'md5': '9eb2d8b6f88b72b6b986ea2c26a81588',
+        'url': 'https://www.zapp.nl/programmas/zappsport/gemist/POMS_AT_6130303',
+        'md5': '3cef64f58b6b58eb34d5bd786f4e9245',
         'info_dict': {
-            'id': 'POMS_AT_811523',
-            'title': 'POMS_AT_811523',
+            'id': 'POMS_AT_6130303',
+            'title': 'POMS_AT_6130303',
             'ext': 'mp4',
         },
     }]
