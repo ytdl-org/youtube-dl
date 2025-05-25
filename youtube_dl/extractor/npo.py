@@ -376,8 +376,8 @@ class VPROIE(NPOIE):
         video_id = url.rstrip('/').split('/')[-1]
         page = self._download_webpage(url, video_id)
         formats = traverse_obj(re.search(r'<[\w.-]+\s[^>]*(?<!-)\bdata-media-id="([a-zA-Z0-9_]+)"', page), (
-                1, T(lambda x: self._extract_formats_by_product_id(x, video_id)),
-                Ellipsis))
+            1, T(lambda x: self._extract_formats_by_product_id(x, video_id)),
+            Ellipsis))
 
         self._sort_formats(formats)
 
