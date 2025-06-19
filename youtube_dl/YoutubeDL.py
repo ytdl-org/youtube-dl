@@ -690,6 +690,16 @@ class YoutubeDL(object):
         kwargs['message'] = f'ERROR: {message}'
         self.trouble(*args, **kwargs)
 
+    def write_debug(self, message, only_once=False):
+        '''Log debug message or Print message to stderr'''
+        if not self.params.get('verbose', False):
+            return
+        message = '[debug] {0}'.format(message)
+        if self.params.get('logger'):
+            self.params['logger'].debug(message)
+        else:
+            self.to_stderr(message, only_once)
+
     def report_unscoped_cookies(self, *args, **kwargs):
         # message=None, tb=False, is_error=False
         if len(args) <= 2:
@@ -2527,7 +2537,7 @@ class YoutubeDL(object):
                 self.get_encoding()))
         write_string(encoding_str, encoding=None)
 
-        writeln_debug = lambda *s: self._write_string('[debug] %s\n' % (''.join(s), ))
+        writeln_debug = lambda *s: self.write_debug(''.join(s))
         writeln_debug('youtube-dl version ', __version__)
         if _LAZY_LOADER:
             writeln_debug('Lazy loading extractors enabled')
