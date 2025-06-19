@@ -494,10 +494,6 @@ class YoutubeDL(object):
         """Add the progress hook (currently only for the file downloader)"""
         self._progress_hooks.append(ph)
 
-    def to_screen(self, message, skip_eol=False):
-        """Print message to stdout if not in quiet mode."""
-        return self.to_stdout(message, skip_eol, check_quiet=True)
-
     def _write_string(self, s, out=None):
         write_string(s, out=out, encoding=self.params.get('encoding'))
 
@@ -520,44 +516,9 @@ class YoutubeDL(object):
             output = message + '\n'
             self._write_string(output, self._err_file)
 
-    def to_console_title(self, message):
-        if not self.params.get('consoletitle', False):
-            return
-        if compat_os_name == 'nt':
-            if ctypes.windll.kernel32.GetConsoleWindow():
-                # c_wchar_p() might not be necessary if `message` is
-                # already of type unicode()
-                ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
-        elif 'TERM' in os.environ:
-            self._write_string('\033]0;%s\007' % message, self._screen_file)
-
-    def save_console_title(self):
-        if not self.params.get('consoletitle', False):
-            return
-        if self.params.get('simulate', False):
-            return
-        if compat_os_name != 'nt' and 'TERM' in os.environ:
-            # Save the title on stack
-            self._write_string('\033[22;0t', self._screen_file)
-
-    def restore_console_title(self):
-        if not self.params.get('consoletitle', False):
-            return
-        if self.params.get('simulate', False):
-            return
-        if compat_os_name != 'nt' and 'TERM' in os.environ:
-            # Restore the title from stack
-            self._write_string('\033[23;0t', self._screen_file)
-
-    def __enter__(self):
-        self.save_console_title()
-        return self
-
-    def __exit__(self, *args):
-        self.restore_console_title()
-
-        if self.params.get('cookiefile') is not None:
-            self.cookiejar.save(ignore_discard=True, ignore_expires=True)
+    def to_screen(self, message, skip_eol=False):
+        """Print message to stdout if not in quiet mode."""
+        return self.to_stdout(message, skip_eol, check_quiet=True)
 
     def trouble(self, *args, **kwargs):
         """Determine action to take when a download problem appears.
@@ -632,6 +593,45 @@ class YoutubeDL(object):
             _msg_header = 'ERROR:'
         kwargs['message'] = '%s %s' % (_msg_header, message)
         self.trouble(*args, **kwargs)
+
+    def to_console_title(self, message):
+        if not self.params.get('consoletitle', False):
+            return
+        if compat_os_name == 'nt':
+            if ctypes.windll.kernel32.GetConsoleWindow():
+                # c_wchar_p() might not be necessary if `message` is
+                # already of type unicode()
+                ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
+        elif 'TERM' in os.environ:
+            self._write_string('\033]0;%s\007' % message, self._screen_file)
+
+    def save_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if self.params.get('simulate', False):
+            return
+        if compat_os_name != 'nt' and 'TERM' in os.environ:
+            # Save the title on stack
+            self._write_string('\033[22;0t', self._screen_file)
+
+    def restore_console_title(self):
+        if not self.params.get('consoletitle', False):
+            return
+        if self.params.get('simulate', False):
+            return
+        if compat_os_name != 'nt' and 'TERM' in os.environ:
+            # Restore the title from stack
+            self._write_string('\033[23;0t', self._screen_file)
+
+    def __enter__(self):
+        self.save_console_title()
+        return self
+
+    def __exit__(self, *args):
+        self.restore_console_title()
+
+        if self.params.get('cookiefile') is not None:
+            self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
     def report_unscoped_cookies(self, *args, **kwargs):
         # message=None, tb=False, is_error=False
