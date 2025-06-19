@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class CloudyIE(InfoExtractor):
-    _IE_DESC = 'cloudy.ec'
+    IE_DESC = 'cloudy.ec'
     _VALID_URL = r'https?://(?:www\.)?cloudy\.ec/(?:v/|embed\.php\?.*?\bid=)(?P<id>[A-Za-z0-9]+)'
     _TESTS = [{
         'url': 'https://www.cloudy.ec/v/af511e2527aac',

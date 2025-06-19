@@ -4204,12 +4204,16 @@ def lowercase_escape(s):
         s)
 
 
-def escape_rfc3986(s):
+def escape_rfc3986(s, safe=None):
     """Escape non-ASCII characters as suggested by RFC 3986"""
     if sys.version_info < (3, 0):
         s = _encode_compat_str(s, 'utf-8')
+        if safe is not None:
+            safe = _encode_compat_str(safe, 'utf-8')
+    if safe is None:
+        safe = b"%/;:@&=+$,!~*'()?#[]"
     # ensure unicode: after quoting, it can always be converted
-    return compat_str(compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]"))
+    return compat_str(compat_urllib_parse.quote(s, safe))
 
 
 def escape_url(url):
