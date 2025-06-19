@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 
+import logging
 import os
 import subprocess
 
@@ -19,6 +20,9 @@ from ..utils import (
 )
 
 from ..compat import compat_open as open
+
+
+logger = logging.getLogger('soundcloudutil.downloader')
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -128,6 +132,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
+            logger.warning('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
+            # raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
         return [], info
