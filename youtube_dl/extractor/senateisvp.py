@@ -47,7 +47,7 @@ class SenateISVPIE(InfoExtractor):
         ['vetaff', '76462', 'http://vetaff-f.akamaihd.net'],
         ['arch', '', 'http://ussenate-f.akamaihd.net/']
     ]
-    _IE_NAME = 'senate.gov'
+    IE_NAME = 'senate.gov'
     _VALID_URL = r'https?://(?:www\.)?senate\.gov/isvp/?\?(?P<qs>.+)'
     _TESTS = [{
         'url': 'http://www.senate.gov/isvp/?comm=judiciary&type=live&stt=&filename=judiciary031715&auto_play=false&wmode=transparent&poster=http%3A%2F%2Fwww.judiciary.senate.gov%2Fthemes%2Fjudiciary%2Fimages%2Fvideo-poster-flash-fit.png',

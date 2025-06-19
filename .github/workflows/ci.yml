@@ -116,7 +116,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-22.04]
         python-version: ${{ fromJSON(needs.select.outputs.cpython-versions) }}
         python-impl: [cpython]
         ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
@@ -133,12 +133,12 @@ jobs:
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
           run-tests-ext: bat
         # jython
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: sh
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           python-version: 2.7
           python-impl: jython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
@@ -160,7 +160,7 @@ jobs:
       # NB may run apt-get install in Linux
       uses: ytdl-org/setup-python@v1
       env:
-        # Temporary workaround for Python 3.5 failures - May 2024
+        # Temporary (?) workaround for Python 3.5 failures - May 2024
         PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
       with:
         python-version: ${{ matrix.python-version }}
@@ -240,7 +240,10 @@ jobs:
       # install 2.7
       shell: bash
       run: |
-        sudo apt-get install -y python2 python-is-python2
+        # Ubuntu 22.04 no longer has python-is-python2: fetch it
+        curl -L "http://launchpadlibrarian.net/474693132/python-is-python2_2.7.17-4_all.deb" -o python-is-python2.deb
+        sudo apt-get install -y python2
+        sudo dpkg --force-breaks -i python-is-python2.deb
         echo "PYTHONHOME=/usr" >> "$GITHUB_ENV"
     #-------- Python 2.6 --
     - name: Set up Python 2.6 environment
