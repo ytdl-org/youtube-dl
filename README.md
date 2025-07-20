@@ -30,7 +30,7 @@ e.g. for apt-based Linux distros. Then the rest should be generic for any Linux 
 
 Crucially, link python to the (existing) install of Python3 because the youtube-dl code looks for python not python3 :
 
-sudo ln -s /usr/bin/python3 /usr/bin/python
+    sudo ln -s /usr/bin/python3 /usr/bin/python
 
 Then,
 
@@ -43,7 +43,7 @@ to install it right away for all UNIX users (Linux, macOS, etc.), type:
 If you do not have curl, you can alternatively use a recent wget:
 
     sudo wget https://github.com/ytdl-org/youtube-dl/releases/latest/download/youtube-dl -O /usr/local/bin/youtube-dl
-    
+
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
