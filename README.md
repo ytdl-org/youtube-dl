@@ -42,7 +42,8 @@ to install it right away for all UNIX users (Linux, macOS, etc.), type:
 
 If you do not have curl, you can alternatively use a recent wget:
 
-    sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+    sudo wget https://github.com/ytdl-org/youtube-dl/releases/latest/download/youtube-dl -O /usr/local/bin/youtube-dl
+    
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
