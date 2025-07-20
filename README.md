@@ -18,9 +18,26 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 # INSTALLATION
 
-To install it right away for all UNIX users (Linux, macOS, etc.), type:
+# Prerequisite
 
-    sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+You must have Python 3 installed and it be runnable with the command `python`.
+
+Ensure you Python installed, which for example with Ubuntu should be the case.
+
+    sudo apt install python3
+
+e.g. for apt-based Linux distros. Then the rest should be generic for any Linux distro.
+
+Crucially, link python to the (existing) install of Python3 because the youtube-dl code looks for python not python3 :
+
+sudo ln -s /usr/bin/python3 /usr/bin/python
+
+Then,
+
+to install it right away for all UNIX users (Linux, macOS, etc.), type:
+
+    sudo curl -L https://github.com/ytdl-org/youtube-dl/releases/latest/download/youtube-dl -o /usr/local/bin/youtube-dl
+
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 If you do not have curl, you can alternatively use a recent wget:
