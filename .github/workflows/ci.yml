@@ -1,14 +1,14 @@
 name: CI
 
 env:
-  all-cpython-versions: 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12
+  all-cpython-versions: 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10, 3.11, 3.12, 3.13, 3.14
   main-cpython-versions: 2.7, 3.2, 3.5, 3.9, 3.11
   pypy-versions: pypy-2.7, pypy-3.6, pypy-3.7
   cpython-versions: main
   test-set: core
   # Python beta version to be built using pyenv before setup-python support
   # Must also be included in all-cpython-versions 
-  next: 3.13
+  next: 3.14
 
 on:
   push:
@@ -121,12 +121,12 @@ jobs:
         ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
         run-tests-ext: [sh]
         include:
-        - os: windows-2019
+        - os: windows-2022
           python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: bat
-        - os: windows-2019
+        - os: windows-2022
           python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
