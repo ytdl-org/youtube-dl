@@ -264,9 +264,10 @@ class FranceTVIE(InfoExtractor):
             elif code:
                 if code == 2009:
                     self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
-                elif code in (2015, 2017):
+                elif code in (2015, 2017, 2019):
                     # 2015: L'accès à cette vidéo est impossible. (DRM-only)
                     # 2017: Cette vidéo n'est pas disponible depuis le site web mobile (b/c DRM)
+                    # 2019: L'accès à cette vidéo est incompatible avec votre configuration. (DRM-only)
                     drm_formats = True
                     continue
                 elif code == 2007:
@@ -591,6 +592,9 @@ class FranceTVInfoIE(FranceTVBaseIE):
             'format': 'best/bestvideo',
             'skip_download': True,
         },
+        'expected_warnings': [
+            'Ignoring subtitle tracks found in the HLS manifest',
+        ],
     }, {
         'url': 'https://la1ere.franceinfo.fr/martinique/programme-video/diffusion/4774522-origine-kongo.html',
         'add_ie': [FranceTVIE.ie_key()],
@@ -732,7 +736,7 @@ class FranceTVInfoIE(FranceTVBaseIE):
                         (?:(?:(?<!-)\bdata-(?:expression-uu)?id|<figure[^>]+\bid)=["'])|
                         (?<!-)\bdata-piano="\{.[\s\S]*?&quot;video_factory_id&quot;:&quot;)
                         ([\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12})
-                    '''), webpage, 'video id')
+                    '''), webpage, 'video id', fatal=not result.get('url'))
             )
 
         if result.get('url'):
