@@ -478,11 +478,12 @@ class YoutubeDL(object):
             i for i, a in enumerate(argv)
             if re.match(r'^-[0-9A-Za-z_-]{10}$', a)]
         if idxs:
-            correct_argv = (
-                ['youtube-dl']
-                + [a for i, a in enumerate(argv) if i not in idxs]
-                + ['--'] + [argv[i] for i in idxs]
-            )
+            correct_argv = [
+                    'youtube-dl',
+                    *[a for i, a in enumerate(argv) if i not in idxs],
+                    '--',
+                    *[argv[i] for i in idxs]
+                ]
             self.report_warning(
                 'Long argument string detected. '
                 'Use -- to separate parameters and URLs, like this:\n%s\n' %
@@ -554,7 +555,7 @@ class YoutubeDL(object):
         elif not check_quiet or not self.params.get('quiet', False):
             message = self._bidi_workaround(message)
             terminator = ['\n', ''][skip_eol]
-            output = message + terminator
+            output = '{0}{1}'.format(message, terminator)
 
             self._write_string(output, self._screen_file, only_once=only_once)
 
@@ -580,18 +581,14 @@ class YoutubeDL(object):
             self._write_string('\033]0;%s\007' % message, self._screen_file)
 
     def save_console_title(self):
-        if not self.params.get('consoletitle', False):
-            return
-        if self.params.get('simulate', False):
+        if not self.params.get('consoletitle', False) or self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Save the title on stack
             self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
-        if not self.params.get('consoletitle', False):
-            return
-        if self.params.get('simulate', False):
+        if not self.params.get('consoletitle', False) or self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Restore the title from stack
@@ -771,7 +768,7 @@ class YoutubeDL(object):
             # correspondingly that is not what we want since we need to keep
             # '%%' intact for template dict substitution step. Working around
             # with boundary-alike separator hack.
-            sep = ''.join([random.choice(ascii_letters) for _ in range(32)])
+            sep = ''.join(random.choice(ascii_letters) for _ in range(32))
             outtmpl = outtmpl.replace('%%', '%{0}%'.format(sep)).replace('$$', '${0}$'.format(sep))
 
             # outtmpl should be expand_path'ed before template dict substitution
@@ -787,8 +784,7 @@ class YoutubeDL(object):
                 filename = encodeFilename(filename, True).decode(preferredencoding())
             return sanitize_path(filename)
         except ValueError as err:
-            self.report_error('Error in output template: ' + error_to_compat_str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
-            return None
+            self.report_error('Error in output template: {0}{1})'.format(error_to_compat_str(err), ' (encoding: ' + repr(preferredencoding())))
 
     def _match_entry(self, info_dict, incomplete):
         """ Returns None iff the file should be downloaded """
@@ -830,15 +826,13 @@ class YoutubeDL(object):
                 if ret is not None:
                     return ret
 
-        return None
-
     @staticmethod
     def add_extra_info(info_dict, extra_info):
         '''Set the keys from extra_info in info dict if they are missing'''
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
-    def extract_info(self, url, download=True, ie_key=None, extra_info={},
+    def extract_info(self, url, download=True, ie_key=None, extra_info: dict= None,
                      process=True, force_generic_extractor=False):
         """
         Return a list with a dictionary for each video extracted.
@@ -854,6 +848,9 @@ class YoutubeDL(object):
             must be True for download to work.
         force_generic_extractor -- force using the generic extractor
         """
+
+        if extra_info is None:
+            extra_info = {}
 
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
