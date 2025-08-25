@@ -478,12 +478,7 @@ class YoutubeDL(object):
             i for i, a in enumerate(argv)
             if re.match(r'^-[0-9A-Za-z_-]{10}$', a)]
         if idxs:
-            correct_argv = [
-                    'youtube-dl',
-                    *[a for i, a in enumerate(argv) if i not in idxs],
-                    '--',
-                    *[argv[i] for i in idxs]
-                ]
+            correct_argv = ['youtube-dl', *[a for i, a in enumerate(argv) if i not in idxs], '--', *[argv[i] for i in idxs]]
             self.report_warning(
                 'Long argument string detected. '
                 'Use -- to separate parameters and URLs, like this:\n%s\n' %
@@ -832,7 +827,7 @@ class YoutubeDL(object):
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
-    def extract_info(self, url, download=True, ie_key=None, extra_info: dict= None,
+    def extract_info(self, url, download=True, ie_key=None, extra_info: dict = None,
                      process=True, force_generic_extractor=False):
         """
         Return a list with a dictionary for each video extracted.
