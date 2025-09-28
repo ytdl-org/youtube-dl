@@ -2668,7 +2668,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     self.raise_geo_restricted(
                         subreason, countries)
                 reason += '\n' + subreason
+
             if reason:
+                if 'sign in' in reason.lower():
+                    self.raise_login_required(remove_end(reason, 'This helps protect our community. Learn more'))
+                elif traverse_obj(playability_status, ('errorScreen', 'playerCaptchaViewModel', T(dict))):
+                    reason += '. YouTube is requiring a captcha challenge before playback'
                 raise ExtractorError(reason, expected=True)
 
         self._sort_formats(formats)
@@ -2771,6 +2776,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for fmt in self._SUBTITLE_FORMATS:
                     query.update({
                         'fmt': fmt,
+                        # xosf=1 causes undesirable text position data for vtt, json3 & srv* subtitles
+                        # See: https://github.com/yt-dlp/yt-dlp/issues/13654
+                        'xosf': []
                     })
                     lang_subs.append({
                         'ext': fmt,
