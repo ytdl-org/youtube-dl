@@ -413,6 +413,17 @@ def parseOpts(overrideArguments=None):
         action='store_false', dest='youtube_include_dash_manifest',
         help='Do not download the DASH manifests and related data on YouTube videos')
     video_format.add_option(
+        '--youtube-player-js-variant',
+        action='store', dest='youtube_player_js_variant',
+        help='For YouTube, the player javascript variant to use for n/sig deciphering; `actual` to follow the site; default `%default`.',
+        choices=('actual', 'main', 'tcc', 'tce', 'es5', 'es6', 'tv', 'tv_es6', 'phone', 'tablet'),
+        default='main', metavar='VARIANT')
+    video_format.add_option(
+        '--youtube-player-js-version',
+        action='store', dest='youtube_player_js_version',
+        help='For YouTube, the player javascript version to use for n/sig deciphering, specified as `signature_timestamp@hash`, or `actual` to follow the site; default `%default`',
+        default='20348@0004de42', metavar='STS@HASH')
+    video_format.add_option(
         '--merge-output-format',
         action='store', dest='merge_output_format', metavar='FORMAT', default=None,
         help=(

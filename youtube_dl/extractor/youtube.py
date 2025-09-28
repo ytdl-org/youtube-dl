@@ -1625,6 +1625,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         self._code_cache = {}
         self._player_cache = {}
 
+    def _get_player_js_version(self):
+        player_js_version = self.get_param('youtube_player_js_version') or '20348@0004de42'
+        sts_hash = self._search_regex(
+            ('^actual$(^)?(^)?', r'^([0-9]{5,})@([0-9a-f]{8,})$'),
+            player_js_version, 'player_js_version', group=(1, 2), default=None)
+        if sts_hash:
+            return sts_hash
+        self.report_warning(
+            'Invalid player JS version "{0}" specified. '
+            'It should be "{1}" or in the format of {2}'.format(
+                player_js_version, 'actual', 'SignatureTimeStamp@Hash'), only_once=True)
+        return None, None
+
     # *ytcfgs, webpage=None
     def _extract_player_url(self, *ytcfgs, **kw_webpage):
         if ytcfgs and not isinstance(ytcfgs[0], dict):
@@ -1635,9 +1648,34 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 webpage or '', 'player URL', fatal=False)
             if player_url:
                 ytcfgs = ytcfgs + ({'PLAYER_JS_URL': player_url},)
-        return traverse_obj(
+        player_url = traverse_obj(
             ytcfgs, (Ellipsis, 'PLAYER_JS_URL'), (Ellipsis, 'WEB_PLAYER_CONTEXT_CONFIGS', Ellipsis, 'jsUrl'),
             get_all=False, expected_type=lambda u: urljoin('https://www.youtube.com', u))
+
+        player_id_override = self._get_player_js_version()[1]
+
+        requested_js_variant = self.get_param('youtube_player_js_variant') or 'main'
+        variant_js = next(
+            (v for k, v in self._PLAYER_JS_VARIANT_MAP if k == requested_js_variant),
+            None)
+        if variant_js:
+            player_id = player_id_override or self._extract_player_info(player_url)
+            original_url = player_url
+            player_url = '/s/player/{0}/{1}'.format(player_id, variant_js)
+            if original_url != player_url:
+                self.write_debug(
+                    'Forcing "{0}" player JS variant for player {1}\n'
+                    '        original url = {2}'.format(
+                        requested_js_variant, player_id, original_url),
+                    only_once=True)
+        elif requested_js_variant != 'actual':
+            self.report_warning(
+                'Invalid player JS variant name "{0}" requested. '
+                'Valid choices are: {1}'.format(
+                    requested_js_variant, ','.join(k for k, _ in self._PLAYER_JS_VARIANT_MAP)),
+                only_once=True)
+
+        return urljoin('https://www.youtube.com', player_url)
 
     def _download_player_url(self, video_id, fatal=False):
         res = self._download_webpage(
@@ -1645,9 +1683,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             note='Downloading iframe API JS', video_id=video_id, fatal=fatal)
         player_version = self._search_regex(
             r'player\\?/([0-9a-fA-F]{8})\\?/', res or '', 'player version', fatal=fatal,
-            default=NO_DEFAULT if res else None)
-        if player_version:
-            return 'https://www.youtube.com/s/player/{0}/player_ias.vflset/en_US/base.js'.format(player_version)
+            default=NO_DEFAULT if res else None) or None
+        return player_version and 'https://www.youtube.com/s/player/{0}/player_ias.vflset/en_US/base.js'.format(player_version)
 
     def _signature_cache_id(self, example_sig):
         """ Return a string representation of a signature """
@@ -2034,9 +2071,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_signature_timestamp(self, video_id, player_url, ytcfg=None, fatal=False):
         """
         Extract signatureTimestamp (sts)
+
         Required to tell API what sig/player version is in use.
         """
-        sts = traverse_obj(ytcfg, 'STS', expected_type=int)
+        sts = traverse_obj(
+            (self._get_player_js_version(), ytcfg),
+            (0, 0),
+            (1, 'STS'),
+            expected_type=int_or_none)
+
         if sts:
             return sts
 
