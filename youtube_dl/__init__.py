@@ -409,6 +409,8 @@ def _real_main(argv=None):
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
+        'youtube_player_js_version': opts.youtube_player_js_version,
+        'youtube_player_js_variant': opts.youtube_player_js_variant,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
         'mark_watched': opts.mark_watched,
