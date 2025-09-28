@@ -122,12 +122,12 @@ jobs:
         ytdl-test-set: ${{ fromJSON(needs.select.outputs.test-set) }}
         run-tests-ext: [sh]
         include:
-        - os: windows-2019
+        - os: windows-2022
           python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'core') && 'core' || 'nocore' }}
           run-tests-ext: bat
-        - os: windows-2019
+        - os: windows-2022
           python-version: 3.4
           python-impl: cpython
           ytdl-test-set: ${{ contains(needs.select.outputs.test-set, 'download') && 'download'  || 'nodownload' }}
