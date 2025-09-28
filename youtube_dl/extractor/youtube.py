@@ -3535,18 +3535,29 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if not content_id:
             return
         content_type = view_model.get('contentType')
-        if content_type not in ('LOCKUP_CONTENT_TYPE_PLAYLIST', 'LOCKUP_CONTENT_TYPE_PODCAST'):
+        if content_type == 'LOCKUP_CONTENT_TYPE_VIDEO':
+            ie = YoutubeIE
+            url = update_url_query(
+                'https://www.youtube.com/watch', {'v': content_id}),
+            thumb_keys = (None,)
+        elif content_type in ('LOCKUP_CONTENT_TYPE_PLAYLIST', 'LOCKUP_CONTENT_TYPE_PODCAST'):
+            ie = YoutubeTabIE
+            url = update_url_query(
+                'https://www.youtube.com/playlist', {'list': content_id}),
+            thumb_keys = ('collectionThumbnailViewModel', 'primaryThumbnail')
+        else:
             self.report_warning(
-                'Unsupported lockup view model content type "{0}"{1}'.format(content_type, bug_reports_message()), only_once=True)
+                'Unsupported lockup view model content type "{0}"{1}'.format(content_type, bug_reports_message()),
+                only_once=True)
             return
+        thumb_keys = ('contentImage',) + thumb_keys + ('thumbnailViewModel', 'image')
         return merge_dicts(self.url_result(
-            update_url_query('https://www.youtube.com/playlist', {'list': content_id}),
-            ie=YoutubeTabIE.ie_key(), video_id=content_id), {
+            url, ie=ie.ie_key(), video_id=content_id), {
                 'title': traverse_obj(view_model, (
-                    'metadata', 'lockupMetadataViewModel', 'title', 'content', T(compat_str))),
-                'thumbnails': self._extract_thumbnails(view_model, (
-                    'contentImage', 'collectionThumbnailViewModel', 'primaryThumbnail',
-                    'thumbnailViewModel', 'image'), final_key='sources'),
+                    'metadata', 'lockupMetadataViewModel', 'title',
+                    'content', T(compat_str))),
+                'thumbnails': self._extract_thumbnails(
+                    view_model, thumb_keys, final_key='sources'),
         })
 
     def _extract_shorts_lockup_view_model(self, view_model):
