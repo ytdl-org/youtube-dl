@@ -1,5 +1,4 @@
 # coding: utf-8
-
 from __future__ import unicode_literals
 
 import collections
@@ -130,6 +129,15 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
             'SUPPORTS_COOKIES': True,
         },
+        'tv_simply': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'TVHTML5_SIMPLY',
+                    'clientVersion': '1.0',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 75,
+        },
         'web': {
             'INNERTUBE_CONTEXT': {
                 'client': {
@@ -140,6 +148,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
             'REQUIRE_PO_TOKEN': True,
             'SUPPORTS_COOKIES': True,
+            'PLAYER_PARAMS': '8AEB',
         },
     }
 
@@ -419,10 +428,15 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                    T(compat_str)))
 
     def _extract_ytcfg(self, video_id, webpage):
-        return self._parse_json(
-            self._search_regex(
-                r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;', webpage, 'ytcfg',
-                default='{}'), video_id, fatal=False) or {}
+        ytcfg = self._search_json(
+            r'ytcfg\.set\s*\(', webpage, 'ytcfg', video_id,
+            end_pattern=r'\)\s*;', default={})
+
+        traverse_obj(ytcfg, (
+            'INNERTUBE_CONTEXT', 'client', 'configInfo',
+            T(lambda x: x.pop('appInstallData', None))))
+
+        return ytcfg
 
     def _extract_video(self, renderer):
         video_id = renderer['videoId']
@@ -1587,7 +1601,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     _PLAYER_JS_VARIANT_MAP = (
         ('main', 'player_ias.vflset/en_US/base.js'),
+        ('tcc', 'player_ias_tcc.vflset/en_US/base.js'),
         ('tce', 'player_ias_tce.vflset/en_US/base.js'),
+        ('es5', 'player_es5.vflset/en_US/base.js'),
+        ('es6', 'player_es6.vflset/en_US/base.js'),
         ('tv', 'tv-player-ias.vflset/tv-player-ias.js'),
         ('tv_es6', 'tv-player-es6.vflset/tv-player-es6.js'),
         ('phone', 'player-plasma-ias-phone-en_US.vflset/base.js'),
@@ -2257,13 +2274,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     player_response['videoDetails'] = video_details
 
         def is_agegated(playability):
-            if not isinstance(playability, dict):
-                return
+            # playability: dict
+            if not playability:
+                return False
 
             if playability.get('desktopLegacyAgeGateReason'):
                 return True
 
-            reasons = filter(None, (playability.get(r) for r in ('status', 'reason')))
+            reasons = traverse_obj(playability, (('status', 'reason'),))
             AGE_GATE_REASONS = (
                 'confirm your age', 'age-restricted', 'inappropriate',  # reason
                 'age_verification_required', 'age_check_required',  # status
@@ -2321,15 +2339,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 trailer_video_id, self.ie_key(), trailer_video_id)
 
         def get_text(x):
-            if not x:
-                return
-            text = x.get('simpleText')
-            if text and isinstance(text, compat_str):
-                return text
-            runs = x.get('runs')
-            if not isinstance(runs, list):
-                return
-            return ''.join([r['text'] for r in runs if isinstance(r.get('text'), compat_str)])
+            return ''.join(traverse_obj(
+                x, (('simpleText',),), ('runs', Ellipsis, 'text'),
+                expected_type=compat_str))
 
         search_meta = (
             (lambda x: self._html_search_meta(x, webpage, default=None))
@@ -2541,15 +2553,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         hls_manifest_url = streaming_data.get('hlsManifestUrl')
         if hls_manifest_url:
-            for f in self._extract_m3u8_formats(
+            formats.extend(
+                f for f in self._extract_m3u8_formats(
                     hls_manifest_url, video_id, 'mp4',
-                    entry_protocol='m3u8_native', live=is_live, fatal=False):
+                    entry_protocol='m3u8_native', live=is_live, fatal=False)
                 if process_manifest_format(
-                        f, 'hls', None, self._search_regex(
-                            r'/itag/(\d+)', f['url'], 'itag', default=None)):
-                    formats.append(f)
+                    f, 'hls', None, self._search_regex(
+                        r'/itag/(\d+)', f['url'], 'itag', default=None)))
 
-        if self._downloader.params.get('youtube_include_dash_manifest', True):
+        if self.get_param('youtube_include_dash_manifest', True):
             dash_manifest_url = streaming_data.get('dashManifestUrl')
             if dash_manifest_url:
                 for f in self._extract_mpd_formats(
@@ -2576,7 +2588,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 playability_status,
                 lambda x: x['errorScreen']['playerErrorMessageRenderer'],
                 dict) or {}
-            reason = get_text(pemr.get('reason')) or playability_status.get('reason')
+            reason = get_text(pemr.get('reason')) or playability_status.get('reason') or ''
             subreason = pemr.get('subreason')
             if subreason:
                 subreason = clean_html(get_text(subreason))
@@ -2732,7 +2744,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for d_k, s_ks in [('start', ('start', 't')), ('end', ('end',))]:
                     d_k += '_time'
                     if d_k not in info and k in s_ks:
-                        info[d_k] = parse_duration(query[k][0])
+                        info[d_k] = parse_duration(v[0])
 
         if video_description:
             # Youtube Music Auto-generated description
@@ -2780,9 +2792,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     for next_num, content in enumerate(contents, start=1):
                         mmlir = content.get('macroMarkersListItemRenderer') or {}
                         start_time = chapter_time(mmlir)
-                        end_time = chapter_time(try_get(
-                            contents, lambda x: x[next_num]['macroMarkersListItemRenderer'])) \
-                            if next_num < len(contents) else duration
+                        end_time = (traverse_obj(
+                            contents, (next_num, 'macroMarkersListItemRenderer', T(chapter_time)))
+                            if next_num < len(contents) else duration)
                         if start_time is None or end_time is None:
                             continue
                         chapters.append({
@@ -3446,20 +3458,17 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         content_id = traverse_obj(view_model, (
             'onTap', 'innertubeCommand', 'reelWatchEndpoint', 'videoId',
             T(lambda v: v if YoutubeIE.suitable(v) else None)))
-        if not content_id:
-            return
         return merge_dicts(self.url_result(
             content_id, ie=YoutubeIE.ie_key(), video_id=content_id), {
                 'title': traverse_obj(view_model, (
                     'overlayMetadata', 'primaryText', 'content', T(compat_str))),
                 'thumbnails': self._extract_thumbnails(
                     view_model, 'thumbnail', final_key='sources'),
-        })
+        }) if content_id else None
 
     def _video_entry(self, video_renderer):
         video_id = video_renderer.get('videoId')
-        if video_id:
-            return self._extract_video(video_renderer)
+        return self._extract_video(video_renderer) if video_id else None
 
     def _post_thread_entries(self, post_thread_renderer):
         post_renderer = try_get(
@@ -4119,6 +4128,7 @@ class YoutubeFeedsInfoExtractor(YoutubeTabIE):
 
     Subclasses must define the _FEED_NAME property.
     """
+
     _LOGIN_REQUIRED = True
 
     @property
