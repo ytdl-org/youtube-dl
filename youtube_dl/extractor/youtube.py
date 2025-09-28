@@ -109,7 +109,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'MWEB',
-                    'clientVersion': '2.20250311.03.00',
+                    'clientVersion': '2.2.20250925.01.00',
                     # mweb previously did not require PO Token with this UA
                     'userAgent': 'Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)',
                 },
@@ -123,32 +123,35 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'client': {
                     'clientName': 'TVHTML5',
                     'clientVersion': '7.20250312.16.00',
-                    'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+                    # See: https://github.com/youtube/cobalt/blob/main/cobalt/browser/user_agent/user_agent_platform_info.cc#L506
+                    'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/25.lts.30.1034943-gold (unlike Gecko), Unknown_TV_Unknown_0/Unknown (Unknown, Unknown)',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
             'SUPPORTS_COOKIES': True,
         },
-        'tv_simply': {
-            'INNERTUBE_CONTEXT': {
-                'client': {
-                    'clientName': 'TVHTML5_SIMPLY',
-                    'clientVersion': '1.0',
-                },
-            },
-            'INNERTUBE_CONTEXT_CLIENT_NAME': 75,
-        },
+
         'web': {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'WEB',
-                    'clientVersion': '2.20250312.04.00',
+                    'clientVersion': '2.20250925.01.00',
+                    'userAgent': 'Mozilla/5.0',
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
             'REQUIRE_PO_TOKEN': True,
             'SUPPORTS_COOKIES': True,
-            'PLAYER_PARAMS': '8AEB',
+        },
+        # Safari UA returns pre-merged video+audio 144p/240p/360p/720p/1080p HLS formats
+        'web_safari': {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'WEB',
+                    'clientVersion': '2.20250925.01.00',
+                    'userAgent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)',
+                },
+            },
         },
     }
 
