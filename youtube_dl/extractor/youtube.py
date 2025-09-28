@@ -2849,6 +2849,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             initial_data = self._call_api(
                 'next', {'videoId': video_id}, video_id, fatal=False)
 
+        initial_sdcr = None
         if initial_data:
             chapters = self._extract_chapters_from_json(
                 initial_data, video_id, duration)
@@ -2976,12 +2977,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 info['track'] = mrr_contents_text
 
             # this is not extraction but spelunking!
-            carousel_lockups = traverse_obj(
-                initial_data,
-                ('engagementPanels', Ellipsis, 'engagementPanelSectionListRenderer',
-                 'content', 'structuredDescriptionContentRenderer', 'items', Ellipsis,
-                 'videoDescriptionMusicSectionRenderer', 'carouselLockups', Ellipsis),
-                expected_type=dict) or []
+            initial_sdcr = traverse_obj(initial_data, (
+                'engagementPanels', Ellipsis, 'engagementPanelSectionListRenderer',
+                'content', 'structuredDescriptionContentRenderer', T(dict)),
+                get_all=False)
+            carousel_lockups = traverse_obj(initial_sdcr, (
+                'items', Ellipsis, 'videoDescriptionMusicSectionRenderer',
+                'carouselLockups', Ellipsis, T(dict))) or []
             # try to reproduce logic from metadataRowContainerRenderer above (if it still is)
             fields = (('ALBUM', 'album'), ('ARTIST', 'artist'), ('SONG', 'track'), ('LICENSES', 'license'))
             # multiple_songs ?
@@ -3005,6 +3007,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 info[d_k] = v
 
         self.mark_watched(video_id, player_response)
+
+        # Fallbacks for missing metadata
+        if initial_sdcr:
+            if info.get('description') is None:
+                info['description'] = traverse_obj(initial_sdcr, (
+                    'items', Ellipsis, 'expandableVideoDescriptionBodyRenderer',
+                    'attributedDescriptionBodyText', 'content', T(compat_str)),
+                    get_all=False)
+            # videoDescriptionHeaderRenderer also has publishDate/channel/handle/ucid, but not needed
+            if info.get('title') is None:
+                info['title'] = traverse_obj(
+                    (initial_sdcr, initial_data),
+                    (0, 'items', Ellipsis, 'videoDescriptionHeaderRenderer', T(dict)),
+                    (1, 'playerOverlays', 'playerOverlayRenderer', 'videoDetails',
+                     'playerOverlayVideoDetailsRenderer', T(dict)),
+                    expected_type=lambda x: self._get_text(x, 'title'),
+                    get_all=False)
 
         return merge_dicts(
             info, {
