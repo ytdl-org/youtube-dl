@@ -2241,12 +2241,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_id, 'initial player response')
         is_live = traverse_obj(player_response, ('videoDetails', 'isLive'))
 
+        fetched_timestamp = None
         if False and not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
         if True or not player_response:
             origin = 'https://www.youtube.com'
             pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
+            fetched_timestamp = int(time.time())
 
             player_url = self._extract_player_url(webpage)
             ytcfg = self._extract_ytcfg(video_id, webpage or '')
@@ -2313,6 +2315,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 hls = traverse_obj(
                     (player_response, api_player_response),
                     (Ellipsis, 'streamingData', 'hlsManifestUrl', T(url_or_none)))
+                fetched_timestamp = int(time.time())
                 if len(hls) == 2 and not hls[0] and hls[1]:
                     player_response['streamingData']['hlsManifestUrl'] = hls[1]
                 else:
@@ -2474,6 +2477,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         lower = lambda s: s.lower()
 
+        if is_live:
+            fetched_timestamp = None
+        elif fetched_timestamp is not None:
+            # Handle preroll waiting period
+            preroll_sleep = self.get_param('youtube_preroll_sleep')
+            preroll_sleep = int_or_none(preroll_sleep, default=6)
+            fetched_timestamp += preroll_sleep
+
         for fmt in streaming_formats:
             if fmt.get('targetDurationSec'):
                 continue
@@ -2569,6 +2580,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 } if dct['filesize'] else {
                     'downloader_options': {'http_chunk_size': CHUNK_SIZE},  # No longer useful?
                 })
+
+            if fetched_timestamp:
+                dct['available_at'] = fetched_timestamp
 
             formats.append(dct)
 
