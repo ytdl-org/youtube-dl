@@ -2183,8 +2183,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = self._match_id(url)
         base_url = self.http_scheme() + '//www.youtube.com/'
         webpage_url = base_url + 'watch?v=' + video_id
+        ua = traverse_obj(self._INNERTUBE_CLIENTS, (
+            'web', 'INNERTUBE_CONTEXT', 'client', 'userAgent'))
+        headers = {'User-Agent': ua} if ua else None
         webpage = self._download_webpage(
-            webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
+            webpage_url + '&bpctr=9999999999&has_verified=1', video_id,
+            headers=headers, fatal=False)
 
         player_response = None
         player_url = None
