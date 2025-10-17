@@ -521,34 +521,26 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 headers={'content-type': 'application/json'})
             if not search:
                 break
-            slr_contents = try_get(
+            slr_contents = traverse_obj(
                 search,
-                (lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'],
-                 lambda x: x['onResponseReceivedCommands'][0]['appendContinuationItemsAction']['continuationItems']),
-                list)
+                ('contents', 'twoColumnSearchResultsRenderer', 'primaryContents',
+                 'sectionListRenderer', 'contents'),
+                ('onResponseReceivedCommands', 0, 'appendContinuationItemsAction',
+                 'continuationItems'),
+                expected_type=list)
             if not slr_contents:
                 break
-            for slr_content in slr_contents:
-                isr_contents = try_get(
-                    slr_content,
-                    lambda x: x['itemSectionRenderer']['contents'],
-                    list)
-                if not isr_contents:
-                    continue
-                for content in isr_contents:
-                    if not isinstance(content, dict):
-                        continue
-                    video = content.get('videoRenderer')
-                    if not isinstance(video, dict):
-                        continue
-                    video_id = video.get('videoId')
-                    if not video_id:
-                        continue
-                    yield self._extract_video(video)
-            token = try_get(
+            for video in traverse_obj(
+                    slr_contents,
+                    (Ellipsis, 'itemSectionRenderer', 'contents',
+                     Ellipsis, 'videoRenderer',
+                     T(lambda v: v if v.get('videoId') else None))):
+                yield self._extract_video(video)
+
+            token = traverse_obj(
                 slr_contents,
-                lambda x: x[-1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'],
-                compat_str)
+                (-1, 'continuationItemRenderer', 'continuationEndpoint',
+                 'continuationCommand', 'token', T(compat_str)))
             if not token:
                 break
             data['continuation'] = token
@@ -3428,13 +3420,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     @staticmethod
     def _extract_grid_item_renderer(item):
-        assert isinstance(item, dict)
-        for key, renderer in item.items():
-            if not key.startswith('grid') or not key.endswith('Renderer'):
-                continue
-            if not isinstance(renderer, dict):
-                continue
-            return renderer
+        return traverse_obj(item, (
+            T(dict.items), lambda _, k_v: k_v[0].startswith('grid') and k_v[0].endswith('Renderer'),
+            1, T(dict)), get_all=False)
 
     @staticmethod
     def _get_text(r, k):
@@ -3608,15 +3596,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             yield self.url_result(ep_url, ie=YoutubeIE.ie_key(), video_id=video_id)
 
     def _post_thread_continuation_entries(self, post_thread_continuation):
-        contents = post_thread_continuation.get('contents')
-        if not isinstance(contents, list):
-            return
-        for content in contents:
-            renderer = content.get('backstagePostThreadRenderer')
-            if not isinstance(renderer, dict):
-                continue
-            for entry in self._post_thread_entries(renderer):
-                yield entry
+        for renderer in traverse_obj(post_thread_continuation, (
+                'contents', Ellipsis, 'backstagePostThreadRenderer', T(dict))):
+            for from_ in self._post_thread_entries(renderer):
+                yield from_
 
     def _rich_grid_entries(self, contents):
         for content in traverse_obj(
@@ -3691,17 +3674,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if slr_renderer:
             is_channels_tab = tab.get('title') == 'Channels'
             continuation = None
-            slr_contents = try_get(slr_renderer, lambda x: x['contents'], list) or []
-            for slr_content in slr_contents:
-                if not isinstance(slr_content, dict):
-                    continue
-                is_renderer = try_get(slr_content, lambda x: x['itemSectionRenderer'], dict)
-                if not is_renderer:
-                    continue
-                isr_contents = try_get(is_renderer, lambda x: x['contents'], list) or []
-                for isr_content in isr_contents:
-                    if not isinstance(isr_content, dict):
-                        continue
+            for is_renderer in traverse_obj(slr_renderer, (
+                    'contents', Ellipsis, 'itemSectionRenderer', T(dict))):
+                for isr_content in traverse_obj(slr_renderer, (
+                        'contents', Ellipsis, T(dict))):
                     renderer = isr_content.get('playlistVideoListRenderer')
                     if renderer:
                         for entry in self._playlist_entries(renderer):
