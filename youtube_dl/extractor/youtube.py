@@ -100,8 +100,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 5,
+            'REQUIRE_PO_TOKEN': False,
             'REQUIRE_JS_PLAYER': False,
-            'REQUIRE_PO_TOKEN': True,
         },
         # mweb has 'ultralow' formats
         # See: https://github.com/yt-dlp/yt-dlp/pull/557
@@ -478,6 +478,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _extract_thumbnails(data, *path_list, **kw_final_key):
         """
         Extract thumbnails from thumbnails dict
+
         @param path_list: path list to level that contains 'thumbnails' key
         """
         final_key = kw_final_key.get('final_key', 'thumbnails')
@@ -2176,7 +2177,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('Invalid URL: %s' % url)
         return mobj.group(2)
 
-    def _extract_chapters_from_json(self, data, video_id, duration):
+    @staticmethod
+    def _extract_chapters_from_json(data, video_id, duration):
         chapters_list = try_get(
             data,
             lambda x: x['playerOverlays']
@@ -2472,7 +2474,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return LazyList({
                 'url': update_url_query(f['url'], {
                     'range': '{0}-{1}'.format(range_start, min(range_start + CHUNK_SIZE - 1, f['filesize'])),
-                })
+                }),
             } for range_start in range(0, f['filesize'], CHUNK_SIZE))
 
         lower = lambda s: s.lower()
@@ -2778,7 +2780,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'fmt': fmt,
                         # xosf=1 causes undesirable text position data for vtt, json3 & srv* subtitles
                         # See: https://github.com/yt-dlp/yt-dlp/issues/13654
-                        'xosf': []
+                        'xosf': [],
                     })
                     lang_subs.append({
                         'ext': fmt,
@@ -3515,8 +3517,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 shelf_renderer, lambda x: x['title']['runs'][0]['text'], compat_str)
             yield self.url_result(shelf_url, video_title=title)
         # Shelf may not contain shelf URL, fallback to extraction from content
-        for entry in self._shelf_entries_from_content(shelf_renderer):
-            yield entry
+        for from_ in self._shelf_entries_from_content(shelf_renderer):
+            yield from_
 
     def _playlist_entries(self, video_list_renderer):
         for content in video_list_renderer['contents']:
@@ -3538,12 +3540,12 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if content_type == 'LOCKUP_CONTENT_TYPE_VIDEO':
             ie = YoutubeIE
             url = update_url_query(
-                'https://www.youtube.com/watch', {'v': content_id}),
+                'https://www.youtube.com/watch', {'v': content_id})
             thumb_keys = (None,)
         elif content_type in ('LOCKUP_CONTENT_TYPE_PLAYLIST', 'LOCKUP_CONTENT_TYPE_PODCAST'):
             ie = YoutubeTabIE
             url = update_url_query(
-                'https://www.youtube.com/playlist', {'list': content_id}),
+                'https://www.youtube.com/playlist', {'list': content_id})
             thumb_keys = ('collectionThumbnailViewModel', 'primaryThumbnail')
         else:
             self.report_warning(
@@ -4162,7 +4164,7 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    def _real_extract(self, _):
         return self.url_result(
             'https://www.youtube.com/playlist?list=LL',
             ie=YoutubeTabIE.ie_key())
@@ -4244,7 +4246,7 @@ class YoutubeFeedsInfoExtractor(YoutubeTabIE):
     def _real_initialize(self):
         self._login()
 
-    def _real_extract(self, url):
+    def _real_extract(self, _):
         return self.url_result(
             'https://www.youtube.com/feed/%s' % self._FEED_NAME,
             ie=YoutubeTabIE.ie_key())
@@ -4259,7 +4261,7 @@ class YoutubeWatchLaterIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    def _real_extract(self, _):
         return self.url_result(
             'https://www.youtube.com/playlist?list=WL', ie=YoutubeTabIE.ie_key())
 
@@ -4339,7 +4341,7 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    def _real_extract(self, _):
         raise ExtractorError(
             'Did you forget to quote the URL? Remember that & is a meta '
             'character in most shells, so you want to put the URL in quotes, '
