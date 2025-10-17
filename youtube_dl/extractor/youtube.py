@@ -3872,18 +3872,34 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         uploader['channel'] = uploader['uploader']
         return uploader
 
-    @classmethod
-    def _extract_alert(cls, data):
-        alerts = []
-        for alert in traverse_obj(data, ('alerts', Ellipsis), expected_type=dict):
-            alert_text = traverse_obj(
-                alert, (None, lambda x: x['alertRenderer']['text']), get_all=False)
-            if not alert_text:
-                continue
-            text = cls._get_text(alert_text, 'text')
-            if text:
-                alerts.append(text)
-        return '\n'.join(alerts)
+    def _extract_and_report_alerts(self, data, expected=True, fatal=True, only_once=False):
+
+        def alerts():
+            for alert in traverse_obj(data, ('alerts', Ellipsis), expected_type=dict):
+                alert_dict = traverse_obj(
+                    alert, 'alertRenderer', None, expected_type=dict, get_all=False)
+                alert_type = traverse_obj(alert_dict, 'type')
+                if not alert_type:
+                    continue
+                message = self._get_text(alert_dict, 'text')
+                if message:
+                    yield alert_type, message
+
+        errors, warnings = [], []
+        _IGNORED_WARNINGS = T('Unavailable videos will be hidden during playback')
+        for alert_type, alert_message in alerts():
+            if alert_type.lower() == 'error' and fatal:
+                errors.append([alert_type, alert_message])
+            elif alert_message not in _IGNORED_WARNINGS:
+                warnings.append([alert_type, alert_message])
+
+        for alert_type, alert_message in itertools.chain(warnings, errors[:-1]):
+            self.report_warning(
+                'YouTube said: %s - %s' % (alert_type, alert_message),
+                only_once=only_once)
+        if errors:
+            raise ExtractorError(
+                'YouTube said: %s' % (errors[-1][1],), expected=expected)
 
     def _extract_from_tabs(self, item_id, webpage, data, tabs):
         selected_tab = self._extract_selected_tab(tabs)
@@ -3983,10 +3999,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             compat_str) or video_id
         if video_id:
             return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+
         # Capture and output alerts
-        alert = self._extract_alert(data)
-        if alert:
-            raise ExtractorError(alert, expected=True)
+        self._extract_and_report_alerts(data)
+
         # Failed to recognize
         raise ExtractorError('Unable to recognize tab page')
 
