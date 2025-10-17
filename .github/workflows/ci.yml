@@ -365,7 +365,7 @@ jobs:
         python -m ensurepip || python -m pip --version || { \
           get_pip="${{ contains(needs.select.outputs.own-pip-versions, matrix.python-version) && format('{0}/', matrix.python-version) || '' }}"; \
           curl -L -O "https://bootstrap.pypa.io/pip/${get_pip}get-pip.py"; \
-          python get-pip.py; }
+          python get-pip.py --no-setuptools --no-wheel; }
     - name: Set up Python 2.6 pip
       if: ${{ matrix.python-version == '2.6' }}
       shell: bash
