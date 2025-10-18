@@ -12,6 +12,7 @@ from ..utils import (
 
 
 class RumbleEmbedIE(InfoExtractor):
+    _DEBUG = False
     _VALID_URL = r'https?://(?:www\.)?rumble\.com/embed/(?:[0-9a-z]+\.)?(?P<id>[0-9a-z]+)'
     _TESTS = [{
         'url': 'https://rumble.com/embed/v5pv5f',
@@ -33,6 +34,11 @@ class RumbleEmbedIE(InfoExtractor):
         video = self._download_json(
             'https://rumble.com/embedJS/', video_id,
             query={'request': 'video', 'v': video_id})
+
+        if self._DEBUG:
+            if video:
+                self.to_screen('[debug] video = %r' % video)
+
         title = video['title']
 
         formats = []
@@ -51,6 +57,11 @@ class RumbleEmbedIE(InfoExtractor):
                     if bitrate:
                         f['tbr'] = int_or_none(bitrate)
                     formats.append(f)
+
+        if self._DEBUG:
+            if formats:
+                self.to_screen('[debug] formats = %r' % formats)
+
         self._sort_formats(formats)
 
         author = video.get('author') or {}
