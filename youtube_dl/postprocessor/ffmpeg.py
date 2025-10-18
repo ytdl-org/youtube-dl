@@ -352,8 +352,16 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
     def run(self, information):
         path = information['filepath']
+        if self._downloader.params.get('verbose', False):
+            self._downloader.to_screen('[debug] path = %s ; information[\'ext\'] = %s; self._preferedformat = %s' %
+                                       (path, information['ext'], self._preferedformat))
+        self._downloader.to_screen('[ffmpeg] file %s' % path)
         if information['ext'] == self._preferedformat:
-            self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
+            self._downloader.to_screen('[ffmpeg] Not converting video file "%s" - already is in target format %s' % (path, self._preferedformat))
+            return [], information
+        if information['ext'] == ".tar":
+            self._downloader.to_screen(
+                '[ffmpeg] Not downloading .tar to convert to video file "%s" - already is in target format %s' % (path, self._preferedformat))
             return [], information
         options = []
         if self._preferedformat == 'avi':
