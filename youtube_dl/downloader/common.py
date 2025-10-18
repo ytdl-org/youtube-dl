@@ -11,6 +11,7 @@ from ..utils import (
     decodeArgument,
     encodeFilename,
     error_to_compat_str,
+    float_or_none,
     format_bytes,
     shell_quote,
     timeconvert,
@@ -425,14 +426,27 @@ class FileDownloader(object):
                 })
                 return True
 
-        min_sleep_interval = self.params.get('sleep_interval')
-        if min_sleep_interval:
-            max_sleep_interval = self.params.get('max_sleep_interval', min_sleep_interval)
-            sleep_interval = random.uniform(min_sleep_interval, max_sleep_interval)
+        min_sleep_interval, max_sleep_interval = (
+            float_or_none(self.params.get(interval), default=0)
+            for interval in ('sleep_interval', 'max_sleep_interval'))
+
+        sleep_note = ''
+        available_at = info_dict.get('available_at')
+        if available_at:
+            forced_sleep_interval = available_at - int(time.time())
+            if forced_sleep_interval > min_sleep_interval:
+                sleep_note = 'as required by the site'
+                min_sleep_interval = forced_sleep_interval
+            if forced_sleep_interval > max_sleep_interval:
+                max_sleep_interval = forced_sleep_interval
+
+        sleep_interval = random.uniform(
+            min_sleep_interval, max_sleep_interval or min_sleep_interval)
+
+        if sleep_interval > 0:
             self.to_screen(
-                '[download] Sleeping %s seconds...' % (
-                    int(sleep_interval) if sleep_interval.is_integer()
-                    else '%.2f' % sleep_interval))
+                '[download] Sleeping %.2f seconds %s...' % (
+                    sleep_interval, sleep_note))
             time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)
