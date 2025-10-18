@@ -233,6 +233,8 @@ class HttpFD(FileDownloader):
                 ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
+            # Initialization
+            data_block = b''
             while True:
                 try:
                     # Download and write
@@ -262,6 +264,8 @@ class HttpFD(FileDownloader):
                         assert ctx.stream is not None
                         ctx.filename = self.undo_temp_name(ctx.tmpfilename)
                         self.report_destination(ctx.filename)
+                        if self.params.get('verbose'):
+                            self.to_screen('[debug] Downloading video to temporary file "%s" then will copy to the final destination, "%s"' % (ctx.tmpfilename, ctx.filename))
                     except (OSError, IOError) as err:
                         self.report_error('unable to open for writing: %s' % str(err))
                         return False
