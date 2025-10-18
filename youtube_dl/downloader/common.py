@@ -132,6 +132,8 @@ class FileDownloader(object):
         fn = encodeFilename(unencoded_filename)
         if os.path.isfile(fn):
             return os.path.getsize(fn)
+        else:
+            return None
 
     @staticmethod
     def best_block_size(elapsed_time, bytes):
@@ -336,6 +338,57 @@ class FileDownloader(object):
         """Report it was impossible to resume download."""
         self.to_screen('[download] Unable to resume')
 
+    def _does_tar_file_exists_as_a_video_format(self, filename):
+        """
+        If an user has already downloaded a video file and converted it to a valid video format from a TAR, then
+        we need to search for a similarly named file with a valid video extension. This will save the user time if
+        the file already exists.
+
+        :param filename: filename that is downloaded
+        :return: bool
+        """
+        _get_merge_output_format = self.params.get('merge_output_format')
+        _get_recodevideo = self.params.get('recodevideo')
+        if self.params.get('verbose'):
+            self.to_screen('[debug] filename = %r' % filename)
+            if _get_merge_output_format is not None:
+                self.to_screen('[debug] commandline option -> merge_output_format = %r' % _get_merge_output_format)
+            if _get_recodevideo is not None:
+                self.to_screen('[debug] commandline option -> _get_recodevideo = %r' % _get_recodevideo)
+
+        _filename_plus_output_format = ""
+        if filename is not None and _get_merge_output_format is not None:
+            _filename, _filename_extension = os.path.splitext(filename)
+            _filename_plus_output_format = _filename + "." + _get_merge_output_format
+
+            if _filename_plus_output_format is not None:
+                if self.params.get('verbose'):
+                    self.to_screen('[debug] This is the destination filename, %r, if the file was downloaded '
+                                   'as a tar file and then converted to the desired video format'
+                                   % _filename_plus_output_format)
+
+            _encoded_filename = encodeFilename(_filename_plus_output_format)
+            if self.params.get('verbose'):
+                self.to_screen('[debug] Encoded filename -> _encoded_filename = %r' % _encoded_filename)
+
+            if os.path.isfile(_encoded_filename):
+                if self.params.get('verbose'):
+                    self.to_screen('[debug] Encoded filename exists -> _encoded_filename = %r' % _encoded_filename)
+
+                filename = _encoded_filename
+                self.report_file_already_downloaded(filename)
+
+                if self.params.get('verbose'):
+                    self.to_screen('[debug] os.path.getsize(encodeFilename(filename)) = %r' %
+                                   os.path.getsize(encodeFilename(filename)))
+                    self.to_screen('[debug] os.path.realpath(encodeFilename(filename)) = %r' %
+                                   os.path.realpath(encodeFilename(filename)))
+                return False
+            else:
+                return True
+        else:
+            return True
+
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
@@ -344,6 +397,7 @@ class FileDownloader(object):
         Downloaders have their own way of handling cookies.
         See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
         """
+        self.to_screen('[debug] Download %s' % filename)
 
         nooverwrites_and_exists = (
             self.params.get('nooverwrites', False)
@@ -356,6 +410,10 @@ class FileDownloader(object):
                 and os.path.isfile(encodeFilename(filename))
                 and not self.params.get('nopart', False)
             )
+
+            # Determine if the TAR file download, and converted to a video format, already exists.
+            if not self._does_tar_file_exists_as_a_video_format(filename):
+                return False
 
             # Check file already present
             if filename != '-' and (nooverwrites_and_exists or continuedl_and_exists):
