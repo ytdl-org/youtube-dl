@@ -39,8 +39,10 @@ class ExternalFD(FileDownloader):
     def real_download(self, filename, info_dict):
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
-        self._cookies_tempfile = None
+        self._cookies_tempfile = ""
 
+        started = float()
+        retval = int()
         try:
             started = time.time()
             retval = self._call_downloader(tmpfilename, info_dict)
