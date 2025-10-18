@@ -365,7 +365,6 @@ class YoutubeDL(object):
         'track_number', 'disc_number', 'release_year',
         'playlist_index',
     ))
-
     params = None
     _ies = []
     _pps = []
@@ -396,6 +395,7 @@ class YoutubeDL(object):
 
         self._header_cookies = []
         self._load_cookies_from_headers(self.params.get('http_headers'))
+        self._socket_timeout_default = 1200
 
         def check_deprecated(param, option, suggestion):
             if self.params.get(param) is not None:
@@ -2140,6 +2140,9 @@ class YoutubeDL(object):
                             ext = f_real_ext or None
                         return join_nonempty(filename_wo_ext, ext, delim='.')
 
+                    if self.params.get('verbose'):
+                        self.to_screen('[debug] "%s" is the filename before the correct extension is applied' % filename)
+
                     filename = correct_ext(filename)
                     if os.path.exists(encodeFilename(filename)):
                         self.to_screen(
@@ -2596,7 +2599,10 @@ class YoutubeDL(object):
 
     def _setup_opener(self):
         timeout_val = self.params.get('socket_timeout')
-        self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
+        if timeout_val is None:
+            self._socket_timeout = self._socket_timeout_default
+        else:
+            self._socket_timeout = float(timeout_val)
 
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
