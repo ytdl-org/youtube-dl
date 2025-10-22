@@ -12,6 +12,7 @@ from ..utils import (
     js_to_json,
     int_or_none,
     parse_iso8601,
+    str_or_none,
     try_get,
     unescapeHTML,
     update_url_query,
@@ -20,7 +21,7 @@ from ..utils import (
 
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
-    _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/(?:news|btn)/(?:[^/]+/){1,4}(?P<id>\d{5,})'
 
     _TESTS = [{
         'url': 'http://www.abc.net.au/news/2014-11-05/australia-to-staff-ebola-treatment-centre-in-sierra-leone/5868334',
@@ -34,7 +35,7 @@ class ABCIE(InfoExtractor):
         'skip': 'this video has expired',
     }, {
         'url': 'http://www.abc.net.au/news/2015-08-17/warren-entsch-introduces-same-sex-marriage-bill/6702326',
-        'md5': 'db2a5369238b51f9811ad815b69dc086',
+        'md5': '4ebd61bdc82d9a8b722f64f1f4b4d121',
         'info_dict': {
             'id': 'NvqvPeNZsHU',
             'ext': 'mp4',
@@ -58,39 +59,102 @@ class ABCIE(InfoExtractor):
     }, {
         'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
         'only_matching': True,
+    }, {
+        'url': 'https://www.abc.net.au/btn/classroom/wwi-centenary/10527914',
+        'info_dict': {
+            'id': '10527914',
+            'ext': 'mp4',
+            'title': 'WWI Centenary',
+            'description': 'md5:fa4405939ff750fade46ff0cd4c66a52',
+        }
+    }, {
+        'url': 'https://www.abc.net.au/news/programs/the-world/2020-06-10/black-lives-matter-protests-spawn-support-for/12342074',
+        'info_dict': {
+            'id': '12342074',
+            'ext': 'mp4',
+            'title': 'Black Lives Matter protests spawn support for Papuans in Indonesia',
+            'description': 'md5:2961a17dc53abc558589ccd0fb8edd6f',
+        }
+    }, {
+        'url': 'https://www.abc.net.au/btn/newsbreak/btn-newsbreak-20200814/12560476',
+        'info_dict': {
+            'id': 'tDL8Ld4dK_8',
+            'ext': 'mp4',
+            'title': 'Fortnite Banned From Apple and Google App Stores',
+            'description': 'md5:a6df3f36ce8f816b74af4bd6462f5651',
+            'upload_date': '20200813',
+            'uploader': 'Behind the News',
+            'uploader_id': 'behindthenews',
+        }
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        mobj = re.search(
-            r'inline(?P<type>Video|Audio|YouTube)Data\.push\((?P<json_data>[^)]+)\);',
-            webpage)
-        if mobj is None:
-            expired = self._html_search_regex(r'(?s)class="expired-(?:video|audio)".+?<span>(.+?)</span>', webpage, 'expired', None)
-            if expired:
-                raise ExtractorError('%s said: %s' % (self.IE_NAME, expired), expected=True)
-            raise ExtractorError('Unable to extract video urls')
+        mobj = re.search(r'<a\s+href="(?P<url>[^"]+)"\s+data-duration="\d+"\s+title="Download audio directly">', webpage)
+        if mobj:
+            urls_info = mobj.groupdict()
+            youtube = False
+            video = False
+        else:
+            mobj = re.search(r'<a href="(?P<url>http://www\.youtube\.com/watch\?v=[^"]+)"><span><strong>External Link:</strong>',
+                             webpage)
+            if mobj is None:
+                mobj = re.search(r'<iframe width="100%" src="(?P<url>//www\.youtube-nocookie\.com/embed/[^?"]+)', webpage)
+            if mobj:
+                urls_info = mobj.groupdict()
+                youtube = True
+                video = True
 
-        urls_info = self._parse_json(
-            mobj.group('json_data'), video_id, transform_source=js_to_json)
+        if mobj is None:
+            mobj = re.search(r'(?P<type>)"sources": (?P<json_data>\[[^\]]+\]),', webpage)
+            if mobj is None:
+                mobj = re.search(
+                    r'inline(?P<type>Video|Audio|YouTube)Data\.push\((?P<json_data>[^)]+)\);',
+                    webpage)
+                if mobj is None:
+                    expired = self._html_search_regex(r'(?s)class="expired-(?:video|audio)".+?<span>(.+?)</span>', webpage, 'expired', None)
+                    if expired:
+                        raise ExtractorError('%s said: %s' % (self.IE_NAME, expired), expected=True)
+                    raise ExtractorError('Unable to extract video urls')
+
+            urls_info = self._parse_json(
+                mobj.group('json_data'), video_id, transform_source=js_to_json)
+            youtube = mobj.group('type') == 'YouTube'
+            video = mobj.group('type') == 'Video' or urls_info[0]['contentType'] == 'video/mp4'
 
         if not isinstance(urls_info, list):
             urls_info = [urls_info]
 
-        if mobj.group('type') == 'YouTube':
+        if youtube:
             return self.playlist_result([
                 self.url_result(url_info['url']) for url_info in urls_info])
 
-        formats = [{
-            'url': url_info['url'],
-            'vcodec': url_info.get('codec') if mobj.group('type') == 'Video' else 'none',
-            'width': int_or_none(url_info.get('width')),
-            'height': int_or_none(url_info.get('height')),
-            'tbr': int_or_none(url_info.get('bitrate')),
-            'filesize': int_or_none(url_info.get('filesize')),
-        } for url_info in urls_info]
+        formats = []
+        for url_info in urls_info:
+            height = int_or_none(url_info.get('height'))
+            bitrate = int_or_none(url_info.get('bitrate'))
+            width = int_or_none(url_info.get('width'))
+            format_id = None
+            mobj = re.search(r'_(?:(?P<height>\d+)|(?P<bitrate>\d+)k)\.mp4$', url_info['url'])
+            if mobj:
+                height_from_url = mobj.group('height')
+                if height_from_url:
+                    height = height or int_or_none(height_from_url)
+                    width = width or int_or_none(url_info.get('label'))
+                else:
+                    bitrate = bitrate or int_or_none(mobj.group('bitrate'))
+                    format_id = str_or_none(url_info.get('label'))
+            formats.append({
+                'url': url_info['url'],
+                'vcodec': url_info.get('codec') if video else 'none',
+                'width': width,
+                'height': height,
+                'tbr': bitrate,
+                'filesize': int_or_none(url_info.get('filesize')),
+                'format_id': format_id
+            })
 
         self._sort_formats(formats)
 
