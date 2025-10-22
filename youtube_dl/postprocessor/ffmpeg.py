@@ -270,7 +270,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             raise PostProcessingError('WARNING: unable to obtain file audio codec with ffprobe')
 
         more_opts = []
-        if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (self._preferredcodec == 'm4a' and filecodec == 'aac'):
+        if (self._preferredcodec == 'best'
+            or (self._preferredquality is None
+                and (self._preferredcodec == filecodec
+                     or (self._preferredcodec == 'm4a' and filecodec == 'aac')))):
             if filecodec == 'aac' and self._preferredcodec in ['m4a', 'best']:
                 # Lossless, but in another container
                 acodec = 'copy'
@@ -289,22 +292,22 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 acodec = 'libmp3lame'
                 extension = 'mp3'
                 more_opts = []
-                if self._preferredquality is not None:
-                    if int(self._preferredquality) < 10:
-                        more_opts += ['-q:a', self._preferredquality]
-                    else:
-                        more_opts += ['-b:a', self._preferredquality + 'k']
+                self._preferredquality = self._preferredquality if self._preferredquality else "5"
+                if int(self._preferredquality) < 10:
+                    more_opts += ['-q:a', self._preferredquality]
+                else:
+                    more_opts += ['-b:a', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy if codec is lossy)
             acodec = ACODECS[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
-            if self._preferredquality is not None:
-                # The opus codec doesn't support the -aq option
-                if int(self._preferredquality) < 10 and extension != 'opus':
-                    more_opts += ['-q:a', self._preferredquality]
-                else:
-                    more_opts += ['-b:a', self._preferredquality + 'k']
+            self._preferredquality = self._preferredquality if self._preferredquality else "5"
+            # The opus codec doesn't support the -aq option
+            if int(self._preferredquality) < 10 and extension != 'opus':
+                more_opts += ['-q:a', self._preferredquality]
+            else:
+                more_opts += ['-b:a', self._preferredquality + 'k']
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
@@ -321,15 +324,21 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         information['filepath'] = new_path
         information['ext'] = extension
 
-        # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
-        if (new_path == path
-                or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+        # Don't overwrite files if the nopostoverwrites option is active or if
+        # ffmpeg would just copy them anyway
+        if (new_path == path and acodec == 'copy' and not self._configuration_args()) or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
         try:
             self._downloader.to_screen('[ffmpeg] Destination: ' + new_path)
-            self.run_ffmpeg(path, new_path, acodec, more_opts)
+            if new_path == path:
+                temp_filename = prepend_extension(path, 'temp')
+                self.run_ffmpeg(path, temp_filename, acodec, more_opts)
+                os.remove(encodeFilename(path))
+                os.rename(encodeFilename(temp_filename), encodeFilename(path))
+            else:
+                self.run_ffmpeg(path, new_path, acodec, more_opts)
         except AudioConversionError as e:
             raise PostProcessingError(
                 'audio conversion failed: ' + e.msg)
@@ -342,7 +351,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 new_path, time.time(), information['filetime'],
                 errnote='Cannot update utime of audio file')
 
-        return [path], information
+        if new_path == path:
+            return [], information
+        else:
+            return [path], information
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
