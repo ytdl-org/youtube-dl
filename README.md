@@ -128,10 +128,10 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          CIDR notation
 
 ## Video Selection:
-    --playlist-start NUMBER              Playlist video to start at (default is
-                                         1)
-    --playlist-end NUMBER                Playlist video to end at (default is
-                                         last)
+    --playlist-start NUMBER              Playlist index of first item to include (default
+                                         is 1)
+    --playlist-end NUMBER                Playlist index of last item to include (default
+                                         is last)
     --playlist-items ITEM_SPEC           Playlist video items to download.
                                          Specify indices of the videos in the
                                          playlist separated by commas like: "--
