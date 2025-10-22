@@ -38,7 +38,11 @@ class SafariBaseIE(InfoExtractor):
             'Downloading login page')
 
         def is_logged(urlh):
-            return 'learning.oreilly.com/home/' in urlh.geturl()
+            url = urlh.geturl()
+            parsed_url = compat_urlparse.urlparse(url)
+            return parsed_url.hostname.endswith('learning.oreilly.com') and (
+                parsed_url.path.startswith('/home/')
+                or (parsed_url.path == '/member/login/' and not parsed_url.query))
 
         if is_logged(urlh):
             self.LOGGED_IN = True
