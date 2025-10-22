@@ -694,6 +694,11 @@ def parseOpts(overrideArguments=None):
         '--no-call-home',
         dest='call_home', action='store_false', default=False,
         help='Do NOT contact the youtube-dl server for debugging')
+    verbosity.add_option(
+        '--pretty-json',
+        dest='pretty_json', action='store_true', default=False,
+        help='Print json with indentation. Only when --dump-json is provided'
+    )
 
     filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
     filesystem.add_option(
