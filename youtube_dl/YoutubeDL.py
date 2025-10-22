@@ -1464,25 +1464,25 @@ class YoutubeDL(object):
                     elif format_spec == 'bestaudio':
                         audio_formats = [
                             f for f in formats
-                            if f.get('vcodec') == 'none']
+                            if f.get('vcodec') == 'none' and f.get('acodec') != 'none']
                         if audio_formats:
                             yield audio_formats[-1]
                     elif format_spec == 'worstaudio':
                         audio_formats = [
                             f for f in formats
-                            if f.get('vcodec') == 'none']
+                            if f.get('vcodec') == 'none' and f.get('acodec') != 'none']
                         if audio_formats:
                             yield audio_formats[0]
                     elif format_spec == 'bestvideo':
                         video_formats = [
                             f for f in formats
-                            if f.get('acodec') == 'none']
+                            if f.get('acodec') == 'none' and f.get('vcodec') != 'none']
                         if video_formats:
                             yield video_formats[-1]
                     elif format_spec == 'worstvideo':
                         video_formats = [
                             f for f in formats
-                            if f.get('acodec') == 'none']
+                            if f.get('acodec') == 'none' and f.get('vcodec') != 'none']
                         if video_formats:
                             yield video_formats[0]
                     else:
