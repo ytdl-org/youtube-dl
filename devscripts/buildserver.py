@@ -54,7 +54,7 @@ LPTSTR = ctypes.c_wchar_p
 START_CALLBACK = ctypes.WINFUNCTYPE(None, ctypes.c_int, ctypes.POINTER(LPTSTR))
 
 
-class SERVICE_TABLE_ENTRY(ctypes.Structure):
+class ServiceTableEntry(ctypes.Structure):
     _fields_ = [
         ('lpServiceName', LPTSTR),
         ('lpServiceProc', START_CALLBACK)
@@ -183,12 +183,12 @@ def win_service_start(service_name, real_main):
     try:
         cb = START_CALLBACK(
             functools.partial(win_service_main, service_name, real_main))
-        dispatch_table = _ctypes_array(SERVICE_TABLE_ENTRY, [
-            SERVICE_TABLE_ENTRY(
+        dispatch_table = _ctypes_array(ServiceTableEntry, [
+            ServiceTableEntry(
                 service_name,
                 cb
             ),
-            SERVICE_TABLE_ENTRY(None, ctypes.cast(None, START_CALLBACK))
+            ServiceTableEntry(None, ctypes.cast(None, START_CALLBACK))
         ])
 
         if not advapi32.StartServiceCtrlDispatcherW(dispatch_table):
