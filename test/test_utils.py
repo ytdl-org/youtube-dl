@@ -99,6 +99,7 @@ from youtube_dl.utils import (
     urljoin,
     urlencode_postdata,
     urshift,
+    parse_m3u8_attributes,
     update_url_query,
     variadic,
     version_tuple,
@@ -1596,6 +1597,17 @@ Line 1
     def test_rot47(self):
         self.assertEqual(rot47('youtube-dl'), r'J@FEF36\5=')
         self.assertEqual(rot47('YOUTUBE-DL'), r'*~&%&qt\s{')
+
+    def test_parse_m3u7_attributes(self):
+        self.assertEqual(parse_m3u8_attributes("1=2"), {'1': '2'})
+        self.assertEqual(parse_m3u8_attributes("A=B"), {'A': 'B'})
+        self.assertEqual(parse_m3u8_attributes("1A=2"), {'1A': '2'})
+        self.assertEqual(parse_m3u8_attributes("1=2B"), {'1': '2B'})
+        self.assertEqual(parse_m3u8_attributes("1=2,3=4"), {'1':'2', '3':'4'})
+        self.assertEqual(parse_m3u8_attributes("1=\"2\""), {'1':'2'})
+        self.assertEqual(parse_m3u8_attributes("1a=2"), {})
+        self.assertEqual(parse_m3u8_attributes("1=2b"), {'1':'2b'})
+        self.assertEqual(parse_m3u8_attributes(""), {})
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)
