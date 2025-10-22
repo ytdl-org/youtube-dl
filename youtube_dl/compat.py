@@ -2492,6 +2492,11 @@ except ImportError:
 # compat_urllib_parse_urlencode,
 # compat_urllib_parse_parse_qs
 try:
+    from urllib.parse import quote as compat_urllib_quote
+except ImportError:  # Python 2
+    from urllib import quote as compat_urllib_quote
+
+try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
@@ -3719,6 +3724,7 @@ __all__ = [
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
+    'compat_urllib_quote',
     'compat_urllib_request',
     'compat_urllib_request_DataHandler',
     'compat_urllib_response',
