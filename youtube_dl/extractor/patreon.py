@@ -1,10 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
     determine_ext,
+    ExtractorError,
     int_or_none,
     KNOWN_EXTENSIONS,
     mimetype2ext,
@@ -16,6 +20,7 @@ from ..utils import (
 
 class PatreonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<id>\d+)'
+    _NETRC_MACHINE = 'patreon'
     _TESTS = [{
         'url': 'http://www.patreon.com/creation?hid=743933',
         'md5': 'e25505eec1053a6e6813b8ed369875cc',
@@ -63,34 +68,40 @@ class PatreonIE(InfoExtractor):
     }, {
         'url': 'https://www.patreon.com/posts/743933',
         'only_matching': True,
+    }, {
+        # embedded patreon-hosted video, paywalled
+        'url': 'https://www.patreon.com/posts/terps-part-1-46181905',
+        'only_matching': True,
+        'skip': 'Patron-only content'
     }]
 
-    # Currently Patreon exposes download URL via hidden CSS, so login is not
-    # needed. Keeping this commented for when this inevitably changes.
-    '''
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
         login_form = {
-            'redirectUrl': 'http://www.patreon.com/',
-            'email': username,
-            'password': password,
+            'data': {
+                'type': 'user',
+                'attributes': {
+                    'email': username,
+                    'password': password
+                },
+                'relationships': {}
+            }
         }
 
-        request = sanitized_Request(
-            'https://www.patreon.com/processLogin',
-            compat_urllib_parse_urlencode(login_form).encode('utf-8')
-        )
-        login_page = self._download_webpage(request, None, note='Logging in')
+        login_page = self._download_webpage(
+            'https://www.patreon.com/api/login',
+            video_id=None,
+            note='Logging in',
+            data=json.dumps(login_form).encode('ascii'))
 
         if re.search(r'onLoginFailed', login_page):
             raise ExtractorError('Unable to login, incorrect username and/or password', expected=True)
 
     def _real_initialize(self):
         self._login()
-    '''
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -146,11 +157,18 @@ class PatreonIE(InfoExtractor):
 
         if not info.get('url'):
             post_file = attributes['post_file']
-            ext = determine_ext(post_file.get('name'))
-            if ext in KNOWN_EXTENSIONS:
+            if post_file.get('name') == 'video':
+                # single video embed
                 info.update({
-                    'ext': ext,
+                    'ext': 'mp4',
                     'url': post_file['url'],
                 })
-
+            else:
+                # video is attached as a file
+                ext = determine_ext(post_file.get('name'))
+                if ext in KNOWN_EXTENSIONS:
+                    info.update({
+                        'ext': ext,
+                        'url': post_file['url'],
+                    })
         return info
