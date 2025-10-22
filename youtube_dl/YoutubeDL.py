@@ -122,6 +122,7 @@ from .postprocessor import (
     FFmpegFixupM4aPP,
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
+    FFmpegConcatPP,
     FFmpegPostProcessor,
     get_postprocessor,
 )
@@ -1213,6 +1214,20 @@ class YoutubeDL(object):
             entry_result = self.__process_iterable_entry(entry, download, extra)
             # TODO: skip failed (empty) entries?
             playlist_results.append(entry_result)
+
+        if self.params.get('concat_playlist', False):
+            concat_pp = FFmpegConcatPP(self)
+            ie_result['__postprocessors'] = [concat_pp]
+            ie_result['__files_to_concat'] = list(map(lambda e: e['_filename'], entries))
+
+            filename_wo_ext = self.prepare_filename(ie_result)
+
+            # Ensure filename always has a correct extension for successful merge
+            ie_result['ext'] = self.params.get('merge_output_format') or entries[0]['ext']
+            ie_result['_filename'] = filename = '%s.%s' % (filename_wo_ext, ie_result['ext'])
+
+            self.post_process(filename, ie_result)
+
         ie_result['entries'] = playlist_results
         self.to_screen('[download] Finished downloading playlist: %s' % playlist)
         return ie_result
@@ -1865,6 +1880,7 @@ class YoutubeDL(object):
                 new_info = dict(info_dict)
                 new_info.update(format)
                 self.process_info(new_info)
+                format.update(new_info)
         # We update the info dict with the best quality format (backwards compatibility)
         info_dict.update(formats_to_download[-1])
         return info_dict
