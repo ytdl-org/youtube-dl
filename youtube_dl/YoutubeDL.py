@@ -1316,6 +1316,9 @@ class YoutubeDL(object):
                 '{0}\n\t{1}\n\t{2}^'.format(note, format_spec, ' ' * start[1]))
             return SyntaxError(message)
 
+        if not format_spec:
+            format_spec = 'worst'
+
         PICKFIRST = 'PICKFIRST'
         MERGE = 'MERGE'
         SINGLE = 'SINGLE'
