@@ -85,10 +85,10 @@ class FakeYDL(YoutubeDL):
         # Silence an expected warning matching a regex
         old_report_warning = self.report_warning
 
-        def report_warning(self, message):
+        def report_warning(self, message, *args, **kwargs):
             if re.match(regex, message):
                 return
-            old_report_warning(message)
+            old_report_warning(message, *args, **kwargs)
         self.report_warning = types.MethodType(report_warning, self)
 
 
@@ -265,11 +265,11 @@ def assertRegexpMatches(self, text, regexp, msg=None):
 def expect_warnings(ydl, warnings_re):
     real_warning = ydl.report_warning
 
-    def _report_warning(w):
+    def _report_warning(self, w, *args, **kwargs):
         if not any(re.search(w_re, w) for w_re in warnings_re):
             real_warning(w)
 
-    ydl.report_warning = _report_warning
+    ydl.report_warning = types.MethodType(_report_warning, ydl)
 
 
 def http_server_port(httpd):
