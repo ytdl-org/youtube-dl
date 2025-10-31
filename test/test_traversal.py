@@ -476,6 +476,8 @@ class TestTraversal(_TestCase):
     def test_get_first(self):
         self.assertEqual(get_first([{'a': None}, {'a': 'spam'}], 'a'), 'spam')
 
+
+class TestDictGet(_TestCase):
     def test_dict_get(self):
         FALSE_VALUES = {
             'none': None,
