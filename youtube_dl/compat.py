@@ -3452,6 +3452,8 @@ except ImportError:
     except ImportError:
         compat_map = map
 
+
+# compat_filter, compat_filter_fns
 try:
     from future_builtins import filter as compat_filter
 except ImportError:
@@ -3459,6 +3461,9 @@ except ImportError:
         from itertools import ifilter as compat_filter
     except ImportError:
         compat_filter = filter
+# "Is this function one or maybe the other filter()?"
+compat_filter_fns = tuple(set((filter, compat_filter)))
+
 
 # compat_zip
 try:
@@ -3675,6 +3680,7 @@ __all__ = [
     'compat_etree_fromstring',
     'compat_etree_iterfind',
     'compat_filter',
+    'compat_filter_fns',
     'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass_getpass',
