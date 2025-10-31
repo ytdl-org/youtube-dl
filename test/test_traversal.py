@@ -473,6 +473,14 @@ class TestTraversal(_TestCase):
         self.assertIs(traverse_obj(morsel, [(None,), any]), morsel,
                       msg='Morsel should not be implicitly changed to dict on usage')
 
+    def test_traversal_filter(self):
+        data = [None, False, True, 0, 1, 0.0, 1.1, '', 'str', {}, {0: 0}, [], [1]]
+
+        self.assertEqual(
+            traverse_obj(data, (Ellipsis, filter)),
+            [True, 1, 1.1, 'str', {0: 0}, [1]],
+            '`filter` should filter falsy values')
+
     def test_get_first(self):
         self.assertEqual(get_first([{'a': None}, {'a': 'spam'}], 'a'), 'spam')
 

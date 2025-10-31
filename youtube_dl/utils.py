@@ -53,6 +53,8 @@ from .compat import (
     compat_etree_fromstring,
     compat_etree_iterfind,
     compat_expanduser,
+    compat_filter as filter,
+    compat_filter_fns,
     compat_html_entities,
     compat_html_entities_html5,
     compat_http_client,
@@ -6283,6 +6285,7 @@ def traverse_obj(obj, *paths, **kwargs):
                             Read as: `{key: traverse_obj(obj, path) for key, path in dct.items()}`.
         - `any`-builtin:    Take the first matching object and return it, resetting branching.
         - `all`-builtin:    Take all matching objects and return them as a list, resetting branching.
+        - `filter`-builtin: Return the value if it is truthy, `None` otherwise.
 
         `tuple`, `list`, and `dict` all support nested paths and branches.
 
@@ -6495,6 +6498,11 @@ def traverse_obj(obj, *paths, **kwargs):
                     objs = (next(filtered_objs, None),)
                 else:
                     objs = (list(filtered_objs),)
+                continue
+
+            # filter might be from __builtin__, future_builtins, or itertools.ifilter
+            if key in compat_filter_fns:
+                objs = filter(None, objs)
                 continue
 
             if __debug__ and callable(key):
