@@ -6543,6 +6543,31 @@ def traverse_obj(obj, *paths, **kwargs):
     return None if default is NO_DEFAULT else default
 
 
+def value(value):
+    return lambda _: value
+
+
+class require(ExtractorError):
+    def __init__(self, name, expected=False):
+        super(require, self).__init__(
+            'Unable to extract {0}'.format(name), expected=expected)
+
+    def __call__(self, value):
+        if value is None:
+            raise self
+
+        return value
+
+
+def unpack(func, **kwargs):
+    """Make a function that applies `partial(func, **kwargs)` to its argument as *args"""
+    @functools.wraps(func)
+    def inner(items):
+        return func(*items, **kwargs)
+
+    return inner
+
+
 def T(*x):
     """ For use in yt-dl instead of {type, ...} or set((type, ...)) """
     return set(x)
