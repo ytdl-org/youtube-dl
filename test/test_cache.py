@@ -3,17 +3,18 @@
 
 from __future__ import unicode_literals
 
-import shutil
-
 # Allow direct execution
 import os
 import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import shutil
 
 from test.helper import FakeYDL
 from youtube_dl.cache import Cache
+from youtube_dl.utils import version_tuple
+from youtube_dl.version import __version__
 
 
 def _is_empty(d):
@@ -53,6 +54,29 @@ class TestCache(unittest.TestCase):
         c.remove()
         self.assertFalse(os.path.exists(self.test_dir))
         self.assertEqual(c.load('test_cache', 'k.'), None)
+
+    def test_cache_validation(self):
+        ydl = FakeYDL({
+            'cachedir': self.test_dir,
+        })
+        c = Cache(ydl)
+        obj = {'x': 1, 'y': ['ä', '\\a', True]}
+        c.store('test_cache', 'k.', obj)
+        self.assertEqual(c.load('test_cache', 'k.', min_ver='1970.01.01'), obj)
+        new_version = '.'.join(('%0.2d' % ((v + 1) if i == 0 else v, )) for i, v in enumerate(version_tuple(__version__)))
+        self.assertIs(c.load('test_cache', 'k.', min_ver=new_version), None)
+
+    def test_cache_clear(self):
+        ydl = FakeYDL({
+            'cachedir': self.test_dir,
+        })
+        c = Cache(ydl)
+        c.store('test_cache', 'k.', 'kay')
+        c.store('test_cache', 'l.', 'ell')
+        self.assertEqual(c.load('test_cache', 'k.'), 'kay')
+        c.clear('test_cache', 'k.')
+        self.assertEqual(c.load('test_cache', 'k.'), None)
+        self.assertEqual(c.load('test_cache', 'l.'), 'ell')
 
 
 if __name__ == '__main__':

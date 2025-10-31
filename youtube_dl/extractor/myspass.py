@@ -35,7 +35,9 @@ class MySpassIE(InfoExtractor):
         title = xpath_text(metadata, 'title', fatal=True)
         video_url = xpath_text(metadata, 'url_flv', 'download url', True)
         video_id_int = int(video_id)
-        for group in re.search(r'/myspass2009/\d+/(\d+)/(\d+)/(\d+)/', video_url).groups():
+
+        grps = re.search(r'/myspass2009/\d+/(\d+)/(\d+)/(\d+)/', video_url)
+        for group in grps.groups() if grps else []:
             group_int = int(group)
             if group_int > video_id_int:
                 video_url = video_url.replace(

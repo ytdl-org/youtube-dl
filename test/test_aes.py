@@ -8,7 +8,7 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.aes import aes_decrypt, aes_encrypt, aes_cbc_decrypt, aes_cbc_encrypt, aes_decrypt_text
+from youtube_dl.aes import aes_decrypt, aes_encrypt, aes_cbc_decrypt, aes_cbc_encrypt, aes_decrypt_text, aes_ecb_encrypt
 from youtube_dl.utils import bytes_to_intlist, intlist_to_bytes
 import base64
 
@@ -57,6 +57,13 @@ class TestAES(unittest.TestCase):
         ).decode('utf-8')
         decrypted = (aes_decrypt_text(encrypted, password, 32))
         self.assertEqual(decrypted, self.secret_msg)
+
+    def test_ecb_encrypt(self):
+        data = bytes_to_intlist(self.secret_msg)
+        encrypted = intlist_to_bytes(aes_ecb_encrypt(data, self.key))
+        self.assertEqual(
+            encrypted,
+            b'\xaa\x86]\x81\x97>\x02\x92\x9d\x1bR[[L/u\xd3&\xd1(h\xde{\x81\x94\xba\x02\xae\xbd\xa6\xd0:')
 
 
 if __name__ == '__main__':

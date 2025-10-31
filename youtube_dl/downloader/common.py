@@ -11,6 +11,7 @@ from ..utils import (
     decodeArgument,
     encodeFilename,
     error_to_compat_str,
+    float_or_none,
     format_bytes,
     shell_quote,
     timeconvert,
@@ -88,17 +89,21 @@ class FileDownloader(object):
             return '---.-%'
         return '%6s' % ('%3.1f%%' % percent)
 
-    @staticmethod
-    def calc_eta(start, now, total, current):
+    @classmethod
+    def calc_eta(cls, start_or_rate, now_or_remaining, *args):
+        if len(args) < 2:
+            rate, remaining = (start_or_rate, now_or_remaining)
+            if None in (rate, remaining):
+                return None
+            return int(float(remaining) / rate)
+        start, now = (start_or_rate, now_or_remaining)
+        total, current = args[:2]
         if total is None:
             return None
         if now is None:
             now = time.time()
-        dif = now - start
-        if current == 0 or dif < 0.001:  # One millisecond
-            return None
-        rate = float(current) / dif
-        return int((float(total) - float(current)) / rate)
+        rate = cls.calc_speed(start, now, current)
+        return rate and int((float(total) - float(current)) / rate)
 
     @staticmethod
     def format_eta(eta):
@@ -122,6 +127,12 @@ class FileDownloader(object):
     @staticmethod
     def format_retries(retries):
         return 'inf' if retries == float('inf') else '%.0f' % retries
+
+    @staticmethod
+    def filesize_or_none(unencoded_filename):
+        fn = encodeFilename(unencoded_filename)
+        if os.path.isfile(fn):
+            return os.path.getsize(fn)
 
     @staticmethod
     def best_block_size(elapsed_time, bytes):
@@ -329,6 +340,10 @@ class FileDownloader(object):
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
         Return True on success and False otherwise
+
+        This method filters the `Cookie` header from the info_dict to prevent leaks.
+        Downloaders have their own way of handling cookies.
+        See: https://github.com/yt-dlp/yt-dlp/security/advisories/GHSA-v8mc-9377-rwjj
         """
 
         nooverwrites_and_exists = (
@@ -353,14 +368,27 @@ class FileDownloader(object):
                 })
                 return True
 
-        min_sleep_interval = self.params.get('sleep_interval')
-        if min_sleep_interval:
-            max_sleep_interval = self.params.get('max_sleep_interval', min_sleep_interval)
-            sleep_interval = random.uniform(min_sleep_interval, max_sleep_interval)
+        min_sleep_interval, max_sleep_interval = (
+            float_or_none(self.params.get(interval), default=0)
+            for interval in ('sleep_interval', 'max_sleep_interval'))
+
+        sleep_note = ''
+        available_at = info_dict.get('available_at')
+        if available_at:
+            forced_sleep_interval = available_at - int(time.time())
+            if forced_sleep_interval > min_sleep_interval:
+                sleep_note = 'as required by the site'
+                min_sleep_interval = forced_sleep_interval
+            if forced_sleep_interval > max_sleep_interval:
+                max_sleep_interval = forced_sleep_interval
+
+        sleep_interval = random.uniform(
+            min_sleep_interval, max_sleep_interval or min_sleep_interval)
+
+        if sleep_interval > 0:
             self.to_screen(
-                '[download] Sleeping %s seconds...' % (
-                    int(sleep_interval) if sleep_interval.is_integer()
-                    else '%.2f' % sleep_interval))
+                '[download] Sleeping %.2f seconds %s...' % (
+                    sleep_interval, sleep_note))
             time.sleep(sleep_interval)
 
         return self.real_download(filename, info_dict)

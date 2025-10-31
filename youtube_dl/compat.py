@@ -1,10 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from __future__ import division
 
 import base64
 import binascii
 import collections
 import ctypes
+import datetime
 import email
 import getpass
 import io
@@ -14,48 +16,122 @@ import os
 import platform
 import re
 import shlex
-import shutil
 import socket
 import struct
 import subprocess
 import sys
+import types
 import xml.etree.ElementTree
 
+_IDENTITY = lambda x: x
 
+# naming convention
+# 'compat_' + Python3_name.replace('.', '_')
+# other aliases exist for convenience and/or legacy
+# wrap disposable test values in type() to reclaim storage
+
+# deal with critical unicode/str things first:
+# compat_str, compat_basestring, compat_chr
+try:
+    # Python 2
+    compat_str, compat_basestring, compat_chr = (
+        unicode, basestring, unichr
+    )
+except NameError:
+    compat_str, compat_basestring, compat_chr = (
+        str, (str, bytes), chr
+    )
+
+
+# compat_casefold
+try:
+    compat_str.casefold
+    compat_casefold = lambda s: s.casefold()
+except AttributeError:
+    from .casefold import _casefold as compat_casefold
+
+
+# compat_collections_abc
+try:
+    import collections.abc as compat_collections_abc
+except ImportError:
+    import collections as compat_collections_abc
+
+
+# compat_urllib_request
 try:
     import urllib.request as compat_urllib_request
 except ImportError:  # Python 2
     import urllib2 as compat_urllib_request
 
+# Also fix up lack of method arg in old Pythons
+try:
+    type(compat_urllib_request.Request('http://127.0.0.1', method='GET'))
+except TypeError:
+    def _add_init_method_arg(cls):
+
+        init = cls.__init__
+
+        def wrapped_init(self, *args, **kwargs):
+            method = kwargs.pop('method', 'GET')
+            init(self, *args, **kwargs)
+            if any(callable(x.__dict__.get('get_method')) for x in (self.__class__, self) if x != cls):
+                # allow instance or its subclass to override get_method()
+                return
+            if self.has_data() and method == 'GET':
+                method = 'POST'
+            self.get_method = types.MethodType(lambda _: method, self)
+
+        cls.__init__ = wrapped_init
+
+    _add_init_method_arg(compat_urllib_request.Request)
+    del _add_init_method_arg
+
+
+# compat_urllib_error
 try:
     import urllib.error as compat_urllib_error
 except ImportError:  # Python 2
     import urllib2 as compat_urllib_error
 
+
+# compat_urllib_parse
 try:
     import urllib.parse as compat_urllib_parse
 except ImportError:  # Python 2
     import urllib as compat_urllib_parse
+    import urlparse as _urlparse
+    for a in dir(_urlparse):
+        if not hasattr(compat_urllib_parse, a):
+            setattr(compat_urllib_parse, a, getattr(_urlparse, a))
+    del _urlparse
 
-try:
-    from urllib.parse import urlparse as compat_urllib_parse_urlparse
-except ImportError:  # Python 2
-    from urlparse import urlparse as compat_urllib_parse_urlparse
+# unfavoured aliases
+compat_urlparse = compat_urllib_parse
+compat_urllib_parse_urlparse = compat_urllib_parse.urlparse
 
-try:
-    import urllib.parse as compat_urlparse
-except ImportError:  # Python 2
-    import urlparse as compat_urlparse
 
+# compat_urllib_response
 try:
     import urllib.response as compat_urllib_response
 except ImportError:  # Python 2
     import urllib as compat_urllib_response
 
+
+# compat_urllib_response.addinfourl
+try:
+    compat_urllib_response.addinfourl.status
+except AttributeError:
+    # .getcode() is deprecated in Py 3.
+    compat_urllib_response.addinfourl.status = property(lambda self: self.getcode())
+
+
+# compat_http_cookiejar
 try:
     import http.cookiejar as compat_cookiejar
 except ImportError:  # Python 2
     import cookielib as compat_cookiejar
+compat_http_cookiejar = compat_cookiejar
 
 if sys.version_info[0] == 2:
     class compat_cookiejar_Cookie(compat_cookiejar.Cookie):
@@ -67,26 +143,49 @@ if sys.version_info[0] == 2:
             compat_cookiejar.Cookie.__init__(self, version, name, value, *args, **kwargs)
 else:
     compat_cookiejar_Cookie = compat_cookiejar.Cookie
+compat_http_cookiejar_Cookie = compat_cookiejar_Cookie
 
+
+# compat_http_cookies
 try:
     import http.cookies as compat_cookies
 except ImportError:  # Python 2
     import Cookie as compat_cookies
+compat_http_cookies = compat_cookies
 
-if sys.version_info[0] == 2:
+
+# compat_http_cookies_SimpleCookie
+if sys.version_info[0] == 2 or sys.version_info < (3, 3):
     class compat_cookies_SimpleCookie(compat_cookies.SimpleCookie):
         def load(self, rawdata):
-            if isinstance(rawdata, compat_str):
-                rawdata = str(rawdata)
-            return super(compat_cookies_SimpleCookie, self).load(rawdata)
+            must_have_value = 0
+            if not isinstance(rawdata, dict):
+                if sys.version_info[:2] != (2, 7) or sys.platform.startswith('java'):
+                    # attribute must have value for parsing
+                    rawdata, must_have_value = re.subn(
+                        r'(?i)(;\s*)(secure|httponly)(\s*(?:;|$))', r'\1\2=\2\3', rawdata)
+                if sys.version_info[0] == 2:
+                    if isinstance(rawdata, compat_str):
+                        rawdata = str(rawdata)
+            super(compat_cookies_SimpleCookie, self).load(rawdata)
+            if must_have_value > 0:
+                for morsel in self.values():
+                    for attr in ('secure', 'httponly'):
+                        if morsel.get(attr):
+                            morsel[attr] = True
 else:
     compat_cookies_SimpleCookie = compat_cookies.SimpleCookie
+compat_http_cookies_SimpleCookie = compat_cookies_SimpleCookie
 
+
+# compat_html_entities, probably useless now
 try:
     import html.entities as compat_html_entities
 except ImportError:  # Python 2
     import htmlentitydefs as compat_html_entities
 
+
+# compat_html_entities_html5
 try:  # Python >= 3.3
     compat_html_entities_html5 = compat_html_entities.html5
 except AttributeError:
@@ -2329,58 +2428,77 @@ try:
     import http.client as compat_http_client
 except ImportError:  # Python 2
     import httplib as compat_http_client
+try:
+    compat_http_client.HTTPResponse.getcode
+except AttributeError:
+    # Py < 3.1
+    compat_http_client.HTTPResponse.getcode = lambda self: self.status
 
+
+# compat_urllib_HTTPError
 try:
     from urllib.error import HTTPError as compat_HTTPError
 except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
+compat_urllib_HTTPError = compat_HTTPError
 
+
+# compat_urllib_request_urlretrieve
 try:
     from urllib.request import urlretrieve as compat_urlretrieve
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
+compat_urllib_request_urlretrieve = compat_urlretrieve
 
+
+# compat_html_parser_HTMLParser, compat_html_parser_HTMLParseError
 try:
+    from HTMLParser import (
+        HTMLParser as compat_HTMLParser,
+        HTMLParseError as compat_HTMLParseError)
+except ImportError:  # Python 3
     from html.parser import HTMLParser as compat_HTMLParser
-except ImportError:  # Python 2
-    from HTMLParser import HTMLParser as compat_HTMLParser
-
-try:  # Python 2
-    from HTMLParser import HTMLParseError as compat_HTMLParseError
-except ImportError:  # Python <3.4
     try:
         from html.parser import HTMLParseError as compat_HTMLParseError
     except ImportError:  # Python >3.4
-
-        # HTMLParseError has been deprecated in Python 3.3 and removed in
+        # HTMLParseError was deprecated in Python 3.3 and removed in
         # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
         # and uniform cross-version exception handling
+
         class compat_HTMLParseError(Exception):
             pass
 
+compat_html_parser_HTMLParser = compat_HTMLParser
+compat_html_parser_HTMLParseError = compat_HTMLParseError
+
+
+# compat_subprocess_get_DEVNULL
 try:
-    from subprocess import DEVNULL
-    compat_subprocess_get_DEVNULL = lambda: DEVNULL
-except ImportError:
+    _DEVNULL = subprocess.DEVNULL
+    compat_subprocess_get_DEVNULL = lambda: _DEVNULL
+except AttributeError:
     compat_subprocess_get_DEVNULL = lambda: open(os.path.devnull, 'w')
 
+
+# compat_http_server
 try:
     import http.server as compat_http_server
 except ImportError:
     import BaseHTTPServer as compat_http_server
 
-try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
 
+# compat_urllib_parse_unquote_to_bytes,
+# compat_urllib_parse_unquote, compat_urllib_parse_unquote_plus,
+# compat_urllib_parse_urlencode,
+# compat_urllib_parse_parse_qs
 try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+    from urllib.parse import urlencode as compat_urllib_parse_urlencode
+    from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
-    _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
-                else re.compile(r'([\x00-\x7f]+)'))
+    _asciire = getattr(compat_urllib_parse, '_asciire', None) or re.compile(r'([\x00-\x7f]+)')
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
@@ -2444,170 +2562,28 @@ except ImportError:  # Python 2
         string = string.replace('+', ' ')
         return compat_urllib_parse_unquote(string, encoding, errors)
 
-try:
-    from urllib.parse import urlencode as compat_urllib_parse_urlencode
-except ImportError:  # Python 2
     # Python 2 will choke in urlencode on mixture of byte and unicode strings.
     # Possible solutions are to either port it from python 3 with all
     # the friends or manually ensure input query contains only byte strings.
     # We will stick with latter thus recursively encoding the whole query.
-    def compat_urllib_parse_urlencode(query, doseq=0, encoding='utf-8'):
+    def compat_urllib_parse_urlencode(query, doseq=0, safe='', encoding='utf-8', errors='strict'):
+
         def encode_elem(e):
             if isinstance(e, dict):
                 e = encode_dict(e)
             elif isinstance(e, (list, tuple,)):
-                list_e = encode_list(e)
-                e = tuple(list_e) if isinstance(e, tuple) else list_e
+                e = type(e)(encode_elem(el) for el in e)
             elif isinstance(e, compat_str):
-                e = e.encode(encoding)
+                e = e.encode(encoding, errors)
             return e
 
         def encode_dict(d):
-            return dict((encode_elem(k), encode_elem(v)) for k, v in d.items())
+            return tuple((encode_elem(k), encode_elem(v)) for k, v in d.items())
 
-        def encode_list(l):
-            return [encode_elem(e) for e in l]
+        return compat_urllib_parse._urlencode(encode_elem(query), doseq=doseq).decode('ascii')
 
-        return compat_urllib_parse.urlencode(encode_elem(query), doseq=doseq)
-
-try:
-    from urllib.request import DataHandler as compat_urllib_request_DataHandler
-except ImportError:  # Python < 3.4
-    # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
-    class compat_urllib_request_DataHandler(compat_urllib_request.BaseHandler):
-        def data_open(self, req):
-            # data URLs as specified in RFC 2397.
-            #
-            # ignores POSTed data
-            #
-            # syntax:
-            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
-            # mediatype := [ type "/" subtype ] *( ";" parameter )
-            # data      := *urlchar
-            # parameter := attribute "=" value
-            url = req.get_full_url()
-
-            scheme, data = url.split(':', 1)
-            mediatype, data = data.split(',', 1)
-
-            # even base64 encoded data URLs might be quoted so unquote in any case:
-            data = compat_urllib_parse_unquote_to_bytes(data)
-            if mediatype.endswith(';base64'):
-                data = binascii.a2b_base64(data)
-                mediatype = mediatype[:-7]
-
-            if not mediatype:
-                mediatype = 'text/plain;charset=US-ASCII'
-
-            headers = email.message_from_string(
-                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
-
-            return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
-
-try:
-    compat_basestring = basestring  # Python 2
-except NameError:
-    compat_basestring = str
-
-try:
-    compat_chr = unichr  # Python 2
-except NameError:
-    compat_chr = chr
-
-try:
-    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
-except ImportError:  # Python 2.6
-    from xml.parsers.expat import ExpatError as compat_xml_parse_error
-
-
-etree = xml.etree.ElementTree
-
-
-class _TreeBuilder(etree.TreeBuilder):
-    def doctype(self, name, pubid, system):
-        pass
-
-
-try:
-    # xml.etree.ElementTree.Element is a method in Python <=2.6 and
-    # the following will crash with:
-    #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
-    isinstance(None, xml.etree.ElementTree.Element)
-    from xml.etree.ElementTree import Element as compat_etree_Element
-except TypeError:  # Python <=2.6
-    from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
-
-if sys.version_info[0] >= 3:
-    def compat_etree_fromstring(text):
-        return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
-else:
-    # python 2.x tries to encode unicode strings with ascii (see the
-    # XMLParser._fixtext method)
-    try:
-        _etree_iter = etree.Element.iter
-    except AttributeError:  # Python <=2.6
-        def _etree_iter(root):
-            for el in root.findall('*'):
-                yield el
-                for sub in _etree_iter(el):
-                    yield sub
-
-    # on 2.6 XML doesn't have a parser argument, function copied from CPython
-    # 2.7 source
-    def _XML(text, parser=None):
-        if not parser:
-            parser = etree.XMLParser(target=_TreeBuilder())
-        parser.feed(text)
-        return parser.close()
-
-    def _element_factory(*args, **kwargs):
-        el = etree.Element(*args, **kwargs)
-        for k, v in el.items():
-            if isinstance(v, bytes):
-                el.set(k, v.decode('utf-8'))
-        return el
-
-    def compat_etree_fromstring(text):
-        doc = _XML(text, parser=etree.XMLParser(target=_TreeBuilder(element_factory=_element_factory)))
-        for el in _etree_iter(doc):
-            if el.text is not None and isinstance(el.text, bytes):
-                el.text = el.text.decode('utf-8')
-        return doc
-
-if hasattr(etree, 'register_namespace'):
-    compat_etree_register_namespace = etree.register_namespace
-else:
-    def compat_etree_register_namespace(prefix, uri):
-        """Register a namespace prefix.
-        The registry is global, and any existing mapping for either the
-        given prefix or the namespace URI will be removed.
-        *prefix* is the namespace prefix, *uri* is a namespace uri. Tags and
-        attributes in this namespace will be serialized with prefix if possible.
-        ValueError is raised if prefix is reserved or is invalid.
-        """
-        if re.match(r"ns\d+$", prefix):
-            raise ValueError("Prefix format reserved for internal use")
-        for k, v in list(etree._namespace_map.items()):
-            if k == uri or v == prefix:
-                del etree._namespace_map[k]
-        etree._namespace_map[uri] = prefix
-
-if sys.version_info < (2, 7):
-    # Here comes the crazy part: In 2.6, if the xpath is a unicode,
-    # .//node does not match if a node is a direct child of . !
-    def compat_xpath(xpath):
-        if isinstance(xpath, compat_str):
-            xpath = xpath.encode('ascii')
-        return xpath
-else:
-    compat_xpath = lambda xpath: xpath
-
-try:
-    from urllib.parse import parse_qs as compat_parse_qs
-except ImportError:  # Python 2
     # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
     # Python 2's version is apparently totally broken
-
     def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
                    encoding='utf-8', errors='replace'):
         qs, _coerce_result = qs, compat_str
@@ -2649,10 +2625,422 @@ except ImportError:  # Python 2
                 parsed_result[name] = [value]
         return parsed_result
 
+    setattr(compat_urllib_parse, '_urlencode',
+            getattr(compat_urllib_parse, 'urlencode'))
+    for name, fix in (
+            ('unquote_to_bytes', compat_urllib_parse_unquote_to_bytes),
+            ('parse_unquote', compat_urllib_parse_unquote),
+            ('unquote_plus', compat_urllib_parse_unquote_plus),
+            ('urlencode', compat_urllib_parse_urlencode),
+            ('parse_qs', compat_parse_qs)):
+        setattr(compat_urllib_parse, name, fix)
 
+    try:
+        all(chr(i) in b'' for i in range(256))
+    except TypeError:
+        # not all chr(i) are str: patch Python2 quote
+
+        _safemaps = getattr(compat_urllib_parse, '_safemaps', {})
+        _always_safe = frozenset(compat_urllib_parse.always_safe)
+
+        def _quote(s, safe='/'):
+            """quote('abc def') -> 'abc%20def'"""
+
+            if not s and s is not None:  # fast path
+                return s
+            safe = frozenset(safe)
+            cachekey = (safe, _always_safe)
+            try:
+                safe_map = _safemaps[cachekey]
+            except KeyError:
+                safe = _always_safe | safe
+                safe_map = {}
+                for i in range(256):
+                    c = chr(i)
+                    safe_map[c] = (
+                        c if (i < 128 and c in safe)
+                        else b'%{0:02X}'.format(i))
+                _safemaps[cachekey] = safe_map
+
+            if safe.issuperset(s):
+                return s
+            return ''.join(safe_map[c] for c in s)
+
+        # linked code
+        def _quote_plus(s, safe=''):
+            return (
+                _quote(s, safe + b' ').replace(b' ', b'+') if b' ' in s
+                else _quote(s, safe))
+
+        # linked code
+        def _urlcleanup():
+            if compat_urllib_parse._urlopener:
+                compat_urllib_parse._urlopener.cleanup()
+            _safemaps.clear()
+            compat_urllib_parse.ftpcache.clear()
+
+        for name, fix in (
+                ('quote', _quote),
+                ('quote_plus', _quote_plus),
+                ('urlcleanup', _urlcleanup)):
+            setattr(compat_urllib_parse, '_' + name, getattr(compat_urllib_parse, name))
+            setattr(compat_urllib_parse, name, fix)
+
+compat_urllib_parse_parse_qs = compat_parse_qs
+
+
+# compat_urllib_request_DataHandler
+try:
+    from urllib.request import DataHandler as compat_urllib_request_DataHandler
+except ImportError:  # Python < 3.4
+    # Ported from CPython 98774:1733b3bd46db, Lib/urllib/request.py
+    class compat_urllib_request_DataHandler(compat_urllib_request.BaseHandler):
+        def data_open(self, req):
+            # data URLs as specified in RFC 2397.
+            #
+            # ignores POSTed data
+            #
+            # syntax:
+            # dataurl   := "data:" [ mediatype ] [ ";base64" ] "," data
+            # mediatype := [ type "/" subtype ] *( ";" parameter )
+            # data      := *urlchar
+            # parameter := attribute "=" value
+            url = req.get_full_url()
+
+            scheme, data = url.split(':', 1)
+            mediatype, data = data.split(',', 1)
+
+            # even base64 encoded data URLs might be quoted so unquote in any case:
+            data = compat_urllib_parse_unquote_to_bytes(data)
+            if mediatype.endswith(';base64'):
+                data = binascii.a2b_base64(data)
+                mediatype = mediatype[:-7]
+
+            if not mediatype:
+                mediatype = 'text/plain;charset=US-ASCII'
+
+            headers = email.message_from_string(
+                'Content-type: %s\nContent-length: %d\n' % (mediatype, len(data)))
+
+            return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
+
+
+# compat_xml_etree_ElementTree_ParseError
+try:
+    from xml.etree.ElementTree import ParseError as compat_xml_parse_error
+except ImportError:  # Python 2.6
+    from xml.parsers.expat import ExpatError as compat_xml_parse_error
+compat_xml_etree_ElementTree_ParseError = compat_xml_parse_error
+
+
+# compat_xml_etree_ElementTree_Element
+_etree = xml.etree.ElementTree
+
+
+class _TreeBuilder(_etree.TreeBuilder):
+    def doctype(self, name, pubid, system):
+        pass
+
+
+try:
+    # xml.etree.ElementTree.Element is a method in Python <=2.6 and
+    # the following will crash with:
+    #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+    isinstance(None, _etree.Element)
+    from xml.etree.ElementTree import Element as compat_etree_Element
+except TypeError:  # Python <=2.6
+    from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
+compat_xml_etree_ElementTree_Element = compat_etree_Element
+
+if sys.version_info[0] >= 3:
+    def compat_etree_fromstring(text):
+        return _etree.XML(text, parser=_etree.XMLParser(target=_TreeBuilder()))
+else:
+    # python 2.x tries to encode unicode strings with ascii (see the
+    # XMLParser._fixtext method)
+    try:
+        _etree_iter = _etree.Element.iter
+    except AttributeError:  # Python <=2.6
+        def _etree_iter(root):
+            for el in root.findall('*'):
+                yield el
+                for sub in _etree_iter(el):
+                    yield sub
+
+    # on 2.6 XML doesn't have a parser argument, function copied from CPython
+    # 2.7 source
+    def _XML(text, parser=None):
+        if not parser:
+            parser = _etree.XMLParser(target=_TreeBuilder())
+        parser.feed(text)
+        return parser.close()
+
+    def _element_factory(*args, **kwargs):
+        el = _etree.Element(*args, **kwargs)
+        for k, v in el.items():
+            if isinstance(v, bytes):
+                el.set(k, v.decode('utf-8'))
+        return el
+
+    def compat_etree_fromstring(text):
+        doc = _XML(text, parser=_etree.XMLParser(target=_TreeBuilder(element_factory=_element_factory)))
+        for el in _etree_iter(doc):
+            if el.text is not None and isinstance(el.text, bytes):
+                el.text = el.text.decode('utf-8')
+        return doc
+
+
+# compat_xml_etree_register_namespace
+try:
+    compat_etree_register_namespace = _etree.register_namespace
+except AttributeError:
+    def compat_etree_register_namespace(prefix, uri):
+        """Register a namespace prefix.
+        The registry is global, and any existing mapping for either the
+        given prefix or the namespace URI will be removed.
+        *prefix* is the namespace prefix, *uri* is a namespace uri. Tags and
+        attributes in this namespace will be serialized with prefix if possible.
+        ValueError is raised if prefix is reserved or is invalid.
+        """
+        if re.match(r'ns\d+$', prefix):
+            raise ValueError('Prefix format reserved for internal use')
+        for k, v in list(_etree._namespace_map.items()):
+            if k == uri or v == prefix:
+                del _etree._namespace_map[k]
+        _etree._namespace_map[uri] = prefix
+compat_xml_etree_register_namespace = compat_etree_register_namespace
+
+
+# compat_xpath, compat_etree_iterfind
+if sys.version_info < (2, 7):
+    # Here comes the crazy part: In 2.6, if the xpath is a unicode,
+    # .//node does not match if a node is a direct child of . !
+    def compat_xpath(xpath):
+        if isinstance(xpath, compat_str):
+            xpath = xpath.encode('ascii')
+        return xpath
+
+    # further code below based on CPython 2.7 source
+    import functools
+
+    _xpath_tokenizer_re = re.compile(r'''(?x)
+        (                                   # (1)
+            '[^']*'|"[^"]*"|                # quoted strings, or
+            ::|//?|\.\.|\(\)|[/.*:[\]()@=]  # navigation specials
+        )|                                  # or (2)
+        ((?:\{[^}]+\})?[^/[\]()@=\s]+)|     # token: optional {ns}, no specials
+        \s+                                 # or white space
+    ''')
+
+    def _xpath_tokenizer(pattern, namespaces=None):
+        for token in _xpath_tokenizer_re.findall(pattern):
+            tag = token[1]
+            if tag and tag[0] != "{" and ":" in tag:
+                try:
+                    if not namespaces:
+                        raise KeyError
+                    prefix, uri = tag.split(":", 1)
+                    yield token[0], "{%s}%s" % (namespaces[prefix], uri)
+                except KeyError:
+                    raise SyntaxError("prefix %r not found in prefix map" % prefix)
+            else:
+                yield token
+
+    def _get_parent_map(context):
+        parent_map = context.parent_map
+        if parent_map is None:
+            context.parent_map = parent_map = {}
+            for p in context.root.getiterator():
+                for e in p:
+                    parent_map[e] = p
+        return parent_map
+
+    def _select(context, result, filter_fn=lambda *_: True):
+        for elem in result:
+            for e in elem:
+                if filter_fn(e, elem):
+                    yield e
+
+    def _prepare_child(next_, token):
+        tag = token[1]
+        return functools.partial(_select, filter_fn=lambda e, _: e.tag == tag)
+
+    def _prepare_star(next_, token):
+        return _select
+
+    def _prepare_self(next_, token):
+        return lambda _, result: (e for e in result)
+
+    def _prepare_descendant(next_, token):
+        token = next(next_)
+        if token[0] == "*":
+            tag = "*"
+        elif not token[0]:
+            tag = token[1]
+        else:
+            raise SyntaxError("invalid descendant")
+
+        def select(context, result):
+            for elem in result:
+                for e in elem.getiterator(tag):
+                    if e is not elem:
+                        yield e
+        return select
+
+    def _prepare_parent(next_, token):
+        def select(context, result):
+            # FIXME: raise error if .. is applied at toplevel?
+            parent_map = _get_parent_map(context)
+            result_map = {}
+            for elem in result:
+                if elem in parent_map:
+                    parent = parent_map[elem]
+                    if parent not in result_map:
+                        result_map[parent] = None
+                        yield parent
+        return select
+
+    def _prepare_predicate(next_, token):
+        signature = []
+        predicate = []
+        for token in next_:
+            if token[0] == "]":
+                break
+            if token[0] and token[0][:1] in "'\"":
+                token = "'", token[0][1:-1]
+            signature.append(token[0] or "-")
+            predicate.append(token[1])
+
+        def select(context, result, filter_fn=lambda _: True):
+            for elem in result:
+                if filter_fn(elem):
+                    yield elem
+
+        signature = "".join(signature)
+        # use signature to determine predicate type
+        if signature == "@-":
+            # [@attribute] predicate
+            key = predicate[1]
+            return functools.partial(
+                select, filter_fn=lambda el: el.get(key) is not None)
+        if signature == "@-='":
+            # [@attribute='value']
+            key = predicate[1]
+            value = predicate[-1]
+            return functools.partial(
+                select, filter_fn=lambda el: el.get(key) == value)
+        if signature == "-" and not re.match(r"\d+$", predicate[0]):
+            # [tag]
+            tag = predicate[0]
+            return functools.partial(
+                select, filter_fn=lambda el: el.find(tag) is not None)
+        if signature == "-='" and not re.match(r"\d+$", predicate[0]):
+            # [tag='value']
+            tag = predicate[0]
+            value = predicate[-1]
+
+            def itertext(el):
+                for e in el.getiterator():
+                    e = e.text
+                    if e:
+                        yield e
+
+            def select(context, result):
+                for elem in result:
+                    for e in elem.findall(tag):
+                        if "".join(itertext(e)) == value:
+                            yield elem
+                            break
+            return select
+        if signature == "-" or signature == "-()" or signature == "-()-":
+            # [index] or [last()] or [last()-index]
+            if signature == "-":
+                index = int(predicate[0]) - 1
+            else:
+                if predicate[0] != "last":
+                    raise SyntaxError("unsupported function")
+                if signature == "-()-":
+                    try:
+                        index = int(predicate[2]) - 1
+                    except ValueError:
+                        raise SyntaxError("unsupported expression")
+                else:
+                    index = -1
+
+            def select(context, result):
+                parent_map = _get_parent_map(context)
+                for elem in result:
+                    try:
+                        parent = parent_map[elem]
+                        # FIXME: what if the selector is "*" ?
+                        elems = list(parent.findall(elem.tag))
+                        if elems[index] is elem:
+                            yield elem
+                    except (IndexError, KeyError):
+                        pass
+            return select
+        raise SyntaxError("invalid predicate")
+
+    ops = {
+        "": _prepare_child,
+        "*": _prepare_star,
+        ".": _prepare_self,
+        "..": _prepare_parent,
+        "//": _prepare_descendant,
+        "[": _prepare_predicate,
+    }
+
+    _cache = {}
+
+    class _SelectorContext:
+        parent_map = None
+
+        def __init__(self, root):
+            self.root = root
+
+    # Generate all matching objects.
+
+    def compat_etree_iterfind(elem, path, namespaces=None):
+        # compile selector pattern
+        if path[-1:] == "/":
+            path = path + "*"  # implicit all (FIXME: keep this?)
+        try:
+            selector = _cache[path]
+        except KeyError:
+            if len(_cache) > 100:
+                _cache.clear()
+            if path[:1] == "/":
+                raise SyntaxError("cannot use absolute path on element")
+            tokens = _xpath_tokenizer(path, namespaces)
+            selector = []
+            for token in tokens:
+                if token[0] == "/":
+                    continue
+                try:
+                    selector.append(ops[token[0]](tokens, token))
+                except StopIteration:
+                    raise SyntaxError("invalid path")
+            _cache[path] = selector
+        # execute selector pattern
+        result = [elem]
+        context = _SelectorContext(elem)
+        for select in selector:
+            result = select(context, result)
+        return result
+
+    # end of code based on CPython 2.7 source
+
+
+else:
+    compat_etree_iterfind = lambda element, match: element.iterfind(match)
+    compat_xpath = _IDENTITY
+
+
+# compat_os_name
 compat_os_name = os._name if os.name == 'java' else os.name
 
 
+# compat_shlex_quote
 if compat_os_name == 'nt':
     def compat_shlex_quote(s):
         return s if re.match(r'^[-_\w./]+$', s) else '"%s"' % s.replace('"', '\\"')
@@ -2667,6 +3055,7 @@ else:
                 return "'" + s.replace("'", "'\"'\"'") + "'"
 
 
+# compat_shlex.split
 try:
     args = shlex.split('中文')
     assert (isinstance(args, list)
@@ -2682,13 +3071,15 @@ except (AssertionError, UnicodeEncodeError):
         return list(map(lambda s: s.decode('utf-8'), shlex.split(s, comments, posix)))
 
 
+# compat_ord
 def compat_ord(c):
-    if type(c) is int:
+    if isinstance(c, int):
         return c
     else:
         return ord(c)
 
 
+# compat_getenv, compat_os_path_expanduser, compat_setenv
 if sys.version_info >= (3, 0):
     compat_getenv = os.getenv
     compat_expanduser = os.path.expanduser
@@ -2773,7 +3164,25 @@ else:
     else:
         compat_expanduser = os.path.expanduser
 
+compat_os_path_expanduser = compat_expanduser
 
+
+# compat_os_makedirs
+try:
+    os.makedirs('.', exist_ok=True)
+    compat_os_makedirs = os.makedirs
+except TypeError:  # < Py3.2
+    from errno import EEXIST as _errno_EEXIST
+
+    def compat_os_makedirs(name, mode=0o777, exist_ok=False):
+        try:
+            return os.makedirs(name, mode=mode)
+        except OSError as ose:
+            if not (exist_ok and ose.errno == _errno_EEXIST):
+                raise
+
+
+# compat_os_path_realpath
 if compat_os_name == 'nt' and sys.version_info < (3, 8):
     # os.path.realpath on Windows does not follow symbolic links
     # prior to Python 3.8 (see https://bugs.python.org/issue9949)
@@ -2784,7 +3193,10 @@ if compat_os_name == 'nt' and sys.version_info < (3, 8):
 else:
     compat_realpath = os.path.realpath
 
+compat_os_path_realpath = compat_realpath
 
+
+# compat_print
 if sys.version_info < (3, 0):
     def compat_print(s):
         from .utils import preferredencoding
@@ -2795,6 +3207,7 @@ else:
         print(s)
 
 
+# compat_getpass_getpass
 if sys.version_info < (3, 0) and sys.platform == 'win32':
     def compat_getpass(prompt, *args, **kwargs):
         if isinstance(prompt, compat_str):
@@ -2804,35 +3217,45 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
+compat_getpass_getpass = compat_getpass
+
+
+# compat_input
 try:
     compat_input = raw_input
 except NameError:  # Python 3
     compat_input = input
 
+
+# compat_kwargs
 # Python < 2.6.5 require kwargs to be bytes
 try:
-    def _testfunc(x):
-        pass
-    _testfunc(**{'x': 0})
+    (lambda x: x)(**{'x': 0})
 except TypeError:
     def compat_kwargs(kwargs):
         return dict((bytes(k), v) for k, v in kwargs.items())
 else:
-    compat_kwargs = lambda kwargs: kwargs
+    compat_kwargs = _IDENTITY
 
 
+# compat_numeric_types
 try:
     compat_numeric_types = (int, float, long, complex)
 except NameError:  # Python 3
     compat_numeric_types = (int, float, complex)
 
 
+# compat_integer_types
 try:
     compat_integer_types = (int, long)
 except NameError:  # Python 3
     compat_integer_types = (int, )
 
+# compat_int
+compat_int = compat_integer_types[-1]
 
+
+# compat_socket_create_connection
 if sys.version_info < (2, 7):
     def compat_socket_create_connection(address, timeout, source_address=None):
         host, port = address
@@ -2859,9 +3282,55 @@ else:
     compat_socket_create_connection = socket.create_connection
 
 
+# compat_contextlib_suppress
+try:
+    from contextlib import suppress as compat_contextlib_suppress
+except ImportError:
+    class compat_contextlib_suppress(object):
+        _exceptions = None
+
+        def __init__(self, *exceptions):
+            super(compat_contextlib_suppress, self).__init__()
+            # TODO: [Base]ExceptionGroup (3.12+)
+            self._exceptions = exceptions
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return exc_type is not None and issubclass(exc_type, self._exceptions or tuple())
+
+
+# subprocess.Popen context manager
+# avoids leaking handles if .communicate() is not called
+try:
+    _Popen = subprocess.Popen
+    # check for required context manager attributes
+    _Popen.__enter__ and _Popen.__exit__
+    compat_subprocess_Popen = _Popen
+except AttributeError:
+    # not a context manager - make one
+    from contextlib import contextmanager
+
+    @contextmanager
+    def compat_subprocess_Popen(*args, **kwargs):
+        popen = None
+        try:
+            popen = _Popen(*args, **kwargs)
+            yield popen
+        finally:
+            if popen:
+                for f in (popen.stdin, popen.stdout, popen.stderr):
+                    if f:
+                        # repeated .close() is OK, but just in case
+                        with compat_contextlib_suppress(EnvironmentError):
+                            f.close()
+            popen.wait()
+
+
 # Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
-def workaround_optparse_bug9161():
+def _workaround_optparse_bug9161():
     op = optparse.OptionParser()
     og = optparse.OptionGroup(op, 'foo')
     try:
@@ -2880,12 +3349,14 @@ def workaround_optparse_bug9161():
         optparse.OptionGroup.add_option = _compat_add_option
 
 
-if hasattr(shutil, 'get_terminal_size'):  # Python >= 3.3
-    compat_get_terminal_size = shutil.get_terminal_size
-else:
+# compat_shutil_get_terminal_size
+try:
+    from shutil import get_terminal_size as compat_get_terminal_size  # Python >= 3.3
+except ImportError:
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
     def compat_get_terminal_size(fallback=(80, 24)):
+        from .utils import process_communicate_or_kill
         columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
@@ -2902,7 +3373,7 @@ else:
                 sp = subprocess.Popen(
                     ['stty', 'size'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = sp.communicate()
+                out, err = process_communicate_or_kill(sp)
                 _lines, _columns = map(int, out.split())
             except Exception:
                 _columns, _lines = _terminal_size(*fallback)
@@ -2911,26 +3382,33 @@ else:
                 columns = _columns
             if lines is None or lines <= 0:
                 lines = _lines
+
         return _terminal_size(columns, lines)
 
-try:
-    itertools.count(start=0, step=1)
-    compat_itertools_count = itertools.count
-except TypeError:  # Python 2.6
-    def compat_itertools_count(start=0, step=1):
-        n = start
-        while True:
-            yield n
-            n += step
+compat_shutil_get_terminal_size = compat_get_terminal_size
 
+
+# compat_itertools_count
+try:
+    type(itertools.count(start=0, step=1))
+    compat_itertools_count = itertools.count
+except TypeError:  # Python 2.6 lacks step
+    def compat_itertools_count(start=0, step=1):
+        while True:
+            yield start
+            start += step
+
+
+# compat_tokenize_tokenize
 if sys.version_info >= (3, 0):
     from tokenize import tokenize as compat_tokenize_tokenize
 else:
     from tokenize import generate_tokens as compat_tokenize_tokenize
 
 
+# compat_struct_pack, compat_struct_unpack, compat_Struct
 try:
-    struct.pack('!I', 0)
+    type(struct.pack('!I', 0))
 except TypeError:
     # In Python 2.6 and 2.7.x < 2.7.7, struct requires a bytes argument
     # See https://bugs.python.org/issue19099
@@ -2962,6 +3440,27 @@ else:
         compat_Struct = struct.Struct
 
 
+# builtins returning an iterator
+
+# compat_map, compat_filter
+# supposedly the same versioning as for zip below
+try:
+    from future_builtins import map as compat_map
+except ImportError:
+    try:
+        from itertools import imap as compat_map
+    except ImportError:
+        compat_map = map
+
+try:
+    from future_builtins import filter as compat_filter
+except ImportError:
+    try:
+        from itertools import ifilter as compat_filter
+    except ImportError:
+        compat_filter = filter
+
+# compat_zip
 try:
     from future_builtins import zip as compat_zip
 except ImportError:  # not 2.6+ or is 3.x
@@ -2971,6 +3470,87 @@ except ImportError:  # not 2.6+ or is 3.x
         compat_zip = zip
 
 
+# compat_itertools_zip_longest
+# method renamed between Py2/3
+try:
+    from itertools import zip_longest as compat_itertools_zip_longest
+except ImportError:
+    from itertools import izip_longest as compat_itertools_zip_longest
+
+
+# compat_collections_chain_map
+# collections.ChainMap: new class
+try:
+    from collections import ChainMap as compat_collections_chain_map
+    # Py3.3's ChainMap is deficient
+    if sys.version_info < (3, 4):
+        raise ImportError
+except ImportError:
+    # Py <= 3.3
+    class compat_collections_chain_map(compat_collections_abc.MutableMapping):
+
+        maps = [{}]
+
+        def __init__(self, *maps):
+            self.maps = list(maps) or [{}]
+
+        def __getitem__(self, k):
+            for m in self.maps:
+                if k in m:
+                    return m[k]
+            raise KeyError(k)
+
+        def __setitem__(self, k, v):
+            self.maps[0].__setitem__(k, v)
+            return
+
+        def __contains__(self, k):
+            return any((k in m) for m in self.maps)
+
+        def __delitem(self, k):
+            if k in self.maps[0]:
+                del self.maps[0][k]
+                return
+            raise KeyError(k)
+
+        def __delitem__(self, k):
+            self.__delitem(k)
+
+        def __iter__(self):
+            return itertools.chain(*reversed(self.maps))
+
+        def __len__(self):
+            return len(iter(self))
+
+        # to match Py3, don't del directly
+        def pop(self, k, *args):
+            if self.__contains__(k):
+                off = self.__getitem__(k)
+                self.__delitem(k)
+                return off
+            elif len(args) > 0:
+                return args[0]
+            raise KeyError(k)
+
+        def new_child(self, m=None, **kwargs):
+            m = m or {}
+            m.update(kwargs)
+            # support inheritance !
+            return type(self)(m, *self.maps)
+
+        @property
+        def parents(self):
+            return type(self)(*(self.maps[1:]))
+
+
+# compat_re_Pattern, compat_re_Match
+# Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
+compat_re_Pattern = type(re.compile(''))
+# and on the type of a match
+compat_re_Match = type(re.match('a', 'a'))
+
+
+# compat_base64_b64decode
 if sys.version_info < (3, 3):
     def compat_b64decode(s, *args, **kwargs):
         if isinstance(s, compat_str):
@@ -2979,7 +3559,10 @@ if sys.version_info < (3, 3):
 else:
     compat_b64decode = base64.b64decode
 
+compat_base64_b64decode = compat_b64decode
 
+
+# compat_ctypes_WINFUNCTYPE
 if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
     # names, see the original PyPy issue [1] and the youtube-dl one [2].
@@ -2998,63 +3581,153 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
-__all__ = [
+# compat_open
+if sys.version_info < (3, 0):
+    # open(file, mode='r', buffering=- 1, encoding=None, errors=None, newline=None, closefd=True) not: opener=None
+    def compat_open(file_, *args, **kwargs):
+        if len(args) > 6 or 'opener' in kwargs:
+            raise ValueError('open: unsupported argument "opener"')
+        return io.open(file_, *args, **kwargs)
+else:
+    compat_open = open
+
+
+# compat_register_utf8
+def compat_register_utf8():
+    if sys.platform == 'win32':
+        # https://github.com/ytdl-org/youtube-dl/issues/820
+        from codecs import register, lookup
+        register(
+            lambda name: lookup('utf-8') if name == 'cp65001' else None)
+
+
+# compat_datetime_timedelta_total_seconds
+try:
+    compat_datetime_timedelta_total_seconds = datetime.timedelta.total_seconds
+except AttributeError:
+    # Py 2.6
+    def compat_datetime_timedelta_total_seconds(td):
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+
+# optional decompression packages
+# compat_brotli
+# PyPi brotli package implements 'br' Content-Encoding
+try:
+    import brotli as compat_brotli
+except ImportError:
+    compat_brotli = None
+# compat_ncompress
+# PyPi ncompress package implements 'compress' Content-Encoding
+try:
+    import ncompress as compat_ncompress
+except ImportError:
+    compat_ncompress = None
+
+# compat_zstandard
+# PyPi zstandard package implements 'zstd' Content-Encoding (RFC 8878 7.2)
+try:
+    import zstandard as compat_zstandard
+except ImportError:
+    compat_zstandard = None
+
+
+legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
-    'compat_Struct',
     'compat_b64decode',
-    'compat_basestring',
-    'compat_chr',
     'compat_cookiejar',
     'compat_cookiejar_Cookie',
     'compat_cookies',
     'compat_cookies_SimpleCookie',
-    'compat_ctypes_WINFUNCTYPE',
     'compat_etree_Element',
-    'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
-    'compat_get_terminal_size',
-    'compat_getenv',
     'compat_getpass',
-    'compat_html_entities',
-    'compat_html_entities_html5',
-    'compat_http_client',
-    'compat_http_server',
-    'compat_input',
-    'compat_integer_types',
-    'compat_itertools_count',
-    'compat_kwargs',
-    'compat_numeric_types',
-    'compat_ord',
-    'compat_os_name',
     'compat_parse_qs',
-    'compat_print',
     'compat_realpath',
-    'compat_setenv',
-    'compat_shlex_quote',
     'compat_shlex_split',
-    'compat_socket_create_connection',
-    'compat_str',
-    'compat_struct_pack',
-    'compat_struct_unpack',
-    'compat_subprocess_get_DEVNULL',
-    'compat_tokenize_tokenize',
-    'compat_urllib_error',
-    'compat_urllib_parse',
+    'compat_urllib_parse_parse_qs',
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',
     'compat_urllib_parse_urlencode',
     'compat_urllib_parse_urlparse',
-    'compat_urllib_request',
-    'compat_urllib_request_DataHandler',
-    'compat_urllib_response',
     'compat_urlparse',
     'compat_urlretrieve',
     'compat_xml_parse_error',
+]
+
+
+__all__ = [
+    'compat_Struct',
+    'compat_base64_b64decode',
+    'compat_basestring',
+    'compat_brotli',
+    'compat_casefold',
+    'compat_chr',
+    'compat_collections_abc',
+    'compat_collections_chain_map',
+    'compat_contextlib_suppress',
+    'compat_ctypes_WINFUNCTYPE',
+    'compat_datetime_timedelta_total_seconds',
+    'compat_etree_fromstring',
+    'compat_etree_iterfind',
+    'compat_filter',
+    'compat_get_terminal_size',
+    'compat_getenv',
+    'compat_getpass_getpass',
+    'compat_html_entities',
+    'compat_html_entities_html5',
+    'compat_html_parser_HTMLParseError',
+    'compat_html_parser_HTMLParser',
+    'compat_http_cookiejar',
+    'compat_http_cookiejar_Cookie',
+    'compat_http_cookies',
+    'compat_http_cookies_SimpleCookie',
+    'compat_http_client',
+    'compat_http_server',
+    'compat_input',
+    'compat_int',
+    'compat_integer_types',
+    'compat_itertools_count',
+    'compat_itertools_zip_longest',
+    'compat_kwargs',
+    'compat_map',
+    'compat_ncompress',
+    'compat_numeric_types',
+    'compat_open',
+    'compat_ord',
+    'compat_os_makedirs',
+    'compat_os_name',
+    'compat_os_path_expanduser',
+    'compat_os_path_realpath',
+    'compat_print',
+    'compat_re_Match',
+    'compat_re_Pattern',
+    'compat_register_utf8',
+    'compat_setenv',
+    'compat_shlex_quote',
+    'compat_shutil_get_terminal_size',
+    'compat_socket_create_connection',
+    'compat_str',
+    'compat_struct_pack',
+    'compat_struct_unpack',
+    'compat_subprocess_get_DEVNULL',
+    'compat_subprocess_Popen',
+    'compat_tokenize_tokenize',
+    'compat_urllib_error',
+    'compat_urllib_parse',
+    'compat_urllib_request',
+    'compat_urllib_request_DataHandler',
+    'compat_urllib_response',
+    'compat_urllib_request_urlretrieve',
+    'compat_urllib_HTTPError',
+    'compat_xml_etree_ElementTree_Element',
+    'compat_xml_etree_ElementTree_ParseError',
+    'compat_xml_etree_register_namespace',
     'compat_xpath',
     'compat_zip',
-    'workaround_optparse_bug9161',
+    'compat_zstandard',
 ]

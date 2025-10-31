@@ -24,7 +24,7 @@ class MediasetIE(ThePlatformBaseIE):
                             (?:(?:www|static3)\.)?mediasetplay\.mediaset\.it/
                             (?:
                                 (?:video|on-demand|movie)/(?:[^/]+/)+[^/]+_|
-                                player/index\.html\?.*?\bprogramGuid=
+                                player(?:/v\d+)?/index\.html\?.*?\bprogramGuid=
                             )
                     )(?P<id>[0-9A-Z]{16,})
                     '''
@@ -72,6 +72,10 @@ class MediasetIE(ThePlatformBaseIE):
     }, {
         # iframe twitter (from http://www.wittytv.it/se-prima-mi-fidavo-zero/)
         'url': 'https://static3.mediasetplay.mediaset.it/player/index.html?appKey=5ad3966b1de1c4000d5cec48&programGuid=FAFU000000665104&id=665104',
+        'only_matching': True,
+    }, {
+        # embedUrl (from https://www.wittytv.it/amici/est-ce-que-tu-maimes-gabriele-5-dicembre-copia/)
+        'url': 'https://static3.mediasetplay.mediaset.it/player/v2/index.html?partnerId=wittytv&configId=&programGuid=FD00000000153323&autoplay=true&purl=http://www.wittytv.it/amici/est-ce-que-tu-maimes-gabriele-5-dicembre-copia/',
         'only_matching': True,
     }, {
         'url': 'mediaset:FAFU000000665924',

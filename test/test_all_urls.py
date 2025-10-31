@@ -66,9 +66,9 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('https://www.youtube.com/feed/watch_later', ['youtube:tab'])
         self.assertMatch('https://www.youtube.com/feed/subscriptions', ['youtube:tab'])
 
-    # def test_youtube_search_matching(self):
-    #     self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
-    #     self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
+    def test_youtube_search_matching(self):
+        self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
+        self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
     def test_facebook_matching(self):
         self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))

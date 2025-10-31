@@ -727,7 +727,7 @@ class SWFInterpreter(object):
                             stack.append(res)
                             continue
 
-                        assert isinstance(obj, (dict, _ScopeDict)),\
+                        assert isinstance(obj, (dict, _ScopeDict)), \
                             'Accessing member %r on %r' % (pname, obj)
                         res = obj.get(pname, undefined)
                         stack.append(res)

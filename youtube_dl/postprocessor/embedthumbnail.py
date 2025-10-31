@@ -13,9 +13,12 @@ from ..utils import (
     encodeFilename,
     PostProcessingError,
     prepend_extension,
+    process_communicate_or_kill,
     replace_extension,
-    shell_quote
+    shell_quote,
 )
+
+from ..compat import compat_open as open
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -109,7 +112,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 self._downloader.to_screen('[debug] AtomicParsley command line: %s' % shell_quote(cmd))
 
             p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
+            stdout, stderr = process_communicate_or_kill(p)
 
             if p.returncode != 0:
                 msg = stderr.decode('utf-8', 'replace').strip()

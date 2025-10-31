@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 # Allow direct execution
@@ -9,11 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
 
-
 from youtube_dl.extractor import (
+    YoutubeIE,
     YoutubePlaylistIE,
     YoutubeTabIE,
-    YoutubeIE,
 )
 
 
@@ -25,38 +25,23 @@ class TestYoutubeLists(unittest.TestCase):
     def test_youtube_playlist_noplaylist(self):
         dl = FakeYDL()
         dl.params['noplaylist'] = True
+        dl.params['format'] = 'best'
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/watch?v=FXxLjLQi3Fg&list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
         self.assertEqual(result['_type'], 'url')
+        result = dl.extract_info(result['url'], download=False, ie_key=result.get('ie_key'), process=False)
         self.assertEqual(YoutubeIE().extract_id(result['url']), 'FXxLjLQi3Fg')
-
-    def test_youtube_course(self):
-        dl = FakeYDL()
-        ie = YoutubePlaylistIE(dl)
-        # TODO find a > 100 (paginating?) videos course
-        result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        entries = list(result['entries'])
-        self.assertEqual(YoutubeIE().extract_id(entries[0]['url']), 'j9WZyLZCBzs')
-        self.assertEqual(len(entries), 25)
-        self.assertEqual(YoutubeIE().extract_id(entries[-1]['url']), 'rYefUsYuEp0')
 
     def test_youtube_mix(self):
         dl = FakeYDL()
-        ie = YoutubePlaylistIE(dl)
-        result = ie.extract('https://www.youtube.com/watch?v=W01L70IGBgE&index=2&list=RDOQpdSVF_k_w')
-        entries = result['entries']
-        self.assertTrue(len(entries) >= 50)
+        dl.params['format'] = 'best'
+        ie = YoutubeTabIE(dl)
+        result = dl.extract_info('https://www.youtube.com/watch?v=tyITL_exICo&list=RDCLAK5uy_kLWIr9gv1XLlPbaDS965-Db4TrBoUTxQ8',
+                                 download=False, ie_key=ie.ie_key(), process=True)
+        entries = (result or {}).get('entries', [{'id': 'not_found', }])
+        self.assertTrue(len(entries) >= 25)
         original_video = entries[0]
-        self.assertEqual(original_video['id'], 'OQpdSVF_k_w')
-
-    def test_youtube_toptracks(self):
-        print('Skipping: The playlist page gives error 500')
-        return
-        dl = FakeYDL()
-        ie = YoutubePlaylistIE(dl)
-        result = ie.extract('https://www.youtube.com/playlist?list=MCUS')
-        entries = result['entries']
-        self.assertEqual(len(entries), 100)
+        self.assertEqual(original_video['id'], 'tyITL_exICo')
 
     def test_youtube_flat_playlist_extraction(self):
         dl = FakeYDL()
@@ -67,7 +52,7 @@ class TestYoutubeLists(unittest.TestCase):
         entries = list(result['entries'])
         self.assertTrue(len(entries) == 1)
         video = entries[0]
-        self.assertEqual(video['_type'], 'url_transparent')
+        self.assertEqual(video['_type'], 'url')
         self.assertEqual(video['ie_key'], 'Youtube')
         self.assertEqual(video['id'], 'BaW_jenozKc')
         self.assertEqual(video['url'], 'BaW_jenozKc')

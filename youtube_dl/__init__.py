@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 __license__ = 'Public Domain'
 
-import codecs
 import io
 import os
 import random
@@ -17,10 +16,12 @@ from .options import (
 )
 from .compat import (
     compat_getpass,
+    compat_register_utf8,
     compat_shlex_split,
-    workaround_optparse_bug9161,
+    _workaround_optparse_bug9161,
 )
 from .utils import (
+    _UnsafeExtensionError,
     DateRange,
     decodeOption,
     DEFAULT_OUTTMPL,
@@ -46,12 +47,10 @@ from .YoutubeDL import YoutubeDL
 
 
 def _real_main(argv=None):
-    # Compatibility fixes for Windows
-    if sys.platform == 'win32':
-        # https://github.com/ytdl-org/youtube-dl/issues/820
-        codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
+    # Compatibility fix for Windows
+    compat_register_utf8()
 
-    workaround_optparse_bug9161()
+    _workaround_optparse_bug9161()
 
     setproctitle('youtube-dl')
 
@@ -174,6 +173,9 @@ def _real_main(argv=None):
         opts.max_sleep_interval = opts.sleep_interval
     if opts.ap_mso and opts.ap_mso not in MSO_INFO:
         parser.error('Unsupported TV Provider, use --ap-list-mso to get a list of supported TV Providers')
+
+    if opts.no_check_extensions:
+        _UnsafeExtensionError.lenient = True
 
     def parse_retries(retries):
         if retries in ('inf', 'infinite'):
@@ -407,6 +409,8 @@ def _real_main(argv=None):
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
+        'youtube_player_js_version': opts.youtube_player_js_version,
+        'youtube_player_js_variant': opts.youtube_player_js_variant,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
         'mark_watched': opts.mark_watched,

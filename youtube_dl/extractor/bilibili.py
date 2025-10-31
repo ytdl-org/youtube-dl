@@ -369,6 +369,11 @@ class BilibiliAudioIE(BilibiliAudioBaseIE):
             'filesize': int_or_none(play_data.get('size')),
         }]
 
+        for a_format in formats:
+            a_format.setdefault('http_headers', {}).update({
+                'Referer': url,
+            })
+
         song = self._call_api('song/info', au_id)
         title = song['title']
         statistic = song.get('statistic') or {}
