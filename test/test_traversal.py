@@ -9,6 +9,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
+import itertools
 import re
 
 from youtube_dl.traversal import (
@@ -18,9 +19,12 @@ from youtube_dl.traversal import (
     traverse_obj,
 )
 from youtube_dl.compat import (
+    compat_chr as chr,
     compat_etree_fromstring,
     compat_http_cookies,
+    compat_map as map,
     compat_str,
+    compat_zip as zip,
 )
 from youtube_dl.utils import (
     int_or_none,
@@ -446,36 +450,26 @@ class TestTraversal(_TestCase):
                          msg='`any` should allow further branching')
 
     def test_traversal_morsel(self):
-        values = {
-            'expires': 'a',
-            'path': 'b',
-            'comment': 'c',
-            'domain': 'd',
-            'max-age': 'e',
-            'secure': 'f',
-            'httponly': 'g',
-            'version': 'h',
-            'samesite': 'i',
-        }
-        # SameSite added in Py3.8, breaks .update for 3.5-3.7
-        if sys.version_info < (3, 8):
-            del values['samesite']
         morsel = compat_http_cookies.Morsel()
+        # SameSite added in Py3.8, breaks .update for 3.5-3.7
+        # Similarly Partitioned, Py3.14, thx Grub4k
+        values = dict(zip(morsel, map(chr, itertools.count(ord('a')))))
         morsel.set(str('item_key'), 'item_value', 'coded_value')
         morsel.update(values)
-        values['key'] = str('item_key')
-        values['value'] = 'item_value'
+        values.update({
+            'key': str('item_key'),
+            'value': 'item_value',
+        }),
         values = dict((str(k), v) for k, v in values.items())
-        # make test pass even without ordered dict
-        value_set = set(values.values())
 
         for key, value in values.items():
             self.assertEqual(traverse_obj(morsel, key), value,
                              msg='Morsel should provide access to all values')
-        self.assertEqual(set(traverse_obj(morsel, Ellipsis)), value_set,
-                         msg='`...` should yield all values')
-        self.assertEqual(set(traverse_obj(morsel, lambda k, v: True)), value_set,
-                         msg='function key should yield all values')
+        values = list(values.values())
+        self.assertMaybeCountEqual(traverse_obj(morsel, Ellipsis), values,
+                                   msg='`...` should yield all values')
+        self.assertMaybeCountEqual(traverse_obj(morsel, lambda k, v: True), values,
+                                   msg='function key should yield all values')
         self.assertIs(traverse_obj(morsel, [(None,), any]), morsel,
                       msg='Morsel should not be implicitly changed to dict on usage')
 
