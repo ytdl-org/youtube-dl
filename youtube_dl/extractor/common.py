@@ -214,6 +214,7 @@ class InfoExtractor(object):
                                  width : height ratio as float.
                     * no_resume  The server does not support resuming the
                                  (HTTP or RTMP) download. Boolean.
+                    * available_at  Unix timestamp of when a format will be available to download
                     * downloader_options  A dictionary of downloader options as
                                  described in FileDownloader
 

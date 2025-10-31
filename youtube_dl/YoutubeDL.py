@@ -357,7 +357,7 @@ class YoutubeDL(object):
 
     _NUMERIC_FIELDS = set((
         'width', 'height', 'tbr', 'abr', 'asr', 'vbr', 'fps', 'filesize', 'filesize_approx',
-        'timestamp', 'upload_year', 'upload_month', 'upload_day',
+        'timestamp', 'upload_year', 'upload_month', 'upload_day', 'available_at',
         'duration', 'view_count', 'like_count', 'dislike_count', 'repost_count',
         'average_rating', 'comment_count', 'age_limit',
         'start_time', 'end_time',
