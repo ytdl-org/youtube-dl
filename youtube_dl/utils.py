@@ -3187,6 +3187,7 @@ def extract_timezone(date_str):
     return timezone, date_str
 
 
+@partial_application
 def parse_iso8601(date_str, delimiter='T', timezone=None):
     """ Return a UNIX timestamp from the given date """
 
@@ -3264,6 +3265,7 @@ def unified_timestamp(date_str, day_first=True):
         return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
 
 
+@partial_application
 def determine_ext(url, default_ext='unknown_video'):
     if url is None or '.' not in url:
         return default_ext
@@ -3842,6 +3844,7 @@ def base_url(url):
     return re.match(r'https?://[^?#&]+/', url).group()
 
 
+@partial_application
 def urljoin(base, path):
     path = _decode_compat_str(path, encoding='utf-8', or_none=True)
     if not path:
@@ -3866,6 +3869,7 @@ class PUTRequest(compat_urllib_request.Request):
         return 'PUT'
 
 
+@partial_application
 def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1, base=None):
     if get_attr:
         if v is not None:
@@ -3892,6 +3896,7 @@ def str_to_int(int_str):
         return int_or_none(int_str)
 
 
+@partial_application
 def float_or_none(v, scale=1, invscale=1, default=None):
     if v is None:
         return default
@@ -4286,6 +4291,7 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
+@partial_application
 def update_url(url, **kwargs):
     """Replace URL components specified by kwargs
        url: compat_str or parsed URL tuple
@@ -4307,6 +4313,7 @@ def update_url(url, **kwargs):
     return compat_urllib_parse.urlunparse(url._replace(**kwargs))
 
 
+@partial_application
 def update_url_query(url, query):
     return update_url(url, query_update=query)
 
