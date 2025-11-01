@@ -6,6 +6,7 @@ from .utils import (
     dict_get,
     get_first,
     require,
+    subs_list_to_dict,
     T,
     traverse_obj,
     unpack,
