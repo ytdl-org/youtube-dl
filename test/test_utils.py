@@ -1730,13 +1730,13 @@ Line 1
             callable(test_fn(kwarg=10)),
             'missing positional parameter should apply partially')
         self.assertEqual(
-            test_fn(10, kwarg=0.1), '10, kwarg=0.1',
+            test_fn(10, kwarg=42), '10, kwarg=42',
             'positionally passed argument should call function')
         self.assertEqual(
             test_fn(x=10), '10, kwarg=None',
             'keyword passed positional should call function')
         self.assertEqual(
-            test_fn(kwarg=0.1)(10), '10, kwarg=0.1',
+            test_fn(kwarg=42)(10), '10, kwarg=42',
             'call after partial application should call the function')
 
 
