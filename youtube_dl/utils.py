@@ -1861,6 +1861,39 @@ def write_json_file(obj, fn):
         raise
 
 
+class partial_application(object):
+    """Allow a function to use pre-set argument values"""
+
+    # see _try_bind_args()
+    try:
+        inspect.signature
+
+        @staticmethod
+        def required_args(fn):
+            return [
+                param.name for param in inspect.signature(fn).parameters.values()
+                if (param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD)
+                    and param.default is inspect.Parameter.empty)]
+
+    except AttributeError:
+
+        # Py < 3.3
+        @staticmethod
+        def required_args(fn):
+            fn_args = inspect.getargspec(fn)
+            n_defaults = len(fn_args.defaults or [])
+            return (fn_args.args or [])[:-n_defaults if n_defaults > 0 else None]
+
+    def __new__(cls, func):
+        @functools.wraps(func)
+        def wrapped(*args, **kwargs):
+            if set(cls.required_args(func)[len(args):]).difference(kwargs):
+                return functools.partial(func, *args, **kwargs)
+            return func(*args, **kwargs)
+
+        return wrapped
+
+
 if sys.version_info >= (2, 7):
     def find_xpath_attr(node, xpath, key, val=None):
         """ Find the xpath xpath[@key=val] """

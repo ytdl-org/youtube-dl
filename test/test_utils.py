@@ -69,6 +69,7 @@ from youtube_dl.utils import (
     parse_iso8601,
     parse_resolution,
     parse_qs,
+    partial_application,
     pkcs1pad,
     prepend_extension,
     read_batch_urls,
@@ -1722,6 +1723,21 @@ Line 1
         self.assertEqual(join_nonempty(
             'a', 'b', 'c', 'd',
             from_dict={'a': 'c', 'c': [], 'b': 'd', 'd': None}), 'c-d')
+
+    def test_partial_application(self):
+        test_fn = partial_application(lambda x, kwarg=None: '{0}, kwarg={1!r}'.format(x, kwarg))
+        self.assertTrue(
+            callable(test_fn(kwarg=10)),
+            'missing positional parameter should apply partially')
+        self.assertEqual(
+            test_fn(10, kwarg=0.1), '10, kwarg=0.1',
+            'positionally passed argument should call function')
+        self.assertEqual(
+            test_fn(x=10), '10, kwarg=None',
+            'keyword passed positional should call function')
+        self.assertEqual(
+            test_fn(kwarg=0.1)(10), '10, kwarg=0.1',
+            'call after partial application should call the function')
 
 
 if __name__ == '__main__':
