@@ -3637,6 +3637,16 @@ except ImportError:
     compat_zstandard = None
 
 
+# compat_thread
+try:
+    import _thread as compat_thread
+except ImportError:
+    try:
+        import thread as compat_thread
+    except ImportError:
+        import dummy_thread as compat_thread
+
+
 legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -3722,6 +3732,7 @@ __all__ = [
     'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
     'compat_subprocess_Popen',
+    'compat_thread',
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
