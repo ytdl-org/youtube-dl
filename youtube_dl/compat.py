@@ -3492,6 +3492,31 @@ except ImportError:
     compat_abc_ABC = _ABCMeta(str('ABC'), (object,), {})
 
 
+# dict mixin used here
+# like UserDict.DictMixin, without methods created by MutableMapping
+class _DictMixin(compat_abc_ABC):
+    def has_key(self, key):
+        return key in self
+
+    # get(), clear(), setdefault() in MM
+
+    def iterkeys(self):
+        return (k for k in self)
+
+    def itervalues(self):
+        return (self[k] for k in self)
+
+    def iteritems(self):
+        return ((k, self[k]) for k in self)
+
+    # pop(), popitem() in MM
+
+    def copy(self):
+        return type(self)(self)
+
+    # update() in MM
+
+
 # compat_collections_chain_map
 # collections.ChainMap: new class
 try:
@@ -3656,6 +3681,119 @@ except ImportError:
         import dummy_thread as compat_thread
 
 
+# compat_dict
+# compat_builtins_dict
+# compat_dict_items
+if sys.version_info >= (3, 6):
+    compat_dict = compat_builtins_dict = dict
+    compat_dict_items = dict.items
+else:
+    _get_ident = compat_thread.get_ident
+
+    class compat_dict(compat_collections_abc.MutableMapping, _DictMixin, dict):
+        """`dict` that preserves insertion order with interface like Py3.7+"""
+
+        _order = []  # default that should never be used
+
+        def __init__(self, *mappings_or_iterables, **kwargs):
+            # order an unordered dict using a list of keys: actual Py 2.7+
+            # OrderedDict uses a doubly linked list for better performance
+            self._order = []
+            for arg in mappings_or_iterables:
+                self.__update(arg)
+            if kwargs:
+                self.__update(kwargs)
+
+        def __getitem__(self, key):
+            return dict.__getitem__(self, key)
+
+        def __setitem__(self, key, value):
+            try:
+                if key not in self._order:
+                    self._order.append(key)
+                dict.__setitem__(self, key, value)
+            except Exception:
+                if key in self._order[-1:] and key not in self:
+                    del self._order[-1]
+                raise
+
+        def __len__(self):
+            return dict.__len__(self)
+
+        def __delitem__(self, key):
+            dict.__delitem__(self, key)
+            try:
+                # expected case, O(len(self)), but who dels anyway?
+                self._order.remove(key)
+            except ValueError:
+                pass
+
+        def __iter__(self):
+            for from_ in self._order:
+                if from_ in self:
+                    yield from_
+
+        def __del__(self):
+            for attr in ('_order',):
+                try:
+                    delattr(self, attr)
+                except Exception:
+                    pass
+
+        def __repr__(self, _repr_running={}):
+            # skip recursive items ...
+            call_key = id(self), _get_ident()
+            if _repr_running.get(call_key):
+                return '...'
+            _repr_running[call_key] = True
+            try:
+                return '%s({%s})' % (
+                    type(self).__name__,
+                    ','.join('%r: %r' % k_v for k_v in self.items()))
+            finally:
+                del _repr_running[call_key]
+
+        # merge/update (PEP 584)
+
+        def __or__(self, other):
+            if not isinstance(other, compat_collections_abc.Mapping):
+                return NotImplemented
+            new = type(self)(self)
+            new.update(other)
+            return new
+
+        def __ror__(self, other):
+            if not isinstance(other, compat_collections_abc.Mapping):
+                return NotImplemented
+            new = type(other)(other)
+            new.update(self)
+            return new
+
+        def __ior__(self, other):
+            self.update(other)
+            return self
+
+        # optimisations
+
+        def __reversed__(self):
+            for from_ in reversed(self._order):
+                if from_ in self:
+                    yield from_
+
+        def __contains__(self, item):
+            return dict.__contains__(self, item)
+
+        # allow overriding update without breaking __init__
+        def __update(self, *args, **kwargs):
+            super(compat_dict, self).update(*args, **kwargs)
+
+    compat_builtins_dict = dict
+    # Using the object's method, not dict's:
+    #   an ordered dict's items can be returned unstably by unordered
+    #   dict.items as if the method was not ((k, self[k]) for k in self)
+    compat_dict_items = lambda d: d.items()
+
+
 legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
@@ -3690,6 +3828,7 @@ __all__ = [
     'compat_base64_b64decode',
     'compat_basestring',
     'compat_brotli',
+    'compat_builtins_dict',
     'compat_casefold',
     'compat_chr',
     'compat_collections_abc',
@@ -3697,6 +3836,8 @@ __all__ = [
     'compat_contextlib_suppress',
     'compat_ctypes_WINFUNCTYPE',
     'compat_datetime_timedelta_total_seconds',
+    'compat_dict',
+    'compat_dict_items',
     'compat_etree_fromstring',
     'compat_etree_iterfind',
     'compat_filter',
