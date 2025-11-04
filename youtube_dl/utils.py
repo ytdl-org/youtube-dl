@@ -6367,6 +6367,11 @@ def traverse_obj(obj, *paths, **kwargs):
     # instant compat
     str = compat_str
 
+    from .compat import (
+        compat_builtins_dict as dict_,  # the basic dict type
+        compat_dict as dict,            # dict preserving imsertion order
+    )
+
     casefold = lambda k: compat_casefold(k) if isinstance(k, str) else k
 
     if isinstance(expected_type, type):
@@ -6449,7 +6454,7 @@ def traverse_obj(obj, *paths, **kwargs):
             if not branching:  # string traversal
                 result = ''.join(result)
 
-        elif isinstance(key, dict):
+        elif isinstance(key, dict_):
             iter_obj = ((k, _traverse_obj(obj, v, False, is_last)) for k, v in key.items())
             result = dict((k, v if v is not None else default) for k, v in iter_obj
                           if v is not None or default is not NO_DEFAULT) or None
@@ -6527,7 +6532,7 @@ def traverse_obj(obj, *paths, **kwargs):
         has_branched = False
 
         key = None
-        for last, key in lazy_last(variadic(path, (str, bytes, dict, set))):
+        for last, key in lazy_last(variadic(path, (str, bytes, dict_, set))):
             if not casesense and isinstance(key, str):
                 key = compat_casefold(key)
 
@@ -6557,10 +6562,10 @@ def traverse_obj(obj, *paths, **kwargs):
 
             objs = from_iterable(new_objs)
 
-        if test_type and not isinstance(key, (dict, list, tuple)):
+        if test_type and not isinstance(key, (dict_, list, tuple)):
             objs = map(type_test, objs)
 
-        return objs, has_branched, isinstance(key, dict)
+        return objs, has_branched, isinstance(key, dict_)
 
     def _traverse_obj(obj, path, allow_empty, test_type):
         results, has_branched, is_dict = apply_path(obj, path, test_type)
