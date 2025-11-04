@@ -2787,7 +2787,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             subreason = pemr.get('subreason')
             if subreason:
                 subreason = clean_html(get_text(subreason))
-                if subreason == 'The uploader has not made this video available in your country.':
+                if subreason.startswith('The uploader has not made this video available in your country'):
                     countries = microformat.get('availableCountries')
                     if not countries:
                         regions_allowed = search_meta('regionsAllowed')
