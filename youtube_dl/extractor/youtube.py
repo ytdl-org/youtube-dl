@@ -2273,6 +2273,38 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             (r'%s\s*%s' % (regex, self._YT_INITIAL_BOUNDARY_RE),
              regex), webpage, name, default='{}'), video_id, fatal=False)
 
+    def _get_preroll_length(self, ad_slot_lists):
+
+        def parse_instream_ad_renderer(instream_renderer):
+            for skippable, path in (
+                    ('', ('skipOffsetMilliseconds', T(int))),
+                    ('non-', ('playerVars', T(compat_parse_qs),
+                     'length_seconds', -1, T(int_or_none(invscale=1000))))):
+                length_ms = traverse_obj(instream_renderer, path)
+                if length_ms is not None:
+                    self.write_debug('Detected a %ds %sskippable ad' % (
+                        length_ms // 1000, skippable))
+                    break
+            return length_ms
+
+        for slot_renderer in traverse_obj(ad_slot_lists, ('adSlots', Ellipsis, 'adSlotRenderer', T(dict))):
+            if traverse_obj(slot_renderer, ('adSlotMetadata', 'triggerEvent')) != 'SLOT_TRIGGER_EVENT_BEFORE_CONTENT':
+                continue
+            rendering_content = traverse_obj(slot_renderer, (
+                'fulfillmentContent', 'fulfilledLayout', 'playerBytesAdLayoutRenderer',
+                'renderingContent', 'instreamVideoAdRenderer', T(dict)))
+            length_ms = parse_instream_ad_renderer(rendering_content)
+            if length_ms is not None:
+                return length_ms
+            times = traverse_obj(rendering_content, ((
+                ('playerBytesSequentialLayoutRenderer', 'sequentialLayouts'),
+                None), any, Ellipsis, 'playerBytesAdLayoutRenderer',
+                'renderingContent', 'instreamVideoAdRenderer',
+                T(parse_instream_ad_renderer)))
+            if times:
+                return sum(times)
+        return 0
+
     def _is_premium_subscriber(self, initial_data):
         if not self.is_authenticated or not initial_data:
             return False
@@ -2311,8 +2343,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if True or not player_response:
             origin = 'https://www.youtube.com'
             pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
-            fetched_timestamp = int(time.time())
-
             player_url = self._extract_player_url(webpage)
             ytcfg = self._extract_ytcfg(video_id, webpage or '')
             sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
@@ -2385,6 +2415,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 hls = traverse_obj(player_response, (
                     'streamingData', 'hlsManifestUrl', T(url_or_none)))
                 fetched_timestamp = int(time.time())
+                preroll_length_ms = (
+                    self._get_preroll_length(api_player_response)
+                    or self._get_preroll_length(player_response))
                 video_details = merge_dicts(*traverse_obj(
                     (player_response, api_player_response),
                     (Ellipsis, 'videoDetails', T(dict))))
@@ -2551,7 +2584,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif fetched_timestamp is not None:
             # Handle preroll waiting period
             preroll_sleep = self.get_param('youtube_preroll_sleep')
-            preroll_sleep = int_or_none(preroll_sleep, default=6)
+            preroll_sleep = min(6, int_or_none(preroll_sleep, default=preroll_length_ms / 1000))
             fetched_timestamp += preroll_sleep
 
         for fmt in streaming_formats:
