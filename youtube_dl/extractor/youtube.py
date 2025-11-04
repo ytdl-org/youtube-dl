@@ -3664,15 +3664,25 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 'Unsupported lockup view model content type "{0}"{1}'.format(content_type, bug_reports_message()),
                 only_once=True)
             return
+
         thumb_keys = ('contentImage',) + thumb_keys + ('thumbnailViewModel', 'image')
+
         return merge_dicts(self.url_result(
-            url, ie=ie.ie_key(), video_id=content_id), {
-                'title': traverse_obj(view_model, (
-                    'metadata', 'lockupMetadataViewModel', 'title',
-                    'content', T(compat_str))),
-                'thumbnails': self._extract_thumbnails(
-                    view_model, thumb_keys, final_key='sources'),
-        })
+            url, ie=ie.ie_key(), video_id=content_id),
+            traverse_obj(view_model, {
+                'title': ('metadata', 'lockupMetadataViewModel', 'title',
+                          'content', T(compat_str)),
+                'thumbnails': T(lambda vm: self._extract_thumbnails(
+                    vm, thumb_keys, final_key='sources')),
+                'duration': (
+                    'contentImage', 'thumbnailViewModel', 'overlays',
+                    Ellipsis, (
+                        ('thumbnailBottomOverlayViewModel', 'badges'),
+                        ('thumbnailOverlayBadgeViewModel', 'thumbnailBadges')
+                    ), Ellipsis, 'thumbnailBadgeViewModel', 'text',
+                    T(parse_duration), any),
+            })
+        )
 
     def _extract_shorts_lockup_view_model(self, view_model):
         content_id = traverse_obj(view_model, (
