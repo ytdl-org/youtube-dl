@@ -534,6 +534,27 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         }
 
     @staticmethod
+    def _get_text(data, *path_list, **kw_max_runs):
+        max_runs = kw_max_runs.get('max_runs')
+
+        for path in path_list or [None]:
+            if path is None:
+                obj = [data]  # shortcut
+            else:
+                obj = traverse_obj(data, tuple(variadic(path) + (all,)))
+            for runs in traverse_obj(
+                    obj, ('simpleText', {'text': T(compat_str)}, all, filter),
+                    ('runs', lambda _, r: isinstance(r.get('text'), compat_str), all, filter),
+                    (T(list), lambda _, r: isinstance(r.get('text'), compat_str)),
+                    default=[]):
+                max_runs = int_or_none(max_runs, default=len(runs))
+                if max_runs < len(runs):
+                    runs = runs[:max_runs]
+                text = ''.join(traverse_obj(runs, (Ellipsis, 'text')))
+                if text:
+                    return text
+
+    @staticmethod
     def _extract_thumbnails(data, *path_list, **kw_final_key):
         """
         Extract thumbnails from thumbnails dict
@@ -2493,10 +2514,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return self.url_result(
                 trailer_video_id, self.ie_key(), trailer_video_id)
 
-        def get_text(x):
-            return ''.join(traverse_obj(
-                x, (('simpleText',),), ('runs', Ellipsis, 'text'),
-                expected_type=compat_str))
+        get_text = lambda x: self._get_text(x) or ''
 
         search_meta = (
             (lambda x: self._html_search_meta(x, webpage, default=None))
@@ -2960,24 +2978,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             chapters = self._extract_chapters_from_json(
                 initial_data, video_id, duration)
             if not chapters:
-                for engagment_pannel in (initial_data.get('engagementPanels') or []):
-                    contents = try_get(
-                        engagment_pannel, lambda x: x['engagementPanelSectionListRenderer']['content']['macroMarkersListRenderer']['contents'],
-                        list)
-                    if not contents:
-                        continue
+                def chapter_time(mmlir):
+                    return parse_duration(
+                        get_text(mmlir.get('timeDescription')))
 
-                    def chapter_time(mmlir):
-                        return parse_duration(
-                            get_text(mmlir.get('timeDescription')))
+                for markers in traverse_obj(initial_data, (
+                        'engagementPanels', Ellipsis, 'engagementPanelSectionListRenderer',
+                        'content', 'macroMarkersListRenderer', 'contents', T(list))):
 
                     chapters = []
-                    for next_num, content in enumerate(contents, start=1):
+                    for next_num, content in enumerate(markers, start=1):
                         mmlir = content.get('macroMarkersListItemRenderer') or {}
                         start_time = chapter_time(mmlir)
-                        end_time = (traverse_obj(
-                            contents, (next_num, 'macroMarkersListItemRenderer', T(chapter_time)))
-                            if next_num < len(contents) else duration)
+                        end_time = (traverse_obj(markers, (
+                            next_num, 'macroMarkersListItemRenderer', T(chapter_time)))
+                            if next_num < len(markers) else duration)
                         if start_time is None or end_time is None:
                             continue
                         chapters.append({
@@ -3535,12 +3550,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         return traverse_obj(item, (
             T(dict.items), lambda _, k_v: k_v[0].startswith('grid') and k_v[0].endswith('Renderer'),
             1, T(dict)), get_all=False)
-
-    @staticmethod
-    def _get_text(r, k):
-        return traverse_obj(
-            r, (k, 'runs', 0, 'text'), (k, 'simpleText'),
-            expected_type=txt_or_none)
 
     def _grid_entries(self, grid_renderer):
         for item in traverse_obj(grid_renderer, ('items', Ellipsis, T(dict))):
