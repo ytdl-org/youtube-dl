@@ -2177,32 +2177,35 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return sts
 
     def _mark_watched(self, video_id, player_response):
-        playback_url = url_or_none(try_get(
-            player_response,
-            lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']))
-        if not playback_url:
-            return
-
         # cpn generation algorithm is reverse engineered from base.js.
         # In fact it works even with dummy cpn.
         CPN_ALPHABET = string.ascii_letters + string.digits + '-_'
         cpn = ''.join(CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(16))
 
-        # more consistent results setting it to right before the end
-        qs = parse_qs(playback_url)
-        video_length = '{0}'.format(float((qs.get('len') or ['1.5'])[0]) - 1)
+        for is_full, key in enumerate(('videostatsPlaybackUrl', 'videostatsWatchtimeUrl')):
+            label = 'fully ' if is_full > 0 else ''
 
-        playback_url = update_url_query(
-            playback_url, {
-                'ver': '2',
-                'cpn': cpn,
-                'cmt': video_length,
-                'el': 'detailpage',  # otherwise defaults to "shorts"
-            })
+            playback_url = traverse_obj(player_response, (
+                'playbackTracking'. key, 'baseUrl', T(url_or_none)))
+            if not playback_url:
+                self.report_warning('Unable to mark {0}watched'.format(label))
+                continue
 
-        self._download_webpage(
-            playback_url, video_id, 'Marking watched',
-            'Unable to mark watched', fatal=False)
+            # more consistent results setting it to right before the end
+            qs = parse_qs(playback_url)
+            video_length = '{0}'.format(float((qs.get('len') or ['1.5'])[0]) - 1)
+
+            playback_url = update_url_query(
+                playback_url, {
+                    'ver': '2',
+                    'cpn': cpn,
+                    'cmt': video_length,
+                    'el': 'detailpage',  # otherwise defaults to "shorts"
+                })
+
+            self._download_webpage(
+                playback_url, video_id, 'Marking {0}watched'.format(label),
+                'Unable to mark watched', fatal=False)
 
     @staticmethod
     def _extract_urls(webpage):
