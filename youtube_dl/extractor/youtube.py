@@ -17,6 +17,8 @@ from ..compat import (
     compat_chr,
     compat_HTTPError,
     compat_map as map,
+    compat_dict as o_dict,
+    compat_dict_items as dict_items,
     compat_str,
     compat_urllib_parse,
     compat_urllib_parse_parse_qs as compat_parse_qs,
@@ -86,8 +88,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
 
-    _INNERTUBE_CLIENTS = {
-        'ios': {
+    # priority order for now
+    _INNERTUBE_CLIENTS = o_dict((
+        ('ios', {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'IOS',
@@ -100,12 +103,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 5,
-            'REQUIRE_PO_TOKEN': False,
+            'REQUIRE_PO_TOKEN': True,
             'REQUIRE_JS_PLAYER': False,
-        },
+            'WITH_COOKIES': False,
+        }),
         # mweb has 'ultralow' formats
         # See: https://github.com/yt-dlp/yt-dlp/pull/557
-        'mweb': {
+        ('mweb', {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'MWEB',
@@ -117,8 +121,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT_CLIENT_NAME': 2,
             'REQUIRE_PO_TOKEN': True,
             'SUPPORTS_COOKIES': True,
-        },
-        'tv': {
+        }),
+        ('tv', {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'TVHTML5',
@@ -128,10 +132,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 },
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
-            'SUPPORTS_COOKIES': True,
-        },
-
-        'web': {
+        }),
+        ('web', {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'WEB',
@@ -141,10 +143,20 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
             'REQUIRE_PO_TOKEN': True,
+        }),
+        ('web_embedded', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'WEB_EMBEDDED_PLAYER',
+                    'clientVersion': '1.20250923.21.00',
+                    'embedUrl': 'https://www.youtube.com/',  # Can be any valid URL
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 56,
             'SUPPORTS_COOKIES': True,
-        },
+        }),
         # Safari UA returns pre-merged video+audio 144p/240p/360p/720p/1080p HLS formats
-        'web_safari': {
+        ('web_safari', {
             'INNERTUBE_CONTEXT': {
                 'client': {
                     'clientName': 'WEB',
@@ -152,8 +164,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                     'userAgent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.5 Safari/605.1.15,gzip(gfe)',
                 },
             },
-        },
-    }
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
+            'SUPPORTS_COOKIES': True,
+            'REQUIRE_PO': True,
+        }),
+    ))
 
     def _login(self):
         """
