@@ -55,7 +55,7 @@ except AttributeError:
 try:
     import collections.abc as compat_collections_abc
 except ImportError:
-    import collections as compat_collections_abc
+    compat_collections_abc = collections
 
 
 # compat_urllib_request
@@ -3483,6 +3483,15 @@ except ImportError:
     from itertools import izip_longest as compat_itertools_zip_longest
 
 
+# compat_abc_ABC
+try:
+    from abc import ABC as compat_abc_ABC
+except ImportError:
+    # Py < 3.4
+    from abc import ABCMeta as _ABCMeta
+    compat_abc_ABC = _ABCMeta(str('ABC'), (object,), {})
+
+
 # compat_collections_chain_map
 # collections.ChainMap: new class
 try:
@@ -3677,6 +3686,7 @@ legacy = [
 
 __all__ = [
     'compat_Struct',
+    'compat_abc_ABC',
     'compat_base64_b64decode',
     'compat_basestring',
     'compat_brotli',
