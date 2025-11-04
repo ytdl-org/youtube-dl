@@ -90,6 +90,21 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     # priority order for now
     _INNERTUBE_CLIENTS = o_dict((
+        # Doesn't require a PoToken for some reason: thx yt-dlp/yt-dlp#14693
+        ('android_sdkless', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'ANDROID',
+                    'clientVersion': '20.10.38',
+                    'userAgent': 'com.google.android.youtube/20.10.38 (Linux; U; Android 11) gzip',
+                    'osName': 'Android',
+                    'osVersion': '11',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 3,
+            'REQUIRE_JS_PLAYER': False,
+            'WITH_COOKIES': False,
+        }),
         ('ios', {
             'INNERTUBE_CONTEXT': {
                 'client': {
@@ -120,6 +135,16 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             },
             'INNERTUBE_CONTEXT_CLIENT_NAME': 2,
             'REQUIRE_PO_TOKEN': True,
+        }),
+        ('tv_downgraded', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'TVHTML5',
+                    'clientVersion': '4',  # avoids SABR formats, thx yt-dlp/yt-dlp#14887
+                    'userAgent': 'Mozilla/5.0 (ChromiumStylePlatform) Cobalt/Version',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 7,
             'SUPPORTS_COOKIES': True,
         }),
         ('tv', {
@@ -167,6 +192,19 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'INNERTUBE_CONTEXT_CLIENT_NAME': 1,
             'SUPPORTS_COOKIES': True,
             'REQUIRE_PO': True,
+        }),
+        # This client now requires sign-in for every video
+        ('web_creator', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'WEB_CREATOR',
+                    'clientVersion': '1.20250922.03.00',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 62,
+            'REQUIRE_AUTH': True,
+            'SUPPORTS_COOKIES': True,
+            'WITH_COOKIES': True,
         }),
     ))
 
