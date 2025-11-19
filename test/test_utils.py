@@ -902,6 +902,30 @@ class TestUtil(unittest.TestCase):
             'vcodec': 'av01.0.05M.08',
             'acodec': 'none',
         })
+        self.assertEqual(parse_codecs('vp9.2'), {
+            'vcodec': 'vp9.2',
+            'acodec': 'none',
+            'dynamic_range': 'HDR10',
+        })
+        self.assertEqual(parse_codecs('vp09.02.50.10.01.09.18.09.00'), {
+            'vcodec': 'vp09.02.50.10.01.09.18.09.00',
+            'acodec': 'none',
+            'dynamic_range': 'HDR10',
+        })
+        self.assertEqual(parse_codecs('av01.0.12M.10.0.110.09.16.09.0'), {
+            'vcodec': 'av01.0.12M.10.0.110.09.16.09.0',
+            'acodec': 'none',
+            'dynamic_range': 'HDR10',
+        })
+        self.assertEqual(parse_codecs('dvhe'), {
+            'vcodec': 'dvhe',
+            'acodec': 'none',
+            'dynamic_range': 'DV',
+        })
+        self.assertEqual(parse_codecs('fLaC'), {
+            'vcodec': 'none',
+            'acodec': 'flac',
+        })
         self.assertEqual(parse_codecs('theora, vorbis'), {
             'vcodec': 'theora',
             'acodec': 'vorbis',
