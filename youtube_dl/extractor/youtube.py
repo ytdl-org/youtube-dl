@@ -1699,16 +1699,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         self._player_cache = {}
 
     def _get_player_js_version(self):
-        player_js_version = self.get_param('youtube_player_js_version') or '20348@0004de42'
-        sts_hash = self._search_regex(
-            ('^actual$(^)?(^)?', r'^([0-9]{5,})@([0-9a-f]{8,})$'),
-            player_js_version, 'player_js_version', group=(1, 2), default=None)
-        if sts_hash:
-            return sts_hash
-        self.report_warning(
-            'Invalid player JS version "{0}" specified. '
-            'It should be "{1}" or in the format of {2}'.format(
-                player_js_version, 'actual', 'SignatureTimeStamp@Hash'), only_once=True)
+        player_js_version = self.get_param('youtube_player_js_version')
+        if player_js_version:
+            sts_hash = self._search_regex(
+                ('^actual$(^)?(^)?', r'^([0-9]{5,})@([0-9a-f]{8,})$'),
+                player_js_version, 'player_js_version', group=(1, 2), default=None)
+            if sts_hash:
+                return sts_hash
+            self.report_warning(
+                'Invalid player JS version "{0}" specified. '
+                'It should be "{1}" or in the format of {2}'.format(
+                    player_js_version, 'actual', 'SignatureTimeStamp@Hash'), only_once=True)
         return None, None
 
     # *ytcfgs, webpage=None
@@ -1723,18 +1724,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 ytcfgs = ytcfgs + ({'PLAYER_JS_URL': player_url},)
         player_url = traverse_obj(
             ytcfgs, (Ellipsis, 'PLAYER_JS_URL'), (Ellipsis, 'WEB_PLAYER_CONTEXT_CONFIGS', Ellipsis, 'jsUrl'),
-            get_all=False, expected_type=lambda u: urljoin('https://www.youtube.com', u))
+            get_all=False, expected_type=self._yt_urljoin)
 
-        player_id_override = self._get_player_js_version()[1]
-
-        requested_js_variant = self.get_param('youtube_player_js_variant') or 'main'
+        requested_js_variant = self.get_param('youtube_player_js_variant')
         variant_js = next(
             (v for k, v in self._PLAYER_JS_VARIANT_MAP if k == requested_js_variant),
             None)
         if variant_js:
+            player_id_override = self._get_player_js_version()[1]
             player_id = player_id_override or self._extract_player_info(player_url)
             original_url = player_url
-            player_url = '/s/player/{0}/{1}'.format(player_id, variant_js)
+            player_url = self._yt_urljoin(
+                '/s/player/{0}/{1}'.format(player_id, variant_js))
             if original_url != player_url:
                 self.write_debug(
                     'Forcing "{0}" player JS variant for player {1}\n'
@@ -1748,7 +1749,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     requested_js_variant, ','.join(k for k, _ in self._PLAYER_JS_VARIANT_MAP)),
                 only_once=True)
 
-        return urljoin('https://www.youtube.com', player_url)
+        return player_url
 
     def _download_player_url(self, video_id, fatal=False):
         res = self._download_webpage(
