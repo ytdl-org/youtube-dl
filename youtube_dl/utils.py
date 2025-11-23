@@ -2564,6 +2564,10 @@ def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     # https://github.com/ytdl-org/youtube-dl/issues/6727)
     if sys.version_info < (3, 0):
         kwargs['strict'] = True
+    if is_https:
+        client_cert_path = ydl_handler._params.get('clientcertificate')
+        if client_cert_path:
+            kwargs['cert_file'] = client_cert_path
     hc = http_class(*args, **compat_kwargs(kwargs))
     source_address = ydl_handler._params.get('source_address')
 
