@@ -1669,10 +1669,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '_rtmp': {'protocol': 'rtmp'},
 
         # av01 video only formats sometimes served with "unknown" codecs
-        '394': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
-        '395': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
-        '396': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
-        '397': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
+        '394': {'acodec': 'none', 'vcodec': 'av01.0.00M.08'},
+        '395': {'acodec': 'none', 'vcodec': 'av01.0.00M.08'},
+        '396': {'acodec': 'none', 'vcodec': 'av01.0.01M.08'},
+        '397': {'acodec': 'none', 'vcodec': 'av01.0.04M.08'},
+        '398': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
+        '399': {'acodec': 'none', 'vcodec': 'av01.0.08M.08'},
     }
 
     _PLAYER_JS_VARIANT_MAP = (
