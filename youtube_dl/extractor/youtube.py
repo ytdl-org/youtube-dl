@@ -3813,7 +3813,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             continuation = None
             for is_renderer in traverse_obj(slr_renderer, (
                     'contents', Ellipsis, 'itemSectionRenderer', T(dict))):
-                for isr_content in traverse_obj(slr_renderer, (
+                for isr_content in traverse_obj(is_renderer, (
                         'contents', Ellipsis, T(dict))):
                     renderer = isr_content.get('playlistVideoListRenderer')
                     if renderer:
