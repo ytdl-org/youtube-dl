@@ -91,6 +91,25 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
+        elif info['ext'] in ['mkv', 'webm']:
+            os.rename(encodeFilename(thumbnail_filename), encodeFilename('cover.jpg'))
+            old_thumbnail_filename = thumbnail_filename
+            thumbnail_filename = 'cover.jpg'
+
+            options = [
+                '-c', 'copy', '-attach', thumbnail_filename, '-metadata:s:t', 'mimetype=image/jpeg']
+
+            self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
+
+            self.run_ffmpeg_multiple_files([filename], temp_filename, options)
+
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
+            else:
+                os.rename(encodeFilename(thumbnail_filename), encodeFilename(old_thumbnail_filename))
+            os.remove(encodeFilename(filename))
+            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+
         elif info['ext'] in ['m4a', 'mp4']:
             atomicparsley = next((x
                                   for x in ['AtomicParsley', 'atomicparsley']
