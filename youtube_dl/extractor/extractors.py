@@ -776,8 +776,13 @@ from .ndr import (
     NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
+from .bandlab import (
+    BandlabIE, 
+    BandlabAlbumOrPlaylistIE
+)
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
+from .nest import NestIE
 from .neteasemusic import (
     NetEaseMusicIE,
     NetEaseMusicAlbumIE,
