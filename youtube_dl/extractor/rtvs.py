@@ -8,7 +8,7 @@ class RTVSIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtvs\.sk/(?:radio|televizia)/archiv/\d+/(?P<id>\d+)'
     _TESTS = [{
         # radio archive
-        'url': 'http://www.rtvs.sk/radio/archiv/11224/414872',
+        'url': 'https://www.rtvs.sk/radio/archiv/11224/414872',
         'md5': '134d5d6debdeddf8a5d761cbc9edacb8',
         'info_dict': {
             'id': '414872',
@@ -20,7 +20,7 @@ class RTVSIE(InfoExtractor):
         }
     }, {
         # tv archive
-        'url': 'http://www.rtvs.sk/televizia/archiv/8249/63118',
+        'url': 'https://www.rtvs.sk/televizia/archiv/8249/63118',
         'md5': '85e2c55cf988403b70cac24f5c086dc6',
         'info_dict': {
             'id': '63118',
@@ -38,10 +38,23 @@ class RTVSIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        playlist_url = self._search_regex(
-            r'playlist["\']?\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'playlist url', group='url')
+        json_url = self._search_regex(
+            r'url\s*=\s*[\'"](?P<url>//www.rtvs.sk/json/[^&"\']+)', webpage,
+            'json url', group='url')
 
-        data = self._download_json(
-            playlist_url, video_id, 'Downloading playlist')[0]
-        return self._parse_jwplayer_data(data, video_id=video_id)
+        data = self._download_json('https:' + json_url, video_id)
+
+        if json_url.find('audio') >= 0:
+
+            playlist0 = data.get("playlist")[0]
+            title = playlist0.get("title")
+            url = playlist0.get('sources')[0].get('src')
+            return {'id': video_id, 'title': title, 'url': url}
+
+        else:
+
+            clip = data.get("clip")
+            description = clip.get("description")
+            title = clip.get("title")
+            url = clip.get("sources")[0].get('src')
+            return {'id': video_id, 'ext': 'mp4', 'title': title, 'description': description, 'url': url}
