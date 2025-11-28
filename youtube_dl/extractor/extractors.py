@@ -439,6 +439,7 @@ from .funk import FunkIE
 from .fusion import FusionIE
 from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
+from .gamerdvr import GamerDVRIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
