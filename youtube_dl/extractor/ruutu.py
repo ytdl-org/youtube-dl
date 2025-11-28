@@ -8,11 +8,13 @@ from ..utils import (
     ExtractorError,
     find_xpath_attr,
     int_or_none,
+    try_get,
     unified_strdate,
     url_or_none,
     xpath_attr,
     xpath_text,
 )
+from ..compat import compat_str
 
 
 class RuutuIE(InfoExtractor):
@@ -36,6 +38,7 @@ class RuutuIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 114,
                 'age_limit': 0,
+                'upload_date': '20150508',
             },
         },
         {
@@ -49,6 +52,7 @@ class RuutuIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 40,
                 'age_limit': 0,
+                'upload_date': '20150507',
             },
         },
         {
@@ -61,6 +65,7 @@ class RuutuIE(InfoExtractor):
                 'description': 'md5:7d90f358c47542e3072ff65d7b1bcffe',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'age_limit': 0,
+                'upload_date': '20151012',
             },
         },
         # Episode where <SourceFile> is "NOT-USED", but has other
@@ -80,6 +85,7 @@ class RuutuIE(InfoExtractor):
                 'description': 'md5:bbb6963df17dfd0ecd9eb9a61bf14b52',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'age_limit': 0,
+                'upload_date': '20190320',
             },
             'expected_warnings': [
                 'HTTP Error 502: Bad Gateway',
@@ -225,3 +231,51 @@ class RuutuIE(InfoExtractor):
             'categories': themes.split(',') if themes else [],
             'formats': formats,
         }
+
+
+class HSfiIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?hs\.fi/[^/]+/art-(?P<id>\d+).html'
+    _TESTS = [
+        {
+            'url': 'https://www.hs.fi/politiikka/art-2000007761258.html',
+            'md5': '63231668b42cbfcbed99f0b8cda76954',
+            'info_dict': {
+                'id': '3773692',
+                'ext': 'mp4',
+                'title': 'Ministeri Kiuru esittelee hallituksen päivitetyt toimenpiteet koronaepidemian hillintään (25.1.21)',
+                'thumbnail': r're:^https?://.+\.jpg$',
+                'duration': 607,
+                'age_limit': 0,
+                'upload_date': '20210125',
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        art_id = self._match_id(url)
+        webpage = self._download_webpage(url, art_id)
+        json_s = self._html_search_regex(
+            r'<script id="__NEXT_DATA__" type="application/json">(.+?)</script>', webpage, 'json')
+        jdict = self._parse_json(json_s, art_id)
+        main_id = try_get(
+            jdict,
+            lambda x: x["props"]["pageProps"]["page"]["assetData"]["mainVideo"]["sourceId"],
+            compat_str)
+        slist = try_get(
+            jdict,
+            lambda x: x["props"]["pageProps"]["page"]["assetData"]["splitBody"],
+            list)
+        video_ids = list(set(dd["video"]["sourceId"] for dd in slist
+                         if type(dd) == dict
+                             and dd.get("type", "") == "video"
+                             and "video" in dd.keys()
+                             and "sourceId" in dd["video"].keys()))
+        # TODO: return playlist?
+        if main_id is not None:
+            video_id = main_id
+        elif video_ids:
+            video_id = video_ids[0]
+        else:
+            raise ExtractorError("No video found on this page", expected=True)
+
+        return self.url_result("http://www.ruutu.fi/video/%s" % video_id)
