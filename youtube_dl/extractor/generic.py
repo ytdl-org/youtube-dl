@@ -66,7 +66,6 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
 from .tube8 import Tube8IE
-from .mofosex import MofosexEmbedIE
 from .spankwire import SpankwireIE
 from .youporn import YouPornIE
 from .vimeo import (
@@ -3043,11 +3042,6 @@ class GenericIE(InfoExtractor):
         tube8_urls = Tube8IE._extract_urls(webpage)
         if tube8_urls:
             return self.playlist_from_matches(tube8_urls, video_id, video_title, ie=Tube8IE.ie_key())
-
-        # Look for embedded Mofosex player
-        mofosex_urls = MofosexEmbedIE._extract_urls(webpage)
-        if mofosex_urls:
-            return self.playlist_from_matches(mofosex_urls, video_id, video_title, ie=MofosexEmbedIE.ie_key())
 
         # Look for embedded Spankwire player
         spankwire_urls = SpankwireIE._extract_urls(webpage)
