@@ -17,7 +17,6 @@ from ..utils import (
     float_or_none,
     qualities,
     remove_end,
-    remove_start,
     std_headers,
 )
 
@@ -208,7 +207,17 @@ class RTVELiveIE(RTVEALaCartaIE):
         'info_dict': {
             'id': 'la-1',
             'ext': 'mp4',
-            'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'title': r're:^[^\s].+[^\s]$',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
+    }, {
+        'url': 'http://www.rtve.es/directo/la-2/',
+        'info_dict': {
+            'id': 'la-2',
+            'ext': 'mp4',
+            'title': r're:^[^\s].+[^\s]$',
         },
         'params': {
             'skip_download': 'live stream',
@@ -220,14 +229,12 @@ class RTVELiveIE(RTVEALaCartaIE):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        title = remove_end(self._og_search_title(webpage), ' en directo en RTVE.es')
-        title = remove_start(title, 'Estoy viendo ')
+        title = remove_end(
+            self._html_search_regex(r'<title[^>]*>(.*?)</title>', webpage, 'title'),
+            ' en directo, en RTVE Play')
 
         vidplayer_id = self._search_regex(
-            (r'playerId=player([0-9]+)',
-             r'class=["\'].*?\blive_mod\b.*?["\'][^>]+data-assetid=["\'](\d+)',
-             r'data-id=["\'](\d+)'),
-            webpage, 'internal video ID')
+            r'"idAsset":\s*"([0-9]+)"', webpage, 'internal video ID')
 
         return {
             'id': video_id,
