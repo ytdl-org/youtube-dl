@@ -3,9 +3,13 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     bool_or_none,
+    extract_attributes,
+    int_or_none,
     smuggle_url,
     try_get,
+    unified_timestamp,
     url_or_none,
 )
 
@@ -23,17 +27,20 @@ class SlidesLiveIE(InfoExtractor):
             'description': 'Watch full version of this video at https://slideslive.com/38902413.',
             'uploader': 'SlidesLive Videos - A',
             'uploader_id': 'UC62SdArr41t_-_fX40QCLRw',
-            'timestamp': 1597615266,
+            'timestamp': 1618809663,
             'upload_date': '20170925',
         }
     }, {
         # video_service_name = yoda
         'url': 'https://slideslive.com/38935785',
-        'md5': '575cd7a6c0acc6e28422fe76dd4bcb1a',
+        'md5': '575cd7a6c0acc6e28422fe76dd4bcb1a',  # d735b130beb40013a839de1c58a74689
         'info_dict': {
-            'id': 'RMraDYN5ozA_',
+            'id': 'F31OTzeGyDK_',
+            'display_id': '38935785',
             'ext': 'mp4',
             'title': 'Offline Reinforcement Learning: From Algorithms to Practical Challenges',
+            'upload_date': '20210220',
+            'timestamp': 1613785940,
         },
         'params': {
             'format': 'bestvideo',
@@ -54,8 +61,17 @@ class SlidesLiveIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        player = self._search_regex(
+            r'<div\s[^>]*?id\s*=\s*(?P<q>\'|"|\b)player(?P=q)(?:\s[^>]*)?>.*?</div>',
+            webpage, 'player div', fatal=False, group=0)
+        player = (player and extract_attributes(player)) or {}
+        token = player.get('data-player-token')
+        if not token:
+            raise ExtractorError('Unable to get player token', expected=True)
         video_data = self._download_json(
-            'https://ben.slideslive.com/player/' + video_id, video_id)
+            'https://ben.slideslive.com/player/' + video_id, video_id,
+            query={'player_token': token, })
         service_name = video_data['video_service_name'].lower()
         assert service_name in ('url', 'yoda', 'vimeo', 'youtube')
         service_id = video_data['video_service_id']
@@ -72,12 +88,23 @@ class SlidesLiveIE(InfoExtractor):
             })
         info = {
             'id': video_id,
-            'thumbnail': video_data.get('thumbnail'),
+            'thumbnail': video_data.get(
+                'thumbnail',
+                self._html_search_meta(('thumbnailUrl', 'thumbnailURL'), webpage)),
             'is_live': bool_or_none(video_data.get('is_live')),
             'subtitles': subtitles,
+            'timestamp': (
+                int_or_none(video_data.get('updated_at'))
+                or unified_timestamp(
+                    self._html_search_meta('uploadDate', webpage))),
+            'creator': self._og_search_property('author', webpage, fatal=False),
         }
+        title = (
+            video_data.get('title')
+            or self._html_search_meta('name', webpage, display_name='meta title')
+            or self._og_search_title(webpage, fatal=False))
         if service_name in ('url', 'yoda'):
-            info['title'] = video_data['title']
+            info['title'] = title or video_data['title']
             if service_name == 'url':
                 info['url'] = service_id
             else:
@@ -93,6 +120,7 @@ class SlidesLiveIE(InfoExtractor):
                 self._sort_formats(formats)
                 info.update({
                     'id': service_id,
+                    'display_id': video_id,
                     'formats': formats,
                 })
         else:
@@ -100,7 +128,7 @@ class SlidesLiveIE(InfoExtractor):
                 '_type': 'url_transparent',
                 'url': service_id,
                 'ie_key': service_name.capitalize(),
-                'title': video_data.get('title'),
+                'title': title,
             })
             if service_name == 'vimeo':
                 info['url'] = smuggle_url(
