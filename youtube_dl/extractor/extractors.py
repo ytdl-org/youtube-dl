@@ -71,13 +71,17 @@ from .ard import (
     ARDIE,
     ARDMediathekIE,
 )
+from .art19 import (
+    Art19IE,
+    Art19ShowIE,
+)
+from .arnes import ArnesIE
 from .arte import (
     ArteTVIE,
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
     ArteTVCategoryIE,
 )
-from .arnes import ArnesIE
 from .asiancrush import (
     AsianCrushIE,
     AsianCrushPlaylistIE,
@@ -776,7 +780,12 @@ from .ndr import (
     NJoyEmbedIE,
 )
 from .ndtv import NDTVIE
-from .netzkino import NetzkinoIE
+from .nebula import (
+    NebulaIE,
+    NebulaChannelIE,
+    NebulaClassIE,
+    NebulaSubscriptionsIE,
+)
 from .nerdcubed import NerdCubedFeedIE
 from .neteasemusic import (
     NetEaseMusicIE,
@@ -787,6 +796,7 @@ from .neteasemusic import (
     NetEaseMusicProgramIE,
     NetEaseMusicDjRadioIE,
 )
+from .netzkino import NetzkinoIE
 from .newgrounds import (
     NewgroundsIE,
     NewgroundsPlaylistIE,

@@ -6861,3 +6861,46 @@ class _UnsafeExtensionError(Exception):
                 raise cls(extension)
 
         return extension
+
+
+def json_stringify(json_expr, **kwargs):
+    # /, *, concise=True, result_encoding='utf-8', **{**encode_result_kwargs, **dumps_kwargs}
+    """
+    Convert json_expr to a string, suitable for passing over a network
+
+    @param  json_expr    Python representation of a JSON expression
+
+    KW-only parameters
+    @param  {bool}  concise      do not space around , and : (default True)
+    @param  {str}   result_encoding      encoding, if any, of the result
+                                         (default 'utf-8')
+    @param  {str}   errors      error handling for result_encoding
+    @param  ...                 other KW arguments [assed to json.dumps()
+    @returns  {bytes|str}       stringified JSON, encoded to bytes using
+                                result_encoding, or Unicode if none
+
+    With the default arguments, the return value is a byte string
+    suitable to be passed as POST data.
+
+    Inspired by JSON.stringify [1], but not so much as to emulate its optional
+    replacer (use cls=replacer_JSON_encoder) or space (use indent=space for space > 0).
+    1. https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify
+    """
+
+    # extract all non-dumps_kwargs
+    concise = kwargs.pop('concise', True)
+    result_encoding = kwargs.pop('result_encoding', 'utf-8')
+    result_errors = kwargs.pop('errors', None)
+
+    if concise:
+        kwargs['separators'] = (',', ':')
+        kwargs = compat_kwargs(kwargs)
+    result = json.dumps(json_expr, **kwargs)
+
+    if result_encoding:
+        kwargs = compat_kwargs({'errors': result_errors}) if result_errors else {}
+        result = result.encode(result_encoding, **kwargs)
+        return result
+
+    # return a Unicode value of type type('')
+    return '' + result
