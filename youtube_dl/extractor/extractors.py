@@ -1028,6 +1028,7 @@ from .rbgtum import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
+from .recurbate import RecurbateIE
 from .redbulltv import (
     RedBullTVIE,
     RedBullEmbedIE,
