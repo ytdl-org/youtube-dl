@@ -562,6 +562,7 @@ from .kaltura import KalturaIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .karrierevideos import KarriereVideosIE
+from .keep2share import Keep2ShareIE
 from .keezmovies import KeezMoviesIE
 from .ketnet import KetnetIE
 from .khanacademy import (
