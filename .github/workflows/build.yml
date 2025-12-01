@@ -1,0 +1,172 @@
+name: Build Artifacts
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      unix:
+        default: true
+        type: boolean
+      windows32:
+        default: true
+        type: boolean
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: |
+          VERSION: yyyy.mm.dd[.rev] or rev
+        required: true
+        type: string
+      unix:
+        description: youtube-dl, youtube-dl-py3, youtube-dl.tar.gz
+        default: true
+        type: boolean
+      windows32:
+        description: youtube-dl.exe
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  unix:
+    if: inputs.unix
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for changelog
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install Requirements
+        run: |
+          sudo apt -y install zip pandoc man sed
+
+      - name: Prepare
+        run: |
+          python devscripts/update_version.py "${{ inputs.version }}"
+          python devscripts/changelog.py --update
+          python devscripts/make_lazy_extractors.py youtube_dl/extractor/lazy_extractors.py
+
+      - name: Build Unix platform-independent binary
+        run: |
+          make all tar
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-bin-${{ github.job }}
+          path: |
+            youtube-dl
+            youtube-dl-py3
+            youtube-dl.tar.gz
+          compression-level: 0
+
+  windows32:
+    if: inputs.windows32
+    runs-on: windows-2022
+    env:
+      PYCRYPTO: pycrypto-2.6.1-cp34-none-win32
+      # Workaround for Python 3.4/5 PyPi certificate verification failures - May 2024
+      PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          # required for Windows XP support
+          python-version: "3.4"
+          architecture: x86
+
+      - name: Install packages
+        # https://pip.pypa.io/en/stable/news/#v19-2
+        # https://setuptools.pypa.io/en/latest/history.html#v44-0-0
+        # https://wheel.readthedocs.io/en/stable/news.html
+        # https://pypi.org/project/py2exe/0.9.2.2
+        shell: bash
+        run: |
+          python -m pip install --upgrade \
+            "pip<19.2" \
+            "setuptools<44" \
+            "wheel<0.34.0" \
+            "py2exe==0.9.2.2" \
+          ;
+
+      - name: PyCrypto cache
+        id: cache_pycrypto
+        uses: actions/cache@v4
+        with:
+          key: ${{ env.PYCRYPTO }}
+          path: ./${{ env.PYCRYPTO }}
+
+      - name: PyCrypto download
+        if: |
+          steps.cache_pycrypto.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p "${PYCRYPTO}"
+          cd "${PYCRYPTO}"
+          curl -L -O "https://web.archive.org/web/20200627032153/http://www.voidspace.org.uk/python/pycrypto-2.6.1/${PYCRYPTO}.whl"
+
+      - name: PyCrypto install
+        shell: bash
+        run: |
+          python -m pip install "./${PYCRYPTO}/${PYCRYPTO}.whl"
+
+      - name: Prepare
+        run: |
+          python devscripts/update_version.py "${{ inputs.version }}"
+          python devscripts/make_lazy_extractors.py youtube_dl/extractor/lazy_extractors.py
+
+      - name: Build binary
+        run: python setup.py py2exe
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-bin-${{ github.job }}
+          path: |
+            youtube-dl.exe
+          compression-level: 0
+
+  meta_files:
+    if: always() && !cancelled()
+    needs:
+      - unix
+      - windows32
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifact
+          pattern: build-bin-*
+          merge-multiple: true
+
+      - name: Make SHA2-SUMS files
+        run: |
+          cd ./artifact/
+          # make sure SHA sums are also printed to stdout
+          sha256sum -- * | tee ../SHA2-256SUMS
+          sha512sum -- * | tee ../SHA2-512SUMS
+          # also print as permanent annotations to the summary page
+          while read -r shasum; do
+            echo "::notice title=${shasum##* }::sha256: ${shasum% *}"
+          done < ../SHA2-256SUMS
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ github.job }}
+          path: |
+            SHA*SUMS*
+          compression-level: 0
+          overwrite: true
