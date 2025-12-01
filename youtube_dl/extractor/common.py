@@ -457,10 +457,10 @@ class InfoExtractor(object):
         return cls.__match_valid_url(url) is not None
 
     @classmethod
-    def _match_id(cls, url):
+    def _match_id(cls, url, group_name = 'id'):
         m = cls.__match_valid_url(url)
         assert m
-        return compat_str(m.group('id'))
+        return compat_str(m.group(group_name))
 
     @classmethod
     def working(cls):
