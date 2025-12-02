@@ -20,8 +20,8 @@ from ..utils import (
     merge_dicts,
     NO_DEFAULT,
     orderedSet,
+    parse_count,
     remove_quotes,
-    str_to_int,
     update_url_query,
     urlencode_postdata,
     url_or_none,
@@ -132,7 +132,7 @@ class PornHubIE(PornHubBaseIE):
                     ''' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'md5': 'a6391306d050e4547f62b3f485dd9ba9',
+        'md5': 'fc5caada049bee2e944229ad850ef5db',
         'info_dict': {
             'id': '648719015',
             'ext': 'mp4',
@@ -255,7 +255,7 @@ class PornHubIE(PornHubBaseIE):
             webpage)
 
     def _extract_count(self, pattern, webpage, name):
-        return str_to_int(self._search_regex(
+        return parse_count(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
 
     def _real_extract(self, url):
@@ -466,7 +466,7 @@ class PornHubIE(PornHubBaseIE):
                 webpage, name)
 
         view_count = self._extract_count(
-            r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
+            r'<span class="count">(?P<views>.+?)</span> [Vv]iews', webpage, 'view')
         like_count = extract_vote_count('Up', 'like')
         dislike_count = extract_vote_count('Down', 'dislike')
         comment_count = self._extract_count(
