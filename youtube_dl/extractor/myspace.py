@@ -203,10 +203,35 @@ class MySpaceAlbumIE(InfoExtractor):
         entries = [
             self.url_result(t_path, ie=MySpaceIE.ie_key())
             for t_path in tracks_paths]
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'display_id': display_id,
-            'title': self._og_search_title(webpage),
-            'entries': entries,
-        }
+        return self.playlist_result(entries, playlist_id, self._og_search_title(webpage))
+
+
+class MySpaceArtistIE(InfoExtractor):
+    IE_NAME = 'MySpace:artist'
+    _VALID_URL = r'https?://myspace\.com/(?P<artist>[^/]*)/music/songs'
+
+    _TEST = {
+        'url': 'https://myspace.com/studio99/music/songs/',
+        'info_dict': {
+            'title': 'Studio 99 IS CLOSED!! R.I.P.',
+        },
+        'playlist_count': 4,
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('artist')
+        webpage = self._download_webpage(url, display_id)
+        tracks_paths = re.findall(r'<meta itemprop="url" content ="(.*?)">', webpage)
+        if not tracks_paths:
+            raise ExtractorError(
+                '%s: No songs found, try using proxy' % display_id,
+                expected=True)
+
+        entries = [
+            self.url_result('https://myspace.com/' + display_id + t_path, ie=MySpaceIE.ie_key())
+            for t_path in tracks_paths if t_path.startswith('/music/song/')]
+        #   if we invert this if, we get album urls. but not all music are in alba.
+        #   Also the musics in alba are already here individually
+
+        return self.playlist_result(entries, playlist_title=self._og_search_title(webpage))
