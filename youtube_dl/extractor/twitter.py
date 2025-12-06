@@ -105,7 +105,7 @@ class TwitterCardIE(InfoExtractor):
     _VALID_URL = TwitterBaseIE._BASE_REGEX + r'i/(?:cards/tfw/v1|videos(?:/tweet)?)/(?P<id>\d+)'
     _TESTS = [
         {
-            'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
+            'url': 'https://x.com/i/cards/tfw/v1/560070183650213889',
             # MD5 checksums are different in different places
             'info_dict': {
                 'id': '560070183650213889',
@@ -121,7 +121,7 @@ class TwitterCardIE(InfoExtractor):
             },
         },
         {
-            'url': 'https://twitter.com/i/cards/tfw/v1/623160978427936768',
+            'url': 'https://x.com/i/cards/tfw/v1/623160978427936768',
             'md5': '7137eca597f72b9abbe61e5ae0161399',
             'info_dict': {
                 'id': '623160978427936768',
@@ -135,7 +135,7 @@ class TwitterCardIE(InfoExtractor):
             },
         },
         {
-            'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
+            'url': 'https://x.com/i/cards/tfw/v1/654001591733886977',
             'md5': 'b6d9683dd3f48e340ded81c0e917ad46',
             'info_dict': {
                 'id': 'dq4Oj5quskI',
@@ -149,7 +149,7 @@ class TwitterCardIE(InfoExtractor):
             'add_ie': ['Youtube'],
         },
         {
-            'url': 'https://twitter.com/i/cards/tfw/v1/665289828897005568',
+            'url': 'https://x.com/i/cards/tfw/v1/665289828897005568',
             'md5': '6dabeaca9e68cbb71c99c322a4b42a11',
             'info_dict': {
                 'id': 'iBb2x00UVlv',
@@ -162,7 +162,7 @@ class TwitterCardIE(InfoExtractor):
             },
             'add_ie': ['Vine'],
         }, {
-            'url': 'https://twitter.com/i/videos/tweet/705235433198714880',
+            'url': 'https://x.com/i/videos/tweet/705235433198714880',
             'md5': '884812a2adc8aaf6fe52b15ccbfa3b88',
             'info_dict': {
                 'id': '705235433198714880',
@@ -176,7 +176,7 @@ class TwitterCardIE(InfoExtractor):
             },
             'skip': 'This content is no longer available.',
         }, {
-            'url': 'https://twitter.com/i/videos/752274308186120192',
+            'url': 'https://x.com/i/videos/752274308186120192',
             'only_matching': True,
         },
     ]
@@ -184,7 +184,7 @@ class TwitterCardIE(InfoExtractor):
     def _real_extract(self, url):
         status_id = self._match_id(url)
         return self.url_result(
-            'https://twitter.com/statuses/' + status_id,
+            'https://x.com/statuses/' + status_id,
             TwitterIE.ie_key(), status_id)
 
 
@@ -193,7 +193,7 @@ class TwitterIE(TwitterBaseIE):
     _VALID_URL = TwitterBaseIE._BASE_REGEX + r'(?:(?:i/web|[^/]+)/status|statuses)/(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'https://twitter.com/freethenipple/status/643211948184596480',
+        'url': 'https://x.com/freethenipple/status/643211948184596480',
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
@@ -208,7 +208,7 @@ class TwitterIE(TwitterBaseIE):
             'age_limit': 18,
         },
     }, {
-        'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
+        'url': 'https://x.com/giphz/status/657991469417025536/photo/1',
         'md5': 'f36dcd5fb92bf7057f155e7d927eeb42',
         'info_dict': {
             'id': '657991469417025536',
@@ -222,7 +222,7 @@ class TwitterIE(TwitterBaseIE):
         'expected_warnings': ['height', 'width'],
         'skip': 'Account suspended',
     }, {
-        'url': 'https://twitter.com/starwars/status/665052190608723968',
+        'url': 'https://x.com/starwars/status/665052190608723968',
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
@@ -234,7 +234,7 @@ class TwitterIE(TwitterBaseIE):
             'upload_date': '20151113',
         },
     }, {
-        'url': 'https://twitter.com/BTNBrentYarina/status/705235433198714880',
+        'url': 'https://x.com/BTNBrentYarina/status/705235433198714880',
         'info_dict': {
             'id': '705235433198714880',
             'ext': 'mp4',
@@ -246,12 +246,12 @@ class TwitterIE(TwitterBaseIE):
             'upload_date': '20160303',
         },
         'params': {
-            # The same video as https://twitter.com/i/videos/tweet/705235433198714880
+            # The same video as https://x.com/i/videos/tweet/705235433198714880
             # Test case of TwitterCardIE
             'skip_download': True,
         },
     }, {
-        'url': 'https://twitter.com/jaydingeer/status/700207533655363584',
+        'url': 'https://x.com/jaydingeer/status/700207533655363584',
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
@@ -265,7 +265,7 @@ class TwitterIE(TwitterBaseIE):
             'upload_date': '20160218',
         },
     }, {
-        'url': 'https://twitter.com/Filmdrunk/status/713801302971588609',
+        'url': 'https://x.com/Filmdrunk/status/713801302971588609',
         'md5': '89a15ed345d13b86e9a5a5e051fa308a',
         'info_dict': {
             'id': 'MIOxnrUteUd',
@@ -278,7 +278,7 @@ class TwitterIE(TwitterBaseIE):
         },
         'add_ie': ['Vine'],
     }, {
-        'url': 'https://twitter.com/captainamerica/status/719944021058060289',
+        'url': 'https://x.com/captainamerica/status/719944021058060289',
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
@@ -291,7 +291,7 @@ class TwitterIE(TwitterBaseIE):
             'upload_date': '20160412',
         },
     }, {
-        'url': 'https://twitter.com/OPP_HSD/status/779210622571536384',
+        'url': 'https://x.com/OPP_HSD/status/779210622571536384',
         'info_dict': {
             'id': '1zqKVVlkqLaKB',
             'ext': 'mp4',
@@ -304,7 +304,7 @@ class TwitterIE(TwitterBaseIE):
         'add_ie': ['Periscope'],
     }, {
         # has mp4 formats via mobile API
-        'url': 'https://twitter.com/news_al3alm/status/852138619213144067',
+        'url': 'https://x.com/news_al3alm/status/852138619213144067',
         'info_dict': {
             'id': '852138619213144067',
             'ext': 'mp4',
@@ -318,7 +318,7 @@ class TwitterIE(TwitterBaseIE):
         },
         'skip': 'Account suspended',
     }, {
-        'url': 'https://twitter.com/i/web/status/910031516746514432',
+        'url': 'https://x.com/i/web/status/910031516746514432',
         'info_dict': {
             'id': '910031516746514432',
             'ext': 'mp4',
@@ -336,7 +336,7 @@ class TwitterIE(TwitterBaseIE):
         },
     }, {
         # card via api.twitter.com/1.1/videos/tweet/config
-        'url': 'https://twitter.com/LisPower1/status/1001551623938805763',
+        'url': 'https://x.com/LisPower1/status/1001551623938805763',
         'info_dict': {
             'id': '1001551623938805763',
             'ext': 'mp4',
@@ -353,7 +353,7 @@ class TwitterIE(TwitterBaseIE):
             'skip_download': True,  # requires ffmpeg
         },
     }, {
-        'url': 'https://twitter.com/foobar/status/1087791357756956680',
+        'url': 'https://x.com/foobar/status/1087791357756956680',
         'info_dict': {
             'id': '1087791357756956680',
             'ext': 'mp4',
@@ -368,7 +368,7 @@ class TwitterIE(TwitterBaseIE):
         },
     }, {
         # not available in Periscope
-        'url': 'https://twitter.com/ViviEducation/status/1136534865145286656',
+        'url': 'https://x.com/ViviEducation/status/1136534865145286656',
         'info_dict': {
             'id': '1vOGwqejwoWxB',
             'ext': 'mp4',
@@ -379,7 +379,7 @@ class TwitterIE(TwitterBaseIE):
         'add_ie': ['TwitterBroadcast'],
     }, {
         # unified card
-        'url': 'https://twitter.com/BrooklynNets/status/1349794411333394432?s=20',
+        'url': 'https://x.com/BrooklynNets/status/1349794411333394432?s=20',
         'info_dict': {
             'id': '1349794411333394432',
             'ext': 'mp4',
@@ -397,35 +397,35 @@ class TwitterIE(TwitterBaseIE):
         },
     }, {
         # Twitch Clip Embed
-        'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
+        'url': 'https://x.com/GunB1g/status/1163218564784017422',
         'only_matching': True,
     }, {
         # promo_video_website card
-        'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
+        'url': 'https://x.com/GunB1g/status/1163218564784017422',
         'only_matching': True,
     }, {
         # promo_video_convo card
-        'url': 'https://twitter.com/poco_dandy/status/1047395834013384704',
+        'url': 'https://x.com/poco_dandy/status/1047395834013384704',
         'only_matching': True,
     }, {
         # appplayer card
-        'url': 'https://twitter.com/poco_dandy/status/1150646424461176832',
+        'url': 'https://x.com/poco_dandy/status/1150646424461176832',
         'only_matching': True,
     }, {
         # video_direct_message card
-        'url': 'https://twitter.com/qarev001/status/1348948114569269251',
+        'url': 'https://x.com/qarev001/status/1348948114569269251',
         'only_matching': True,
     }, {
         # poll2choice_video card
-        'url': 'https://twitter.com/CAF_Online/status/1349365911120195585',
+        'url': 'https://x.com/CAF_Online/status/1349365911120195585',
         'only_matching': True,
     }, {
         # poll3choice_video card
-        'url': 'https://twitter.com/SamsungMobileSA/status/1348609186725289984',
+        'url': 'https://x.com/SamsungMobileSA/status/1348609186725289984',
         'only_matching': True,
     }, {
         # poll4choice_video card
-        'url': 'https://twitter.com/SouthamptonFC/status/1347577658079641604',
+        'url': 'https://x.com/SouthamptonFC/status/1347577658079641604',
         'only_matching': True,
     }]
 
@@ -463,7 +463,7 @@ class TwitterIE(TwitterBaseIE):
             'uploader': uploader,
             'timestamp': unified_timestamp(status.get('created_at')),
             'uploader_id': uploader_id,
-            'uploader_url': 'https://twitter.com/' + uploader_id if uploader_id else None,
+            'uploader_url': 'https://x.com/' + uploader_id if uploader_id else None,
             'like_count': int_or_none(status.get('favorite_count')),
             'repost_count': int_or_none(status.get('retweet_count')),
             'comment_count': int_or_none(status.get('reply_count')),
@@ -639,7 +639,7 @@ class TwitterBroadcastIE(TwitterBaseIE, PeriscopeBaseIE):
 
     _TEST = {
         # untitled Periscope video
-        'url': 'https://twitter.com/i/broadcasts/1yNGaQLWpejGj',
+        'url': 'https://x.com/i/broadcasts/1yNGaQLWpejGj',
         'info_dict': {
             'id': '1yNGaQLWpejGj',
             'ext': 'mp4',
