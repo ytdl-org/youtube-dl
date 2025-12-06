@@ -585,6 +585,7 @@ from .kuwo import (
     KuwoCategoryIE,
     KuwoMvIE,
 )
+from .la1ere import La1ereExtractorPageIE, La1ereExtractorShowPageIE
 from .la7 import LA7IE
 from .laola1tv import (
     Laola1TvEmbedIE,
