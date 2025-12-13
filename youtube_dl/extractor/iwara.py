@@ -91,9 +91,12 @@ class IwaraIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        uploader = self._html_search_regex(r'<a[^>]+class="username"[^>]*>([^<]+)<', webpage, 'uploader')
+
         return {
             'id': video_id,
             'title': title,
+            'uploader': uploader,
             'age_limit': age_limit,
             'formats': formats,
         }
