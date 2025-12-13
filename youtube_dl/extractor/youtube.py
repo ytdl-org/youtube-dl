@@ -11,6 +11,7 @@ import re
 import string
 import time
 import traceback
+import importlib
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
@@ -23,12 +24,14 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_quote,
     compat_urllib_parse_urlparse,
     compat_zip as zip,
 )
 from ..jsinterp import JSInterpreter
 from ..utils import (
     bug_reports_message,
+    check_executable,
     clean_html,
     dict_get,
     error_to_compat_str,
@@ -1699,6 +1702,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         super(YoutubeIE, self).__init__(*args, **kwargs)
         self._code_cache = {}
         self._player_cache = {}
+        self._webdriver_wrapper = None
 
     def _get_player_js_version(self):
         player_js_version = self.get_param('youtube_player_js_version')
@@ -1985,6 +1989,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if player_url is None:
             raise ExtractorError('Cannot decrypt nsig without player_url')
 
+        webdriver_type = self._downloader.params.get('webdriver', None)
+        if webdriver_type is not None:
+            try:
+                jscode = self._load_player(video_id, player_url)
+                ret = self._call_n_function_with_webdriver(webdriver_type, jscode, n)
+            except Exception as e:
+                self.report_warning(
+                    '%s (%s %s)' % (
+                        'Unable to decode n-parameter: download likely to be throttled',
+                        error_to_compat_str(e),
+                        traceback.format_exc()),
+                    video_id=video_id)
+                return
+            self.write_debug('Decrypted nsig(with webdriver) {0} => {1}'.format(n, ret))
+            return ret
+
         try:
             jsi, player_id, func_code = self._extract_n_function_code(video_id, player_url)
         except ExtractorError as e:
@@ -2007,6 +2027,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self.write_debug('Decrypted nsig {0} => {1}'.format(n, ret))
         return ret
+
+    def _call_n_function_with_webdriver(self, webdriver_type, jscode, n_param):
+        if self._webdriver_wrapper is None:
+            self._webdriver_wrapper = WebDriverJSWrapper(webdriver_type)
+        self._webdriver_wrapper.get('about:blank')
+        funcname = self._extract_n_function_name(jscode)
+        alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        dummyfunc = ''.join(random.choice(alphabet) for _ in range(8))
+        f = ('return ((e) => {{'
+             'const d = decodeURIComponent(e);'
+             'const p = d.lastIndexOf("}}");'
+             'const th = d.substring(0, p);'
+             'const bh = d.substring(p);'
+             'const m = "var {0};" + th + ";{0} = {1};" + bh;'
+             'const s = document.createElement("script");'
+             's.innerHTML = m;'
+             'document.body.append(s);'
+             'return {0}("{2}");'
+             '}})("{3}");').format(dummyfunc, funcname, n_param, compat_urllib_quote(jscode))
+        n = self._webdriver_wrapper.executeJS(f)
+        return n
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = None, None
@@ -4495,3 +4536,74 @@ class YoutubeTruncatedIDIE(InfoExtractor):
         raise ExtractorError(
             'Incomplete YouTube ID %s. URL %s looks truncated.' % (video_id, url),
             expected=True)
+
+
+class WebDriverJSWrapper(object):
+    """WebDriver Wrapper class"""
+
+    def __init__(self, webdriver_type, pageload_timeout=10, script_timeout=5):
+        self._webdriver = None
+        try:
+            wd = importlib.import_module('selenium.webdriver')
+        except ImportError as e:
+            self._raise_exception('Failed to import module "selenium.webdriver"', cause=e)
+
+        if webdriver_type == 'firefox':  # geckodriver
+            if not check_executable('geckodriver', ['--version']):
+                self._raise_exception('geckodriver not found in PATH')
+            o = wd.FirefoxOptions()
+            o.add_argument('-headless')
+            self._webdriver = wd.Firefox(options=o)
+        elif webdriver_type == 'chrome':  # chromedriver
+            if not check_executable('chromedriver', ['--version']):
+                self._raise_exception('chromedriver not found in PATH')
+            o = wd.ChromeOptions()
+            o.add_argument('--headless')
+            """
+            If you are using the snap version of the chromium, chromedriver is included in the snap package.
+            You should use that driver.
+            $ cd /snap/bin && sudo ln -s -T chromium.chromedriver chromedriver
+            or
+            s = wd.chrome.service.Service(executable_path='chromium.chromedriver')
+            self._webdriver = wd.Chrome(options=o, service=s)
+            """
+            self._webdriver = wd.Chrome(options=o)
+        elif webdriver_type == 'edge':  # msedgedriver
+            if not check_executable('msedgedriver', ['--version']):
+                self._raise_exception('msedgedriver not found in PATH')
+            o = wd.EdgeOptions()
+            o.add_argument('--headless')
+            self._webdriver = wd.Edge(options=o)
+        elif webdriver_type == 'safari':  # safaridriver
+            if not check_executable('safaridriver', ['--version']):
+                self._raise_exception('safaridriver not found in PATH')
+            """
+            safaridriver does not have headless-mode. :(
+            But macOS includes safaridriver by default.
+            To enable automation on safaridriver, run the following command once from the admin terminal.
+            # safaridriver --enable
+            """
+            self._webdriver = wd.Safari()
+        else:
+            self._raise_exception('unsupported type: %s' % (webdriver_type))
+        self._webdriver.set_page_load_timeout(pageload_timeout)
+        self._webdriver.set_script_timeout(script_timeout)
+
+    def __del__(self):
+        if self._webdriver is not None:
+            self._webdriver.quit()
+
+    def _raise_exception(self, msg, cause=None):
+        raise ExtractorError('[WebDriverJSWrapper] %s' % (msg), cause=cause)
+
+    def get(self, url):
+        """Loads a web page in the current browser session"""
+        self._webdriver.get(url)
+
+    def executeJS(self, jscode):
+        """Execute JS and return value"""
+        try:
+            ret = self._webdriver.execute_script(jscode)
+        except Exception as e:
+            self._raise_exception('Failed to execute JS', cause=e)
+        return ret
