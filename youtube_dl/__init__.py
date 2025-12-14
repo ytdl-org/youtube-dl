@@ -312,6 +312,9 @@ def _real_main(argv=None):
     postprocessor_args = None
     if opts.postprocessor_args:
         postprocessor_args = compat_shlex_split(opts.postprocessor_args)
+    ffmpeg_out_override = None
+    if opts.ffmpeg_out_override:
+        ffmpeg_out_override = compat_shlex_split(opts.ffmpeg_out_override)
     match_filter = (
         None if opts.match_filter is None
         else match_filter_func(opts.match_filter))
@@ -431,6 +434,7 @@ def _real_main(argv=None):
         'hls_prefer_native': opts.hls_prefer_native,
         'hls_use_mpegts': opts.hls_use_mpegts,
         'external_downloader_args': external_downloader_args,
+        'ffmpeg_out_override': ffmpeg_out_override,
         'postprocessor_args': postprocessor_args,
         'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,

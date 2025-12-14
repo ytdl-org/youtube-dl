@@ -469,7 +469,10 @@ class FFmpegFD(ExternalFD):
             elif isinstance(conn, compat_str):
                 args += ['-rtmp_conn', conn]
 
-        args += ['-i', url, '-c', 'copy']
+        args += ['-i', url]
+
+        ffmpeg_out_override = self.params.get('ffmpeg_out_override')
+        args += ffmpeg_out_override if ffmpeg_out_override else ['-c', 'copy']
 
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
