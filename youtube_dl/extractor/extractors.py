@@ -1068,6 +1068,7 @@ from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
+from .rtvslo import RTVSLO4DIE
 from .ruhd import RUHDIE
 from .rumble import RumbleEmbedIE
 from .rutube import (
