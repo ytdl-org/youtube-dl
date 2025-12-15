@@ -240,6 +240,12 @@ class InfoExtractor(object):
                                         deprecated)
                         * "filesize" (optional, int)
     thumbnail:      Full URL to a video thumbnail image.
+    storyboards:    A list of dictionaries representing storyboards.
+                    A storyboard is an image grid made of frames from the video.
+                    This has the same structure as the thumbnails list, plus:
+                        * "cols" (optional, int)
+                        * "rows" (optional, int)
+                        * "frames" (optional, int)
     description:    Full video description.
     uploader:       Full name of the video uploader.
     license:        License name the video is licensed under.
