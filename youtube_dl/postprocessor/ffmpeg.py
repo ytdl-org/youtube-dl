@@ -5,7 +5,6 @@ import subprocess
 import time
 import re
 
-
 from .common import AudioConversionError, PostProcessor
 
 from ..compat import compat_open as open
@@ -23,7 +22,6 @@ from ..utils import (
     ISO639Utils,
     replace_extension,
 )
-
 
 EXT_TO_OUT_FORMATS = {
     'aac': 'adts',
@@ -196,7 +194,7 @@ class FFmpegPostProcessor(PostProcessor):
                 return mobj.group(1)
         return None
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, file_opts):
         self.check_version()
 
         oldest_mtime = min(
@@ -207,6 +205,7 @@ class FFmpegPostProcessor(PostProcessor):
         files_cmd = []
         for path in input_paths:
             files_cmd.extend([
+                *file_opts,
                 encodeArgument('-i'),
                 encodeFilename(self._ffmpeg_filename_argument(path), True)
             ])
@@ -231,8 +230,8 @@ class FFmpegPostProcessor(PostProcessor):
             raise FFmpegPostProcessorError(msg)
         self.try_utime(out_path, oldest_mtime, oldest_mtime)
 
-    def run_ffmpeg(self, path, out_path, opts):
-        self.run_ffmpeg_multiple_files([path], out_path, opts)
+    def run_ffmpeg(self, path, out_path, opts, file_opts):
+        self.run_ffmpeg_multiple_files([path], out_path, opts, file_opts)
 
     def _ffmpeg_filename_argument(self, fn):
         # Always use 'file:' because the filename may contain ':' (ffmpeg
@@ -270,7 +269,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             raise PostProcessingError('WARNING: unable to obtain file audio codec with ffprobe')
 
         more_opts = []
-        if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (self._preferredcodec == 'm4a' and filecodec == 'aac'):
+        if self._preferredcodec == 'best' or self._preferredcodec == filecodec or (
+                self._preferredcodec == 'm4a' and filecodec == 'aac'):
             if filecodec == 'aac' and self._preferredcodec in ['m4a', 'best']:
                 # Lossless, but in another container
                 acodec = 'copy'
@@ -315,7 +315,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 extension = 'wav'
                 more_opts += ['-f', 'wav']
 
-        prefix, sep, ext = path.rpartition('.')  # not os.path.splitext, since the latter does not work on unicode in all setups
+        prefix, sep, ext = path.rpartition(
+            '.')  # not os.path.splitext, since the latter does not work on unicode in all setups
         new_path = prefix + sep + extension
 
         information['filepath'] = new_path
@@ -353,14 +354,16 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
     def run(self, information):
         path = information['filepath']
         if information['ext'] == self._preferedformat:
-            self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
+            self._downloader.to_screen(
+                '[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return [], information
         options = []
         if self._preferedformat == 'avi':
             options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
         prefix, sep, ext = path.rpartition('.')
         outpath = prefix + sep + self._preferedformat
-        self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
+        self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (
+        information['ext'], self._preferedformat) + outpath)
         self.run_ffmpeg(path, outpath, options)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
@@ -419,7 +422,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
-        self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
+        self.run_ffmpeg_multiple_files(input_files, temp_filename, opts, [])
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
@@ -502,7 +505,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                 options.extend(['-map_metadata', '1'])
 
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
-        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
+        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options, [])
         if chapters:
             os.remove(metadata_filename)
         os.remove(encodeFilename(filename))
@@ -516,7 +519,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
-        self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
+        self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args, [])
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info
 
@@ -535,6 +538,29 @@ class FFmpegMergerPP(FFmpegPostProcessor):
             if self._downloader:
                 self._downloader.report_warning(warning)
             return False
+        return True
+
+
+class FFmpegConcatPP(FFmpegPostProcessor):
+    def run(self, info):
+        filename = info['filepath']
+
+        list_filename = prepend_extension(filename, 'list')
+        temp_filename = prepend_extension(filename, 'temp')
+
+        with open(list_filename, 'wt') as f:
+            f.write('ffconcat version 1.0\n')
+            for file in info['__files_to_concat']:
+                f.write("file '%s'\n" % self._ffmpeg_filename_argument(file))
+
+        file_opts = ['-f', 'concat', '-safe', '0']
+        opts = ['-c', 'copy']
+        self._downloader.to_screen('[ffmpeg] Concatenating files into "%s"' % filename)
+        self.run_ffmpeg(list_filename, temp_filename, opts, file_opts)
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        return info['__files_to_concat'], info
+
+    def can_merge(self):
         return True
 
 
@@ -583,7 +609,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
 
             options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
             self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
-            self.run_ffmpeg(filename, temp_filename, options)
+            self.run_ffmpeg(filename, temp_filename, options, [])
 
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
