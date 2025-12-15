@@ -334,6 +334,7 @@ from .discoverynetworks import DiscoveryNetworksDeIE
 from .discoveryvr import DiscoveryVRIE
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE
+from .doodstream import DoodStreamIE
 from .dropbox import DropboxIE
 from .dw import (
     DWIE,
