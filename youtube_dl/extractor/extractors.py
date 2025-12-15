@@ -1238,10 +1238,7 @@ from .svt import (
 from .swrmediathek import SWRMediathekIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
-from .tagesschau import (
-    TagesschauPlayerIE,
-    TagesschauIE,
-)
+from .tagesschau import TagesschauIE
 from .tass import TassIE
 from .tbs import TBSIE
 from .tdslifeway import TDSLifewayIE
