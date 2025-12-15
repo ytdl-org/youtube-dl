@@ -17,6 +17,7 @@ from ..utils import (
     ExtractorError,
     strip_or_none,
     url_or_none,
+    compat_urllib_error,
 )
 
 
@@ -236,8 +237,13 @@ class TurnerBaseIE(AdobePassIE):
                 m3u8_url = self._add_akamai_spe_token(
                     'http://token.ngtv.io/token/token_spe',
                     m3u8_url, media_id, ap_data or {}, tokenizer_query)
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, media_id, 'mp4', m3u8_id='hls', fatal=False))
+            try:
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, media_id, 'mp4', m3u8_id='hls'))
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_urllib_error.HTTPError) and e.cause.code == 403:
+                    self.raise_geo_restricted()
+                self.report_warning(e.args[0])
 
             duration = float_or_none(stream_data.get('totalRuntime'))
 
