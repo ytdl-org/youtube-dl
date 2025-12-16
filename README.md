@@ -3,6 +3,10 @@
 
 youtube-dl - download videos from youtube.com or other video platforms
 
+Note: youtube-dl maintains compatibility with Python 2.7, which is EOL (End Of Life)
+
+If you can: Run [yt-dlp](https://github.com/yt-dlp/yt-dlp) instead. :)
+
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [OPTIONS](#options)
