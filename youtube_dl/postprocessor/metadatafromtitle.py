@@ -46,5 +46,9 @@ class MetadataFromTitlePP(PostProcessor):
             self._downloader.to_screen(
                 '[fromtitle] parsed %s: %s'
                 % (attribute, value if value is not None else 'NA'))
+        self._hook_progress({
+            'status': 'postprocessed',
+            'postprocessor': self.__class__.__name__
+        })
 
         return [], info

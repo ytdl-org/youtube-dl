@@ -130,4 +130,12 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         else:
             raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
+        fsize = os.path.getsize(encodeFilename(filename))
+        self._hook_progress({
+            'total_bytes': fsize,
+            'filename': encodeFilename(filename),
+            'status': 'postprocessed',
+            'postprocessor': self.__class__.__name__
+        })
+
         return [], info

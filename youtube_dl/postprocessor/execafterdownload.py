@@ -27,5 +27,9 @@ class ExecAfterDownloadPP(PostProcessor):
         if retCode != 0:
             raise PostProcessingError(
                 'Command returned error code %d' % retCode)
+        self._hook_progress({
+            'status': 'postprocessed',
+            'postprocessor': self.__class__.__name__
+        })
 
         return [], information

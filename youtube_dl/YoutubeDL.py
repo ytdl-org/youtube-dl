@@ -266,11 +266,13 @@ class YoutubeDL(object):
                        postprocessor.
     progress_hooks:    A list of functions that get called on download
                        progress, with a dictionary with the entries
-                       * status: One of "downloading", "error", or "finished".
+                       * status: One of "downloading", "error", "finished",
+                                 or "postprocessed".
                                  Check this first and ignore unknown values.
 
-                       If status is one of "downloading", or "finished", the
-                       following properties may also be present:
+                       If status is one of "downloading", "finished", or
+                       "postprocessed", the following properties may also be
+                       present:
                        * filename: The final filename (always present)
                        * tmpfilename: The filename we're currently writing to
                        * downloaded_bytes: Bytes on disk
@@ -285,6 +287,9 @@ class YoutubeDL(object):
                                          downloaded video fragment.
                        * fragment_count: The number of fragments (= individual
                                          files that will be merged)
+                       * postprocessor: The specific postprocessor that ran.
+                                        See youtube_dl/postprocessor/__init__.py
+                                        for a list of possibilities.
 
                        Progress hooks are guaranteed to be called at least once
                        (with status "finished") if the download is successful.
@@ -2325,6 +2330,8 @@ class YoutubeDL(object):
             pps_chain.extend(ie_info['__postprocessors'])
         pps_chain.extend(self._pps)
         for pp in pps_chain:
+            for ph in self._progress_hooks:
+                pp.add_progress_hook(ph)
             files_to_delete = []
             try:
                 files_to_delete, info = pp.run(info)
