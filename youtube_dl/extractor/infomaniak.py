@@ -1,9 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from ..compat import compat_str as str
-
 from .common import InfoExtractor
+from ..compat import compat_str as str
 from ..utils import (
     ExtractorError,
     merge_dicts,
@@ -27,9 +26,6 @@ class InfomaniakVod2IE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Conférence à Dyo, octobre 2022',
             'thumbnail': r're:https?://.+\.(?:jpe?g|png)$',
-        },
-        'params': {
-            'format': 'http',
         },
     }
 
@@ -73,7 +69,6 @@ class InfomaniakVod2IE(InfoExtractor):
                     'duration': ('duration', T(parse_duration)),
                     'thumbnail': ('thumbnails', ('poster', 'image'), T(url_or_none), any),
                 }), {
-                    'display_id': share_id,
                     'formats': formats,
                 }))
 
