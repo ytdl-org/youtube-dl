@@ -78,7 +78,13 @@ class InfomaniakVod2IE(InfoExtractor):
                 'display_id': share_id,
             }, entries[0], rev=True)
 
+        missing_id = sum(1 for e in entries if not e.get('id'))
         entries = [e for e in entries if e.get('id')]
+        if missing_id:
+            self.report_warning(
+                'Share contains multiple media entries, but %d item(s) are missing an id and will be skipped. '
+                'If this looks incorrect, please report the URL.' % missing_id,
+                share_id, only_once=True)
         if not entries:
             # Keep the error message actionable for site support requests
             raise ExtractorError('Unable to find any media in share JSON', expected=True)
