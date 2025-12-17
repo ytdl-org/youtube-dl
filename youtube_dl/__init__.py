@@ -482,7 +482,13 @@ def main(argv=None):
     except SameFileError:
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
-        sys.exit('\nERROR: Interrupted by user')
+        print('\nERROR: Interrupted by user')
+        # 'wait and cooperative exit' handling of SIGINT
+        # this signals our parent that we exited because of SIGINT
+        # the compatible parent shell can then stop script execution
+        import signal
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        os.kill(os.getpid(), signal.SIGINT)
 
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']
