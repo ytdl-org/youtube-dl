@@ -160,6 +160,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='list_extractor_descriptions', default=False,
         help='Output descriptions of all supported extractors')
     general.add_option(
+        '--determine-extractors',
+        action='store_true', dest='determine_extractors', default=False,
+        help='List the extractor that would be used for each URL. Exit status indicates at least one successful match.')
+    general.add_option(
         '--force-generic-extractor',
         action='store_true', dest='force_generic_extractor', default=False,
         help='Force extraction to use the generic extractor')
