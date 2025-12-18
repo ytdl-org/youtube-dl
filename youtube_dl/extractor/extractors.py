@@ -1625,6 +1625,7 @@ from .yahoo import (
 from .yandexdisk import YandexDiskIE
 from .yandexmusic import (
     YandexMusicTrackIE,
+    YandexMusicPrivateTrackIE,
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
     YandexMusicArtistTracksIE,

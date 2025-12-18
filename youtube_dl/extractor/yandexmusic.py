@@ -219,42 +219,127 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         return track_info
 
 
+class YandexMusicPrivateTrackIE(YandexMusicBaseIE):
+    IE_NAME = 'yandexmusic:privatetrack'
+    IE_DESC = 'Яндекс.Музыка - Трек'
+    _VALID_URL = r'%s/track/(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})' % YandexMusicBaseIE._VALID_URL_BASE
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        tld, track_id = mobj.group('tld'), mobj.group('id')
+
+        track = self._call_api(
+            'track', tld, url, track_id, 'Downloading track JSON',
+            {'track': '%s' % (track_id)})['track']
+        track_title = track['title']
+
+        download_data = self._download_json(
+            'https://music.yandex.ru/api/v2.1/handlers/track/%s/web-album_track-track-track-main/download/m' % (track_id),
+            track_id, 'Downloading track location url JSON',
+            headers={'X-Retpath-Y': url})
+
+        fd_data = self._download_json(
+            download_data['src'], track_id,
+            'Downloading track location JSON',
+            query={'format': 'json'})
+        key = hashlib.md5(('XGRlBW9FXlekgbPrRHuSiA' + fd_data['path'][1:] + fd_data['s']).encode('utf-8')).hexdigest()
+        f_url = 'http://%s/get-mp3/%s/%s?track-id=%s ' % (fd_data['host'], key, fd_data['ts'] + fd_data['path'], track['id'])
+
+        thumbnail = None
+        cover_uri = track.get('coverUri')
+        if cover_uri:
+            thumbnail = cover_uri.replace('%%', 'orig')
+            if not thumbnail.startswith('http'):
+                thumbnail = 'http://' + thumbnail
+
+        track_info = {
+            'id': track_id,
+            'ext': 'mp3',
+            'url': f_url,
+            'filesize': int_or_none(track.get('fileSize')),
+            'duration': float_or_none(track.get('durationMs'), 1000),
+            'thumbnail': thumbnail,
+            'track': track_title,
+            'acodec': download_data.get('codec'),
+            'abr': int_or_none(download_data.get('bitrate')),
+        }
+
+        def extract_artist_name(artist):
+            decomposed = artist.get('decomposed')
+            if not isinstance(decomposed, list):
+                return artist['name']
+            parts = [artist['name']]
+            for element in decomposed:
+                if isinstance(element, dict) and element.get('name'):
+                    parts.append(element['name'])
+                elif isinstance(element, compat_str):
+                    parts.append(element)
+            return ''.join(parts)
+
+        def extract_artist(artist_list):
+            if artist_list and isinstance(artist_list, list):
+                artists_names = [extract_artist_name(a) for a in artist_list if a.get('name')]
+                if artists_names:
+                    return ', '.join(artists_names)
+
+        albums = track.get('albums')
+        if albums and isinstance(albums, list):
+            album = albums[0]
+            if isinstance(album, dict):
+                year = album.get('year')
+                disc_number = int_or_none(try_get(
+                    album, lambda x: x['trackPosition']['volume']))
+                track_number = int_or_none(try_get(
+                    album, lambda x: x['trackPosition']['index']))
+                track_info.update({
+                    'album': album.get('title'),
+                    'album_artist': extract_artist(album.get('artists')),
+                    'release_year': int_or_none(year),
+                    'genre': album.get('genre'),
+                    'disc_number': disc_number,
+                    'track_number': track_number,
+                })
+
+        track_artist = extract_artist(track.get('artists'))
+        if track_artist:
+            track_info.update({
+                'artist': track_artist,
+                'title': '%s - %s' % (track_artist, track_title),
+            })
+        else:
+            track_info['title'] = track_title
+
+        return track_info
+
+
 class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):
     def _extract_tracks(self, source, item_id, url, tld):
-        tracks = source['tracks']
+        tracks = []
         track_ids = [compat_str(track_id) for track_id in source['trackIds']]
-
+        def create_chunks(lst, n):
+            """Yield successive n-sized chunks from lst."""
+            for i in range(0, len(lst), n):
+                yield lst[i:i + n]
         # tracks dictionary shipped with playlist.jsx API is limited to 150 tracks,
         # missing tracks should be retrieved manually.
-        if len(tracks) < len(track_ids):
-            present_track_ids = set([
-                compat_str(track['id'])
-                for track in tracks if track.get('id')])
-            missing_track_ids = [
-                track_id for track_id in track_ids
-                if track_id not in present_track_ids]
-            # Request missing tracks in chunks to avoid exceeding max HTTP header size,
-            # see https://github.com/ytdl-org/youtube-dl/issues/27355
-            _TRACKS_PER_CHUNK = 250
-            for chunk_num in itertools.count(0):
-                start = chunk_num * _TRACKS_PER_CHUNK
-                end = start + _TRACKS_PER_CHUNK
-                missing_track_ids_req = missing_track_ids[start:end]
-                assert missing_track_ids_req
-                missing_tracks = self._call_api(
-                    'track-entries', tld, url, item_id,
-                    'Downloading missing tracks JSON chunk %d' % (chunk_num + 1), {
-                        'entries': ','.join(missing_track_ids_req),
-                        'lang': tld,
-                        'external-domain': 'music.yandex.%s' % tld,
-                        'overembed': 'false',
-                        'strict': 'true',
-                    })
-                if missing_tracks:
-                    tracks.extend(missing_tracks)
-                if end >= len(missing_track_ids):
-                    break
-
+        _TRACKS_PER_CHUNK = 100
+        # Request missing tracks in chunks to avoid exceeding max HTTP header size,
+        # see https://github.com/ytdl-org/youtube-dl/issues/27355
+        chunks = create_chunks(track_ids, _TRACKS_PER_CHUNK)
+        for chunk_num, chunk in enumerate(chunks):
+            missing_tracks = self._call_api(
+                'track-entries', tld, url, item_id,
+                'Downloading tracks JSON chunk %d and size %d' % (chunk_num + 1, len(chunk)), {
+                    'entries': ','.join(chunk),
+                    'lang': tld,
+                    'external-domain': 'music.yandex.%s' % tld,
+                    'experiments':'{"userFeed":"old","similarities":"default","genreRadio":"new-ichwill-matrixnet6","recommendedArtists":"ichwill_similar_artists","recommendedTracks":"recommended_tracks_by_artist_from_history","recommendedAlbumsOfFavoriteGenre":"recent","recommendedSimilarArtists":"default","recommendedArtistsWithArtistsFromHistory":"force_recent","adv":"a","loserArtistsWithArtists":"off","ny2015":"no"}',
+                    'overembed': 'false',
+                    'strict': 'true',
+                })
+            if missing_tracks:
+                tracks.extend(missing_tracks)
+            
         return tracks
 
     def _build_playlist(self, tracks):
@@ -262,6 +347,11 @@ class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):
         for track in tracks:
             track_id = track.get('id') or track.get('realId')
             if not track_id:
+                continue
+            if re.match(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", track_id):
+                entries.append(self.url_result(
+                    'http://music.yandex.ru/track/%s' % (track_id),
+                    ie=YandexMusicTrackIE.ie_key(), video_id=track_id))
                 continue
             albums = track.get('albums')
             if not albums or not isinstance(albums, list):
