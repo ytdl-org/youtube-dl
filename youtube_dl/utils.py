@@ -3623,10 +3623,12 @@ def format_bytes(bytes):
     if bytes == 0.0:
         exponent = 0
     else:
-        exponent = int(math.log(bytes, 1024.0))
+        # Display user-friendly values, e.g. "1001.45 KiB" is much less
+        # user-friendly than "1.00 MiB"
+        exponent = int(math.log(bytes, 1000.0))
     suffix = ['B', 'KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB'][exponent]
     converted = float(bytes) / float(1024 ** exponent)
-    return '%.2f%s' % (converted, suffix)
+    return '%.2f %s' % (converted, suffix)
 
 
 def lookup_unit_table(unit_table, s):
