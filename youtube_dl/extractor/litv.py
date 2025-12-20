@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import json
+import uuid
 
 from .common import InfoExtractor
 from ..utils import (
@@ -93,7 +94,7 @@ class LiTVIE(InfoExtractor):
             if noplaylist_prompt:
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
-        # In browsers `getMainUrl` request is always issued. Usually this
+        # In browsers `getUrl` request is always issued. Usually this
         # endpoint gives the same result as the data embedded in the webpage.
         # If georestricted, there are no embedded data, so an extra request is
         # necessary to get the error code
@@ -107,12 +108,12 @@ class LiTVIE(InfoExtractor):
             webpage, 'video data', default='{}'), video_id)
         if not video_data:
             payload = {
+                'type': 'noauth',
                 'assetId': program_info['assetId'],
-                'watchDevices': program_info['watchDevices'],
-                'contentType': program_info['contentType'],
+                'puid': compat_str(uuid.uuid4()),
             }
             video_data = self._download_json(
-                'https://www.litv.tv/vod/getMainUrl', video_id,
+                'https://www.litv.tv/vod/ajax/getUrl', video_id,
                 data=json.dumps(payload).encode('utf-8'),
                 headers={'Content-Type': 'application/json'})
 
