@@ -9,10 +9,10 @@ class SkylineWebcamsIE(InfoExtractor):
     _TEST = {
         'url': 'https://www.skylinewebcams.com/it/webcam/italia/lazio/roma/scalinata-piazza-di-spagna-barcaccia.html',
         'info_dict': {
-            'id': 'scalinata-piazza-di-spagna-barcaccia',
+            'id': 'piazza-di-spagna',
             'ext': 'mp4',
-            'title': 're:^Live Webcam Scalinata di Piazza di Spagna - La Barcaccia [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'description': 'Roma, veduta sulla Scalinata di Piazza di Spagna e sulla Barcaccia',
+            'title': 're:^【LIVE】 Webcam Roma - Piazza di Spagna | SkylineWebcams [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Guarda la webcam su Piazza di Spagna a Roma! Scopri in diretta il traffico dei turisti ai piedi della scalinata di Trinità dei Monti ed intorno alla Barcaccia',
             'is_live': True,
         },
         'params': {
@@ -24,10 +24,9 @@ class SkylineWebcamsIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-
-        stream_url = self._search_regex(
-            r'(?:url|source)\s*:\s*(["\'])(?P<url>(?:https?:)?//.+?\.m3u8.*?)\1', webpage,
-            'stream url', group='url')
+        stream_url = 'https://hd-auth.skylinewebcams.com/live.m3u8' + self._search_regex(
+            r'(?:url|source)\s*:\s*(["\'])(livee\.m3u8(?P<a_param>\?a=\w+))\1', webpage,
+            'stream url', group='a_param')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
