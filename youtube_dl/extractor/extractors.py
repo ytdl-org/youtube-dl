@@ -1325,6 +1325,10 @@ from .trovo import (
     TrovoIE,
     TrovoVodIE,
 )
+from .trt import (
+    TRTIE,
+    TRTLiveIE,
+)
 from .trunews import TruNewsIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
