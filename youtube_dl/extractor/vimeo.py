@@ -391,6 +391,29 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'expected_warnings': ['Unable to download JSON metadata'],
         },
         {
+            'url': 'https://vimeo.com/channels/bestofstaffpicks/543188947',
+            'note': 'channel video with no data-config-url',
+            'info_dict': {
+                'id': '543188947',
+                'ext': 'mp4',
+                'title': "THE CHEMICAL BROTHERS 'THE DARKNESS THAT YOU FEAR' - OFFICIAL VIDEO",
+                'description': 'md5:a3949dd6e4a3dc5161871d195ee46cf0',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/ruffmercy',
+                'uploader_id': 'ruffmercy',
+                'uploader': 'RUFFMERCY',
+                'channel_id': 'bestofstaffpicks',
+                'channel_url': r're:https?://(?:www\.)?vimeo\.com/channels/bestofstaffpicks',
+                'timestamp': 1619693770,
+                'upload_date': '20210429',
+                'duration': 237,
+            },
+            'params': {
+                # avoid selecting DASH/HLS which only send 1 fragment and fail expected size check
+                'format': 'best[protocol=https]',
+            },
+            'expected_warnings': ['Unable to download JSON metadata'],
+        },
+        {
             'url': 'http://vimeo.com/76979871',
             'note': 'Video with subtitles',
             'info_dict': {
@@ -704,14 +727,18 @@ class VimeoIE(VimeoBaseInfoExtractor):
         channel_id = self._search_regex(
             r'vimeo\.com/channels/([^/]+)', url, 'channel id', default=None)
         if channel_id:
+            # look for data-config-url=, but it may not be present
             config_url = self._html_search_regex(
-                r'\bdata-config-url="([^"]+)"', webpage, 'config URL')
+                r'\bdata-config-url\s*=\s*("|\')(?P<config_url>[^"\']+)\1',
+                webpage, 'config URL', group='config_url', default=None)
             video_description = clean_html(get_element_by_class('description', webpage))
             info_dict.update({
                 'channel_id': channel_id,
                 'channel_url': 'https://vimeo.com/channels/' + channel_id,
             })
         else:
+            config_url = None
+        if not config_url:
             page_config = self._parse_json(self._search_regex(
                 r'vimeo\.(?:clip|vod_title)_page_config\s*=\s*({.+?});',
                 webpage, 'page config', default='{}'), video_id, fatal=False)
@@ -721,8 +748,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             cc_license = page_config.get('cc_license')
             clip = page_config.get('clip') or {}
             timestamp = clip.get('uploaded_on')
-            video_description = clean_html(
-                clip.get('description') or page_config.get('description_html_escaped'))
+            if not video_description:
+                video_description = clean_html(
+                    clip.get('description') or page_config.get('description_html_escaped'))
         config = self._download_json(config_url, video_id)
         video = config.get('video') or {}
         vod = video.get('vod') or {}
