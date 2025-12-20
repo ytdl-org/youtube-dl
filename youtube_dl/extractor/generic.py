@@ -903,6 +903,9 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1349922600,
                 'upload_date': '20121011',
             },
+            'params': {
+                'hls-prefer-native': False,
+            },
         },
         # YouTube embed via <data-embed-url="">
         {
