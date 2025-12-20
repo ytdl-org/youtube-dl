@@ -701,6 +701,20 @@ class YoutubeDL(object):
         except UnicodeEncodeError:
             self.to_screen('[download] The file has already been downloaded')
 
+    # As of [1] format syntax is:
+    #  %[mapping_key][conversion_flags][minimum_width][.precision][length_modifier]type
+    # 1. https://docs.python.org/2/library/stdtypes.html#string-formatting
+    _FORMAT_RE = r'''(?x)
+        (?<!%)
+        %
+        \({0}\)  # mapping key
+        (?:[#0\-+ ]+)?  # conversion flags (optional)
+        (?:\d+)?  # minimum field width (optional)
+        (?:\.\d+)?  # precision (optional)
+        [hlL]?  # length modifier (optional)
+        [diouxXeEfFgGcrs%]  # conversion type
+    '''
+
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
         try:
@@ -719,10 +733,11 @@ class YoutubeDL(object):
                 elif template_dict.get('width'):
                     template_dict['resolution'] = '%dx?' % template_dict['width']
 
+            is_id = lambda k: k == 'id' or k.endswith('_id')
             sanitize = lambda k, v: sanitize_filename(
                 compat_str(v),
                 restricted=self.params.get('restrictfilenames'),
-                is_id=(k == 'id' or k.endswith('_id')))
+                is_id=is_id(k))
             template_dict = dict((k, v if isinstance(v, compat_numeric_types) else sanitize(k, v))
                                  for k, v in template_dict.items()
                                  if v is not None and not isinstance(v, (list, tuple, dict)))
@@ -750,21 +765,8 @@ class YoutubeDL(object):
             # output template for missing fields to meet string presentation type.
             for numeric_field in self._NUMERIC_FIELDS:
                 if numeric_field not in template_dict:
-                    # As of [1] format syntax is:
-                    #  %[mapping_key][conversion_flags][minimum_width][.precision][length_modifier]type
-                    # 1. https://docs.python.org/2/library/stdtypes.html#string-formatting
-                    FORMAT_RE = r'''(?x)
-                        (?<!%)
-                        %
-                        \({0}\)  # mapping key
-                        (?:[#0\-+ ]+)?  # conversion flags (optional)
-                        (?:\d+)?  # minimum field width (optional)
-                        (?:\.\d+)?  # precision (optional)
-                        [hlL]?  # length modifier (optional)
-                        [diouxXeEfFgGcrs%]  # conversion type
-                    '''
                     outtmpl = re.sub(
-                        FORMAT_RE.format(numeric_field),
+                        self._FORMAT_RE.format(numeric_field),
                         r'%({0})s'.format(numeric_field), outtmpl)
 
             # expand_path translates '%%' into '%' and '$$' into '$'
@@ -778,7 +780,35 @@ class YoutubeDL(object):
             # because meta fields may contain env variables we don't want to
             # be expanded. For example, for outtmpl "%(title)s.%(ext)s" and
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
-            filename = expand_path(outtmpl).replace(sep, '') % template_dict
+            filename = expand_path(outtmpl).replace(sep, '')
+
+            # avoid non-mandatory (#571) initial '-' (#5035): convert to '_'
+            # also remove initial '.'
+
+            # first split the filename around the format fields
+            FORMAT_SPLIT_RE = (
+                '%s(%s)' % tuple(
+                    re.split(r'(\(\?[iLmsux]+\))',
+                             self._FORMAT_RE.format(r'\w+'), maxsplit=1)[1:]))
+            filename = re.split(FORMAT_SPLIT_RE, filename)
+            # tag any filename fragment that is an ID format
+            FORMAT_FIELD_RE = (
+                '%s(%s)' % tuple(
+                    re.split(r'(\(\?[iLmsux]+\))',
+                             self._FORMAT_RE.format(r'(?P<field>\w+)'), maxsplit=1)[1:]))
+            field_is_id = (
+                lambda x:
+                    (lambda y: y and is_id(y.group('field')))(re.match(FORMAT_FIELD_RE, x)))
+            # list formatted fragments and tags
+            tagged_fn = [(x % template_dict, field_is_id(x)) for x in filename]
+            # list the initial fragments that can be munged from [.-] to _, ie
+            # those that not IDs, or empty
+            mungable = itertools.takewhile(lambda x: not(x[1] and x[0]), tagged_fn)
+            col0 = lambda l: next(iter(zip(*l)), [])
+            mungable = col0(mungable)
+            # finally combine the munged initial part and the rest
+            filename = (re.sub(r'^[.-]', '_', ''.join(mungable))
+                        + ''.join(col0(tagged_fn[len(mungable):])))
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
