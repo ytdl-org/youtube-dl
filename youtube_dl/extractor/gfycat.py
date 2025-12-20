@@ -8,6 +8,9 @@ from ..utils import (
     qualities,
     ExtractorError,
 )
+from ..compat import (
+    compat_urlparse,
+)
 
 
 class GfycatIE(InfoExtractor):
@@ -63,15 +66,21 @@ class GfycatIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
+        response = self._request_webpage(url, video_id)
+        final_url = response.geturl()  # follow redirects
+        hostname = compat_urlparse.urlparse(final_url).netloc
+        if hostname == 'www.redgifs.com':
+            api_endpoint = 'https://api.redgifs.com/v1/gifs/%s' % video_id.lower()
+        else:
+            api_endpoint = 'https://api.gfycat.com/v1/gfycats/%s' % video_id
         gfy = self._download_json(
-            'https://api.gfycat.com/v1/gfycats/%s' % video_id,
+            api_endpoint,
             video_id, 'Downloading video info')
         if 'error' in gfy:
             raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)
         gfy = gfy['gfyItem']
 
-        title = gfy.get('title') or gfy['gfyName']
+        title = gfy.get('title') or gfy.get('gifName') or gfy['gfyName']
         description = gfy.get('description')
         timestamp = int_or_none(gfy.get('createDate'))
         uploader = gfy.get('userName')
