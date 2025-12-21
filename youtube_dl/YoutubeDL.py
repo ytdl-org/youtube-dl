@@ -1496,39 +1496,48 @@ class YoutubeDL(object):
                             yield matches[-1]
             elif selector.type == MERGE:
                 def _merge(formats_info):
-                    format_1, format_2 = [f['format_id'] for f in formats_info]
+                    format_1, format_2 = formats_info[0], formats_info[1]
+                    format_1_id, format_2_id = format_1['format_id'], format_2['format_id']
                     # The first format must contain the video and the
                     # second the audio
-                    if formats_info[0].get('vcodec') == 'none':
+
+                    # If the user swapped the two inputs, try swapping it for
+                    # them
+                    if format_1.get('acodec') != 'none' and format_2.get('vcodec') != 'none':
+                        temp = format_1
+                        format_1 = format_2
+                        format_2 = temp
+
+                    if format_1.get('vcodec') == 'none':
                         self.report_error('The first format must '
                                           'contain the video, try using '
-                                          '"-f %s+%s"' % (format_2, format_1))
-                        return
+                                          '"-f %s+%s"' % (format_1_id, format_2_id))
+
                     # Formats must be opposite (video+audio)
-                    if formats_info[0].get('acodec') == 'none' and formats_info[1].get('acodec') == 'none':
+                    if format_1.get('acodec') == 'none' and format_2.get('acodec') == 'none':
                         self.report_error(
                             'Both formats %s and %s are video-only, you must specify "-f video+audio"'
-                            % (format_1, format_2))
+                            % (format_1_id, format_2_id))
                         return
                     output_ext = (
-                        formats_info[0]['ext']
+                        format_1['ext']
                         if self.params.get('merge_output_format') is None
                         else self.params['merge_output_format'])
                     return {
                         'requested_formats': formats_info,
-                        'format': '%s+%s' % (formats_info[0].get('format'),
-                                             formats_info[1].get('format')),
-                        'format_id': '%s+%s' % (formats_info[0].get('format_id'),
-                                                formats_info[1].get('format_id')),
-                        'width': formats_info[0].get('width'),
-                        'height': formats_info[0].get('height'),
-                        'resolution': formats_info[0].get('resolution'),
-                        'fps': formats_info[0].get('fps'),
-                        'vcodec': formats_info[0].get('vcodec'),
-                        'vbr': formats_info[0].get('vbr'),
-                        'stretched_ratio': formats_info[0].get('stretched_ratio'),
-                        'acodec': formats_info[1].get('acodec'),
-                        'abr': formats_info[1].get('abr'),
+                        'format': '%s+%s' % (format_1.get('format'),
+                                             format_2.get('format')),
+                        'format_id': '%s+%s' % (format_1.get('format_id'),
+                                                format_2.get('format_id')),
+                        'width': format_1.get('width'),
+                        'height': format_1.get('height'),
+                        'resolution': format_1.get('resolution'),
+                        'fps': format_1.get('fps'),
+                        'vcodec': format_1.get('vcodec'),
+                        'vbr': format_1.get('vbr'),
+                        'stretched_ratio': format_1.get('stretched_ratio'),
+                        'acodec': format_2.get('acodec'),
+                        'abr': format_2.get('abr'),
                         'ext': output_ext,
                     }
 
