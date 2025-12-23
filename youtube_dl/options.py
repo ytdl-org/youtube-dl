@@ -885,6 +885,10 @@ def parseOpts(overrideArguments=None):
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
+    postproc.add_option(
+        '--ttml-convert-no-style',
+        action='store_false', dest='ttmlconvertstyle', default=True,
+        help='Discard all style information when converting subtitles from ttml/dfxp')
 
     parser.add_option_group(general)
     parser.add_option_group(network)
