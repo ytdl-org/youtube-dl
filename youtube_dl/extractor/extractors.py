@@ -1264,6 +1264,7 @@ from .telebruxelles import TeleBruxellesIE
 from .telecinco import TelecincoIE
 from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
+from .teleportal import TeleportalIE
 from .telequebec import (
     TeleQuebecIE,
     TeleQuebecSquatIE,
