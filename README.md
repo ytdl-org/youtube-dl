@@ -1578,3 +1578,4 @@ It may sound strange, but some bug reports we receive are completely unrelated t
 youtube-dl is released into the public domain by the copyright holders.
 
 This README file was originally written by [Daniel Bolton](https://github.com/dbbolton) and is likewise released into the public domain.
+Everthying is okay
