@@ -256,6 +256,7 @@ class YoutubeDL(object):
     default_search:    Prepend this string if an input url is not valid.
                        'auto' for elaborate guessing
     encoding:          Use this encoding instead of the system-specified.
+    allow_file_scheme: Allow use of file:// scheme.
     extract_flat:      Do not resolve URLs, return the immediate result.
                        Pass in 'in_playlist' to only show this behavior for
                        playlist items.
@@ -2627,7 +2628,8 @@ class YoutubeDL(object):
         file_handler = compat_urllib_request.FileHandler()
 
         def file_open(*args, **kwargs):
-            raise compat_urllib_error.URLError('file:// scheme is explicitly disabled in youtube-dl for security reasons')
+            if not self.params.get('allow_file_scheme', False):
+                raise compat_urllib_error.URLError('file:// scheme is explicitly disabled in youtube-dl for security reasons')
         file_handler.file_open = file_open
 
         opener = compat_urllib_request.build_opener(
