@@ -128,6 +128,7 @@ from .bilibili import (
     BilibiliAudioAlbumIE,
     BiliBiliPlayerIE,
 )
+from .binustv import BinusTVAppIE
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
     BitChuteIE,
