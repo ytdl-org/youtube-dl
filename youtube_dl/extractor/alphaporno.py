@@ -20,10 +20,9 @@ class AlphaPornoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sensual striptease porn with Samantha Alexandra',
             'thumbnail': r're:https?://.*\.jpg$',
-            'timestamp': 1418694611,
+            'timestamp': 1418701811,
             'upload_date': '20141216',
             'duration': 387,
-            'filesize_approx': 54120000,
             'tbr': 1145,
             'categories': list,
             'age_limit': 18,
@@ -36,42 +35,53 @@ class AlphaPornoIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_id = self._search_regex(
-            r"video_id\s*:\s*'([^']+)'", webpage, 'video id', default=None)
+            [r"video_id\s*:\s*'([^']+)'", r"\['video_id'\]\s*=\s*(.+?);"], webpage, 'video id')
 
-        video_url = self._search_regex(
-            r"video_url\s*:\s*'([^']+)'", webpage, 'video url')
-        ext = self._html_search_meta(
-            'encodingFormat', webpage, 'ext', default='.mp4')[1:]
+        entries = self._parse_html5_media_entries('https://alphaporno.com', webpage, video_id)
+        info = {}
+        if len(entries) > 0:
+            info = entries[0]
+            for fmt in info['formats']:
+                fmt['tbr'] = int_or_none(self._search_regex(r"br=(\d+)", fmt['url'], 'bitrate', default=None))
+        else:
+            video_url = self._search_regex(
+                r"video_url\s*:\s*'([^']+)'", webpage, 'video url')
+            ext = self._html_search_meta(
+                'encodingFormat', webpage, 'ext', default='.mp4')[1:]
+            bitrate = int_or_none(self._html_search_meta(
+                'bitrate', webpage, 'bitrate', default=None))
+            info = {
+                'url': video_url,
+                'ext': ext,
+                'tbr': bitrate,
+            }
 
         title = self._search_regex(
             [r'<meta content="([^"]+)" itemprop="description">',
-             r'class="title" itemprop="name">([^<]+)<'],
+             r'class="title" itemprop="name">([^<]+)<',
+             r'<h1>(.*?)</h1>'],
             webpage, 'title')
-        thumbnail = self._html_search_meta('thumbnail', webpage, 'thumbnail')
-        timestamp = parse_iso8601(self._html_search_meta(
-            'uploadDate', webpage, 'upload date'))
+        thumbnail = self._html_search_meta(['og:image', 'thumbnail'], webpage, 'thumbnail')
+        timestamp = parse_iso8601(self._og_search_property('video:release_date', webpage, 'upload date', fatal=False),
+                                  delimiter=' ') or parse_iso8601(self._html_search_meta('uploadDate', webpage, 'upload date'))
         duration = parse_duration(self._html_search_meta(
-            'duration', webpage, 'duration'))
+            ['duration', 'og:video:duration'], webpage, 'duration'))
         filesize_approx = parse_filesize(self._html_search_meta(
-            'contentSize', webpage, 'file size'))
-        bitrate = int_or_none(self._html_search_meta(
-            'bitrate', webpage, 'bitrate'))
+            'contentSize', webpage, 'file size', default=None))
         categories = self._html_search_meta(
             'keywords', webpage, 'categories', default='').split(',')
 
         age_limit = self._rta_search(webpage)
 
-        return {
+        info.update({
             'id': video_id,
             'display_id': display_id,
-            'url': video_url,
-            'ext': ext,
             'title': title,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
             'duration': duration,
             'filesize_approx': filesize_approx,
-            'tbr': bitrate,
             'categories': categories,
             'age_limit': age_limit,
-        }
+        })
+        return info
