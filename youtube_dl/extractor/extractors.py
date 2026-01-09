@@ -1027,6 +1027,7 @@ from .rbgtum import (
     RbgTumCourseIE,
 )
 from .rbmaradio import RBMARadioIE
+from .rcti import RCTIplusIE
 from .rds import RDSIE
 from .redbulltv import (
     RedBullTVIE,
