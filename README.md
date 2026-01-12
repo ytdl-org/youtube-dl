@@ -255,12 +255,15 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --restrict-filenames                 Restrict filenames to only ASCII
                                          characters, and avoid "&" and spaces in
                                          filenames
-    -w, --no-overwrites                  Do not overwrite files
+    -w, --no-overwrites                  Do not overwrite files. (For the
+                                         opposite, see --no-continue.)
     -c, --continue                       Force resume of partially downloaded
                                          files. By default, youtube-dl will
                                          resume downloads if possible.
     --no-continue                        Do not resume partially downloaded
-                                         files (restart from beginning)
+                                         files: Instead, restart from the
+                                         beginning and ruthlessly overwrite
+                                         existing files.
     --no-part                            Do not use .part files - write directly
                                          into output file
     --no-mtime                           Do not use the Last-modified header to
