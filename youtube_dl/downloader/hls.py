@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import re
 import binascii
+import time
 try:
     from Crypto.Cipher import AES
     can_decrypt_frag = True
@@ -159,6 +160,8 @@ class HlsFD(FragmentFD):
                             count += 1
                             if count <= fragment_retries:
                                 self.report_retry_fragment(err, frag_index, count, fragment_retries)
+                                if err.code == 429:
+                                    time.sleep(10.0)
                     if count > fragment_retries:
                         if skip_unavailable_fragments:
                             i += 1
