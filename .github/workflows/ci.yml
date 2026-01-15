@@ -151,7 +151,7 @@ jobs:
         # apt in runner, if needed, may not be up-to-date
         sudo apt-get update
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v6
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
@@ -207,7 +207,7 @@ jobs:
     - name: Cache Python 3.next 
       id: cachenext
       if: ${{ matrix.python-impl == 'cpython' && matrix.python-version == env.next }}
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         key: python-${{ env.next }}
         path: |
@@ -260,7 +260,7 @@ jobs:
     - name: Cache Python 2.6
       id: cache26
       if: ${{ matrix.python-version == '2.6' }}
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         key: python-2.6.9
         path: |
@@ -315,7 +315,7 @@ jobs:
     #-------- Jython ------
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v5
       with:
         java-version: 8
         distribution: 'zulu'
@@ -328,7 +328,7 @@ jobs:
     - name: Cache Jython
       id: cachejy
       if: ${{ matrix.python-impl == 'jython' && matrix.python-version == '2.7' }}
-      uses: actions/cache@v3
+      uses: actions/cache@v5
       with:
         # 2.7.3 now available, may solve SNI issue
         key: jython-2.7.1
@@ -470,9 +470,9 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v6
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: 3.9
     - name: Install flake8
