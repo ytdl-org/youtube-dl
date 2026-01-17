@@ -736,6 +736,7 @@ from .mtv import (
     MTVJapanIE,
 )
 from .muenchentv import MuenchenTVIE
+from .mujrozhlas import MujRozhlasIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .mychannels import MyChannelsIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
