@@ -1,8 +1,8 @@
 ## Please follow the guide below
 
 - You will be asked some questions, please read them **carefully** and answer honestly
-- Put an `x` into all the boxes [ ] relevant to your *pull request* (like that [x])
-- Use *Preview* tab to see how your *pull request* will actually look like
+- Put an `x` into all the boxes [ ] relevant to your *pull request* (like this [x])
+- Use *Preview* tab to see how your *pull request* will actually look
 
 ---
 
