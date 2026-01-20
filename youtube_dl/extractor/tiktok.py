@@ -43,6 +43,7 @@ class TikTokBaseIE(InfoExtractor):
         thumbnail = url_or_none(video.get('cover'))
         duration = float_or_none(video.get('duration'))
 
+        channel = try_get(data, lambda x: x['author']['uniqueId'], compat_str)
         uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
         uploader_id = try_get(data, lambda x: x['author']['id'], compat_str)
 
@@ -59,12 +60,18 @@ class TikTokBaseIE(InfoExtractor):
 
         aweme_id = data.get('id') or video_id
 
+        track = try_get(data, lambda x: x['music']['title'])
+        track_id = try_get(data, lambda x: x['music']['id'])
+        artist = try_get(data, lambda x: x['music']['authorName'])
+        album = try_get(data, lambda x: x['music']['album'])
+
         return {
             'id': aweme_id,
             'title': uploader or aweme_id,
             'description': description,
             'thumbnail': thumbnail,
             'duration': duration,
+            'channel': channel,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'timestamp': timestamp,
@@ -72,6 +79,10 @@ class TikTokBaseIE(InfoExtractor):
             'like_count': like_count,
             'comment_count': comment_count,
             'repost_count': repost_count,
+            'track': track,
+            'track_id': track_id,
+            'artist': artist,
+            'album': album,
             'formats': formats,
         }
 
@@ -88,6 +99,7 @@ class TikTokIE(TikTokBaseIE):
             'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
             'thumbnail': r're:^https?://.*',
             'duration': 15,
+            'channel': 'zureeal',
             'uploader': 'Zureeal',
             'uploader_id': '188294915489964032',
             'timestamp': 1538248586,
@@ -96,6 +108,10 @@ class TikTokIE(TikTokBaseIE):
             'like_count': int,
             'comment_count': int,
             'repost_count': int,
+            'track': 'Joogieboy1596 FRANK SOMOHANO',
+            'track_id': '6576279366609668870',
+            'artist': 'JoogieBoy1596',
+            'album': 'user87329004',
         }
     }]
 
