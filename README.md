@@ -964,7 +964,7 @@ Support requests for services that **do** purchase the rights to distribute thei
 
 (Also known as: Help, my important issue not being solved!) The youtube-dl core developer team is quite small. While we do our best to solve as many issues as possible, sometimes that can take quite a while. To speed up your issue, here's what you can do:
 
-First of all, please do report the issue [at our issue tracker](https://yt-dl.org/bugs). That allows us to coordinate all efforts by users and developers, and serves as a unified point. Unfortunately, the youtube-dl project has grown too large to use personal email as an effective communication channel.
+First of all, please do report the issue [at our issue tracker](https://github.com/ytdl-org/youtube-dl/issues). That allows us to coordinate all efforts by users and developers, and serves as a unified point. Unfortunately, the youtube-dl project has grown too large to use personal email as an effective communication channel.
 
 Please read the [bug reporting instructions](#bugs) below. A lot of bugs lack all the necessary information. If you can, offer proxy, VPN, or shell access to the youtube-dl developers. If you are able to, test the issue from multiple computers in multiple countries to exclude local censorship or misconfiguration issues.
 
@@ -1497,7 +1497,7 @@ with youtube_dl.YoutubeDL(ydl_opts) as ydl:
 
 # BUGS
 
-Bugs and suggestions should be reported in the issue tracker: <https://github.com/ytdl-org/youtube-dl/issues> (<https://yt-dl.org/bug> is an alias for this). Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](https://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
+Bugs and suggestions should be reported in the issue tracker: <https://github.com/ytdl-org/youtube-dl/issues>. Unless you were prompted to or there is another pertinent reason (e.g. GitHub fails to accept the bug report), please do not send bug reports via personal email. For discussions, join us in the IRC channel [#youtube-dl](irc://chat.freenode.net/#youtube-dl) on freenode ([webchat](https://webchat.freenode.net/?randomnick=1&channels=youtube-dl)).
 
 ## Opening a bug report or suggestion
 
