@@ -2,5 +2,18 @@
 
 import youtube_dl
 
+import os
+
+MAX_LENGTH = 0
+
+for i in range(1000):
+       	try:
+             	  os.stat('a' * i)
+       	except FileNotFoundError:
+               	pass   
+       	except OSError:
+               	MAX_LENGTH = i - 1
+               	break
+
 if __name__ == '__main__':
     youtube_dl.main()
