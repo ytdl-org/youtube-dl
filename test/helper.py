@@ -9,7 +9,6 @@ import ssl
 import sys
 import types
 import unittest
-
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import (
