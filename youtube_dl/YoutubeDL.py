@@ -540,7 +540,9 @@ class YoutubeDL(object):
         """Print message to stdout if not in quiet mode."""
         return self.to_stdout(message, skip_eol, check_quiet=True)
 
-    def _write_string(self, s, out=None, only_once=False, _cache=set()):
+    def _write_string(self, s, out=None, only_once=False, _cache=None):
+        if _cache is None:
+            _cache = set()
         if only_once and s in _cache:
             return
         write_string(s, out=out, encoding=self.params.get('encoding'))
@@ -838,7 +840,7 @@ class YoutubeDL(object):
         for key, value in extra_info.items():
             info_dict.setdefault(key, value)
 
-    def extract_info(self, url, download=True, ie_key=None, extra_info={},
+    def extract_info(self, url, download=True, ie_key=None, extra_info=None,
                      process=True, force_generic_extractor=False):
         """
         Return a list with a dictionary for each video extracted.
@@ -854,6 +856,8 @@ class YoutubeDL(object):
             must be True for download to work.
         force_generic_extractor -- force using the generic extractor
         """
+        if extra_info is None:
+            extra_info = {}
 
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
@@ -998,7 +1002,7 @@ class YoutubeDL(object):
             'extractor_key': ie.ie_key(),
         })
 
-    def process_ie_result(self, ie_result, download=True, extra_info={}):
+    def process_ie_result(self, ie_result, download=True, extra_info=None):
         """
         Take the result of the ie (may be modified) and resolve all unresolved
         references (URLs, playlist items).
@@ -1006,6 +1010,8 @@ class YoutubeDL(object):
         It will also download the videos if 'download'.
         Returns the resolved ie_result.
         """
+        if extra_info is None:
+            extra_info = {}
         result_type = ie_result.get('_type', 'video')
 
         if result_type in ('url', 'url_transparent'):

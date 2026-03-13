@@ -484,7 +484,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                    T(compat_str)))
 
     #  @functools.cached_property
-    def is_authenticated(self, _cache={}):
+    def is_authenticated(self, _cache=None):
+        if _cache is None:
+            _cache = {}
         if self not in _cache:
             _cache[self] = bool(self._generate_sapisidhash_header())
         return _cache[self]
@@ -633,7 +635,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             ('owner', 'videoOwner'), 'videoOwnerRenderer', 'title',
             'runs', Ellipsis]
 
-    def _extract_channel_id(self, webpage, videodetails={}, metadata={}, renderers=[]):
+    def _extract_channel_id(self, webpage, videodetails=None, metadata=None, renderers=None):
+        if videodetails is None:
+            videodetails = {}
+        if metadata is None:
+            metadata = {}
+        if renderers is None:
+            renderers = []
         channel_id = None
         if any((videodetails, metadata, renderers)):
             channel_id = (
@@ -648,7 +656,13 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             'channelId', webpage, 'channel id', default=None)
 
     def _extract_author_var(self, webpage, var_name,
-                            videodetails={}, metadata={}, renderers=[]):
+                            videodetails=None, metadata=None, renderers=None):
+        if videodetails is None:
+            videodetails = {}
+        if metadata is None:
+            metadata = {}
+        if renderers is None:
+            renderers = []
         result = None
         paths = {
             #       (HTML, videodetails, metadata, renderers)
@@ -1774,7 +1788,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(
                 'Cannot identify player %r' % (player_url,), cause=e)
 
-    def _player_js_cache_key(self, player_url, extra_id=None, _cache={}):
+    def _player_js_cache_key(self, player_url, extra_id=None, _cache=None):
+        if _cache is None:
+            _cache = {}
         if player_url not in _cache:
             player_id = self._extract_player_info(player_url)
             player_path = remove_start(

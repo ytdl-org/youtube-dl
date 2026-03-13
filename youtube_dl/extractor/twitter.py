@@ -79,7 +79,9 @@ class TwitterBaseIE(InfoExtractor):
                 'height': int(m.group('height')),
             })
 
-    def _call_api(self, path, video_id, query={}):
+    def _call_api(self, path, video_id, query=None):
+        if query is None:
+            query = {}
         headers = {
             'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
         }
