@@ -40,7 +40,9 @@ def _hide_login_info(opts):
 
 
 def parseOpts(overrideArguments=None):
-    def _readOptions(filename_bytes, default=[]):
+    def _readOptions(filename_bytes, default=None):
+        if default is None:
+            default = []
         try:
             optionf = open(filename_bytes, encoding=preferredencoding())
         except IOError:

@@ -700,7 +700,9 @@ class JSInterpreter(object):
         return separated[0][1:].strip(), separated[1].strip()
 
     @staticmethod
-    def _all_operators(_cached=[]):
+    def _all_operators(_cached=None):
+        if _cached is None:
+            _cached = []
         if not _cached:
             _cached.extend(itertools.chain(
                 # Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_Precedence

@@ -4006,9 +4006,11 @@ prepend_extension = functools.partial(_change_extension, True)
 replace_extension = functools.partial(_change_extension, False)
 
 
-def check_executable(exe, args=[]):
+def check_executable(exe, args=None):
     """ Checks if the given binary is installed somewhere in PATH, and returns its name.
     args can be a list of arguments for a short output (like -version) """
+    if args is None:
+        args = []
     try:
         process_communicate_or_kill(subprocess.Popen(
             [exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
@@ -4017,10 +4019,12 @@ def check_executable(exe, args=[]):
     return exe
 
 
-def get_exe_version(exe, args=['--version'],
+def get_exe_version(exe, args=None,
                     version_re=None, unrecognized='present'):
     """ Returns the version of the specified executable,
     or False if the executable is not present """
+    if args is None:
+        args = []
     try:
         # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
         # SIGTTOU if youtube-dl is run in the background.
@@ -4322,7 +4326,11 @@ def update_url_query(url, query):
     return update_url(url, query_update=query)
 
 
-def update_Request(req, url=None, data=None, headers={}, query={}):
+def update_Request(req, url=None, data=None, headers=None, query=None):
+    if headers is None:
+        headers = {}
+    if query is None:
+        query = {}
     req_headers = req.headers.copy()
     req_headers.update(headers)
     req_data = data if data is not None else req.data
@@ -5153,7 +5161,9 @@ def cli_valueless_option(params, command_option, param, expected_value=True):
     return [command_option] if param == expected_value else []
 
 
-def cli_configuration_args(params, param, default=[]):
+def cli_configuration_args(params, param, default=None):
+    if default is None:
+        default = []
     ex_args = params.get(param)
     if ex_args is None:
         return default

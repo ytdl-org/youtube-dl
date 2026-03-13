@@ -3740,8 +3740,10 @@ else:
                 except Exception:
                     pass
 
-        def __repr__(self, _repr_running={}):
+        def __repr__(self, _repr_running=None):
             # skip recursive items ...
+            if _repr_running is None:
+                _repr_running = {}
             call_key = id(self), _get_ident()
             if _repr_running.get(call_key):
                 return '...'
