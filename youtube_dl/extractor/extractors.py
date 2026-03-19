@@ -1,6 +1,26 @@
 # flake8: noqa
 from __future__ import unicode_literals
 
+# Keep the YouTube extractor family near the top. URL dispatch is order
+# sensitive, and the non-lazy path otherwise compiles and checks roughly 1200
+# unrelated regexes before reaching the most common site.
+from .youtube import (
+    YoutubeIE,
+    YoutubeFavouritesIE,
+    YoutubeHistoryIE,
+    YoutubeTabIE,
+    YoutubePlaylistIE,
+    YoutubeRecommendedIE,
+    YoutubeSearchDateIE,
+    YoutubeSearchIE,
+    YoutubeSearchURLIE,
+    YoutubeSubscriptionsIE,
+    YoutubeTruncatedIDIE,
+    YoutubeTruncatedURLIE,
+    YoutubeYtBeIE,
+    YoutubeYtUserIE,
+    YoutubeWatchLaterIE,
+)
 from .abc import (
     ABCIE,
     ABCIViewIE,
@@ -1656,23 +1676,6 @@ from .youporn import (
 )
 from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
-from .youtube import (
-    YoutubeIE,
-    YoutubeFavouritesIE,
-    YoutubeHistoryIE,
-    YoutubeTabIE,
-    YoutubePlaylistIE,
-    YoutubeRecommendedIE,
-    YoutubeSearchDateIE,
-    YoutubeSearchIE,
-    YoutubeSearchURLIE,
-    YoutubeSubscriptionsIE,
-    YoutubeTruncatedIDIE,
-    YoutubeTruncatedURLIE,
-    YoutubeYtBeIE,
-    YoutubeYtUserIE,
-    YoutubeWatchLaterIE,
-)
 from .zapiks import ZapiksIE
 from .zattoo import (
     BBVTVIE,
