@@ -3081,7 +3081,14 @@ def compat_ord(c):
 
 # compat_getenv, compat_os_path_expanduser, compat_setenv
 if sys.version_info >= (3, 0):
-    compat_getenv = os.getenv
+    def compat_getenv(key, default=None):
+        env = os.getenv(key, default)
+        if env is None and compat_os_name in ('nt', 'ce') and key == 'HOME':
+            env = os.getenv('USERPROFILE')
+            if env is None and os.getenv('HOMEPATH') is not None:
+                env = os.path.join(os.getenv('HOMEDRIVE') or '', os.getenv('HOMEPATH'))
+        return env
+
     compat_expanduser = os.path.expanduser
 
     def compat_setenv(key, value, env=os.environ):
@@ -3163,6 +3170,26 @@ else:
             return userhome + path[i:]
     else:
         compat_expanduser = os.path.expanduser
+
+if sys.version_info >= (3, 0) and compat_os_name in ('nt', 'ce'):
+    def compat_expanduser(path):
+        """Expand ~ and ~user constructs.
+
+        If user or $HOME is unknown, do nothing."""
+        if path[:1] != '~':
+            return path
+        i, n = 1, len(path)
+        while i < n and path[i] not in '/\\':
+            i = i + 1
+
+        userhome = compat_getenv('HOME')
+        if userhome is None:
+            return path
+
+        if i != 1:  # ~user
+            userhome = os.path.join(os.path.dirname(userhome), path[1:i])
+
+        return userhome + path[i:]
 
 compat_os_path_expanduser = compat_expanduser
 

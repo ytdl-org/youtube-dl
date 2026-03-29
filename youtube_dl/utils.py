@@ -2166,16 +2166,19 @@ def sanitize_path(s):
     """Sanitizes and normalizes path on Windows"""
     if sys.platform != 'win32':
         return s
-    drive_or_unc, _ = os.path.splitdrive(s)
+    norm_path = os.path.normpath(s)
+    drive_or_unc, _ = os.path.splitdrive(norm_path)
     if sys.version_info < (2, 7) and not drive_or_unc:
-        drive_or_unc, _ = os.path.splitunc(s)
-    norm_path = os.path.normpath(remove_start(s, drive_or_unc)).split(os.path.sep)
+        drive_or_unc, _ = os.path.splitunc(norm_path)
+    norm_path = remove_start(norm_path, drive_or_unc).split(os.path.sep)
     if drive_or_unc:
         norm_path.pop(0)
     sanitized_path = [
         path_part if path_part in ['.', '..'] else re.sub(r'(?:[/<>:"\|\\?\*]|[\s.]$)', '#', path_part)
         for path_part in norm_path]
     if drive_or_unc:
+        if not sanitized_path:
+            return drive_or_unc
         sanitized_path.insert(0, drive_or_unc + os.path.sep)
     return os.path.join(*sanitized_path)
 
@@ -2224,7 +2227,12 @@ def sanitized_Request(url, *args, **kwargs):
 
 def expand_path(s):
     """Expand shell variables and ~"""
-    return os.path.expandvars(compat_expanduser(s))
+    path = compat_expanduser(s)
+    if sys.platform == 'win32' and '%HOME%' in path and os.getenv('HOME') is None:
+        home_path = compat_expanduser('~')
+        if home_path:
+            path = path.replace('%HOME%', home_path)
+    return os.path.expandvars(path)
 
 
 def orderedSet(iterable):
