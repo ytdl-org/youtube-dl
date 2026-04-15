@@ -2804,7 +2804,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     self.raise_login_required(remove_end(reason, 'This helps protect our community. Learn more'))
                 elif traverse_obj(playability_status, ('errorScreen', 'playerCaptchaViewModel', T(dict))):
                     reason += '. YouTube is requiring a captcha challenge before playback'
-                raise ExtractorError(reason, expected=True)
+                raise ExtractorError(reason, expected=True, video_id=video_id)
 
         self._sort_formats(formats)
 
