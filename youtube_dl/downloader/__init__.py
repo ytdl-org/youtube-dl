@@ -14,28 +14,17 @@ def get_suitable_downloader(info_dict, params={}):
 # Some of these require get_suitable_downloader
 from .common import FileDownloader
 from .dash import DashSegmentsFD
-from .f4m import F4mFD
 from .hls import HlsFD
 from .http import HttpFD
-from .rtmp import RtmpFD
-from .rtsp import RtspFD
-from .ism import IsmFD
-from .niconico import NiconicoDmcFD
 from .external import (
     get_external_downloader,
     FFmpegFD,
 )
 
 PROTOCOL_MAP = {
-    'rtmp': RtmpFD,
     'm3u8_native': HlsFD,
     'm3u8': FFmpegFD,
-    'mms': RtspFD,
-    'rtsp': RtspFD,
-    'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
-    'ism': IsmFD,
-    'niconico_dmc': NiconicoDmcFD,
 }
 
 

@@ -11,9 +11,8 @@ except ImportError:
     _ALL_CLASSES = [
         klass
         for name, klass in globals().items()
-        if name.endswith('IE') and name != 'GenericIE'
+        if name.endswith('IE')
     ]
-    _ALL_CLASSES.append(GenericIE)
 
 
 def gen_extractor_classes():

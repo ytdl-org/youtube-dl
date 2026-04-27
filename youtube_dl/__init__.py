@@ -16,9 +16,7 @@ from .options import (
 )
 from .compat import (
     compat_getpass,
-    compat_register_utf8,
     compat_shlex_split,
-    _workaround_optparse_bug9161,
 )
 from .utils import (
     _UnsafeExtensionError,
@@ -37,21 +35,14 @@ from .utils import (
     write_string,
     render_table,
 )
-from .update import update_self
 from .downloader import (
     FileDownloader,
 )
 from .extractor import gen_extractors, list_extractors
-from .extractor.adobepass import MSO_INFO
 from .YoutubeDL import YoutubeDL
 
 
 def _real_main(argv=None):
-    # Compatibility fix for Windows
-    compat_register_utf8()
-
-    _workaround_optparse_bug9161()
-
     setproctitle('youtube-dl')
 
     parser, opts, args = parseOpts(argv)
@@ -118,18 +109,11 @@ def _real_main(argv=None):
                 desc += ' (Example: "%s%s:%s" )' % (ie.SEARCH_KEY, random.choice(_COUNTS), random.choice(_SEARCHES))
             write_string(desc + '\n', out=sys.stdout)
         sys.exit(0)
-    if opts.ap_list_mso:
-        table = [[mso_id, mso_info['name']] for mso_id, mso_info in MSO_INFO.items()]
-        write_string('Supported TV Providers:\n' + render_table(['mso', 'mso name'], table) + '\n', out=sys.stdout)
-        sys.exit(0)
-
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
     if opts.password is not None and opts.username is None:
         parser.error('account username missing\n')
-    if opts.ap_password is not None and opts.ap_username is None:
-        parser.error('TV Provider account username missing\n')
     if opts.outtmpl is not None and (opts.usetitle or opts.autonumber or opts.useid):
         parser.error('using output template conflicts with using title, video ID or auto number')
     if opts.autonumber_size is not None:
@@ -142,8 +126,6 @@ def _real_main(argv=None):
         parser.error('using title conflicts with using video ID')
     if opts.username is not None and opts.password is None:
         opts.password = compat_getpass('Type account password and press [Return]: ')
-    if opts.ap_username is not None and opts.ap_password is None:
-        opts.ap_password = compat_getpass('Type TV provider account password and press [Return]: ')
     if opts.ratelimit is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.ratelimit)
         if numeric_limit is None:
@@ -171,8 +153,6 @@ def _real_main(argv=None):
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
     else:
         opts.max_sleep_interval = opts.sleep_interval
-    if opts.ap_mso and opts.ap_mso not in MSO_INFO:
-        parser.error('Unsupported TV Provider, use --ap-list-mso to get a list of supported TV Providers')
 
     if opts.no_check_extensions:
         _UnsafeExtensionError.lenient = True
@@ -322,9 +302,6 @@ def _real_main(argv=None):
         'password': opts.password,
         'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
-        'ap_mso': opts.ap_mso,
-        'ap_username': opts.ap_username,
-        'ap_password': opts.ap_password,
         'quiet': (opts.quiet or any_getting or any_printing),
         'no_warnings': opts.no_warnings,
         'forceurl': opts.geturl,
@@ -347,7 +324,6 @@ def _real_main(argv=None):
         'autonumber_start': opts.autonumber_start,
         'restrictfilenames': opts.restrictfilenames,
         'ignoreerrors': opts.ignoreerrors,
-        'force_generic_extractor': opts.force_generic_extractor,
         'ratelimit': opts.ratelimit,
         'nooverwrites': opts.nooverwrites,
         'retries': opts.retries,
@@ -406,7 +382,6 @@ def _real_main(argv=None):
         'bidi_workaround': opts.bidi_workaround,
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
-        'include_ads': opts.include_ads,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'youtube_player_js_version': opts.youtube_player_js_version,
@@ -432,7 +407,6 @@ def _real_main(argv=None):
         'hls_use_mpegts': opts.hls_use_mpegts,
         'external_downloader_args': external_downloader_args,
         'postprocessor_args': postprocessor_args,
-        'cn_verification_proxy': opts.cn_verification_proxy,
         'geo_verification_proxy': opts.geo_verification_proxy,
         'config_location': opts.config_location,
         'geo_bypass': opts.geo_bypass,
@@ -444,17 +418,13 @@ def _real_main(argv=None):
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        # Update version
-        if opts.update_self:
-            update_self(ydl.to_screen, opts.verbose, ydl._opener)
-
         # Remove cache dir
         if opts.rm_cachedir:
             ydl.cache.remove()
 
         # Maybe do nothing
         if (len(all_urls) < 1) and (opts.load_info_filename is None):
-            if opts.update_self or opts.rm_cachedir:
+            if opts.rm_cachedir:
                 sys.exit()
 
             ydl.warn_if_short_id(sys.argv[1:] if argv is None else argv)

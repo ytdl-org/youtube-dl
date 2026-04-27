@@ -21,7 +21,7 @@ from .utils import (
     traverse_obj,
     write_json_file,
 )
-from .version import __version__
+__version__ = '2025.04.07'
 
 
 class Cache(object):

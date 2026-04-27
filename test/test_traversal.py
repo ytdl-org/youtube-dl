@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import itertools
 import re
 
-from youtube_dl.traversal import (
+from youtube_dl.utils import (
     dict_get,
     get_first,
     require,

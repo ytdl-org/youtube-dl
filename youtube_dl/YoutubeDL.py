@@ -89,7 +89,6 @@ from .utils import (
     preferredencoding,
     prepend_extension,
     process_communicate_or_kill,
-    register_socks_protocols,
     render_table,
     replace_extension,
     SameFileError,
@@ -114,9 +113,7 @@ from .utils import (
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
-from .extractor.openload import PhantomJSwrapper
 from .downloader import get_suitable_downloader
-from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
     FFmpegFixupM3u8PP,
     FFmpegFixupM4aPP,
@@ -125,7 +122,7 @@ from .postprocessor import (
     FFmpegPostProcessor,
     get_postprocessor,
 )
-from .version import __version__
+__version__ = '2025.04.07'
 
 if compat_os_name == 'nt':
     import ctypes
@@ -175,9 +172,6 @@ class YoutubeDL(object):
     username:          Username for authentication purposes.
     password:          Password for authentication purposes.
     videopassword:     Password for accessing a video.
-    ap_mso:            Adobe Pass multiple-system operator identifier.
-    ap_username:       Multiple-system operator account username.
-    ap_password:       Multiple-system operator account password.
     usenetrc:          Use netrc for authentication instead.
     verbose:           Print additional info to stdout.
     quiet:             Do not print messages to stdout.
@@ -198,7 +192,6 @@ class YoutubeDL(object):
     outtmpl_na_placeholder: Placeholder for unavailable meta fields.
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
-    force_generic_extractor: Force downloader to use the generic extractor
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
@@ -252,7 +245,6 @@ class YoutubeDL(object):
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
     debug_printtraffic:Print out sent and received HTTP traffic
-    include_ads:       Download ads as well
     default_search:    Prepend this string if an input url is not valid.
                        'auto' for elaborate guessing
     encoding:          Use this encoding instead of the system-specified.
@@ -404,10 +396,6 @@ class YoutubeDL(object):
                 return True
             return False
 
-        if check_deprecated('cn_verification_proxy', '--cn-verification-proxy', '--geo-verification-proxy'):
-            if self.params.get('geo_verification_proxy') is None:
-                self.params['geo_verification_proxy'] = self.params['cn_verification_proxy']
-
         check_deprecated('autonumber_size', '--autonumber-size', 'output template with %(autonumber)0Nd, where N in the number of digits')
         check_deprecated('autonumber', '--auto-number', '-o "%(autonumber)s-%(title)s.%(ext)s"')
         check_deprecated('usetitle', '--title', '-o "%(title)s-%(id)s.%(ext)s"')
@@ -469,8 +457,6 @@ class YoutubeDL(object):
 
         for ph in self.params.get('progress_hooks', []):
             self.add_progress_hook(ph)
-
-        register_socks_protocols()
 
     def warn_if_short_id(self, argv):
         # short YouTube ID starting with dash?
@@ -839,7 +825,7 @@ class YoutubeDL(object):
             info_dict.setdefault(key, value)
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
-                     process=True, force_generic_extractor=False):
+                     process=True):
         """
         Return a list with a dictionary for each video extracted.
 
@@ -852,11 +838,7 @@ class YoutubeDL(object):
         extra_info -- dictionary containing the extra values to add to each result
         process -- whether to resolve all unresolved references (URLs, playlist items),
             must be True for download to work.
-        force_generic_extractor -- force using the generic extractor
         """
-
-        if not ie_key and force_generic_extractor:
-            ie_key = 'Generic'
 
         if ie_key:
             ies = [self.get_info_extractor(ie_key)]
@@ -2257,8 +2239,7 @@ class YoutubeDL(object):
         for url in url_list:
             try:
                 # It also downloads the videos
-                res = self.extract_info(
-                    url, force_generic_extractor=self.params.get('force_generic_extractor', False))
+                res = self.extract_info(url)
             except UnavailableVideoError:
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
@@ -2558,8 +2539,6 @@ class YoutubeDL(object):
         ))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
-        exe_versions['rtmpdump'] = rtmpdump_version()
-        exe_versions['phantomjs'] = PhantomJSwrapper._version()
         exe_str = ', '.join(
             '%s %s' % (exe, v)
             for exe, v in sorted(exe_versions.items())

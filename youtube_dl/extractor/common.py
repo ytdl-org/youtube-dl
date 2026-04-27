@@ -38,10 +38,6 @@ from ..compat import (
     compat_xml_parse_error,
     compat_zip as zip,
 )
-from ..downloader.f4m import (
-    get_base_url,
-    remove_encrypted_media,
-)
 from ..utils import (
     NO_DEFAULT,
     age_restricted,
@@ -93,6 +89,25 @@ from ..utils import (
     xpath_text,
     xpath_with_ns,
 )
+
+
+def _f4m_ns(prop, ver=1):
+    return '{http://ns.adobe.com/f4m/%d.0}%s' % (ver, prop)
+
+
+def remove_encrypted_media(media):
+    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib
+                                 and 'drmAdditionalHeaderSetId' not in e.attrib,
+                       media))
+
+
+def get_base_url(manifest):
+    base_url = xpath_text(
+        manifest, [_f4m_ns('baseURL'), _f4m_ns('baseURL', 2)],
+        'base URL', default=None)
+    if base_url:
+        base_url = base_url.strip()
+    return base_url
 
 
 class InfoExtractor(object):

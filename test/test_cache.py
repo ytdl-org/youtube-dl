@@ -14,7 +14,7 @@ import shutil
 from test.helper import FakeYDL
 from youtube_dl.cache import Cache
 from youtube_dl.utils import version_tuple
-from youtube_dl.version import __version__
+__version__ = '2025.04.07'
 
 
 def _is_empty(d):

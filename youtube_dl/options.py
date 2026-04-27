@@ -18,11 +18,11 @@ from .utils import (
     preferredencoding,
     write_string,
 )
-from .version import __version__
+__version__ = '2025.04.07'
 
 
 def _hide_login_info(opts):
-    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password', '--ap-password', '--ap-username'])
+    PRIVATE_OPTS = set(['-p', '--password', '-u', '--username', '--video-password'])
     eqre = re.compile('^(?P<key>' + ('|'.join(re.escape(po) for po in PRIVATE_OPTS)) + ')=.+$')
 
     def _scrub_eq(o):
@@ -136,10 +136,6 @@ def parseOpts(overrideArguments=None):
         action='version',
         help='Print program version and exit')
     general.add_option(
-        '-U', '--update',
-        action='store_true', dest='update_self',
-        help='Update this program to latest version. Make sure that you have sufficient permissions (run with sudo if needed)')
-    general.add_option(
         '-i', '--ignore-errors',
         action='store_true', dest='ignoreerrors', default=False,
         help='Continue on download errors, for example to skip unavailable videos in a playlist')
@@ -159,10 +155,6 @@ def parseOpts(overrideArguments=None):
         '--extractor-descriptions',
         action='store_true', dest='list_extractor_descriptions', default=False,
         help='Output descriptions of all supported extractors')
-    general.add_option(
-        '--force-generic-extractor',
-        action='store_true', dest='force_generic_extractor', default=False,
-        help='Force extraction to use the generic extractor')
     general.add_option(
         '--default-search',
         dest='default_search', metavar='PREFIX',
@@ -231,10 +223,6 @@ def parseOpts(overrideArguments=None):
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
         'The default proxy specified by --proxy (or none, if the option is not present) is used for the actual downloading.')
-    geo.add_option(
-        '--cn-verification-proxy',
-        dest='cn_verification_proxy', default=None, metavar='URL',
-        help=optparse.SUPPRESS_HELP)
     geo.add_option(
         '--geo-bypass',
         action='store_true', dest='geo_bypass', default=True,
@@ -342,10 +330,6 @@ def parseOpts(overrideArguments=None):
         '--download-archive', metavar='FILE',
         dest='download_archive',
         help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
-    selection.add_option(
-        '--include-ads',
-        dest='include_ads', action='store_true',
-        help='Download advertisements as well (experimental)')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(
@@ -368,24 +352,6 @@ def parseOpts(overrideArguments=None):
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, youku)')
-
-    adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
-    adobe_pass.add_option(
-        '--ap-mso',
-        dest='ap_mso', metavar='MSO',
-        help='Adobe Pass multiple-system operator (TV provider) identifier, use --ap-list-mso for a list of available MSOs')
-    adobe_pass.add_option(
-        '--ap-username',
-        dest='ap_username', metavar='USERNAME',
-        help='Multiple-system operator account login')
-    adobe_pass.add_option(
-        '--ap-password',
-        dest='ap_password', metavar='PASSWORD',
-        help='Multiple-system operator account password. If this option is left out, youtube-dl will ask interactively.')
-    adobe_pass.add_option(
-        '--ap-list-mso',
-        action='store_true', dest='ap_list_mso', default=False,
-        help='List all supported multiple-system operators')
 
     video_format = optparse.OptionGroup(parser, 'Video Format Options')
     video_format.add_option(
@@ -898,7 +864,6 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(video_format)
     parser.add_option_group(subtitles)
     parser.add_option_group(authentication)
-    parser.add_option_group(adobe_pass)
     parser.add_option_group(postproc)
 
     if overrideArguments is not None:

@@ -80,21 +80,6 @@ from .compat import (
     compat_xpath,
 )
 
-from .socks import (
-    ProxyType,
-    sockssocket,
-)
-
-
-def register_socks_protocols():
-    # "Register" SOCKS protocols
-    # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
-    # URLs with protocols not in urlparse.uses_netloc are not handled correctly
-    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
-        if scheme not in compat_urllib_parse.uses_netloc:
-            compat_urllib_parse.uses_netloc.append(scheme)
-
-
 # Unfavoured alias
 compiled_regex_type = compat_re_Pattern
 
@@ -1976,11 +1961,6 @@ def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
     return n.attrib[key]
 
 
-def get_element_by_id(id, html):
-    """Return the content of the tag with the specified ID in the passed HTML document"""
-    return get_element_by_attribute('id', id, html)
-
-
 def get_element_by_class(class_name, html):
     """Return the content of the first tag with the specified class in the passed HTML document"""
     retval = get_elements_by_class(class_name, html)
@@ -2659,11 +2639,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     def http_open(self, req):
         conn_class = compat_http_client.HTTPConnection
 
-        socks_proxy = req.headers.get('Ytdl-socks-proxy')
-        if socks_proxy:
-            conn_class = make_socks_conn_class(conn_class, socks_proxy)
-            del req.headers['Ytdl-socks-proxy']
-
         return self.do_open(functools.partial(
             _create_http_connection, self, conn_class, False),
             req)
@@ -2864,49 +2839,6 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
     https_response = http_response
 
 
-def make_socks_conn_class(base_class, socks_proxy):
-    assert issubclass(base_class, (
-        compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
-
-    url_components = compat_urllib_parse.urlparse(socks_proxy)
-    if url_components.scheme.lower() == 'socks5':
-        socks_type = ProxyType.SOCKS5
-    elif url_components.scheme.lower() in ('socks', 'socks4'):
-        socks_type = ProxyType.SOCKS4
-    elif url_components.scheme.lower() == 'socks4a':
-        socks_type = ProxyType.SOCKS4A
-
-    def unquote_if_non_empty(s):
-        if not s:
-            return s
-        return compat_urllib_parse_unquote_plus(s)
-
-    proxy_args = (
-        socks_type,
-        url_components.hostname, url_components.port or 1080,
-        True,  # Remote DNS
-        unquote_if_non_empty(url_components.username),
-        unquote_if_non_empty(url_components.password),
-    )
-
-    class SocksConnection(base_class):
-        def connect(self):
-            self.sock = sockssocket()
-            self.sock.setproxy(*proxy_args)
-            if type(self.timeout) in (int, float):
-                self.sock.settimeout(self.timeout)
-            self.sock.connect((self.host, self.port))
-
-            if isinstance(self, compat_http_client.HTTPSConnection):
-                if hasattr(self, '_context'):  # Python > 2.6
-                    self.sock = self._context.wrap_socket(
-                        self.sock, server_hostname=self.host)
-                else:
-                    self.sock = ssl.wrap_socket(self.sock)
-
-    return SocksConnection
-
-
 class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
     def __init__(self, params, https_conn_class=None, *args, **kwargs):
         compat_urllib_request.HTTPSHandler.__init__(self, *args, **kwargs)
@@ -2921,11 +2853,6 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
             kwargs['context'] = self._context
         if hasattr(self, '_check_hostname'):  # python 3.x
             kwargs['check_hostname'] = self._check_hostname
-
-        socks_proxy = req.headers.get('Ytdl-socks-proxy')
-        if socks_proxy:
-            conn_class = make_socks_conn_class(conn_class, socks_proxy)
-            del req.headers['Ytdl-socks-proxy']
 
         return self.do_open(functools.partial(
             _create_http_connection, self, conn_class, True),
@@ -3460,15 +3387,6 @@ def write_string(s, out=None, encoding=None):
     out.flush()
 
 
-def bytes_to_intlist(bs):
-    if not bs:
-        return []
-    if isinstance(bs[0], int):  # Python 3
-        return list(bs)
-    else:
-        return [ord(c) for c in bs]
-
-
 def intlist_to_bytes(xs):
     if not xs:
         return b''
@@ -3774,16 +3692,6 @@ def month_by_name(name, lang='en'):
         return None
 
 
-def month_by_abbreviation(abbrev):
-    """ Return the number of a month by (locale-independently) English
-        abbreviations """
-
-    try:
-        return [s[:3] for s in ENGLISH_MONTH_NAMES].index(abbrev) + 1
-    except ValueError:
-        return None
-
-
 def fix_xml_ampersands(xml_str):
     """Replace all the '&' by '&amp;' in XML"""
     return re.sub(
@@ -3904,10 +3812,6 @@ def float_or_none(v, scale=1, invscale=1, default=None):
         return float(v) * invscale / scale
     except (ValueError, TypeError):
         return default
-
-
-def bool_or_none(v, default=None):
-    return v if isinstance(v, bool) else default
 
 
 def strip_or_none(v, default=None):
@@ -4783,20 +4687,6 @@ def parse_codecs(codecs_str):
             'acodec': split_codecs[1],
         } if len(split_codecs) == 2
         else {})
-
-
-def urlhandle_detect_ext(url_handle):
-    getheader = url_handle.headers.get
-
-    cd = getheader('Content-Disposition')
-    if cd:
-        m = re.match(r'attachment;\s*filename="(?P<filename>[^"]+)"', cd)
-        if m:
-            e = determine_ext(m.group('filename'), default_ext=None)
-            if e:
-                return e
-
-    return mimetype2ext(getheader('Content-Type'))
 
 
 def encode_data_uri(data, mime_type):
@@ -5903,10 +5793,6 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
-        if compat_urllib_parse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
-            req.add_header('Ytdl-socks-proxy', proxy)
-            # youtube-dl's http/https handlers do wrapping the socket with socks
-            return None
         return compat_urllib_request.ProxyHandler.proxy_open(
             self, req, proxy, type)
 
@@ -6012,24 +5898,6 @@ def encode_base_n(num, n, table=None):
     return ret
 
 
-def decode_packed_codes(code):
-    mobj = re.search(PACKED_CODES_RE, code)
-    obfuscated_code, base, count, symbols = mobj.groups()
-    base = int(base)
-    count = int(count)
-    symbols = symbols.split('|')
-    symbol_table = {}
-
-    while count:
-        count -= 1
-        base_n_count = encode_base_n(count, base)
-        symbol_table[base_n_count] = symbols[count] or base_n_count
-
-    return re.sub(
-        r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
-        obfuscated_code)
-
-
 def caesar(s, alphabet, shift):
     if shift == 0:
         return s
@@ -6058,111 +5926,6 @@ def urshift(val, n):
 
 # Based on png2str() written by @gdkchan and improved by @yokrysty
 # Originally posted at https://github.com/ytdl-org/youtube-dl/issues/9706
-def decode_png(png_data):
-    # Reference: https://www.w3.org/TR/PNG/
-    header = png_data[8:]
-
-    if png_data[:8] != b'\x89PNG\x0d\x0a\x1a\x0a' or header[4:8] != b'IHDR':
-        raise IOError('Not a valid PNG file.')
-
-    int_map = {1: '>B', 2: '>H', 4: '>I'}
-    unpack_integer = lambda x: compat_struct_unpack(int_map[len(x)], x)[0]
-
-    chunks = []
-
-    while header:
-        length = unpack_integer(header[:4])
-        header = header[4:]
-
-        chunk_type = header[:4]
-        header = header[4:]
-
-        chunk_data = header[:length]
-        header = header[length:]
-
-        header = header[4:]  # Skip CRC
-
-        chunks.append({
-            'type': chunk_type,
-            'length': length,
-            'data': chunk_data
-        })
-
-    ihdr = chunks[0]['data']
-
-    width = unpack_integer(ihdr[:4])
-    height = unpack_integer(ihdr[4:8])
-
-    idat = b''
-
-    for chunk in chunks:
-        if chunk['type'] == b'IDAT':
-            idat += chunk['data']
-
-    if not idat:
-        raise IOError('Unable to read PNG data.')
-
-    decompressed_data = bytearray(zlib.decompress(idat))
-
-    stride = width * 3
-    pixels = []
-
-    def _get_pixel(idx):
-        x = idx % stride
-        y = idx // stride
-        return pixels[y][x]
-
-    for y in range(height):
-        basePos = y * (1 + stride)
-        filter_type = decompressed_data[basePos]
-
-        current_row = []
-
-        pixels.append(current_row)
-
-        for x in range(stride):
-            color = decompressed_data[1 + basePos + x]
-            basex = y * stride + x
-            left = 0
-            up = 0
-
-            if x > 2:
-                left = _get_pixel(basex - 3)
-            if y > 0:
-                up = _get_pixel(basex - stride)
-
-            if filter_type == 1:  # Sub
-                color = (color + left) & 0xff
-            elif filter_type == 2:  # Up
-                color = (color + up) & 0xff
-            elif filter_type == 3:  # Average
-                color = (color + ((left + up) >> 1)) & 0xff
-            elif filter_type == 4:  # Paeth
-                a = left
-                b = up
-                c = 0
-
-                if x > 2 and y > 0:
-                    c = _get_pixel(basex - stride - 3)
-
-                p = a + b - c
-
-                pa = abs(p - a)
-                pb = abs(p - b)
-                pc = abs(p - c)
-
-                if pa <= pb and pa <= pc:
-                    color = (color + a) & 0xff
-                elif pb <= pc:
-                    color = (color + b) & 0xff
-                else:
-                    color = (color + c) & 0xff
-
-            current_row.append(color)
-
-    return width, height, pixels
-
-
 def write_xattr(path, key, value):
     # This mess below finds the best xattr tool for the job
     try:
@@ -6245,18 +6008,6 @@ def write_xattr(path, key, value):
                         "Couldn't find a tool to set the xattrs. "
                         "Install either the python 'xattr' module, "
                         "or the 'xattr' binary.")
-
-
-def random_birthday(year_field, month_field, day_field):
-    start_date = datetime.date(1950, 1, 1)
-    end_date = datetime.date(1995, 12, 31)
-    offset = random.randint(0, (end_date - start_date).days)
-    random_date = start_date + datetime.timedelta(offset)
-    return {
-        year_field: str(random_date.year),
-        month_field: str(random_date.month),
-        day_field: str(random_date.day),
-    }
 
 
 def clean_podcast_url(url):
