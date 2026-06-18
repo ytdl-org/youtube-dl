@@ -20,12 +20,17 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 To install it right away for all UNIX users (Linux, macOS, etc.), type:
 
-    sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
+    sudo curl -L https://github.com/ytdl-org/youtube-dl/releases/download/2021.12.17/youtube-dl -o /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 If you do not have curl, you can alternatively use a recent wget:
 
-    sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+    sudo wget https://github.com/ytdl-org/youtube-dl/releases/download/2021.12.17/youtube-dl -O /usr/local/bin/youtube-dl
+    sudo chmod a+rx /usr/local/bin/youtube-dl
+
+If you use Python3, use `sed` to edit the shebang (WARNING: editing the file using a text editor will likely corrupt it and lead to a zipimport error):
+
+    sudo sh -c "curl -L https://github.com/ytdl-org/youtube-dl/releases/download/2021.12.17/youtube-dl|sed 1s/python/python3/ > /usr/local/bin/youtube-dl"
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
