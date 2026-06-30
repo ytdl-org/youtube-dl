@@ -3273,7 +3273,7 @@ def determine_ext(url, default_ext='unknown_video'):
     if re.match(r'^[A-Za-z0-9]+$', guess):
         return guess
     # Try extract ext from URLs like http://example.com/foo/bar.mp4/?download
-    elif guess.rstrip('/') in KNOWN_EXTENSIONS:
+    elif guess.rstrip('/').lower() in KNOWN_EXTENSIONS:
         return guess.rstrip('/')
     else:
         return default_ext
@@ -3992,7 +3992,7 @@ def _change_extension(prepend, filename, ext, expected_real_ext=None):
     name, real_ext = os.path.splitext(filename)
     sanitize_extension = _UnsafeExtensionError.sanitize_extension
 
-    if not expected_real_ext or real_ext.partition('.')[0::2] == ('', expected_real_ext):
+    if not expected_real_ext or real_ext.lower().partition('.')[0::2] == ('', expected_real_ext.lower()):
         filename = name
         if prepend and real_ext:
             sanitize_extension(ext, prepend=prepend)
@@ -6855,7 +6855,7 @@ class _UnsafeExtensionError(Exception):
 
         if not prepend:
             last = extension.rpartition('.')[-1]
-            if last == 'bin':
+            if last.lower() == 'bin':
                 extension = last = 'unknown_video'
             if not (cls.lenient or last.lower() in cls._ALLOWED_EXTENSIONS):
                 raise cls(extension)
