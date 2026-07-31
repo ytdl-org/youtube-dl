@@ -178,6 +178,12 @@ class TwitterCardIE(InfoExtractor):
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
             'only_matching': True,
+        }, {
+            'url': 'https://x.com/i/videos/752274308186120192',
+            'only_matching': True,
+        }, {
+            'url': 'https://mobile.x.com/i/videos/752274308186120192',
+            'only_matching': True,
         },
     ]
 
@@ -426,6 +432,12 @@ class TwitterIE(TwitterBaseIE):
     }, {
         # poll4choice_video card
         'url': 'https://twitter.com/SouthamptonFC/status/1347577658079641604',
+        'only_matching': True,
+    }, {
+        'url': 'https://x.com/SouthamptonFC/status/1347577658079641604',
+        'only_matching': True,
+    }, {
+        'url': 'https://mobile.x.com/SouthamptonFC/status/1347577658079641604',
         'only_matching': True,
     }]
 
