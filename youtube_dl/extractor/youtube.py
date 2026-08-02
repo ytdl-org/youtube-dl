@@ -90,6 +90,21 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     # priority order for now
     _INNERTUBE_CLIENTS = o_dict((
+        ('visionos', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'VISIONOS',
+                    'clientVersion': '1.02',
+                    'deviceMake': 'Apple',
+                    'deviceModel': 'RealityDevice17,1',
+                    'userAgent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 15_7_3) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15',
+                    'osName': 'visionOS',
+                    'osVersion': '26.5.23O471',
+                },
+            },
+        'INNERTUBE_CONTEXT_CLIENT_NAME': 101,
+        'REQUIRE_JS_PLAYER': False,
+        }),
         # Doesn't require a PoToken for some reason: thx yt-dlp/yt-dlp#14693
         ('android_sdkless', {
             'INNERTUBE_CONTEXT': {
