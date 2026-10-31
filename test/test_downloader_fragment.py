@@ -13,7 +13,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeLogger, http_server_port
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_http_server
+from youtube_dl.compat import (
+    compat_http_server,
+    compat_str as str,
+)
 from youtube_dl.downloader.dash import DashSegmentsFD
 
 
