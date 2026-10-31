@@ -2111,12 +2111,14 @@ class YoutubeDL(object):
                         # Check extension
                         video_ext, audio_ext = video.get('ext'), audio.get('ext')
                         if video_ext and audio_ext:
+                            video_ext_lower = video_ext.lower()
+                            audio_ext_lower = audio_ext.lower()
                             COMPATIBLE_EXTS = (
                                 ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),
                                 ('webm')
                             )
                             for exts in COMPATIBLE_EXTS:
-                                if video_ext in exts and audio_ext in exts:
+                                if video_ext_lower in exts and audio_ext_lower in exts:
                                     return True
                         # TODO: Check acodec/vcodec
                         return False
@@ -2135,7 +2137,7 @@ class YoutubeDL(object):
                             return filename
                         f_name, f_real_ext = os.path.splitext(filename)
                         f_real_ext = f_real_ext[1:]
-                        filename_wo_ext = f_name if f_real_ext in exts else filename
+                        filename_wo_ext = f_name if f_real_ext.lower() in [e.lower() for e in exts if e] else filename
                         if ext is None:
                             ext = f_real_ext or None
                         return join_nonempty(filename_wo_ext, ext, delim='.')
