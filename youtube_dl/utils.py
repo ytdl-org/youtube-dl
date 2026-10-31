@@ -2416,36 +2416,51 @@ def bug_reports_message(before=';'):
 
 class YoutubeDLError(Exception):
     """Base exception for YoutubeDL errors."""
-    pass
+    msg = None
+
+    def __init__(self, msg=None):
+        self.msg = type(self).__name__ if msg is None else msg
+        super(YoutubeDLError, self).__init__(self.msg)
 
 
 class ExtractorError(YoutubeDLError):
     """Error during info extraction."""
 
-    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None):
+    def __init__(self, msg, tb=None, expected=False, cause=None, video_id=None, ie=None):
         """ tb, if given, is the original traceback (so that it can be printed out).
         If expected is set, this is a normal error message and most likely not a bug in youtube-dl.
         """
         self.orig_msg = msg
         if sys.exc_info()[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError):
             expected = True
-        if video_id is not None:
-            msg = video_id + ': ' + msg
-        if cause:
-            msg += ' (caused by %r)' % cause
-        if not expected:
-            msg += bug_reports_message()
-        super(ExtractorError, self).__init__(msg)
 
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
         self.cause = cause
+        self.ie = ie
         self.video_id = video_id
+        self.expected = expected
+        super(ExtractorError, self).__init__(self.__msg())
+
+    def __msg(self):
+        msg = '[%s] ' % (self.ie,) if self.ie else ''
+        msg += join_nonempty(self.video_id, self.orig_msg, delim=': ')
+        if self.cause:
+            msg += ' (caused by %r)' % self.cause
+        if not self.expected:
+            msg += bug_reports_message()
+        return msg
 
     def format_traceback(self):
         if self.traceback is None:
             return None
         return ''.join(traceback.format_tb(self.traceback))
+
+    def __setattr__(self, name, value):
+        super(ExtractorError, self).__setattr__(name, value)
+        if getattr(self, 'msg', None) and name not in ('msg', 'args'):
+            self.msg = self.__msg() or type(self).__name__
+            self.args = (self.msg, )  # Cannot be property
 
 
 class UnsupportedError(ExtractorError):
