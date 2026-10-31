@@ -90,6 +90,24 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     # priority order for now
     _INNERTUBE_CLIENTS = o_dict((
+        # thx yt-dlp/yt-dlp#15726
+        ('android_vr', {
+            'INNERTUBE_CONTEXT': {
+                'client': {
+                    'clientName': 'ANDROID_VR',
+                    'clientVersion': '1.62.27',
+                    'deviceMake': 'Oculus',
+                    'deviceModel': 'Quest 3',
+                    'androidSdkVersion': 32,
+                    'userAgent': 'com.google.android.apps.youtube.vr.oculus/1.65.10 (Linux; U; Android 12L; eureka-user Build/SQ3A.220605.009.A1) gzip',
+                    'osName': 'Android',
+                    'osVersion': '12L',
+                },
+            },
+            'INNERTUBE_CONTEXT_CLIENT_NAME': 28,
+            'REQUIRE_JS_PLAYER': False,
+            'WITH_COOKIES': False,
+        }),
         # Doesn't require a PoToken for some reason: thx yt-dlp/yt-dlp#14693
         ('android_sdkless', {
             'INNERTUBE_CONTEXT': {
@@ -2364,6 +2382,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         is_live = traverse_obj(player_response, ('videoDetails', 'isLive'))
 
         fetched_timestamp = None
+        client_user_agent = None
         if False and not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
@@ -2454,6 +2473,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if hls and not traverse_obj(player_response, (
                         'streamingData', 'hlsManifestUrl', T(url_or_none))):
                     player_response['streamingData']['hlsManifestUrl'] = hls
+
+            # Save client User-Agent for use in format download headers
+            client_user_agent = traverse_obj(client, (
+                'INNERTUBE_CONTEXT', 'client', 'userAgent'))
 
         def is_agegated(playability):
             # playability: dict
@@ -2678,6 +2701,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # Strictly de-prioritize 3gp formats
                 'preference': -2 if itag == '17' else None,
             }
+            if client_user_agent:
+                dct['http_headers'] = {'User-Agent': client_user_agent}
             if itag:
                 itags[itag].add(('https', dct.get('language')))
             self._unthrottle_format_urls(video_id, player_url, dct)
