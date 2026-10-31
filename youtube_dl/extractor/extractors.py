@@ -281,6 +281,7 @@ from .curiositystream import (
     CuriosityStreamCollectionIE,
 )
 from .cwtv import CWTVIE
+from .darkibox import DarkiboxIE
 from .dailymail import DailyMailIE
 from .dailymotion import (
     DailymotionIE,
