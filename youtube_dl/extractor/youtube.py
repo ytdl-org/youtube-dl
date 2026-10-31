@@ -3749,6 +3749,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 entry = self._video_entry(video_renderer)
                 if entry:
                     yield entry
+            # lockup view model (new YouTube format for videos/playlists)
+            lockup_view_model = content.get('lockupViewModel')
+            if lockup_view_model:
+                entry = self._extract_lockup_view_model(lockup_view_model)
+                if entry:
+                    yield entry
+                continue
             # shorts item
             shorts_lockup_view_model = content.get('shortsLockupViewModel')
             if shorts_lockup_view_model:
