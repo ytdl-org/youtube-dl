@@ -4967,7 +4967,7 @@ def srt_subtitles_timecode(seconds):
     return '%02d:%02d:%02d,%03d' % (seconds / 3600, (seconds % 3600) / 60, seconds % 60, (seconds % 1) * 1000)
 
 
-def dfxp2srt(dfxp_data):
+def dfxp2srt(dfxp_data, convert_style=True):
     '''
     @param dfxp_data A bytes-like object containing DFXP data
     @returns A unicode object containing converted SRT data
@@ -5009,7 +5009,7 @@ def dfxp2srt(dfxp_data):
         def start(self, tag, attrib):
             if tag in (_x('ttml:br'), 'br'):
                 self._out += '\n'
-            else:
+            elif convert_style:
                 unclosed_elements = []
                 style = {}
                 element_style_id = attrib.get('style')
@@ -5052,7 +5052,7 @@ def dfxp2srt(dfxp_data):
                 self._unclosed_elements.append(unclosed_elements)
 
         def end(self, tag):
-            if tag not in (_x('ttml:br'), 'br'):
+            if convert_style and tag not in (_x('ttml:br'), 'br'):
                 unclosed_elements = self._unclosed_elements.pop()
                 for element in reversed(unclosed_elements):
                     self._out += '</%s>' % element
