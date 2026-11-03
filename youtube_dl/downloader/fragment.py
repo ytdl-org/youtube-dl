@@ -155,12 +155,9 @@ class FragmentFD(FileDownloader):
             }
         )
         tmpfilename = self.temp_name(ctx['filename'])
-        open_mode = 'wb'
 
         # Establish possible resume length
         resume_len = self.filesize_or_none(tmpfilename) or 0
-        if resume_len > 0:
-            open_mode = 'ab'
 
         # Should be initialized before ytdl file check
         ctx.update({
@@ -193,6 +190,7 @@ class FragmentFD(FileDownloader):
                 self._write_ytdl_file(ctx)
                 assert ctx['fragment_index'] == 0
 
+        open_mode = 'ab' if resume_len > 0 else 'wb'
         dest_stream, tmpfilename = sanitize_open(tmpfilename, open_mode)
 
         ctx.update({
