@@ -77,7 +77,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.rename(encodeFilename(escaped_thumbnail_jpg_filename), encodeFilename(thumbnail_jpg_filename))
             thumbnail_filename = thumbnail_jpg_filename
 
-        if info['ext'] == 'mp3':
+        info_ext = info['ext'].lower()
+        if info_ext == 'mp3':
             options = [
                 '-c', 'copy', '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
@@ -91,7 +92,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        elif info['ext'] in ['m4a', 'mp4']:
+        elif info_ext in ['m4a', 'mp4']:
             atomicparsley = next((x
                                   for x in ['AtomicParsley', 'atomicparsley']
                                   if check_executable(x, ['-v'])), None)
