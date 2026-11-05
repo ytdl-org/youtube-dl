@@ -9,7 +9,8 @@ PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 MANDIR ?= $(PREFIX)/man
 SHAREDIR ?= $(PREFIX)/share
-PYTHON ?=
+PYTHON ?= /usr/bin/env python
+YTDL_PYTHON ?=
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
@@ -67,7 +68,7 @@ youtube-dl: youtube_dl/*.py youtube_dl/*/*.py
 	mv zip/youtube_dl/__main__.py zip/
 	cd zip && zip -q "../$@" youtube_dl/*.py youtube_dl/*/*.py __main__.py
 	rm -rf zip
-	[ -n "$(PYTHON)" ] && > "$@" echo "#!$(PYTHON)" || > "$@" echo "#!/bin/sh\\n\
+	[ -n "$(YTDL_PYTHON)" ] && > "$@" echo "#!$(YTDL_PYTHON)" || > "$@" echo "#!/bin/sh\\n\
 	''':'\\n\
 	python=python3\\n\
 	command -v \"\$$python\" > /dev/null || python=python\\n\
