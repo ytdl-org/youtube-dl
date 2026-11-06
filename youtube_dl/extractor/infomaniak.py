@@ -32,7 +32,7 @@ class InfomaniakVod2IE(InfoExtractor):
     def _real_extract(self, url):
         share_id = self._match_id(url)
         share = self._download_json(
-            'https://api.infomaniak.com/2/vod/res/shares/%s.json' % share_id,
+            'https://api.infomaniak.com/2/vod/res/shares/%s.json' % (share_id,),
             share_id)
         entries = []
         for media in traverse_obj(share, (
@@ -41,24 +41,21 @@ class InfomaniakVod2IE(InfoExtractor):
             source = media['source']
             formats = []
 
-            hls_url = source.get('hls')
-            if hls_url:
-                formats.extend(self._extract_m3u8_formats(
-                    hls_url, media_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-
-            mpd_url = source.get('dash')
-            if mpd_url:
-                formats.extend(self._extract_mpd_formats(
-                    mpd_url, media_id, mpd_id='dash', fatal=False))
-
-            best_url = source.get('best')
-            if best_url:
-                formats.append({
-                    'url': best_url,
-                    'format_id': 'http',
-                    'preference': 10,
-                })
+            for src, src_url in traverse_obj(('hls', 'dash', 'best'), (
+                    lambda _, v: source.get(v), T(lambda x: (x, source[x])))):
+                if src == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        src_url, media_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id=src, fatal=False))
+                elif src == 'dash':
+                    formats.extend(self._extract_mpd_formats(
+                        src_url, media_id, mpd_id=src, fatal=False))
+                elif src == 'best':
+                    formats.append({
+                        'url': src_url,
+                        'format_id': 'http',
+                        'preference': 10,
+                    })
 
             self._sort_formats(formats)
 
@@ -72,20 +69,21 @@ class InfomaniakVod2IE(InfoExtractor):
                     'formats': formats,
                 }))
 
-        if len(entries) == 1:
+        n_entries = len(entries)
+        if n_entries == 1:
             return merge_dicts({
                 'id': share_id,
                 'display_id': share_id,
             }, entries[0], rev=True)
 
-        missing_id = sum(1 for e in entries if not e.get('id'))
         entries = [e for e in entries if e.get('id')]
-        if missing_id:
+        n_entries -= len(entries)
+        if n_entries > 0:
             self.report_warning(
                 'Share contains multiple media entries, but %d item(s) are missing an id and will be skipped. '
-                'If this looks incorrect, please report the URL.' % missing_id,
+                'If this looks incorrect, please report the URL.' % n_entries,
                 share_id, only_once=True)
-        if not entries:
+        elif not entries:
             # Keep the error message actionable for site support requests
             raise ExtractorError('Unable to find any media in share JSON', expected=True)
 
