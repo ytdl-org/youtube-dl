@@ -88,5 +88,3 @@ class InfomaniakVod2IE(InfoExtractor):
             raise ExtractorError('Unable to find any media in share JSON', expected=True)
 
         return self.playlist_result(entries, playlist_id=share_id)
-
-
