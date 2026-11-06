@@ -1535,6 +1535,7 @@ from .voxmedia import (
     VoxMediaVolumeIE,
     VoxMediaIE,
 )
+from .voe import VOEIE
 from .vrt import VRTIE
 from .vrak import VrakIE
 from .vrv import (
