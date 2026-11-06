@@ -233,8 +233,8 @@ class SoundcloudIE(InfoExtractor):
                 'id': '583011102',
                 'ext': 'mp3',
                 'title': 'Mezzo Valzer',
-                'description': 'md5:4138d582f81866a530317bae316e8b61',
-                'uploader': 'Micronie',
+                'description': 'md5:8de664f12895716c8ac6f1da6348eb8e',
+                'uploader': 'Giovanni Sarani',
                 'uploader_id': '3352531',
                 'timestamp': 1551394171,
                 'upload_date': '20190228',
@@ -289,10 +289,13 @@ class SoundcloudIE(InfoExtractor):
         raise ExtractorError('Unable to extract client id')
 
     def _download_json(self, *args, **kwargs):
-        non_fatal = kwargs.get('fatal') is False
-        if non_fatal:
-            del kwargs['fatal']
+        non_fatal = not kwargs.get('fatal', True)
         query = kwargs.get('query', {}).copy()
+        oauth_token = self._get_cookies(self._BASE_URL).get('oauth_token')
+        if oauth_token:
+            if not kwargs.get('headers'):
+                kwargs['headers'] = {}
+            kwargs['headers']['authorization'] = 'OAuth ' + oauth_token.value
         for _ in range(2):
             query['client_id'] = self._CLIENT_ID
             kwargs['query'] = query
@@ -319,6 +322,7 @@ class SoundcloudIE(InfoExtractor):
         track_id = compat_str(info['id'])
         title = info['title']
 
+        duration = info.get('duration')
         format_urls = set()
         formats = []
         query = {'client_id': self._CLIENT_ID}
@@ -335,12 +339,14 @@ class SoundcloudIE(InfoExtractor):
                 if urlh:
                     format_url = urlh.geturl()
                     format_urls.add(format_url)
+                    filesize = int_or_none(urlh.headers.get('Content-Length'))
                     formats.append({
                         'format_id': 'download',
                         'ext': urlhandle_detect_ext(urlh) or 'mp3',
-                        'filesize': int_or_none(urlh.headers.get('Content-Length')),
+                        'filesize': filesize,
                         'url': format_url,
                         'preference': 10,
+                        'abr': int_or_none(filesize, invscale=8, scale=duration),
                     })
 
         def invalid_url(url):
@@ -456,7 +462,7 @@ class SoundcloudIE(InfoExtractor):
             'title': title,
             'description': info.get('description'),
             'thumbnails': thumbnails,
-            'duration': float_or_none(info.get('duration'), 1000),
+            'duration': float_or_none(duration, 1000),
             'webpage_url': info.get('permalink_url'),
             'license': info.get('license'),
             'view_count': extract_count('playback'),
