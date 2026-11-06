@@ -473,7 +473,10 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        show-progress: false
     - name: Set up Python
       uses: actions/setup-python@v6
       with:
