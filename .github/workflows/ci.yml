@@ -151,7 +151,10 @@ jobs:
         # apt in runner, if needed, may not be up-to-date
         sudo apt-get update
     - name: Checkout
+      # v4+ of the action respects show-progress
       uses: actions/checkout@v6
+      with:
+        show-progress: false
     #-------- Python 3 -----
     - name: Set up supported Python ${{ matrix.python-version }}
       id: setup-python
