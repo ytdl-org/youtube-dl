@@ -36,14 +36,6 @@ You can also use pip:
 
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
-macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
-
-    brew install youtube-dl
-
-Or with [MacPorts](https://www.macports.org/):
-
-    sudo port install youtube-dl
-
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
