@@ -318,6 +318,11 @@ _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATO
 
 _NAME_RE = r'[a-zA-Z_$][\w$]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
+
+# Array indices come from untrusted remote JS (the player script). A single
+# sparse assignment must not be able to size the local heap; the long-term fix
+# is the dict-backed representation noted in the TODO below.
+_MAX_SPARSE_ARRAY_LENGTH = 1000000
 _QUOTES = '\'"/'
 _NESTED_BRACKETS = r'[^[\]]+(?:\[[^[\]]+(?:\[[^\]]+\])?\])?'
 
@@ -1123,10 +1128,16 @@ class JSInterpreter(object):
                     left_val = self._index(left_val, idx)
             if isinstance(idx, float):
                 idx = int(idx)
-            if isinstance(left_val, list) and len(left_val) <= int_or_none(idx, default=-1):
+            if isinstance(left_val, list):
                 # JS Array is a sparsely assignable list
                 # TODO: handle extreme sparsity without memory bloat, eg using auxiliary dict
-                left_val.extend((idx - len(left_val) + 1) * [JS_Undefined])
+                idx_n = int_or_none(idx, default=-1)
+                if idx_n >= _MAX_SPARSE_ARRAY_LENGTH:
+                    raise self.Exception(
+                        "Array index {0} exceeds the maximum sparse array length {1}"
+                        .format(idx_n, _MAX_SPARSE_ARRAY_LENGTH), expr)
+                if len(left_val) <= idx_n:
+                    left_val.extend((idx_n - len(left_val) + 1) * [JS_Undefined])
             left_val[idx] = self._operator(
                 m.group('op'), self._index(left_val, idx) if m.group('op') else None,
                 m.group('expr'), expr, local_vars, allow_recursion)
