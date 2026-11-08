@@ -1,0 +1,187 @@
+name: Build
+
+on: workflow_dispatch
+
+jobs:
+  build_unix:
+    runs-on: ubuntu-latest
+    outputs:
+      version_suffix: ${{ steps.version_suffix.outputs.version_suffix }}
+      ytdl_version: ${{ steps.bump_version.outputs.ytdl_version }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      sha256_bin: ${{ steps.sha256_bin.outputs.sha256_bin }}
+      sha512_bin: ${{ steps.sha512_bin.outputs.sha512_bin }}
+      sha256_tar: ${{ steps.sha256_tar.outputs.sha256_tar }}
+      sha512_tar: ${{ steps.sha512_tar.outputs.sha512_tar }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.8'
+    - name: Install packages
+      run: sudo apt-get -y install zip pandoc man
+    - name: Set version suffix
+      id: version_suffix
+      env:
+        PUSH_VERSION_COMMIT: ${{ secrets.PUSH_VERSION_COMMIT }}
+      if: "env.PUSH_VERSION_COMMIT == ''"
+      run: echo ::set-output name=version_suffix::$(date -u +"%H%M%S")
+    - name: Bump version
+      id: bump_version
+      run: |
+        python devscripts/update-version.py ${{ steps.version_suffix.outputs.version_suffix }}
+        make issuetemplates
+    - name: Push to release
+      id: push_release
+      run: echo ::set-output name=head_sha::$(git rev-parse HEAD)
+    - name: Get Changelog
+      id: get_changelog
+      run: |
+        changelog=$(cat ChangeLog | grep -oPz '(?s)(?<=version ${{ steps.bump_version.outputs.ytdl_version }}\n{2}).+?(?=\n{2,3}version)') || true
+        echo "changelog<<EOF" >> $GITHUB_ENV
+        echo "$changelog" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Run Make
+      run: make all tar
+    - name: Get SHA2-256SUMS for youtube-dl
+      id: sha256_bin
+      run: echo "::set-output name=sha256_bin::$(sha256sum youtube-dl | awk '{print $1}')"
+    - name: Get SHA2-256SUMS for youtube-dl.tar.gz
+      id: sha256_tar
+      run: echo "::set-output name=sha256_tar::$(sha256sum youtube-dl.tar.gz | awk '{print $1}')"
+    - name: Get SHA2-512SUMS for youtube-dl
+      id: sha512_bin
+      run: echo "::set-output name=sha512_bin::$(sha512sum youtube-dl | awk '{print $1}')"
+    - name: Get SHA2-512SUMS for youtube-dl.tar.gz
+      id: sha512_tar
+      run: echo "::set-output name=sha512_tar::$(sha512sum youtube-dl.tar.gz | awk '{print $1}')"
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.bump_version.outputs.ytdl_version }}
+        release_name: youtube-dl ${{ steps.bump_version.outputs.ytdl_version }}
+        commitish: ${{ steps.push_release.outputs.head_sha }}
+        body: ${{ env.changelog }}
+        draft: false
+        prerelease: false
+    - name: Upload youtube-dl Unix binary
+      id: upload-release-asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./youtube-dl
+        asset_name: youtube-dl
+        asset_content_type: application/octet-stream
+    - name: Upload Source tar
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./youtube-dl.tar.gz
+        asset_name: youtube-dl-${{ steps.bump_version.outputs.ytdl_version }}.tar.gz
+        asset_content_type: application/gzip
+
+  build_windows:
+    runs-on: windows-2022
+    needs: build_unix
+    outputs:
+      sha256_win: ${{ steps.sha256_win.outputs.sha256_win }}
+      sha512_win: ${{ steps.sha512_win.outputs.sha512_win }}
+
+    steps:
+    - uses: actions/checkout@v2
+    # reason to choose 3.4: https://media.discordapp.net/attachments/807245652072857613/942409077701619742/unknown.png
+    - name: Set up Python 3.4
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.4'
+        architecture: 'x86'
+    - name: Install packages
+      # https://setuptools.pypa.io/en/latest/history.html#v44-0-0
+      # https://pypi.org/project/py2exe/0.9.2.2/
+      # https://pip.pypa.io/en/stable/news/#v19-2
+      # https://wheel.readthedocs.io/en/stable/news.html
+      run: python -m pip install --upgrade "pip<19.2" "setuptools<44" "wheel<0.34.0" py2exe==0.9.2.2
+    - name: Bump version
+      id: bump_version
+      env:
+        version_suffix: ${{ needs.build_unix.outputs.version_suffix }}
+      run: python devscripts/update-version.py ${{ env.version_suffix }}
+    # - name: Run PyInstaller Script
+    #   run: python -m PyInstaller --onefile --console --distpath dist/ -n youtube-dl youtube_dl\__main__.py
+    - name: Build EXE file
+      run: python setup.py py2exe
+    - name: Upload youtube-dl.exe Windows binary
+      id: upload-release-windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_unix.outputs.upload_url }}
+        asset_path: ./youtube-dl.exe
+        asset_name: youtube-dl.exe
+        asset_content_type: application/vnd.microsoft.portable-executable
+    - name: Get SHA2-256SUMS for youtube-dl.exe
+      id: sha256_win
+      run: echo "::set-output name=sha256_win::$((Get-FileHash youtube-dl.exe -Algorithm SHA256).Hash.ToLower())"
+    - name: Get SHA2-512SUMS for youtube-dl.exe
+      id: sha512_win
+      run: echo "::set-output name=sha512_win::$((Get-FileHash youtube-dl.exe -Algorithm SHA512).Hash.ToLower())"
+
+  finish:
+    runs-on: ubuntu-latest
+    needs: [build_unix, build_windows]
+    env:
+      YTDL_VERSION: ${{ needs.build_unix.outputs.ytdl_version }}
+
+    steps:
+    - name: Make SHA2-256SUMS file
+      env:
+        SHA256_BIN: ${{ needs.build_unix.outputs.sha256_bin }}
+        SHA256_TAR: ${{ needs.build_unix.outputs.sha256_tar }}
+        SHA256_WIN: ${{ needs.build_windows.outputs.sha256_win }}
+      run: |
+        echo "${{ env.SHA256_BIN }}  youtube-dl" >> SHA2-256SUMS
+        echo "${{ env.SHA256_TAR }}  youtube-dl-${YTDL_VERSION}.tar.gz" >> SHA2-256SUMS
+        echo "${{ env.SHA256_WIN }}  youtube-dl.exe" >> SHA2-256SUMS
+    - name: Upload 256SUMS file
+      id: upload-sums
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_unix.outputs.upload_url }}
+        asset_path: ./SHA2-256SUMS
+        asset_name: SHA2-256SUMS
+        asset_content_type: text/plain
+    - name: Make SHA2-512SUMS file
+      env:
+        SHA512_BIN: ${{ needs.build_unix.outputs.sha512_bin }}
+        SHA512_TAR: ${{ needs.build_unix.outputs.sha512_tar }}
+        SHA512_WIN: ${{ needs.build_windows.outputs.sha512_win }}
+      run: |
+        echo "${{ env.SHA512_BIN }}  youtube-dl" >> SHA2-512SUMS
+        echo "${{ env.SHA512_TAR }}  youtube-dl-${YTDL_VERSION}.tar.gz" >> SHA2-512SUMS
+        echo "${{ env.SHA512_WIN }}  youtube-dl.exe" >> SHA2-512SUMS
+    - name: Upload 512SUMS file
+      id: upload-512sums
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_unix.outputs.upload_url }}
+        asset_path: ./SHA2-512SUMS
+        asset_name: SHA2-512SUMS
+        asset_content_type: text/plain
