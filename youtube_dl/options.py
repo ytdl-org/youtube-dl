@@ -916,14 +916,14 @@ def parseOpts(overrideArguments=None):
 
         system_conf = user_conf = custom_conf = []
 
-        if '--config-location' in command_line_conf:
+        if opts.config_location is not None:
             location = compat_expanduser(opts.config_location)
             if os.path.isdir(location):
                 location = os.path.join(location, 'youtube-dl.conf')
             if not os.path.exists(location):
                 parser.error('config-location %s does not exist.' % location)
             custom_conf = _readOptions(location)
-        elif '--ignore-config' in command_line_conf:
+        elif opts.ignore_config:
             pass
         else:
             system_conf = _readOptions('/etc/youtube-dl.conf')
