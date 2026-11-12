@@ -1186,6 +1186,42 @@ class TestYoutubeDLCookies(unittest.TestCase):
         self.assertFalse(result.get('cookies'), msg='Cookies set in cookies field for wrong domain')
         self.assertFalse(ydl.cookiejar.get_cookie_header(fmt['url']), msg='Cookies set in cookiejar for wrong domain')
 
+    def test_correct_ext_case_insensitive(self):
+        from youtube_dl.utils import join_nonempty
+        exts = ['mp4', 'mp4']
+        def correct_ext(filename, ext=exts[1]):
+            if filename == '-':
+                return filename
+            f_name, f_real_ext = os.path.splitext(filename)
+            f_real_ext = f_real_ext[1:]
+            filename_wo_ext = f_name if f_real_ext.lower() in [e.lower() for e in exts if e] else filename
+            if ext is None:
+                ext = f_real_ext or None
+            return join_nonempty(filename_wo_ext, ext, delim='.')
+
+        self.assertEqual(correct_ext('video.MP4', 'mp4'), 'video.mp4')
+        self.assertEqual(correct_ext('video.MP4', 'mkv'), 'video.mkv')
+
+    def test_compatible_formats_case_insensitive(self):
+        def compatible_formats(formats):
+            video, audio = formats
+            video_ext, audio_ext = video.get('ext'), audio.get('ext')
+            if video_ext and audio_ext:
+                video_ext_lower = video_ext.lower()
+                audio_ext_lower = audio_ext.lower()
+                COMPATIBLE_EXTS = (
+                    ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),
+                    ('webm')
+                )
+                for exts in COMPATIBLE_EXTS:
+                    if video_ext_lower in exts and audio_ext_lower in exts:
+                        return True
+            return False
+
+        self.assertTrue(compatible_formats([{'ext': 'MP4'}, {'ext': 'M4A'}]))
+        self.assertTrue(compatible_formats([{'ext': 'webm'}, {'ext': 'WEBM'}]))
+        self.assertFalse(compatible_formats([{'ext': 'mp4'}, {'ext': 'webm'}]))
+
 
 if __name__ == '__main__':
     unittest.main()

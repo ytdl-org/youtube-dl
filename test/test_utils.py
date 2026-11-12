@@ -336,6 +336,7 @@ class TestUtil(unittest.TestCase):
     def test_subtitles_filename(self):
         self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt'), 'abc.en.vtt')
         self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt', 'ext'), 'abc.en.vtt')
+        self.assertEqual(subtitles_filename('abc.EXT', 'en', 'vtt', 'ext'), 'abc.en.vtt')
         self.assertEqual(subtitles_filename('abc.unexpected_ext', 'en', 'vtt', 'ext'), 'abc.unexpected_ext.en.vtt')
 
     def test_remove_start(self):
@@ -444,10 +445,12 @@ class TestUtil(unittest.TestCase):
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
+        self.assertEqual(determine_ext('http://example.com/foo/bar.MP4/?download'), 'MP4')
         self.assertEqual(determine_ext('http://example.com/foo/bar/?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
+        self.assertEqual(determine_ext('http://example.com/foo/bar.M3U8//?download'), 'M3U8')
         self.assertEqual(determine_ext('foobar', None), None)
 
     def test_find_xpath_attr(self):
