@@ -579,7 +579,10 @@ class InfoExtractor(object):
                     if self.__maybe_fake_ip_and_retry(e.countries):
                         continue
                     raise
-        except ExtractorError:
+        except ExtractorError as e:
+            e.video_id = getattr(e, 'video_id', None) or '**???**'
+            e.ie = getattr(e, 'ie', None) or self.IE_NAME
+            e.traceback = e.traceback or sys.exc_info()[2]
             raise
         except compat_http_client.IncompleteRead as e:
             raise ExtractorError('A network error has occurred.', cause=e, expected=True)
