@@ -695,6 +695,44 @@ class TestYoutubeDL(unittest.TestCase):
         assertRegexpMatches(self, ydl._format_note({
             'fps': 30,
         }), r'^30fps$')
+        # video codec with bitrate
+        self.assertEqual(ydl._format_note({
+            'vcodec': 'vp9',
+            'vbr': 1000,
+        }), 'vp9@1000k')
+        self.assertEqual(ydl._format_note({
+            'vbr': 500,
+            'abr': 64,
+        }), 'video@ 500k, audio@ 64k')
+        # codec names are shortened to at most 4 components
+        self.assertEqual(ydl._format_note({
+            'vcodec': 'avc1.64001F.1.2.3',
+            'acodec': 'none',
+        }), 'avc1.64001F.1.2, video only')
+        # audio codec with bitrate and sample rate
+        self.assertEqual(ydl._format_note({
+            'vcodec': 'none',
+            'acodec': 'mp4a.40.2',
+            'abr': 128,
+            'asr': 44100,
+        }), 'mp4a.40.2@128k (44100Hz)')
+        self.assertEqual(ydl._format_note({
+            'acodec': 'mp3',
+        }), 'mp3 ')
+        self.assertEqual(ydl._format_note({
+            'ext': 'f4m',
+            'language': 'en',
+            'format_note': 'DASH',
+            'tbr': 1500,
+            'container': 'mp4_dash',
+        }), '(unsupported) [en] DASH 1500k, mp4_dash container')
+        self.assertEqual(ydl._format_note({
+            'filesize': 1024,
+            'filesize_approx': 2048,
+        }), '1.00KiB')
+        self.assertEqual(ydl._format_note({
+            'filesize_approx': 2048,
+        }), '~2.00KiB')
 
     def test_postprocessors(self):
         filename = 'post-processor-testfile.mp4'

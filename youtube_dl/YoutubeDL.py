@@ -2433,7 +2433,9 @@ class YoutubeDL(object):
             codec = 'video@'
         else:
             codec = None
-        codec = join_nonempty(codec, fdict.get('vbr') is not None and ('%4dk' % fdict['vbr']))
+        codec = join_nonempty(
+            codec, fdict.get('vbr') is not None and ('%4dk' % fdict['vbr']),
+            delim='')
         if codec:
             res.append(codec)
         if fdict.get('fps') is not None:
