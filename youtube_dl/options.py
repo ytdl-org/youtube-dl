@@ -256,11 +256,11 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--playlist-start',
         dest='playliststart', metavar='NUMBER', default=1, type=int,
-        help='Playlist video to start at (default is %default)')
+        help='Playlist index of first item to include (default is %default)')
     selection.add_option(
         '--playlist-end',
         dest='playlistend', metavar='NUMBER', default=None, type=int,
-        help='Playlist video to end at (default is last)')
+        help='Playlist index of last item to include (default is last)')
     selection.add_option(
         '--playlist-items',
         dest='playlist_items', metavar='ITEM_SPEC', default=None,
