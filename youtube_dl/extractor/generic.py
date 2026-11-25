@@ -132,6 +132,7 @@ from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
 from .medialaan import MedialaanIE
 from .simplecast import SimplecastIE
+from .rumble import RumbleIE
 
 
 class GenericIE(InfoExtractor):
@@ -3517,6 +3518,10 @@ class GenericIE(InfoExtractor):
         if zype_urls:
             return self.playlist_from_matches(
                 zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
+
+        rumble_urls = RumbleIE.rumble_embedded_id(webpage)
+        if rumble_urls is not None:
+            return self.playlist_result(rumble_urls) if len(rumble_urls) > 1 else rumble_urls[0]
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
