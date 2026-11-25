@@ -59,6 +59,7 @@ from ..utils import (
     float_or_none,
     GeoRestrictedError,
     GeoUtils,
+    HEADRequest,
     int_or_none,
     join_nonempty,
     js_to_json,
@@ -1646,7 +1647,8 @@ class InfoExtractor(object):
         if not (url.startswith('http://') or url.startswith('https://')):
             return True
         try:
-            self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
+            req = HEADRequest(url, headers=headers)
+            self._request_webpage(req, video_id, 'Checking %s URL' % item)
             return True
         except ExtractorError as e:
             self.to_screen(
