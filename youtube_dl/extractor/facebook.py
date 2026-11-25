@@ -23,6 +23,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     limit_length,
+    merge_dicts,
     parse_count,
     qualities,
     sanitized_Request,
@@ -82,8 +83,9 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '274175099429670',
             'ext': 'mp4',
-            'title': 're:^Asif Nawab Butt posted a video',
+            'title': 'Asif',
             'uploader': 'Asif Nawab Butt',
+            'uploader_id': '100005115464446',
             'upload_date': '20140506',
             'timestamp': 1399398998,
             'thumbnail': r're:^https?://.*',
@@ -137,18 +139,20 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20160223',
             'uploader': 'Barack Obama',
         },
+        'skip': 'Gif on giphy.com gone',
     }, {
         # have 1080P, but only up to 720p in swf params
         # data.video.story.attachments[].media
         'url': 'https://www.facebook.com/cnn/videos/10155529876156509/',
-        'md5': '9571fae53d4165bbbadb17a94651dcdc',
         'info_dict': {
             'id': '10155529876156509',
             'ext': 'mp4',
-            'title': 'She survived the holocaust — and years later, she’s getting her citizenship s...',
+            'title': 'Holocaust survivor becomes US citizen',
+            'description': 'She survived the holocaust — and years later, she’s getting her citizenship so she can vote for Hillary Clinton http://cnn.it/2eERh5f',
             'timestamp': 1477818095,
             'upload_date': '20161030',
             'uploader': 'CNN',
+            'uploader_id': '5550296508',
             'thumbnail': r're:^https?://.*',
             'view_count': int,
         },
@@ -159,14 +163,17 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '1417995061575415',
             'ext': 'mp4',
-            'title': 'md5:1db063d6a8c13faa8da727817339c857',
+            'title': 'Ukrainian Scientists Worldwide | Довгоочікуване відео',
+            'description': 'Довгоочікуване відео',
             'timestamp': 1486648217,
             'upload_date': '20170209',
             'uploader': 'Yaroslav Korpan',
+            'uploader_id': '100000948048708',
         },
         'params': {
             'skip_download': True,
         },
+        'skip': 'This video is only available for registered users',
     }, {
         'url': 'https://www.facebook.com/LaGuiaDelVaron/posts/1072691702860471',
         'info_dict': {
@@ -181,16 +188,21 @@ class FacebookIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        # TODO: parse this webpage
+        'skip': 'This video is only available for registered users (and cannot parse webpage well)',
     }, {
         # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
         'info_dict': {
-            'id': '1396382447100162',
+            'id': '202882990186699',
             'ext': 'mp4',
-            'title': 'md5:19a428bbde91364e3de815383b54a235',
+
+            'title': 'birb (O v O\") | Hello? Yes your uber ride is here',
+            'description': 'md5:f122681cf504d04be12bb2bdc66c81fd',
             'timestamp': 1486035494,
             'upload_date': '20170202',
             'uploader': 'Elisabeth Ahtn',
+            'uploader_id': '100013949973717',
         },
         'params': {
             'skip_download': True,
@@ -231,8 +243,12 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '359649331226507',
             'ext': 'mp4',
-            'title': '#ESLOne VoD - Birmingham Finals Day#1 Fnatic vs. @Evil Geniuses',
+            'title': 'Fnatic vs. EG - Group A - Opening Match - ESL One Birmingham Day 1',
+            'description': '#ESLOne VoD - Birmingham Finals Day#1 Fnatic vs. @Evil Geniuses',
+            'timestamp': 1527084179,
+            'upload_date': '20180523',
             'uploader': 'ESL One Dota 2',
+            'uploader_id': '234218833769558',
         },
         'params': {
             'skip_download': True,
@@ -255,6 +271,7 @@ class FacebookIE(InfoExtractor):
             'id': '10157667649866271',
         },
         'playlist_count': 3,
+        'skip': 'Requires logging in',
     }, {
         # data.nodes[].comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://m.facebook.com/Alliance.Police.Department/posts/4048563708499330',
@@ -279,6 +296,7 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20161122',
             'timestamp': 1479793574,
         },
+        'skip': 'No video',
     }, {
         # data.video.creation_story.attachments[].media
         'url': 'https://www.facebook.com/watch/live/?v=1823658634322275',
@@ -290,6 +308,20 @@ class FacebookIE(InfoExtractor):
         },
         'playlist_count': 1,
         'skip': 'Requires logging in',
+    }, {
+        # data.node.comet_sections.content.story.attachments[].styles.attachment.media
+        # gone : 'https://www.facebook.com/groups/352666925484718/permalink/1112505706167499/',
+        'url': 'https://www.facebook.com/groups/471738070722101/permalink/471799617382613/',
+        'info_dict': {
+            'id': '101173872166725',
+            'ext': 'mp4',
+            'title': 'md5:0ac174e60ed9d9a5eec588343f6a889c',
+            'description': 'md5:80efdff1371fa5d92758df2fb1b97bfd',
+            'upload_date': '20210517',
+            'timestamp': 1621247381,
+            'uploader': 'md5:34165f897c692f92b13c2cc1eddd8245',
+            'uploader_id': '100957655521680',
+        },
     }]
     _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
     _api_config = {
@@ -378,8 +410,80 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _extract_from_url(self, url, video_id):
-        webpage = self._download_webpage(
+        webpage, urlh = self._download_webpage_handle(
             url.replace('://m.facebook.com/', '://www.facebook.com/'), video_id)
+        login_or_id_check = re.search(r'(?P<login>\blogin\b)|/permalink/|[/=?]' + video_id, urlh.geturl())
+        if login_or_id_check and login_or_id_check.group('login'):
+            self.raise_login_required()
+        elif not login_or_id_check:
+            raise ExtractorError(
+                'Facebook redirected to a generic page (%s): the video may be unavailable or you may need to log in.' % urlh.geturl(),
+                expected=True)
+
+        def extract_metadata(webpage):
+            video_title = self._html_search_regex(
+                r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+                'title', default=None)
+            if not video_title:
+                video_title = self._html_search_regex(
+                    r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
+                    webpage, 'alternative title', default=None)
+
+            # _html_search_meta() finds '' ahead of later non-empty results
+            def html_search_meta_non_empty(patterns, html, name, **kwargs):
+                for p in patterns:
+                    result = self._html_search_meta(p, html, name, **kwargs)
+                    if result:
+                        return result
+
+            if not video_title:
+                video_title = html_search_meta_non_empty(
+                    ['og:title', 'twitter:title', 'description'],
+                    webpage, 'title', default=None)
+            if video_title:
+                video_title = limit_length(video_title, 80)
+            else:
+                video_title = 'Facebook video #%s' % video_id
+            description = html_search_meta_non_empty(
+                ['description', 'og:description', 'twitter:description'],
+                webpage, 'description', default=None)
+            uploader = clean_html(get_element_by_id(
+                'fbPhotoPageAuthorName', webpage)) or self._search_regex(
+                r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
+                default=None) or self._og_search_title(webpage, default=None)
+            timestamp = int_or_none(self._search_regex(
+                r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+                'timestamp', default=None))
+            thumbnail = html_search_meta_non_empty(
+                ['og:image', 'twitter:image'], webpage, 'thumbnail', default=None)
+            # some webpages contain unretrievable thumbnail urls
+            # like https://lookaside.fbsbx.com/lookaside/crawler/media/?media_id=10155168902769113&get_thumbnail=1
+            # in https://www.facebook.com/yaroslav.korpan/videos/1417995061575415/
+            if thumbnail and not re.search(r'\.(?:jpg|png)', thumbnail):
+                thumbnail = None
+            view_count = parse_count(self._search_regex(
+                [r'\bviewCount\s*:\s*["\']([\d,.]+)', r'"video_view_count"\s*:\s*([\d,.]+)'],
+                webpage, 'view count', default=None))
+            info_dict = {
+                'title': video_title,
+                'description': description,
+                'uploader': uploader,
+                'timestamp': timestamp,
+                'thumbnail': thumbnail,
+                'view_count': view_count,
+            }
+            info_json_ld = self._search_json_ld(webpage, video_id, default={})
+            if not info_json_ld:
+                # expecting title, description, uploader, comment_count and like_count
+                info_json_ld = self._search_json_ld(
+                    webpage, video_id, expected_type='SocialMediaPosting', default={})
+                # if we already have a non-generic title, honor that
+                if info_dict['title'] != 'Facebook video #%s' % video_id:
+                    info_json_ld['title'] = info_dict['title']
+            if info_json_ld.get('title'):
+                info_json_ld['title'] = limit_length(
+                    re.sub(r'\s*\|\s*Facebook$', '', info_json_ld['title']), 80)
+            return merge_dicts(info_json_ld, info_dict)
 
         video_data = None
 
@@ -477,7 +581,7 @@ class FacebookIE(InfoExtractor):
                     entries.append(info)
 
                 def parse_attachment(attachment, key='media'):
-                    media = attachment.get(key) or {}
+                    media = try_get(attachment, lambda x: x[key], dict) or {}
                     if media.get('__typename') == 'Video':
                         return parse_graphql_video(media)
 
@@ -492,7 +596,10 @@ class FacebookIE(InfoExtractor):
                         lambda x: x['attachments']
                     ], list) or []
                     for attachment in attachments:
-                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
+                        attachment = try_get(attachment, [
+                            lambda x: x['style_type_renderer']['attachment'],
+                            lambda x: x['styles']['attachment']
+                        ], dict) or {}
                         ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
                         for n in ns:
                             parse_attachment(n)
@@ -513,7 +620,15 @@ class FacebookIE(InfoExtractor):
                     if not entries:
                         parse_graphql_video(video)
 
-                return self.playlist_result(entries, video_id)
+                if len(entries) > 1:
+                    return self.playlist_result(entries, video_id)
+
+                video_info = entries[0]
+                webpage_info = extract_metadata(webpage)
+                # honor precise duration in video info
+                if video_info.get('duration'):
+                    webpage_info['duration'] = video_info['duration']
+                return merge_dicts(webpage_info, video_info)
 
         if not video_data:
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
@@ -633,43 +748,12 @@ class FacebookIE(InfoExtractor):
 
         process_formats(formats)
 
-        video_title = self._html_search_regex(
-            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
-            'title', default=None)
-        if not video_title:
-            video_title = self._html_search_regex(
-                r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
-                webpage, 'alternative title', default=None)
-        if not video_title:
-            video_title = self._html_search_meta(
-                'description', webpage, 'title', default=None)
-        if video_title:
-            video_title = limit_length(video_title, 80)
-        else:
-            video_title = 'Facebook video #%s' % video_id
-        uploader = clean_html(get_element_by_id(
-            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
-            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
-            default=None) or self._og_search_title(webpage, fatal=False)
-        timestamp = int_or_none(self._search_regex(
-            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
-            'timestamp', default=None))
-        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
-
-        view_count = parse_count(self._search_regex(
-            r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None))
-
         info_dict = {
             'id': video_id,
-            'title': video_title,
             'formats': formats,
-            'uploader': uploader,
-            'timestamp': timestamp,
-            'thumbnail': thumbnail,
-            'view_count': view_count,
             'subtitles': subtitles,
         }
+        info_dict.update(extract_metadata(webpage))
 
         return info_dict
 

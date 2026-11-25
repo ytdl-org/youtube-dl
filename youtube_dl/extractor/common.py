@@ -1408,9 +1408,21 @@ class InfoExtractor(object):
                     continue
                 info[count_key] = interaction_count
 
+        def extract_author(e):
+            author = e.get('author')
+            if not author:
+                return
+            info.update({
+                # author can be an instance of 'Organization' or 'Person' types.
+                # both types can have 'name' property(inherited from 'Thing' type). [1]
+                # however some websites are using 'Text' type instead.
+                # 1. https://schema.org/VideoObject
+                'uploader': author.get('name') if isinstance(author, dict) else author if isinstance(author, compat_str) else None,
+            })
+
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
-            author = e.get('author')
+            extract_author(e)
             info.update({
                 'url': url_or_none(e.get('contentUrl')),
                 'title': unescapeHTML(e.get('name')),
@@ -1418,11 +1430,6 @@ class InfoExtractor(object):
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
-                # author can be an instance of 'Organization' or 'Person' types.
-                # both types can have 'name' property(inherited from 'Thing' type). [1]
-                # however some websites are using 'Text' type instead.
-                # 1. https://schema.org/VideoObject
-                'uploader': author.get('name') if isinstance(author, dict) else author if isinstance(author, compat_str) else None,
                 'filesize': float_or_none(e.get('contentSize')),
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
@@ -1467,6 +1474,8 @@ class InfoExtractor(object):
                         'title': unescapeHTML(e.get('headline')),
                         'description': unescapeHTML(e.get('articleBody')),
                     })
+                elif item_type == 'SocialMediaPosting':
+                    extract_author(e)
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
                     if expected_type is None:
