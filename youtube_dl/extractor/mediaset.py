@@ -21,7 +21,7 @@ class MediasetIE(ThePlatformBaseIE):
                     (?:
                         mediaset:|
                         https?://
-                            (?:(?:www|static3)\.)?mediasetplay\.mediaset\.it/
+                            (?:(?:www|(?P<s3>static3))\.)?mediaset(?(s3)play|(?:play|infinity))\.mediaset\.it/
                             (?:
                                 (?:video|on-demand|movie)/(?:[^/]+/)+[^/]+_|
                                 player(?:/v\d+)?/index\.html\?.*?\bprogramGuid=
@@ -30,20 +30,19 @@ class MediasetIE(ThePlatformBaseIE):
                     '''
     _TESTS = [{
         # full episode
-        'url': 'https://www.mediasetplay.mediaset.it/video/hellogoodbye/quarta-puntata_FAFU000000661824',
-        'md5': '9b75534d42c44ecef7bf1ffeacb7f85d',
+        'url': 'https://mediasetinfinity.mediaset.it/video/matrix/saro-in-aula-voglio-guardarli-in-faccia_F308550501001C01',
+        'md5': '160a6c662fb85d96bd67f8508cc17ae8',
         'info_dict': {
-            'id': 'FAFU000000661824',
+            'id': 'F308550501001C01',
             'ext': 'mp4',
-            'title': 'Quarta puntata',
+            'title': '"Sarò in aula. Voglio guardarli in faccia"',
             'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 1414.26,
-            'upload_date': '20161107',
-            'series': 'Hello Goodbye',
-            'timestamp': 1478532900,
-            'uploader': 'Rete 4',
-            'uploader_id': 'R4',
+            'duration': 217.019,
+            'upload_date': '20200905',
+            'series': 'Matrix',
+            'timestamp': 1599304297,
+            'uploader': 'Canale 5',
+            'uploader_id': 'C5',
         },
     }, {
         'url': 'https://www.mediasetplay.mediaset.it/video/matrix/puntata-del-25-maggio_F309013801000501',
@@ -53,11 +52,10 @@ class MediasetIE(ThePlatformBaseIE):
             'ext': 'mp4',
             'title': 'Puntata del 25 maggio',
             'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 6565.007,
-            'upload_date': '20180526',
+            'duration': 6565.008,
+            'upload_date': '20200903',
             'series': 'Matrix',
-            'timestamp': 1527326245,
+            'timestamp': 1599172492,
             'uploader': 'Canale 5',
             'uploader_id': 'C5',
         },
