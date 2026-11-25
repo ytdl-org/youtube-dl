@@ -361,6 +361,10 @@ from .engadget import EngadgetIE
 from .epidemicsound import EpidemicSoundIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
+from .ertgr import (
+    ERTFlixBaseIE,
+    ERTFlixIE,
+)
 from .escapist import EscapistIE
 from .espn import (
     ESPNIE,
