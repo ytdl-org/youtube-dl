@@ -305,6 +305,10 @@ from .dfb import DFBIE
 from .dhm import DHMIE
 from .digg import DiggIE
 from .dotsub import DotsubIE
+from .douyin import (
+    DouyinVideoIE,
+    DouyinUserIE
+)
 from .douyutv import (
     DouyuShowIE,
     DouyuTVIE,
