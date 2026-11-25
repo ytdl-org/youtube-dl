@@ -6,19 +6,19 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark(?:\.cc|studios)\.com/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark(?:\.cc|studios)\.com/((?:video-)?clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
 
     _TESTS = [{
-        'url': 'http://southpark.cc.com/clips/104437/bat-daded#tab=featured',
+        'url': 'https://southpark.cc.com/video-clips/d7wr06/south-park-you-all-agreed-to-counseling',
         'info_dict': {
-            'id': 'a7bff6c2-ed00-11e0-aca6-0026b9414f30',
+            'id': '31929ad5-8269-11eb-8774-70df2f866ace',
             'ext': 'mp4',
-            'title': 'South Park|Bat Daded',
-            'description': 'Randy disqualifies South Park by getting into a fight with Bat Dad.',
-            'timestamp': 1112760000,
-            'upload_date': '20050406',
+            'title': 'You All Agreed to Counseling',
+            'description': 'Kenny, Cartman, Stan, and Kyle visit Mr. Mackey and ask for his help getting Mrs. Nelson to come back. Mr. Mackey reveals the only way to get things back to normal is to get the teachers vaccinated.',
+            'timestamp': 1615377600,
+            'upload_date': '20210310',
         },
     }, {
         'url': 'http://southpark.cc.com/collections/7758/fan-favorites/1',
@@ -40,11 +40,11 @@ class SouthParkIE(MTVServicesInfoExtractor):
 
 class SouthParkEsIE(SouthParkIE):
     IE_NAME = 'southpark.cc.com:español'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/episodios-en-espanol/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/es/episodios/(?P<id>.+?)(\?|#|$))'
     _LANG = 'es'
 
     _TESTS = [{
-        'url': 'http://southpark.cc.com/episodios-en-espanol/s01e01-cartman-consigue-una-sonda-anal#source=351c1323-0b96-402d-a8b9-40d01b2e9bde&position=1&sort=!airdate',
+        'url': 'http://southpark.cc.com/es/episodios/s01e01-cartman-consigue-una-sonda-anal#source=351c1323-0b96-402d-a8b9-40d01b2e9bde&position=1&sort=!airdate',
         'info_dict': {
             'title': 'Cartman Consigue Una Sonda Anal',
             'description': 'Cartman Consigue Una Sonda Anal',
@@ -69,6 +69,7 @@ class SouthParkDeIE(SouthParkIE):
             'timestamp': 1380160800,
             'upload_date': '20130926',
         },
+        'skip': 'Geo-restricted',
     }, {
         # non-ASCII characters in initial URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09-hashtag-aufwärmen',
@@ -77,6 +78,7 @@ class SouthParkDeIE(SouthParkIE):
             'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
         },
         'playlist_count': 3,
+        'skip': 'Geo-restricted',
     }, {
         # non-ASCII characters in redirect URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09',
@@ -85,6 +87,7 @@ class SouthParkDeIE(SouthParkIE):
             'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
         },
         'playlist_count': 3,
+        'skip': 'Geo-restricted',
     }, {
         'url': 'http://www.southpark.de/collections/2476/superhero-showdown/1',
         'only_matching': True,
@@ -103,6 +106,7 @@ class SouthParkNlIE(SouthParkIE):
             'description': 'Stan is addicted to the new Terrance and Phillip mobile game.',
         },
         'playlist_mincount': 3,
+        'skip': 'Geo-restricted',
     }]
 
 
@@ -118,6 +122,7 @@ class SouthParkDkIE(SouthParkIE):
             'description': 'Butters is convinced he\'s living in a virtual reality.',
         },
         'playlist_mincount': 3,
+        'skip': 'Geo-restricted',
     }, {
         'url': 'http://www.southparkstudios.dk/collections/2476/superhero-showdown/1',
         'only_matching': True,

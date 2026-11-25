@@ -2114,7 +2114,7 @@ def timeconvert(timestr):
     timetuple = email.utils.parsedate_tz(timestr)
     if timetuple is not None:
         timestamp = email.utils.mktime_tz(timetuple)
-    return timestamp
+    return int(timestamp) if timestamp is not None else timestamp
 
 
 def sanitize_filename(s, restricted=False, is_id=False):

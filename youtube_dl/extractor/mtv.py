@@ -157,7 +157,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         description = strip_or_none(xpath_text(itemdoc, 'description'))
 
-        timestamp = timeconvert(xpath_text(itemdoc, 'pubDate'))
+        timestamp = timeconvert(xpath_text(itemdoc, 'pubDate') or xpath_text(itemdoc, 'airDate'))
 
         title_el = None
         if title_el is None:
@@ -290,7 +290,17 @@ class MTVServicesInfoExtractor(InfoExtractor):
             main_container = self._extract_child_with_type(data, 'MainContainer')
             ab_testing = self._extract_child_with_type(main_container, 'ABTesting')
             video_player = self._extract_child_with_type(ab_testing or main_container, 'VideoPlayer')
-            mgid = video_player['props']['media']['video']['config']['uri']
+            if video_player:
+                mgid = video_player['props']['media']['video']['config']['uri']
+            else:
+                flex_wrapper = self._extract_child_with_type(ab_testing or main_container, 'FlexWrapper')
+                auth_suite_wrapper = self._extract_child_with_type(flex_wrapper, 'AuthSuiteWrapper')
+                player = self._extract_child_with_type(auth_suite_wrapper or flex_wrapper, 'Player')
+                if player:
+                    mgid = player['props']['videoDetail']['mgid']
+
+        if not mgid:
+            raise ExtractorError('Could not extract mgid')
 
         return mgid
 
