@@ -13,6 +13,7 @@ from .compat import (
     compat_kwargs,
     compat_open as open,
     compat_shlex_split,
+    compat_str,
 )
 from .utils import (
     preferredencoding,
@@ -108,6 +109,14 @@ def parseOpts(overrideArguments=None):
 
     def _comma_separated_values_options_callback(option, opt_str, value, parser):
         setattr(parser.values, option.dest, value.split(','))
+
+    def _list_from_options_callback(option, opt_str, value, parser, append=True, delim=',', process=compat_str.strip):
+        # append can be True, False or -1 (prepend)
+        current = list(getattr(parser.values, option.dest)) if append else []
+        value = list(filter(None, [process(value)] if delim is None else map(process, value.split(delim))))
+        setattr(
+            parser.values, option.dest,
+            current + value if append is True else value + current)
 
     # No need to wrap help messages if we're on a wide console
     columns = compat_get_terminal_size().columns
@@ -609,6 +618,13 @@ def parseOpts(overrideArguments=None):
         '--skip-download',
         action='store_true', dest='skip_download', default=False,
         help='Do not download the video')
+    verbosity.add_option(
+        '-O', '--print', metavar='TEMPLATE',
+        action='callback', dest='print_', type='str', default=[],
+        callback=_list_from_options_callback, callback_kwargs={'delim': None},
+        help=(
+            'Simulate, quiet but print the given fields. Either a field name '
+            'or similar formatting as the output template can be used'))
     verbosity.add_option(
         '-g', '--get-url',
         action='store_true', dest='geturl', default=False,
