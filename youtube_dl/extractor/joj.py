@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -21,7 +22,8 @@ class JojIE(InfoExtractor):
                     (?P<id>[^/?#^]+)
                 '''
     _TESTS = [{
-        'url': 'https://media.joj.sk/embed/a388ec4c-6019-4a4a-9312-b1bee194e932',
+        'url':
+        'https://media.joj.sk/embed/a388ec4c-6019-4a4a-9312-b1bee194e932',
         'info_dict': {
             'id': 'a388ec4c-6019-4a4a-9312-b1bee194e932',
             'ext': 'mp4',
@@ -64,16 +66,20 @@ class JojIE(InfoExtractor):
                 r'(?s)(?:src|bitrates)\s*=\s*({.+?});', webpage, 'bitrates',
                 default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
+        quality = self._search_regex(
+            r'var qualityLabels = ({.*?});', webpage, 'quality', default=None)
+        quality = json.loads(quality)
 
         formats = []
         for format_url in try_get(bitrates, lambda x: x['mp4'], list) or []:
             if isinstance(format_url, compat_str):
                 height = self._search_regex(
-                    r'(\d+)[pP]\.', format_url, 'height', default=None)
+                    r'-(\d+)p?\.', format_url, 'height', default=None)
                 formats.append({
                     'url': format_url,
                     'format_id': '%sp' % height if height else None,
                     'height': int(height),
+                    'resolution': quality.get(compat_str(height)+'p')
                 })
         if not formats:
             playlist = self._download_xml(
@@ -104,5 +110,5 @@ class JojIE(InfoExtractor):
             'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
-            'formats': formats,
+            'formats': formats
         }
