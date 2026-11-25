@@ -934,6 +934,7 @@
  - **TeleBruxelles**
  - **Telecinco**: telecinco.es, cuatro.com and mediaset.es
  - **Telegraaf**
+ - **Telegram**
  - **TeleMB**
  - **TeleQuebec**
  - **TeleQuebecEmission**
