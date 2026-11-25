@@ -360,6 +360,10 @@ from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
 from .epidemicsound import EpidemicSoundIE
 from .eporner import EpornerIE
+from .erocast import (
+    ErocastIE,
+    ErocastPlaylistIE,
+)
 from .eroprofile import EroProfileIE
 from .escapist import EscapistIE
 from .espn import (
