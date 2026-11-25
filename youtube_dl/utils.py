@@ -4150,6 +4150,12 @@ class PagedList(object):
         # This is only useful for tests
         return len(self.getslice())
 
+    def _getslice(self, start, end):
+        raise NotImplementedError('This method must be implemented by subclasses')
+
+    def getslice(self, start=0, end=None):
+        return list(self._getslice(start, end))
+
 
 class OnDemandPagedList(PagedList):
     def __init__(self, pagefunc, pagesize, use_cache=True):
@@ -4159,11 +4165,12 @@ class OnDemandPagedList(PagedList):
         if use_cache:
             self._cache = {}
 
-    def getslice(self, start=0, end=None):
-        res = []
-        for pagenum in itertools.count(start // self._pagesize):
-            firstid = pagenum * self._pagesize
-            nextfirstid = pagenum * self._pagesize + self._pagesize
+    def _getslice(self, start=0, end=None):
+        firstpage = start // self._pagesize
+        nextfirstid = firstpage * self._pagesize
+        for pagenum in itertools.count(firstpage):
+            firstid = nextfirstid
+            nextfirstid += self._pagesize
             if start >= nextfirstid:
                 continue
 
@@ -4176,18 +4183,19 @@ class OnDemandPagedList(PagedList):
                 self._cache[pagenum] = page_results
 
             startv = (
-                start % self._pagesize
+                start - firstid
                 if firstid <= start < nextfirstid
                 else 0)
 
             endv = (
-                ((end - 1) % self._pagesize) + 1
+                end - firstid
                 if (end is not None and firstid <= end <= nextfirstid)
                 else None)
 
             if startv != 0 or endv is not None:
                 page_results = page_results[startv:endv]
-            res.extend(page_results)
+            for item in page_results:
+                yield item
 
             # A little optimization - if current page is not "full", ie. does
             # not contain page_size videos then we can assume that this page
@@ -4200,7 +4208,7 @@ class OnDemandPagedList(PagedList):
             # break out early as well
             if end == nextfirstid:
                 break
-        return res
+        return
 
 
 class InAdvancePagedList(PagedList):
