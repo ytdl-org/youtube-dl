@@ -538,6 +538,10 @@ def parseOpts(overrideArguments=None):
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
         help='Give these arguments to the external downloader')
+    downloader.add_option(
+        '--ffmpeg-out-override',
+        dest='ffmpeg_out_override', metavar='ARGS',
+        help='Give these arguments to the ffmpeg instead of `-c copy`')
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(
