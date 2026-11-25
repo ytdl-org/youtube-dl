@@ -10,14 +10,14 @@ SCRIPT_DIR="$( cd "$( dirname "$0" )" && pwd )"
 
 if [ ! -d wine-py2exe ]; then
 
-    sudo apt-get install wine1.3 axel bsdiff
+    sudo apt-get install wine axel bsdiff
 
     mkdir wine-py2exe
     cd wine-py2exe
     export WINEPREFIX=`pwd`
 
     axel -a "http://www.python.org/ftp/python/2.7/python-2.7.msi"
-    axel -a "http://downloads.sourceforge.net/project/py2exe/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe"
+    axel -a "https://sourceforge.net/projects/py2exe/files/py2exe/0.6.9/py2exe-0.6.9.win32-py2.7.exe/download"
     #axel -a "http://winetricks.org/winetricks"
 
     # http://appdb.winehq.org/objectManager.php?sClass=version&iId=21957
@@ -51,6 +51,11 @@ fi
 
 wine "C:\\Python27\\python.exe" "$1" py2exe > "py2exe.log" 2>&1 || true
 echo '# Copying python27.dll' >> "py2exe.log"
-cp "$WINEPREFIX/drive_c/windows/system32/python27.dll" build/bdist.win32/winexe/bundle-2.7/
-wine "C:\\Python27\\python.exe" "$1" py2exe >> "py2exe.log" 2>&1
 
+if [ -e $WINEPREFIX/drive_c/windows/syswow64/python27.dll ]; then
+	cp "$WINEPREFIX/drive_c/windows/syswow64/python27.dll" build/bdist.win32/winexe/bundle-2.7/
+else
+    cp "$WINEPREFIX/drive_c/windows/system32/python27.dll" build/bdist.win32/winexe/bundle-2.7/
+fi
+
+wine "C:\\Python27\\python.exe" "$1" py2exe >> "py2exe.log" 2>&1
