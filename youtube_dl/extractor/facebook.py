@@ -420,12 +420,12 @@ class FacebookIE(InfoExtractor):
 
         def extract_relay_data(_filter):
             return self._parse_json(self._search_regex(
-                r'handleWithCustomApplyEach\([^,]+,\s*({.*?%s.*?})\);' % _filter,
+                [r'handleWithCustomApplyEach\([^,]+,\s*({.*?%s.*?})\);' % _filter, r'<script.*?>(.*?%s.*?)</script>' % _filter],
                 webpage, 'replay data', default='{}'), video_id, fatal=False) or {}
 
         def extract_relay_prefetched_data(_filter):
             replay_data = extract_relay_data(_filter)
-            for require in (replay_data.get('require') or []):
+            for require in ((replay_data.get('require') or []) + (try_get(replay_data, lambda x: x['require'][0][3][0]['__bbox']['require'], list) or [])):
                 if require[0] == 'RelayPrefetchedStreamCache':
                     return try_get(require, lambda x: x[3][1]['__bbox']['result']['data'], dict) or {}
 
@@ -438,7 +438,7 @@ class FacebookIE(InfoExtractor):
 
         if not video_data:
             data = extract_relay_prefetched_data(
-                r'"(?:dash_manifest|playable_url(?:_quality_hd)?)"\s*:\s*"[^"]+"')
+                r'"(?:dash_manifest|playable_url(?:_quality_hd)?|browser_native_(?:sd|hd)_url)"\s*:\s*"[^"]+"')
             if data:
                 entries = []
 
@@ -446,7 +446,7 @@ class FacebookIE(InfoExtractor):
                     formats = []
                     q = qualities(['sd', 'hd'])
                     for (suffix, format_id) in [('', 'sd'), ('_quality_hd', 'hd')]:
-                        playable_url = video.get('playable_url' + suffix)
+                        playable_url = video.get('playable_url' + suffix) or video.get('browser_native_'+format_id+'_url')
                         if not playable_url:
                             continue
                         formats.append({
