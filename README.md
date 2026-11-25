@@ -663,6 +663,9 @@ $ youtube-dl -o "C:/MyVideos/%(series)s/%(season_number)s - %(season)s/%(episode
 
 # Stream the video being downloaded to stdout
 $ youtube-dl -o - BaW_jenozKc
+
+# Download YouTube playlist videos in separate directory without indexed by the video order of the playlist but suffixed with the video id
+$ youtube-dl.exe -o "%(playlist)s/%(title)s-%(id)s.%(ext)s" https://www.youtube.com/playlist?list=PL9iCfxJ0ri32PVdbwrEexjuVB3QnwweRP
 ```
 
 # FORMAT SELECTION
