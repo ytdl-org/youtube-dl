@@ -1363,6 +1363,10 @@ class InfoExtractor(object):
         if isinstance(json_ld, dict):
             json_ld = [json_ld]
 
+        def valued_dict(items):
+            """Return dict from dict or iterable of pairs omitting None values"""
+            return dict((k, v) for k, v in (items.items() if isinstance(items, dict) else items) if v is not None)
+
         INTERACTION_TYPE_MAP = {
             'CommentAction': 'comment',
             'AgreeAction': 'like',
@@ -1454,19 +1458,25 @@ class InfoExtractor(object):
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
-                elif item_type == 'Movie':
+                elif item_type in ('TVSeries', 'Series', 'CreativeWorkSeries'):
+                    series_name = unescapeHTML(e.get('name'))
                     info.update({
+                        'series': series_name,
+                    })
+                elif item_type == 'Movie':
+                    # here and in the next, don't erase existing value with None
+                    info.update(valued_dict({
                         'title': unescapeHTML(e.get('name')),
                         'description': unescapeHTML(e.get('description')),
                         'duration': parse_duration(e.get('duration')),
                         'timestamp': unified_timestamp(e.get('dateCreated')),
-                    })
+                    }))
                 elif item_type in ('Article', 'NewsArticle'):
-                    info.update({
+                    info.update(valued_dict({
                         'timestamp': parse_iso8601(e.get('datePublished')),
                         'title': unescapeHTML(e.get('headline')),
                         'description': unescapeHTML(e.get('articleBody')),
-                    })
+                    }))
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
                     if expected_type is None:
@@ -1480,7 +1490,7 @@ class InfoExtractor(object):
                     continue
                 else:
                     break
-        return dict((k, v) for k, v in info.items() if v is not None)
+        return valued_dict(info)
 
     def _search_nextjs_data(self, webpage, video_id, **kw):
         # ..., *, transform_source=None, fatal=True, default=NO_DEFAULT
