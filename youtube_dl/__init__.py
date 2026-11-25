@@ -8,6 +8,7 @@ __license__ = 'Public Domain'
 import io
 import os
 import random
+import re
 import sys
 
 
@@ -122,6 +123,23 @@ def _real_main(argv=None):
         table = [[mso_id, mso_info['name']] for mso_id, mso_info in MSO_INFO.items()]
         write_string('Supported TV Providers:\n' + render_table(['mso', 'mso name'], table) + '\n', out=sys.stdout)
         sys.exit(0)
+    if opts.determine_extractors:
+        status = 1
+        for url in all_urls:
+            if re.match(r'^[^\s/]+\.[^\s/]+/', url):  # generic.py
+                write_string('The url doesn\'t specify the protocol, trying with http\n', out=sys.stderr)
+                url = 'http://' + url
+            for ie in list_extractors(opts.age_limit):
+                if not ie._WORKING or ie.IE_NAME == 'generic':
+                    continue
+                try:
+                    if re.match(getattr(ie, '_VALID_URL'), url):
+                        write_string(ie.IE_NAME + ' ' + url + '\n', out=sys.stdout)
+                        status = 0
+                        break
+                except AttributeError:
+                    pass
+        sys.exit(status)
 
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
