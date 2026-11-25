@@ -906,6 +906,10 @@ class TestYoutubeDL(unittest.TestCase):
         ydl = YDL()
         self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
 
+    def test_urlopen_yes_file_protocol(self):
+        ydl = YDL({'allow_file_scheme': True})
+        ydl.urlopen('file:///etc/passwd')
+
     def test_do_not_override_ie_key_in_url_transparent(self):
         ydl = YDL()
 
