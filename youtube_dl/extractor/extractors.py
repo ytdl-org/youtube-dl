@@ -1164,6 +1164,7 @@ from .soundcloud import (
     SoundcloudUserIE,
     SoundcloudTrackStationIE,
     SoundcloudPlaylistIE,
+    SoundcloudRelatedIE,
     SoundcloudSearchIE,
 )
 from .soundgasm import (
