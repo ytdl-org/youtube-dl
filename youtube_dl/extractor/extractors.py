@@ -751,6 +751,10 @@ from .nationalgeographic import (
     NationalGeographicVideoIE,
     NationalGeographicTVIE,
 )
+from .nate import (
+    NateIE,
+    NateProgramIE,
+)
 from .naver import NaverIE
 from .nba import (
     NBAWatchEmbedIE,
