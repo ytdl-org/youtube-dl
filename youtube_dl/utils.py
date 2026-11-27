@@ -3233,14 +3233,74 @@ def unified_strdate(date_str, day_first=True):
         return compat_str(upload_date)
 
 
-def unified_timestamp(date_str, day_first=True):
+def unified_timestamp(date_str, day_first=True, **kwargs):
+    """Return a UNIX timestamp from a date string, or None.
+
+    ``midnight`` is optional and keyword-only (via ``**kwargs``, so the
+    signature stays valid on Python 2). It selects how 12 AM / 12 PM are
+    read. Anything else raises ``ValueError``.
+
+    'PM' (default)
+        Historical behaviour, unchanged: AM is ignored and PM always adds
+        12 hours to the hour the parser produced.
+    'AM-'
+        12 AM is midnight at the start of the named day and 12 PM is noon
+        (civil convention). PM adds 12 only when the clock hour is below 12.
+    'AM+'
+        12 AM is midnight at the end of the named day and 12 PM is noon.
+        PM adds 12 only when the clock hour is below 12.
+    """
+    midnight = kwargs.pop('midnight', 'PM')
+    if kwargs:
+        unexpected = next(iter(kwargs))
+        raise TypeError('unified_timestamp() got an unexpected keyword argument {0!r}'.format(unexpected))
+    # Validate the argument itself. A failed lookup must not be treated as
+    # "no adjustment": an unknown value has to fail even when the string
+    # has no meridian.
+    if midnight not in ('PM', 'AM-', 'AM+'):
+        raise ValueError('Unexpected midnight value {0!r}'.format(midnight))
+
     if date_str is None:
         return None
 
     date_str = re.sub(r'\s+', ' ', re.sub(
         r'(?i)[,|]|(mon|tues?|wed(nes)?|thu(rs)?|fri|sat(ur)?)(day)?', '', date_str))
 
-    pm_delta = 12 if re.search(r'(?i)PM', date_str) else 0
+    has_pm = bool(re.search(r'(?i)PM', date_str))
+    has_am = bool(re.search(r'(?i)AM', date_str))
+
+    def meridian_delta(hour, twelve_stored_as_zero):
+        # 'PM' must stay exactly the historical adjustment: AM is ignored
+        # and PM always adds 12, including when %I has already stored a
+        # clock hour of 12 as 0.
+        if midnight == 'PM':
+            return 12 if has_pm else 0
+
+        # %I accepts 01..12 and stores 12 as 0. Recover the clock hour so
+        # 'AM-'/'AM+' agree for strptime formats and for email.utils.
+        if twelve_stored_as_zero:
+            clock_hour = 12
+            # Parsed datetime is 12 hours behind the clock hour.
+            parsed_behind_clock = 12
+        else:
+            clock_hour = hour
+            parsed_behind_clock = 0
+
+        if has_pm:
+            if clock_hour < 12:
+                return 12
+            if clock_hour == 12:
+                # 12 PM is noon for both 'AM-' and 'AM+'.
+                return parsed_behind_clock
+            return 0
+        if has_am and clock_hour == 12:
+            if midnight == 'AM-':
+                # Midnight at the start of the named day (hour 0).
+                return parsed_behind_clock - 12
+            # 'AM+': midnight at the end of the named day (hour 24).
+            return parsed_behind_clock + 12
+        return 0
+
     timezone, date_str = extract_timezone(date_str)
 
     # Remove AM/PM + timezone
@@ -3258,11 +3318,16 @@ def unified_timestamp(date_str, day_first=True):
 
     for expression in date_formats(day_first):
         with compat_contextlib_suppress(ValueError):
-            dt = datetime.datetime.strptime(date_str, expression) - timezone + datetime.timedelta(hours=pm_delta)
+            dt = datetime.datetime.strptime(date_str, expression)
+            # %I stores clock-hour 12 as 0; only that case needs restoring.
+            twelve_stored_as_zero = ('%I' in expression) and dt.hour == 0
+            delta = meridian_delta(dt.hour, twelve_stored_as_zero)
+            dt = dt - timezone + datetime.timedelta(hours=delta)
             return calendar.timegm(dt.timetuple())
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple) + pm_delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
+        delta = meridian_delta(timetuple[3], False)
+        return calendar.timegm(timetuple) + delta * 3600 - compat_datetime_timedelta_total_seconds(timezone)
 
 
 @partial_application

@@ -441,6 +441,134 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_timestamp('December 31 1969 20:00:01 EDT'), 1)
         self.assertEqual(unified_timestamp('Wednesday 31 December 1969 18:01:26 MDT'), 86)
         self.assertEqual(unified_timestamp('12/31/1969 20:01:18 EDT', False), 78)
+        # Historical 12 AM/PM (midnight='PM', the default): AM is ignored and
+        # PM always adds 12 hours. These are not civil-clock readings.
+        # email.utils keeps a written 12, so 12 PM rolls to the next midnight
+        # and 12 AM stays at hour 12.
+        self.assertEqual(unified_timestamp('May 16, 2016 12:15 PM'), 1463444100)
+        self.assertEqual(unified_timestamp('May 16, 2016 12:15 AM'), 1463400900)
+        self.assertEqual(unified_timestamp('May 16, 2016 12:00 PM'), 1463443200)
+        self.assertEqual(unified_timestamp('May 16, 2016 12:00 AM'), 1463400000)
+        # %I stores clock-hour 12 as 0 before the legacy +12, so 12:45 PM
+        # lands at noon and 12:45 AM at 00:45. That is today's output.
+        self.assertEqual(unified_timestamp('Feb 14th 2016 12:45PM'), 1455453900)
+        self.assertEqual(unified_timestamp('Feb 14th 2016 12:45AM'), 1455410700)
+
+    def test_unified_timestamp_midnight(self):
+        may_pm = 'May 16, 2016 12:15 PM'
+        may_am = 'May 16, 2016 12:15 AM'
+        feb_pm = 'Feb 14th 2016 12:45PM'
+        feb_am = 'Feb 14th 2016 12:45AM'
+        noon = 'May 16, 2016 12:00 PM'
+        midnight_am = 'May 16, 2016 12:00 AM'
+
+        # Calling without the kwarg is the historical default, and an
+        # explicit midnight='PM' must match it.
+        for date_str in (
+                may_pm, may_am, feb_pm, feb_am, noon, midnight_am,
+                'May 16, 2016 11:15 PM', 'Feb 14th 2016 5:45PM',
+                'December 21, 2010'):
+            self.assertEqual(
+                unified_timestamp(date_str, midnight='PM'),
+                unified_timestamp(date_str))
+        self.assertEqual(unified_timestamp(None), None)
+        self.assertEqual(unified_timestamp(None, midnight='PM'), None)
+        self.assertEqual(unified_timestamp(None, midnight='AM-'), None)
+        self.assertEqual(unified_timestamp(None, midnight='AM+'), None)
+
+        # 'AM-': civil convention (12 AM -> hour 0, 12 PM -> hour 12).
+        self.assertEqual(unified_timestamp(may_pm, midnight='AM-'), 1463400900)
+        self.assertEqual(unified_timestamp(may_am, midnight='AM-'), 1463357700)
+        self.assertEqual(unified_timestamp(noon, midnight='AM-'), 1463400000)
+        self.assertEqual(unified_timestamp(midnight_am, midnight='AM-'), 1463356800)
+        # Same instants through the %I formats (12 stored as 0).
+        self.assertEqual(unified_timestamp(feb_pm, midnight='AM-'), 1455453900)
+        self.assertEqual(unified_timestamp(feb_am, midnight='AM-'), 1455410700)
+
+        # 'AM+': 12 AM is midnight at the end of the named day; 12 PM is noon.
+        self.assertEqual(unified_timestamp(may_pm, midnight='AM+'), 1463400900)
+        self.assertEqual(unified_timestamp(may_am, midnight='AM+'), 1463444100)
+        self.assertEqual(unified_timestamp(noon, midnight='AM+'), 1463400000)
+        self.assertEqual(unified_timestamp(midnight_am, midnight='AM+'), 1463443200)
+        self.assertEqual(unified_timestamp(feb_pm, midnight='AM+'), 1455453900)
+        # %I already stored 12:45 AM as 00:45, so end-of-day is a day later.
+        self.assertEqual(unified_timestamp(feb_am, midnight='AM+'), 1455497100)
+
+        # Hours other than 12 use the usual 12-hour mapping in every mode,
+        # on the email, %I and %H parsers.
+        for midnight in ('PM', 'AM-', 'AM+'):
+            self.assertEqual(
+                unified_timestamp('May 16, 2016 11:15 PM', midnight=midnight),
+                1463440500)
+            self.assertEqual(
+                unified_timestamp('May 16, 2016 11:15 AM', midnight=midnight),
+                1463397300)
+            self.assertEqual(
+                unified_timestamp('Feb 14th 2016 5:45PM', midnight=midnight),
+                1455471900)
+            self.assertEqual(
+                unified_timestamp('Sep 11, 2013 | 5:49 AM', midnight=midnight),
+                1378878540)
+            self.assertEqual(
+                unified_timestamp('2/2/2015 6:47:40 PM', False, midnight=midnight),
+                1422902860)
+
+        # %H keeps a written 12 (it does not collapse it to 0).
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 PM', False), 1422924460)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 PM', False, midnight='PM'),
+            1422924460)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 PM', False, midnight='AM-'),
+            1422881260)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 PM', False, midnight='AM+'),
+            1422881260)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 AM', False), 1422881260)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 AM', False, midnight='AM-'),
+            1422838060)
+        self.assertEqual(
+            unified_timestamp('2/2/2015 12:47:40 AM', False, midnight='AM+'),
+            1422924460)
+
+        # The meridian is applied to the wall clock, then the UTC offset.
+        # 12:15 AM -0500 is 17:15 UTC under the legacy reading (hour 12) and
+        # 05:15 UTC under 'AM-' (hour 0).
+        self.assertEqual(unified_timestamp('May 16, 2016 12:15 AM -0500'), 1463418900)
+        self.assertEqual(
+            unified_timestamp('May 16, 2016 12:15 AM -0500', midnight='PM'),
+            1463418900)
+        self.assertEqual(
+            unified_timestamp('May 16, 2016 12:15 AM -0500', midnight='AM-'),
+            1463375700)
+        self.assertEqual(
+            unified_timestamp('May 16, 2016 12:15 AM -0500', midnight='AM+'),
+            1463462100)
+        self.assertEqual(
+            unified_timestamp('May 16, 2016 12:15 PM -0500', midnight='AM-'),
+            1463418900)
+
+        for bad in ('AM', 'am-', 'pm', 'NOPE', '', None):
+            self.assertRaises(
+                ValueError, unified_timestamp, may_am, midnight=bad)
+        # Rejected even when nothing is parsed, so a bad value cannot take
+        # the same path as a missing one.
+        self.assertRaises(
+            ValueError, unified_timestamp, 'December 21, 2010', midnight='NOPE')
+        self.assertRaises(
+            ValueError, unified_timestamp, None, midnight='NOPE')
+        raised = False
+        try:
+            unified_timestamp(may_am, midnight='NOPE')
+        except ValueError as err:
+            raised = True
+            self.assertTrue('NOPE' in str(err))
+        self.assertTrue(raised)
+        self.assertRaises(
+            TypeError, unified_timestamp, may_am, midnght='AM-')
 
     def test_determine_ext(self):
         self.assertEqual(determine_ext('http://example.com/foo/bar.mp4/?download'), 'mp4')
