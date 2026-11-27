@@ -2138,7 +2138,7 @@ class YoutubeDL(object):
                         filename_wo_ext = f_name if f_real_ext in exts else filename
                         if ext is None:
                             ext = f_real_ext or None
-                        return join_nonempty(filename_wo_ext, ext, delim='.')
+                        return replace_extension(filename_wo_ext, ext) if ext else filename_wo_ext
 
                     filename = correct_ext(filename)
                     if os.path.exists(encodeFilename(filename)):
