@@ -8,7 +8,7 @@ env:
   test-set: core
   # Python beta version to be built using pyenv before setup-python support
   # Must also be included in all-cpython-versions 
-  next: 3.14
+  next: 3.16
 
 on:
   push:
@@ -101,6 +101,7 @@ jobs:
         # versions with a special get-pip.py in a per-version subdirectory
         printf 'own-pip-versions=%s\n' \
           "$(json_list 2.6, 2.7, 3.2, 3.3, 3.4, 3.5, 3.6)" >> "$GITHUB_OUTPUT"
+
   tests:
     name: Run tests
     needs: select
@@ -239,6 +240,7 @@ jobs:
       # install 2.7
       shell: bash
       run: |
+        # Ubuntu 22.04+ no longer has python-is-python2: fetch it
         curl -L "http://launchpadlibrarian.net/474693132/python-is-python2_2.7.17-4_all.deb" -o python-is-python2.deb
         sudo apt-get install -y python2
         sudo dpkg --force-breaks -i python-is-python2.deb
@@ -363,7 +365,7 @@ jobs:
         python -m ensurepip || python -m pip --version || { \
           get_pip="${{ contains(needs.select.outputs.own-pip-versions, matrix.python-version) && format('{0}/', matrix.python-version) || '' }}"; \
           curl -L -O "https://bootstrap.pypa.io/pip/${get_pip}get-pip.py"; \
-          python get-pip.py; }
+          python get-pip.py --no-setuptools --no-wheel; }
     - name: Set up Python 2.6 pip
       if: ${{ matrix.python-version == '2.6' }}
       shell: bash
@@ -472,7 +474,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.9
+        python-version: 3.11
     - name: Install flake8
       run: pip install flake8
     - name: Run flake8
