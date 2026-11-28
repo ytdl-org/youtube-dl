@@ -1385,7 +1385,9 @@ from .tvnow import (
 from .tvp import (
     TVPEmbedIE,
     TVPIE,
-    TVPWebsiteIE,
+    TVPStreamIE,
+    TVPVODSeriesIE,
+    TVPVODVideoIE,
 )
 from .tvplay import (
     TVPlayIE,
