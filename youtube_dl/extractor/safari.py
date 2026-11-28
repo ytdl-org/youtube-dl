@@ -193,6 +193,9 @@ class SafariApiIE(SafariBaseIE):
         part = self._download_json(
             url, '%s/%s' % (mobj.group('course_id'), mobj.group('part')),
             'Downloading part JSON')
+        part['web_url'] = part['asset_base_url'].replace('library/view',
+                                                         'videos') +\
+            part['videoclips'][0]['reference_id'] + '/'
         return self.url_result(part['web_url'], SafariIE.ie_key())
 
 
