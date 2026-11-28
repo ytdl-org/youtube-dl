@@ -769,6 +769,7 @@ from .nbc import (
     NBCSportsStreamIE,
     NBCSportsVPlayerIE,
 )
+from .nbl import NBLIE
 from .ndr import (
     NDRIE,
     NJoyIE,
