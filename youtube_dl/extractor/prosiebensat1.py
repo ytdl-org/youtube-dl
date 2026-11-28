@@ -420,10 +420,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'(\d{2}\.\d{2}\.\d{4}) \| \d{2}:\d{2} Min<br/>',
     ]
     _PAGE_TYPE_REGEXES = [
-        r'<meta name="page_type" content="([^"]+)">',
+        r'<meta name="page_type" content="([^"]+)"/?>',
         r"'itemType'\s*:\s*'([^']*)'",
     ]
     _PLAYLIST_ID_REGEXES = [
+        r'<meta name="node_id" content="([0-9]+)"/?>',
         r'content[iI]d=(\d+)',
         r"'itemId'\s*:\s*'([^']*)'",
     ]
@@ -464,11 +465,12 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             self._PLAYLIST_ID_REGEXES, webpage, 'playlist id')
         playlist = self._parse_json(
             self._search_regex(
-                r'var\s+contentResources\s*=\s*(\[.+?\]);\s*</script',
+                r'<script id="state" type="text/plain">(.+?)</script>',
                 webpage, 'playlist'),
-            playlist_id)
+            playlist_id).get('page').get('clips')
         entries = []
-        for item in playlist:
+        for playlist_item in playlist:
+            item = self._parse_json(playlist_item.get('contentResource'), playlist_id)[0]
             clip_id = item.get('id') or item.get('upc')
             if not clip_id:
                 continue
