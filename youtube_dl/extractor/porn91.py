@@ -2,6 +2,9 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse_unquote
+)
 from ..utils import (
     parse_duration,
     int_or_none,
@@ -36,15 +39,15 @@ class Porn91IE(InfoExtractor):
             raise ExtractorError('91 Porn says: Daily limit 10 videos exceeded', expected=True)
 
         title = self._search_regex(
-            r'<div id="viewvideo-title">([^<]+)</div>', webpage, 'title')
+            r'<h4 class="login_register_header"[^>]+>([^<]+)</h4>', webpage, 'title')
         title = title.replace('\n', '')
 
         video_link_url = self._search_regex(
-            r'<textarea[^>]+id=["\']fm-video_link[^>]+>([^<]+)</textarea>',
+            r'document\.write\(strencode2\("([^"]+)"\)\);',
             webpage, 'video link')
-        videopage = self._download_webpage(video_link_url, video_id)
-
-        info_dict = self._parse_html5_media_entries(url, videopage, video_id)[0]
+        video_link_url = compat_urllib_parse_unquote(video_link_url)
+        video_link_url = self._search_regex(
+            r"src=\'([^\']+)\'", video_link_url, 'video link')
 
         duration = parse_duration(self._search_regex(
             r'时长:\s*</span>\s*(\d+:\d+)', webpage, 'duration', fatal=False))
@@ -52,12 +55,12 @@ class Porn91IE(InfoExtractor):
         comment_count = int_or_none(self._search_regex(
             r'留言:\s*</span>\s*(\d+)', webpage, 'comment count', fatal=False))
 
-        info_dict.update({
+        return {
             'id': video_id,
+            'url': video_link_url,
+            'ext': 'mp4',
             'title': title,
             'duration': duration,
             'comment_count': comment_count,
-            'age_limit': self._rta_search(webpage),
-        })
-
-        return info_dict
+            'age_limit': 18
+        }
