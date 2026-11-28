@@ -393,6 +393,19 @@ class FFmpegFD(ExternalFD):
             # https://github.com/ytdl-org/youtube-dl/issues/11800#issuecomment-275037127
             # http://trac.ffmpeg.org/ticket/6125#comment:10
             args += ['-seekable', '1' if seekable else '0']
+        http_seekable = info_dict.get('_http_seekable')
+        if http_seekable is not None:
+            # setting -http_seekable prevents ffmpeg from guessing if the server
+            # supports seeking in other kinds of requests (by adding the same header
+            # as above: `Range: bytes=0-`)
+            args += ['-http_seekable', '1' if http_seekable else '0']
+        icy = info_dict.get('_icy')
+        if icy is not None:
+            # setting -icy 0 prevents ffmpeg from sending the header `Icy-Metadata: 1`,
+            # which can cause also problems
+            # https://github.com/ytdl-org/youtube-dl/pull/29688
+            # https://trac.ffmpeg.org/ticket/5460#comment:5
+            args += ['-icy', '1' if icy else '0']
 
         args += self._configuration_args()
 
