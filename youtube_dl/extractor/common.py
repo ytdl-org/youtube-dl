@@ -3256,6 +3256,7 @@ class InfoExtractor(object):
             if not include_onlymatching and t.get('only_matching', False):
                 continue
             t['name'] = type(self).__name__[:-len('IE')]
+            t['module_name'] = type(self).__module__
             yield t
 
     def is_suitable(self, age_limit):
