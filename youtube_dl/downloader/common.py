@@ -58,6 +58,7 @@ class FileDownloader(object):
 
     _TEST_FILE_SIZE = 10241
     params = None
+    progress_update = time.time()
 
     def __init__(self, ydl, params):
         """Create a FileDownloader object with the given options."""
@@ -121,8 +122,8 @@ class FileDownloader(object):
     @staticmethod
     def format_speed(speed):
         if speed is None:
-            return '%10s' % '---b/s'
-        return '%10s' % ('%s/s' % format_bytes(speed))
+            return '%12s' % '--- B/s'
+        return '%12s' % ('%s/s' % format_bytes(speed))
 
     @staticmethod
     def format_retries(retries):
@@ -277,32 +278,33 @@ class FileDownloader(object):
         if s['status'] != 'downloading':
             return
 
+        # Show non-final progress updates no more often than once per second
+        tstamp = time.time()
+        if tstamp - self.progress_update < 1:
+            return
+        self.progress_update = tstamp
+
         if s.get('eta') is not None:
             s['_eta_str'] = self.format_eta(s['eta'])
         else:
-            s['_eta_str'] = 'Unknown ETA'
+            s['_eta_str'] = 'unknown'
 
         if s.get('total_bytes') and s.get('downloaded_bytes') is not None:
             s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes'])
         elif s.get('total_bytes_estimate') and s.get('downloaded_bytes') is not None:
             s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes_estimate'])
         else:
-            if s.get('downloaded_bytes') == 0:
-                s['_percent_str'] = self.format_percent(0)
-            else:
-                s['_percent_str'] = 'Unknown %'
+            s['_percent_str'] = self.format_percent(0 if s.get('downloaded_bytes') == 0 else None)
 
-        if s.get('speed') is not None:
-            s['_speed_str'] = self.format_speed(s['speed'])
-        else:
-            s['_speed_str'] = 'Unknown speed'
+        # Missing 'speed' is already handled properly in self.format_speed()
+        s['_speed_str'] = self.format_speed(s.get('speed'))
 
         if s.get('total_bytes') is not None:
             s['_total_bytes_str'] = format_bytes(s['total_bytes'])
-            msg_template = '%(_percent_str)s of %(_total_bytes_str)s at %(_speed_str)s ETA %(_eta_str)s'
+            msg_template = '%(_percent_str)s of %(_total_bytes_str)s at %(_speed_str)s, ETA %(_eta_str)s'
         elif s.get('total_bytes_estimate') is not None:
             s['_total_bytes_estimate_str'] = format_bytes(s['total_bytes_estimate'])
-            msg_template = '%(_percent_str)s of ~%(_total_bytes_estimate_str)s at %(_speed_str)s ETA %(_eta_str)s'
+            msg_template = '%(_percent_str)s of ~%(_total_bytes_estimate_str)s at %(_speed_str)s, ETA %(_eta_str)s'
         else:
             if s.get('downloaded_bytes') is not None:
                 s['_downloaded_bytes_str'] = format_bytes(s['downloaded_bytes'])
@@ -312,7 +314,7 @@ class FileDownloader(object):
                 else:
                     msg_template = '%(_downloaded_bytes_str)s at %(_speed_str)s'
             else:
-                msg_template = '%(_percent_str)s % at %(_speed_str)s ETA %(_eta_str)s'
+                msg_template = '%(_percent_str)s % at %(_speed_str)s, ETA %(_eta_str)s'
 
         self._report_progress_status(msg_template % s)
 
