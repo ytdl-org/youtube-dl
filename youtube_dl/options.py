@@ -815,7 +815,7 @@ def parseOpts(overrideArguments=None):
         help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
     postproc.add_option(
         '--audio-quality', metavar='QUALITY',
-        dest='audioquality', default='5',
+        dest='audioquality', default=None,
         help='Specify ffmpeg/avconv audio quality, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default %default)')
     postproc.add_option(
         '--recode-video',
