@@ -804,6 +804,14 @@ def parseOpts(overrideArguments=None):
         '--list-thumbnails',
         action='store_true', dest='list_thumbnails', default=False,
         help='Simulate and list all available thumbnail formats')
+    thumbnail.add_option(
+        '--write-storyboards',
+        action='store_true', dest='writestoryboards', default=False,
+        help='Write all storyboards (grid of video frames) to disk')
+    thumbnail.add_option(
+        '--list-storyboards',
+        action='store_true', dest='list_storyboards', default=False,
+        help='Simulate and list all available storyboards')
 
     postproc = optparse.OptionGroup(parser, 'Post-processing Options')
     postproc.add_option(
