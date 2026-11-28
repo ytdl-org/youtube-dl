@@ -27,10 +27,32 @@ _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(ch
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?((alacarta|playz?)/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
+        'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
+        'info_dict': {
+            'id': '2491869',
+            'ext': 'mp4',
+            'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'duration': 5024.566,
+            'series': 'Balonmano',
+        },
+        'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
+    }, {
+        'url': 'http://www.rtve.es/play/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
+        'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
+        'info_dict': {
+            'id': '2491869',
+            'ext': 'mp4',
+            'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'duration': 5024.566,
+            'series': 'Balonmano',
+        },
+        'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
+    }, {
+        'url': 'http://www.rtve.es/playz/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
         'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
         'info_dict': {
             'id': '2491869',
