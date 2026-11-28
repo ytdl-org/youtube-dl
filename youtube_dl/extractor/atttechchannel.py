@@ -12,7 +12,7 @@ class ATTTechChannelIE(InfoExtractor):
             'id': '11316',
             'display_id': 'ATT-Archives-The-UNIX-System-Making-Computers-Easier-to-Use',
             'ext': 'flv',
-            'title': 'AT&T Archives : The UNIX System: Making Computers Easier to Use',
+            'title': 'AT&T Archives: The UNIX System: Making Computers Easier to Use',
             'description': 'A 1982 film about UNIX is the foundation for software in use around Bell Labs and AT&T.',
             'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140127',
@@ -29,16 +29,22 @@ class ATTTechChannelIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_url = self._search_regex(
-            r"url\s*:\s*'(rtmp://[^']+)'",
+            [
+                r"url\s*:\s*'(rtmp://[^']+)'",
+                r"(https://tcmedia.akamaized.net/techchannel/.+?.m3u8)",
+            ],
             webpage, 'video URL')
 
         video_id = self._search_regex(
             r'mediaid\s*=\s*(\d+)',
             webpage, 'video id', fatal=False)
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        title = self._og_search_title(webpage, default=None) or self._search_regex(
+            r'<title>(.*?)</title>', webpage, 'title')
+        description = self._og_search_description(webpage, default=None) or self._html_search_meta(
+            'description', webpage, fatal=False)
+        thumbnail = self._og_search_thumbnail(webpage, default=None) or self._search_regex(
+            r"poster='(.+?)'", webpage, 'thumbnail', fatal=False)
         upload_date = unified_strdate(self._search_regex(
             r'[Rr]elease\s+date:\s*(\d{1,2}/\d{1,2}/\d{4})',
             webpage, 'upload date', fatal=False), False)
