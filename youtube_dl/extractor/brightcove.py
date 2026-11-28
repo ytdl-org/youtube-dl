@@ -571,12 +571,28 @@ class BrightcoveNewIE(AdobePassIE):
         duration = float_or_none(json_data.get('duration'), 1000)
         if duration is not None and duration <= 0:
             is_live = True
+        common_res = ["160x90", "320x180", "480x270", "640x360", "768x432", "1024x576", "1280x720", "1366x768", "1920x1080"]
+        thumbnails = []
+        if '640x360' in json_data.get('poster'):
+            base_url = json_data.get('poster')
+            replace = '640x360'
+        else:
+            base_url = json_data.get('thumbnail')
+            replace = '160x90'
+        for res in common_res:
+            thumbnails.append({
+                'url': base_url.replace(replace, res),
+                'width': int(res.split('x')[0]),
+                'height': int(res.split('x')[1]),
+                'preference': len(thumbnails)
+            })
 
         return {
             'id': video_id,
             'title': self._live_title(title) if is_live else title,
             'description': clean_html(json_data.get('description')),
             'thumbnail': json_data.get('thumbnail') or json_data.get('poster'),
+            'thumbnails': thumbnails,
             'duration': duration,
             'timestamp': parse_iso8601(json_data.get('published_at')),
             'uploader_id': json_data.get('account_id'),
