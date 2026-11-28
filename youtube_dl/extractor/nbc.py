@@ -7,9 +7,14 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_unquote
+)
 from ..utils import (
+    ExtractorError,
     int_or_none,
+    parse_age_limit,
     parse_duration,
     smuggle_url,
     try_get,
@@ -18,7 +23,7 @@ from ..utils import (
 )
 
 
-class NBCIE(AdobePassIE):
+class NBCIE(ThePlatformIE):
     _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/)?[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
@@ -131,8 +136,13 @@ class NBCIE(AdobePassIE):
             'mbr': 'true',
             'manifest': 'm3u',
         }
-        video_id = video_data['mpxGuid']
-        title = video_data['secondaryTitle']
+        video_id = try_get(video_data, lambda x: x['mpxGuid'])
+        if not video_id:
+            raise ExtractorError('Empty or no metadata from NBC GraphQL API', expected=True)
+        tp_path = ('NnzsPC/media/guid/%s/%s' %
+                   (video_data.get('mpxAccountId', '2410887629'), video_id))
+        tpm = self._download_theplatform_metadata(tp_path, video_id)
+        title = tpm.get('title') or video_data['secondaryTitle']
         if video_data.get('locked'):
             resource = self._get_mvpd_resource(
                 video_data.get('resourceId') or 'nbcentertainment',
@@ -142,17 +152,27 @@ class NBCIE(AdobePassIE):
         theplatform_url = smuggle_url(update_url_query(
             'http://link.theplatform.com/s/NnzsPC/media/guid/%s/%s' % (video_data.get('mpxAccountId') or '2410887629', video_id),
             query), {'force_smil_url': True})
+        episode_number = int_or_none(
+            video_data.get('episodeNumber'),
+            default=int_or_none(tpm.get('nbcu$airOrder')))
+        rating = video_data.get('rating',
+                                try_get(tpm, lambda x: x['ratings'][0]['rating']))
+        season_number = int_or_none(
+            video_data.get('seasonNumber'),
+            default=int_or_none(tpm.get('nbcu$seasonNumber')))
+        series = video_data.get('seriesShortTitle', tpm.get('nbcu$seriesShortTitle'))
         return {
             '_type': 'url_transparent',
             'id': video_id,
             'title': title,
             'url': theplatform_url,
-            'description': video_data.get('description'),
-            'tags': video_data.get('keywords'),
-            'season_number': int_or_none(video_data.get('seasonNumber')),
-            'episode_number': int_or_none(video_data.get('episodeNumber')),
+            'description': video_data.get('description') or tpm.get('description'),
+            'tags': video_data.get('keywords') or tpm.get('keywords'),
+            'season_number': season_number,
+            'episode_number': episode_number,
             'episode': title,
-            'series': video_data.get('seriesShortTitle'),
+            'series': series,
+            'age_limit': parse_age_limit(rating),
             'ie_key': 'ThePlatform',
         }
 
@@ -287,7 +307,7 @@ class NBCSportsStreamIE(AdobePassIE):
 
 
 class NBCNewsIE(ThePlatformIE):
-    _VALID_URL = r'(?x)https?://(?:www\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?]+)'
+    _VALID_URL = r'(?x)https?://(?:www[0-9]?\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?#]+)'
 
     _TESTS = [
         {
@@ -370,20 +390,40 @@ class NBCNewsIE(ThePlatformIE):
             # From http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html
             'url': 'http://www.nbcnews.com/widget/video-embed/701714499682',
             'only_matching': True,
+        }, {
+            'url': 'https://www.nbcnews.com/news/amp/ncna1276021',
+            'md5': '948bf2f3b0a8b0ea595c424e0850e7a2',
+            'info_dict': {
+                'id': 'ncna1276021',
+                'ext': 'mp4',
+                'title': 'Devastating Dixie Fire consumes Californian town',
+                'description': 'The town of Greenville was destroyed in around three hours by California\'s largest active wildfire.',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'timestamp': 1628152660,
+                'upload_date': '20210805',
+            },
         },
     ]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+    def _old_real_extract(self, url, video_id, webpage=None):
+        if not webpage:
+            webpage = self._download_webpage(url, video_id)
 
-        data = self._parse_json(self._search_regex(
+        data = self._search_regex(
             r'<script[^>]+id="__NEXT_DATA__"[^>]*>({.+?})</script>',
-            webpage, 'bootstrap json'), video_id)['props']['initialState']
+            webpage, 'bootstrap json', fatal=False)
+        if data:
+            data = self._parse_json(data, video_id, fatal=False)
+        if data:
+            data = try_get(data, lambda x: x['props']['initialState'], dict)
+        if not data:
+            return
         video_data = try_get(data, lambda x: x['video']['current'], dict)
         if not video_data:
-            video_data = data['article']['content'][0]['primaryMedia']['video']
-        title = video_data['headline']['primary']
+            video_data = try_get(data, lambda x: x['article']['content'][0]['primaryMedia']['video'], dict)
+        title = try_get(video_data, lambda x: x['headline']['primary'], compat_str)
+        if not title:
+            return
 
         formats = []
         for va in video_data.get('videoAssets', []):
@@ -431,6 +471,28 @@ class NBCNewsIE(ThePlatformIE):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        entries = []
+        for mobj in re.finditer(
+                r'<amp-iframe\s[^>]+?\bsrc\s*=\s*(\'|")(?P<link>[^>]+?)\1(\s[^>]*)?>',
+                webpage):
+            link_url = mobj.group('link')
+            if link_url:
+                if '/embedded-video/' not in link_url:
+                    continue
+                entry = self._old_real_extract(link_url, video_id)
+            if entry:
+                entries.append(entry)
+        if entries:
+            if len(entries) == 1:
+                return entries[0]
+            return self.playlist_result(entries, video_id)
+        else:
+            return self._old_real_extract(url, video_id, webpage)
 
 
 class NBCOlympicsIE(InfoExtractor):
