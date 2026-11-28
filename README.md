@@ -3,6 +3,7 @@
 
 youtube-dl - download videos from youtube.com or other video platforms
 
+# Table of Contents
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [OPTIONS](#options)
