@@ -282,6 +282,7 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegSubtitlesConvertor',
             'format': opts.convertsubtitles,
+            'ttml_convert_style': opts.ttmlconvertstyle,
         })
     if opts.embedsubtitles:
         postprocessors.append({
