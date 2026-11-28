@@ -499,6 +499,7 @@ from .hrti import (
     HRTiIE,
     HRTiPlaylistIE,
 )
+from .hse24 import HSE24IE
 from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
 from .hungama import (
