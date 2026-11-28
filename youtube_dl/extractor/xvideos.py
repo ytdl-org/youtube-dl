@@ -10,6 +10,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    str_to_int,
+    urljoin,
 )
 
 
@@ -25,14 +27,21 @@ class XVideosIE(InfoExtractor):
                         (?P<id>[0-9]+)
                     '''
     _TESTS = [{
-        'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
-        'md5': '14cea69fcb84db54293b1e971466c2e1',
+        'url': 'https://www.xvideos.com/video50011247/when_girls_play_-_adriana_chechik_abella_danger_-_tradimento_-_twistys',
+        'md5': 'aa54f96311768b3a8bfe54b8c8fda070',
         'info_dict': {
-            'id': '4588838',
+            'id': '50011247',
             'ext': 'mp4',
-            'title': 'Biker Takes his Girl',
-            'duration': 108,
+            'title': 'When Girls Play - (Adriana Chechik, Abella Danger) - Betrayal - Twistys',
+            'duration': 720,
             'age_limit': 18,
+            'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
+            'creator': 'Twistys',
+            'uploader': 'Twistys',
+            'uploader_id': 'Twistys',
+            'uploader_url': '/channels/twistys1',
+            'actors': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
+            'view_count': int,
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -137,6 +146,25 @@ class XVideosIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag', default='').split(',')
+
+        creator_data = re.findall(r'<a href="(?P<creator_url>.+?)" class="btn btn-default label main uploader-tag hover-name"><span class="name">(?P<creator>.+?)<', webpage)
+        creator = None
+        uploader_url = None
+        if creator_data != []:
+            uploader_url, creator = creator_data[0][0:2]
+
+        actors_data = re.findall(r'href="(?P<actor_url>/pornstars/.+?)" class="btn btn-default label profile hover-name"><span class="name">(?P<actor_name>.+?)</span>', webpage)
+        actors = []
+        if actors_data != []:
+            for actor_tuple in actors_data:
+                actors.append({
+                    'given_name': actor_tuple[1],
+                    'url': urljoin(url, actor_tuple[0]),
+                })
+
+        views = self._search_regex(r'<strong class="mobile-hide">(?P<views>.+?)<', webpage, 'views', group='views', default=None)
+
         return {
             'id': video_id,
             'formats': formats,
@@ -144,4 +172,11 @@ class XVideosIE(InfoExtractor):
             'duration': duration,
             'thumbnails': thumbnails,
             'age_limit': 18,
+            'tags': tags,
+            'creator': creator,
+            'uploader': creator,
+            'uploader_id': creator,
+            'uploader_url': uploader_url,
+            'actors': actors,
+            'view_count': str_to_int(views),
         }
