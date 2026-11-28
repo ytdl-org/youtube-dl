@@ -413,6 +413,7 @@ def _real_main(argv=None):
         'youtube_player_js_variant': opts.youtube_player_js_variant,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
+        'concat_playlist': opts.concat_playlist,
         'mark_watched': opts.mark_watched,
         'merge_output_format': opts.merge_output_format,
         'postprocessors': postprocessors,
