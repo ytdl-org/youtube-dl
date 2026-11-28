@@ -2148,15 +2148,11 @@ def sanitize_filename(s, restricted=False, is_id=False):
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
     if not is_id:
-        while '__' in result:
-            result = result.replace('__', '_')
+        result = re.sub(r'_{2,}', '_', result)
         result = result.strip('_')
         # Common case of "Foreign band name - English song title"
         if restricted and result.startswith('-_'):
             result = result[2:]
-        if result.startswith('-'):
-            result = '_' + result[len('-'):]
-        result = result.lstrip('.')
         if not result:
             result = '_'
     return result

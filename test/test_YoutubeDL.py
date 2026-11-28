@@ -652,6 +652,10 @@ class TestYoutubeDL(unittest.TestCase):
             'height': 1080,
             'title1': '$PATH',
             'title2': '%PATH%',
+            'track': '-track with initial hyphen',
+            'display_id': '-initial_hyphen',
+            'episode': '.episode with initial period',
+            'episode_id': '.initial_period',
         }
 
         def fname(templ, na_placeholder='NA'):
@@ -667,7 +671,9 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname(NA_TEST_OUTTMPL), 'NA-NA-1234.mp4')
         # Or by provided placeholder
         self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder='none'), 'none-none-1234.mp4')
-        self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder=''), '--1234.mp4')
+        self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder=''), '_-1234.mp4')
+        NA_TEST_OUTTMPL = '%(uploader_date)s+%(width)d+%(id)s.%(ext)s'
+        self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder=''), '++1234.mp4')
         self.assertEqual(fname('%(height)d.%(ext)s'), '1080.mp4')
         self.assertEqual(fname('%(height)6d.%(ext)s'), '  1080.mp4')
         self.assertEqual(fname('%(height)-6d.%(ext)s'), '1080  .mp4')
@@ -685,6 +691,16 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
         self.assertEqual(fname('Hello %(title1)s'), 'Hello $PATH')
         self.assertEqual(fname('Hello %(title2)s'), 'Hello %PATH%')
+        self.assertEqual(fname('%(track)s at start changes hyphen'),
+                         '_track with initial hyphen at start changes hyphen')
+        self.assertEqual(fname('medial %(track)s doesn\'t change hyphen'),
+                         'medial -track with initial hyphen doesn\'t change hyphen')
+        self.assertEqual(fname('%(display_id)s at start doesn\'t change hyphen'),
+                         '-initial_hyphen at start doesn\'t change hyphen')
+        self.assertEqual(fname('%(episode)s at start changes period'),
+                         '_episode with initial period at start changes period')
+        self.assertEqual(fname('%(episode_id)s at start doesn\'t change period'),
+                         '.initial_period at start doesn\'t change period')
 
     def test_format_note(self):
         ydl = YoutubeDL()
