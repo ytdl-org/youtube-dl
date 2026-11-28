@@ -1187,5 +1187,111 @@ class TestYoutubeDLCookies(unittest.TestCase):
         self.assertFalse(ydl.cookiejar.get_cookie_header(fmt['url']), msg='Cookies set in cookiejar for wrong domain')
 
 
+class TestExtractorErrorFormatting(unittest.TestCase):
+    """Tests for Issue #33254: [extractor] and video ID in ERROR messages."""
+
+    def test_no_prefix_when_bare(self):
+        """Without ie/video_id the message is unchanged."""
+        e = ExtractorError('test error', expected=True)
+        self.assertEqual(e.orig_msg, 'test error')
+        self.assertIn('test error', str(e))
+        # No bracket prefix before the message
+        self.assertFalse(str(e).startswith('['))
+
+    def test_video_id_only_prefix(self):
+        """Providing video_id prefixes with 'id: msg'."""
+        e = ExtractorError('test error', expected=True, video_id='abc123')
+        self.assertTrue(str(e).startswith('abc123: test error'), str(e))
+        self.assertEqual(e.orig_msg, 'test error')
+        self.assertEqual(e.video_id, 'abc123')
+
+    def test_ie_only_prefix(self):
+        """Providing ie prefixes with '[extractor] msg'."""
+        e = ExtractorError('test error', expected=True, ie='youtube')
+        self.assertTrue(str(e).startswith('[youtube] test error'), str(e))
+        self.assertEqual(e.orig_msg, 'test error')
+        self.assertEqual(e.ie, 'youtube')
+
+    def test_full_prefix(self):
+        """Both ie and video_id produce '[extractor] id: msg'."""
+        e = ExtractorError(
+            'Premieres in 7 hours',
+            expected=True,
+            video_id='-Nb_os-NV5o',
+            ie='youtube',
+        )
+        self.assertEqual(str(e), '[youtube] -Nb_os-NV5o: Premieres in 7 hours')
+        self.assertEqual(e.orig_msg, 'Premieres in 7 hours')
+        self.assertEqual(e.video_id, '-Nb_os-NV5o')
+        self.assertEqual(e.ie, 'youtube')
+
+    def test_setattr_recomputes_msg(self):
+        """Assigning ie/video_id post-construction recomputes str(e)."""
+        e = ExtractorError('test error', expected=True)
+        self.assertNotIn('[youtube]', str(e))
+
+        e.ie = 'youtube'
+        self.assertIn('[youtube]', str(e))
+
+        e.video_id = 'abc123'
+        self.assertIn('abc123', str(e))
+        self.assertIn('[youtube]', str(e))
+        # orig_msg is always preserved
+        self.assertEqual(e.orig_msg, 'test error')
+
+    def test_generic_handler_backfills_ie_and_video_id(self):
+        """InfoExtractor.extract() injects ie/video_id on bare ExtractorError raises."""
+        from youtube_dl.extractor.common import InfoExtractor
+
+        class BareErrorIE(InfoExtractor):
+            IE_NAME = 'bare_test'
+            _VALID_URL = r'http://bare\.test/(?P<id>[^/]+)'
+
+            def _real_extract(self, url):
+                raise ExtractorError('bare error', expected=True)
+
+        ydl = FakeYDL()
+        ie = BareErrorIE(ydl)
+        try:
+            ie.extract('http://bare.test/myvideo')
+            self.fail('ExtractorError not raised')
+        except ExtractorError as e:
+            self.assertEqual(e.ie, 'bare_test')
+            # Falls back to sentinel since no video_id was set
+            self.assertEqual(e.video_id, '**???**')
+            self.assertIn('[bare_test]', str(e))
+
+    def test_raise_no_formats_injects_context(self):
+        """YoutubeDL.raise_no_formats passes extractor and video_id to ExtractorError."""
+        info = {
+            'id': 'testid',
+            'title': 'Test',
+            'extractor': 'testex',
+            'formats': [],
+        }
+        ydl = YDL()
+        try:
+            ydl.raise_no_formats(info, msg='requested format not available', expected=True)
+            self.fail('ExtractorError not raised')
+        except ExtractorError as e:
+            self.assertEqual(e.orig_msg, 'requested format not available')
+            self.assertEqual(e.video_id, 'testid')
+            self.assertEqual(e.ie, 'testex')
+            self.assertIn('[testex]', str(e))
+            self.assertIn('testid', str(e))
+
+    def test_raise_no_formats_missing_id_no_keyerror(self):
+        """raise_no_formats does not raise KeyError when 'id' is absent."""
+        info = {'extractor': 'testex'}  # deliberately missing 'id'
+        ydl = YDL()
+        try:
+            ydl.raise_no_formats(info, msg='Missing \"id\" field in extractor result', forced=True)
+            self.fail('ExtractorError not raised')
+        except ExtractorError as e:
+            self.assertEqual(e.orig_msg, 'Missing "id" field in extractor result')
+            # video_id is None, so it is omitted from the formatted string
+            self.assertIsNone(e.video_id)
+
+
 if __name__ == '__main__':
     unittest.main()
