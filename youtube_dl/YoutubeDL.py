@@ -80,6 +80,7 @@ from .utils import (
     LazyList,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    merge_dicts,
     orderedSet,
     PagedList,
     parse_filesize,
@@ -694,12 +695,20 @@ class YoutubeDL(object):
                     'Unscoped cookies are not allowed: please specify some sort of scoping')
         self.report_error(*args, **kwargs)
 
-    def report_file_already_downloaded(self, file_name):
+    def report_file_already_downloaded(self, file_name, more=None):
         """Report file has already been fully downloaded."""
-        try:
-            self.to_screen('[download] %s has already been downloaded' % file_name)
-        except UnicodeEncodeError:
-            self.to_screen('[download] The file has already been downloaded')
+        msg = '[download] %%s has already been downloaded%s%s' % (('and ', more) if more else ('', ''))
+        exc = None
+        for fn in (file_name, 'The file'):
+            try:
+                self.to_screen(msg % (fn,))
+                break
+            except UnicodeEncodeError as e:
+                exc = e
+                continue
+        else:
+            if exc:
+                raise exc
 
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
@@ -2094,15 +2103,31 @@ class YoutubeDL(object):
 
                     return fd.download(name, new_info)
 
-                if info_dict.get('requested_formats') is not None:
+                # Ensure filename always has a correct extension for successful merge
+                def correct_ext(filename, ext):
+                    if filename == '-':
+                        return filename
+                    f_name, f_real_ext = os.path.splitext(filename)
+                    f_real_ext = f_real_ext[1:]
+                    filename_wo_ext = f_name if f_real_ext in exts else filename
+                    if ext is None:
+                        ext = f_real_ext or None
+                    return replace_extension(filename_wo_ext, ext)
+
+                requested_formats = info_dict.get('requested_formats') or []
+                exts = [info_dict['ext']]
+                downloaded = []
+                postprocessors = []
+                success = True
+                if len(requested_formats) > 1:
                     downloaded = []
                     success = True
                     merger = FFmpegMergerPP(self)
                     if not merger.available:
-                        postprocessors = []
                         self.report_warning('You have requested multiple '
                                             'formats but ffmpeg or avconv are not installed.'
                                             ' The formats won\'t be merged.')
+                        merger = None
                     else:
                         postprocessors = [merger]
 
@@ -2121,48 +2146,42 @@ class YoutubeDL(object):
                         # TODO: Check acodec/vcodec
                         return False
 
-                    exts = [info_dict['ext']]
-                    requested_formats = info_dict['requested_formats']
                     if self.params.get('merge_output_format') is None and not compatible_formats(requested_formats):
                         info_dict['ext'] = 'mkv'
                         self.report_warning(
                             'Requested formats are incompatible for merge and will be merged into mkv.')
                     exts.append(info_dict['ext'])
 
-                    # Ensure filename always has a correct extension for successful merge
-                    def correct_ext(filename, ext=exts[1]):
-                        if filename == '-':
-                            return filename
-                        f_name, f_real_ext = os.path.splitext(filename)
-                        f_real_ext = f_real_ext[1:]
-                        filename_wo_ext = f_name if f_real_ext in exts else filename
-                        if ext is None:
-                            ext = f_real_ext or None
-                        return join_nonempty(filename_wo_ext, ext, delim='.')
-
-                    filename = correct_ext(filename)
-                    if os.path.exists(encodeFilename(filename)):
-                        self.to_screen(
-                            '[download] %s has already been downloaded and '
-                            'merged' % filename)
-                    else:
-                        for f in requested_formats:
-                            new_info = dict(info_dict)
-                            new_info.update(f)
-                            fname = prepend_extension(
-                                correct_ext(
-                                    self.prepare_filename(new_info), new_info['ext']),
-                                'f%s' % (f['format_id'],), new_info['ext'])
+                filename = correct_ext(filename, exts[-1])
+                if os.path.exists(encodeFilename(filename)):
+                    self.report_file_already_downloaded(
+                        filename, 'merged' if len(requested_formats) > 1 else None)
+                else:
+                    for f in requested_formats or [info_dict]:
+                        if f is not info_dict:
+                            new_info = merge_dicts(f, info_dict)
+                            # secret knowledge: FFmpegFD can merge formats
+                            if filename != '-' and merger and len(requested_formats) > 1:
+                                fname = prepend_extension(
+                                    correct_ext(
+                                        self.prepare_filename(new_info), new_info['ext']),
+                                    'f%s' % (f['format_id'],), new_info['ext'])
+                            else:
+                                fname = filename
                             if not ensure_dir_exists(fname):
                                 return
                             downloaded.append(fname)
-                            partial_success = dl(fname, new_info)
-                            success = success and partial_success
-                        info_dict['__postprocessors'] = postprocessors
+                        else:
+                            fname = filename
+                            new_info = info_dict
+
+                        partial_success = dl(fname, new_info)
+                        success = success and partial_success
+
+                    info_dict['__postprocessors'] = postprocessors
+                    if len(requested_formats) > 1:
                         info_dict['__files_to_merge'] = downloaded
-                else:
-                    # Just a single file
-                    success = dl(filename, info_dict)
+
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self.report_error('unable to download video data: %s' % error_to_compat_str(err))
                 return
