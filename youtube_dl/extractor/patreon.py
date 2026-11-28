@@ -13,6 +13,14 @@ from ..utils import (
     try_get,
 )
 
+from selenium import webdriver
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import TimeoutException
+
+import re
+
 
 class PatreonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<id>\d+)'
@@ -154,3 +162,76 @@ class PatreonIE(InfoExtractor):
                 })
 
         return info
+
+
+class PatreonUserIE(PatreonIE):
+    IE_NAME = 'Patreon:user'
+    IE_DESC = 'Audio posts by user'
+    _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?P<id>\w+)(?!.)'
+    _TESTS = [
+        # Standard
+        {
+            'url': 'https://www.patreon.com/joshuacitarella',
+            'info_dict': {
+                'id': 'joshuacitarella',
+                'title': "joshuacitarella's audio posts",
+            },
+            'playlist_mincount': 4,
+        },
+        # All Private
+        {
+            'url': 'https://www.patreon.com/juicysoup',
+            'info_dict': {
+                'id': 'juicysoup',
+                'title': "juicysoup's audio posts",
+            },
+            'playlist_mincount': 0,
+        }
+    ]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        # Start Selenium Chromedriver
+        options = webdriver.chrome.options.Options()
+        options.add_argument("headless")
+        driver = webdriver.Chrome(options=options)
+        driver.get(url)
+        delay = 10  # Seconds
+
+        try:
+            # Wait for audio elements to load
+            WebDriverWait(driver, delay).until(
+                EC.presence_of_element_located((By.TAG_NAME, 'audio')))
+            webpage = driver.page_source
+
+            # Find unique elements matching regex
+            elements = re.findall(
+                r'(?P<href>https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<vid>\d+))',
+                webpage)
+            hrefs = set()
+            for element in elements:
+                hrefs.add(element)
+
+            # Check whether elements are an audio post
+            real_hrefs = []
+            for href in hrefs:
+                post = self._download_json(
+                    'https://www.patreon.com/api/posts/' + href[1], href[1])
+                post_type = post.get('data').get('attributes').get('post_type')
+                if post_type == 'audio_file':
+                    real_hrefs.append(href[0])
+                else:
+                    print("Not an audio post: {}".format(href[0]))
+
+        except TimeoutException:
+            print("Loading took too much time or no audio files found!")
+            driver.quit()
+            return self.playlist_result([], video_id, video_id + "'s audio posts")
+
+        # Create list of info dicts
+        entries = [self.url_result(link, PatreonIE.ie_key()) for link in real_hrefs]
+
+        # Clean up and return playlist object
+        driver.quit()
+        return self.playlist_result(entries, video_id, video_id + "'s audio posts")
