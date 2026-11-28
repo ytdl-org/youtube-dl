@@ -127,7 +127,31 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        elif info['ext'] == 'flac':
+            if not check_executable('metaflac', ['--help']):
+                raise EmbedThumbnailPPError('metaflac was not found. Please install.')
+
+            cmd = [encodeFilename('metaflac', True),
+                   encodeArgument('--preserve-modtime'),
+                   encodeArgument('--import-picture-from'),
+                   encodeFilename(thumbnail_filename, True),
+                   encodeFilename(filename, True)]
+
+            self._downloader.to_screen('[metaflac] Adding thumbnail to "%s"' % filename)
+
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen('[debug] metaflac command line: %s' % shell_quote(cmd))
+
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            stdout, stderr = p.communicate()
+
+            if p.returncode != 0:
+                msg = stderr.decode('utf-8', 'replace').strip()
+                raise EmbedThumbnailPPError(msg)
+
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
         else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
+            raise EmbedThumbnailPPError('Only mp3, m4a/mp4, and flac are supported for thumbnail embedding for now.')
 
         return [], info
