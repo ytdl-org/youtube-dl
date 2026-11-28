@@ -31,7 +31,7 @@ from .periscope import (
 
 class TwitterBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitter.com/1.1/'
-    _BASE_REGEX = r'https?://(?:(?:www|m(?:obile)?)\.)?twitter\.com/'
+    _BASE_REGEX = r'https?://(?:(?:www|m(?:obile)?)\.)?(?:twitter|x)\.com/'  # FIX: support x.com domain
     _GUEST_TOKEN = None
 
     def _extract_variant_formats(self, variant, video_id):
@@ -177,6 +177,12 @@ class TwitterCardIE(InfoExtractor):
             'skip': 'This content is no longer available.',
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
+            'only_matching': True,
+        }, {
+            'url': 'https://x.com/i/videos/752274308186120192',
+            'only_matching': True,
+        }, {
+            'url': 'https://mobile.x.com/i/videos/752274308186120192',
             'only_matching': True,
         },
     ]
@@ -426,6 +432,12 @@ class TwitterIE(TwitterBaseIE):
     }, {
         # poll4choice_video card
         'url': 'https://twitter.com/SouthamptonFC/status/1347577658079641604',
+        'only_matching': True,
+    }, {
+        'url': 'https://x.com/SouthamptonFC/status/1347577658079641604',
+        'only_matching': True,
+    }, {
+        'url': 'https://mobile.x.com/SouthamptonFC/status/1347577658079641604',
         'only_matching': True,
     }]
 
