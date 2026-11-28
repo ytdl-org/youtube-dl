@@ -158,7 +158,7 @@ jobs:
       if: ${{ matrix.python-impl == 'cpython' && matrix.python-version != '2.6' && matrix.python-version != '2.7' && matrix.python-version != env.next }}
       # wrap broken actions/setup-python@v4
       # NB may run apt-get install in Linux
-      uses: ytdl-org/setup-python@v1
+      uses: ytdl-org/setup-python@721f2cd130736a528673de59e74be6fb0d0a8784 # v1
       env:
         # Temporary (?) workaround for Python 3.5 failures - May 2024
         PIP_TRUSTED_HOST: "pypi.python.org pypi.org files.pythonhosted.org"
