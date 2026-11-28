@@ -240,7 +240,7 @@ from .clyp import ClypIE
 from .cmt import CMTIE
 from .cnbc import (
     CNBCIE,
-    CNBCVideoIE,
+    CNBCPlayerIE,
 )
 from .cnn import (
     CNNIE,
