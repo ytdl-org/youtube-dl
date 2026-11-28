@@ -434,7 +434,10 @@ from .frontendmasters import (
     FrontendMastersCourseIE
 )
 from .fujitv import FujiTVFODPlus7IE
-from .funimation import FunimationIE
+from .funimation import (
+    FunimationIE,
+    FunimationShowPlaylistIE
+)
 from .funk import FunkIE
 from .fusion import FusionIE
 from .gaia import GaiaIE
