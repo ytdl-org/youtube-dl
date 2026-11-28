@@ -115,7 +115,6 @@ setup(
         'youtube_dl.extractor', 'youtube_dl.downloader',
         'youtube_dl.postprocessor'],
 
-    # Provokes warning on most systems (why?!)
     # test_suite = 'nose.collector',
     # test_requires = ['nosetest'],
 
