@@ -20,7 +20,7 @@ class NaverBaseIE(InfoExtractor):
 
     def _extract_video_info(self, video_id, vid, key):
         video_data = self._download_json(
-            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + vid,
+            'https://apis.naver.com/rmcnmv/rmcnmv/vod/play/v2.0/' + vid,
             video_id, query={
                 'key': key,
             })
